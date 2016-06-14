@@ -53,12 +53,7 @@ class Field(object):
                                                self.rabi_freq_t_func,
                                                self.rabi_freq_t_args)
 
-    def to_json(self):
-        """ Return a JSON string representation of the Field object.
-
-        Returns:
-            (string) JSON representation of the Field object.
-        """
+    def get_json_dict(self):
 
         json_dict = { "label": self.label,
                       "coupled_levels": self.coupled_levels,
@@ -67,8 +62,23 @@ class Field(object):
                       "rabi_freq": self.rabi_freq,
                       "rabi_freq_t_func": self.rabi_freq_t_func,
                       "rabi_freq_t_args": self.rabi_freq_t_args }
+        return json_dict
 
-        return json.dumps(json_dict)
+    def to_json(self):
+        """ Return a JSON string representation of the Field object.
+
+        Returns:
+            (string) JSON representation of the Field object.
+        """
+
+        return json.dumps(self.get_json_dict(), indent=2, separators=None,
+                          sort_keys=True)
+
+    def to_json_file(self, file_path):
+
+        with open(file_path, 'w') as fp:
+            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None, 
+                      sort_keys=True)
 
     @classmethod
     def from_json(cls, json_str):
