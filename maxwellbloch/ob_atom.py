@@ -32,6 +32,14 @@ class OBAtom(ob_base.OBBase):
             self.add_field(f)
         return self.fields
 
+    def get_json_dict(self):
+
+        json_dict = { "num_states": self.num_states,
+                      "energies": self.energies,
+                      "decays": self.decays,
+                      "fields": [f.__dict__ for f in self.fields] }
+        return json_dict
+
     def to_json_str(self):
         """ Return a JSON string representation of the Atom object.
 
@@ -39,16 +47,23 @@ class OBAtom(ob_base.OBBase):
             (string) JSON representation of the Atom object.
         """
 
-        json_dict = { "num_states": self.num_states,
-                      "energies": self.energies,
-                      "decays": self.decays,
-                      "fields": [f.__dict__ for f in self.fields] }
+        return json.dumps(self.get_json_dict())
 
-        return json.dumps(json_dict)
+    def to_json(self, file_path):
+
+        with open(file_path, 'w') as fp:
+            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None, 
+                      sort_keys=True)
 
     @classmethod
     def from_json_str(cls, json_str):
         json_dict = json.loads(json_str)
+        return cls(**json_dict)
+
+    @classmethod
+    def from_json(cls, file_path):
+        with open(file_path) as json_file:
+            json_dict = json.load(json_file)
         return cls(**json_dict)
 
 def main():
