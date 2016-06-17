@@ -2,7 +2,7 @@
 
 import json
 
-from maxwellbloch import ob_base
+from maxwellbloch import ob_base, field
 
 class OBAtom(ob_base.OBBase):
 
