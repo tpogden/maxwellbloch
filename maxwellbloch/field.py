@@ -90,3 +90,10 @@ class Field(object):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
         return cls(**json_dict)
+
+def main():
+
+    print(Field())
+
+if __name__ == '__main__':
+    status = main()

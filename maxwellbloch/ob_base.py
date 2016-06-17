@@ -3,7 +3,7 @@
 import os
 import sys
 
-import sigma
+from maxwellbloch import sigma
 
 import numpy as np
 import qutip as qu
