@@ -41,11 +41,11 @@ class Field(object):
 
         return ("Field(label={0}, " +
                 "coupled_levels={1}, " +
-                "detuning={2}), " +
+                "detuning={2}, " +
                 "detuning_positive={3}, "
                 "rabi_freq={4}, " +
                 "rabi_freq_t_func={5}, " +
-                "rabi_freq_t_args={6}").format(self.label, 
+                "rabi_freq_t_args={6})").format(self.label, 
                                                self.coupled_levels, 
                                                self.detuning,
                                                self.detuning_positive,
