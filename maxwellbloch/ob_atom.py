@@ -2,6 +2,9 @@
 
 import json
 
+import numpy as np
+import qutip as qu
+
 from maxwellbloch import ob_base, field
 
 class OBAtom(ob_base.OBBase):
@@ -17,6 +20,7 @@ class OBAtom(ob_base.OBBase):
         self.build_H_0(energies)
         self.build_c_ops(decays)
 
+        self.build_H_Delta()
 
     def __repr__(self):
         return ("Atom(num_states={0}, " +
@@ -34,6 +38,7 @@ class OBAtom(ob_base.OBBase):
         self.fields = []
         for f in field_dicts:
             self.add_field(f)
+        print(self.fields)
         return self.fields
 
     def build_H_0(self, energies=[]): 
@@ -79,6 +84,32 @@ class OBAtom(ob_base.OBBase):
             for c in d["channels"]:
                 self.c_ops.append(np.sqrt(r)*self.sigma(c[0],c[1]))
         return self.c_ops
+
+    def build_H_Delta(self):
+
+        # TODO: check fields has been built.
+
+        self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
+
+        for f in self.fields:
+            if f.detuning_positive:
+                sgn = 1.
+            else:
+                sgn = -1.
+            for c in f.coupled_levels:
+                self.H_Delta -= sgn*f.detuning*self.sigma(c[1], c[1])
+
+        return self.H_Delta
+
+    def set_H_Delta(self, detunings):
+        """
+        TODO: assert len(detunings) == len(fields)
+        """
+
+        for i, f in enumerate(self.fields):
+            f.detuning = detunings[i]
+
+        return self.build_H_Delta()
 
     def get_json_dict(self):
 
