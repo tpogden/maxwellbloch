@@ -3,6 +3,7 @@
 import json
 
 import numpy as np
+from numpy import pi
 import qutip as qu
 
 from maxwellbloch import ob_base, field
@@ -21,6 +22,7 @@ class OBAtom(ob_base.OBBase):
         self.build_c_ops(decays)
 
         self.build_H_Delta()
+        self.build_H_Omega()
 
     def __repr__(self):
         return ("Atom(num_states={0}, " +
@@ -82,7 +84,7 @@ class OBAtom(ob_base.OBBase):
         for d in decays:
             r = d["rate"]
             for c in d["channels"]:
-                self.c_ops.append(np.sqrt(r)*self.sigma(c[0],c[1]))
+                self.c_ops.append(np.sqrt(2*pi*r)*self.sigma(c[0],c[1]))
         return self.c_ops
 
     def build_H_Delta(self):
@@ -110,6 +112,30 @@ class OBAtom(ob_base.OBBase):
             f.detuning = detunings[i]
 
         return self.build_H_Delta()
+
+    def build_H_Omega(self):
+
+        self.H_Omega_list = []
+
+        # self.H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
+
+        H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
+
+        for f in self.fields:
+            
+            H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
+            
+            for c in f.coupled_levels:
+                H_Omega += self.sigma(c[0],c[1]) + self.sigma(c[1],c[0])
+                H_Omega *= pi*f.rabi_freq # 2π*rabi_freq/2
+
+            if f.rabi_freq_t_func: # time-dependent interaction
+                self.H_Omega_list.append([H_Omega, 
+                                          f.rabi_freq_t_func])
+            else: # time-independent
+                self.H_Omega_list.append(H_Omega)
+
+        return self.H_Omega_list
 
     def get_json_dict(self):
 
