@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from maxwellbloch import t_funcs
 
 class Field(object):
     """ Field object to address the OBAtom object, describing the atomic levels
@@ -34,8 +35,10 @@ class Field(object):
         self.detuning_positive = detuning_positive
 
         self.rabi_freq = rabi_freq
-        self.rabi_freq_t_func = rabi_freq_t_func
+        # self.rabi_freq_t_func = rabi_freq_t_func
         self.rabi_freq_t_args = rabi_freq_t_args
+
+        self.build_rabi_freq_t_func(rabi_freq_t_func)
 
     def __repr__(self):
 
@@ -52,6 +55,15 @@ class Field(object):
                                                self.rabi_freq,
                                                self.rabi_freq_t_func,
                                                self.rabi_freq_t_args)
+
+    def build_rabi_freq_t_func(self, rabi_freq_t_func):
+
+        if rabi_freq_t_func:
+            self.rabi_freq_t_func = t_funcs.square_1#= getattr(t_funcs, rabi_freq_t_func)
+        else:
+            self.rabi_freq_t_func = None
+
+        return self.rabi_freq_t_func
 
     def get_json_dict(self):
 
@@ -93,7 +105,7 @@ class Field(object):
 
 def main():
 
-    print(Field())
+    print(Field(rabi_freq_t_func="square_2"))
 
 if __name__ == '__main__':
     status = main()
