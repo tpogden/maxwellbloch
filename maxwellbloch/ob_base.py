@@ -94,7 +94,7 @@ class OBBase(object):
         in the case of multiple lasers, or a laser and a dipole-dipole
         interaction in the case of multiple atoms.
 
-        * excluding the detuning term, H_omega.
+        * excluding the detuning term, H_Delta.
 
         Q: Why do it with lists this way?
         A: For time-dependent interactions, it allows us to specify different

@@ -117,8 +117,6 @@ class OBAtom(ob_base.OBBase):
 
         self.H_Omega_list = []
 
-        # self.H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-
         H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
         for f in self.fields:
@@ -129,13 +127,39 @@ class OBAtom(ob_base.OBBase):
                 H_Omega += self.sigma(c[0],c[1]) + self.sigma(c[1],c[0])
                 H_Omega *= pi*f.rabi_freq # 2π*rabi_freq/2
 
-            if f.rabi_freq_t_func: # time-dependent interaction
-                self.H_Omega_list.append([H_Omega, 
-                                          f.rabi_freq_t_func])
+            if self.is_field_td(): # time-dependent interaction
+                print('Time dependent')
+                self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
             else: # time-independent
                 self.H_Omega_list.append(H_Omega)
 
         return self.H_Omega_list
+
+    def get_field_args(self):
+
+        args = {}
+        for f in self.fields:
+            args.update(f.rabi_freq_t_args)
+        return args
+
+    def is_field_td(self):
+
+        # Time-dependent if there are any t_funcs specified
+        return any(f.rabi_freq_t_func is not None for f in self.fields)
+
+    def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(), 
+                recalc=True, savefile=None, show_pbar=False):
+
+        args = self.get_field_args()
+
+        td = self.is_field_td()
+
+        self.result = super().mesolve(tlist=tlist, rho0=rho0, td=td, 
+                                      e_ops=e_ops, args=args, opts=opts, 
+                                      recalc=recalc, savefile=savefile, 
+                                      show_pbar=show_pbar)
+
+        return self.result
 
     def get_json_dict(self):
 
