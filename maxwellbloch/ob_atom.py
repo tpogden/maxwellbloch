@@ -40,7 +40,6 @@ class OBAtom(ob_base.OBBase):
         self.fields = []
         for f in field_dicts:
             self.add_field(f)
-        print(self.fields)
         return self.fields
 
     def build_H_0(self, energies=[]): 
@@ -128,8 +127,8 @@ class OBAtom(ob_base.OBBase):
                 H_Omega *= pi*f.rabi_freq # 2π*rabi_freq/2
 
             if self.is_field_td(): # time-dependent interaction
-                print('Time dependent')
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
+            
             else: # time-independent
                 self.H_Omega_list.append(H_Omega)
 

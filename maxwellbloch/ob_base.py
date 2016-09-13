@@ -126,14 +126,17 @@ class OBBase(object):
         return H_I
 
     def states_t(self):
-        """ Returns: a 3D array, first dim is time, the other two are the
+        """ Returns:
+            If c_ops: 3D array, first dim is time, the other two are the
         density matrix at each time slice.
+            If no c_ops: 3D array, first dim is time, second is state vector,
+                third is 1.
         """
 
         # No collapse operators, so states is a list of state vectors
         if len(self.c_ops) == 0:
             states_t = np.zeros((len(self.result.times), self.num_states, 1),
-                             dtype=np.complex)
+                                dtype=np.complex)
 
         # Collapse operators, so states is a list of density matrices
         else:
@@ -146,13 +149,12 @@ class OBBase(object):
 
         return states_t
 
-    def mesolve(self, tlist, rho0=None, td=False, e_ops=[], 
-                args={}, opts=qu.Options(), recalc=True, savefile=None,
+    def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={}, 
+                opts=qu.Options(), recalc=True, savefile=None, 
                 show_pbar=False):
         
         if not rho0:
-            rho0 = self.ground_state()*self.ground_state().dag() 
-        # TODO: can't this just be ground state?
+            rho0 = self.ground_state()
 
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
