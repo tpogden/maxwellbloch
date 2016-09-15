@@ -103,6 +103,7 @@ class TestInit(unittest.TestCase):
         ob_atom_03 = ob_atom.OBAtom().from_json_str(
             self.ob_atom_02.to_json_str())
 
+        self.maxDiff = None
         self.assertEqual(self.ob_atom_02.to_json_str(),
                          ob_atom_03.to_json_str())           
 
@@ -117,6 +118,7 @@ class TestInit(unittest.TestCase):
         ob_atom_03 = ob_atom.OBAtom().from_json(filepath)
         os.remove(filepath)
 
+        self.maxDiff = None
         self.assertEqual(self.ob_atom_02.to_json_str(),
                          ob_atom_03.to_json_str())
 
