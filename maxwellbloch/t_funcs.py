@@ -41,7 +41,7 @@ def square_3(t, args):
 
     return ampl_3*(t >= on_3)*(t <= off_3)
 
-def gaussian_fwhm_1(t, args):
+def gaussian_1(t, args):
 
     ampl_1 = args['ampl_1']
     fwhm_1 = args['fwhm_1']
@@ -49,7 +49,7 @@ def gaussian_fwhm_1(t, args):
 
     return ampl_1*exp(-4*log(2)*((t - centre_1)/fwhm_1)**2)    
 
-def gaussian_fwhm_2(t, args):
+def gaussian_2(t, args):
 
     ampl_2 = args['ampl_2']
     fwhm_2 = args['fwhm_2']
@@ -57,7 +57,7 @@ def gaussian_fwhm_2(t, args):
 
     return ampl_2*exp(-4*log(2)*((t - centre_2)/fwhm_2)**2)    
 
-def gaussian_fwhm_3(t, args):
+def gaussian_3(t, args):
 
     ampl_3 = args['ampl_3']
     fwhm_3 = args['fwhm_3']
@@ -65,7 +65,7 @@ def gaussian_fwhm_3(t, args):
 
     return ampl_3*exp(-4*log(2)*((t - centre_3)/fwhm_3)**2)    
 
-def gaussian_fwhm_4(t, args):
+def gaussian_4(t, args):
 
     ampl_4 = args['ampl_4']
     fwhm_4 = args['fwhm_4']
@@ -73,7 +73,7 @@ def gaussian_fwhm_4(t, args):
 
     return ampl_4*exp(-4*log(2)*((t - centre_4)/fwhm_4)**2)    
 
-def gaussian_fwhm_5(t, args):
+def gaussian_5(t, args):
 
     ampl_5 = args['ampl_5']
     fwhm_5 = args['fwhm_5']
@@ -81,7 +81,7 @@ def gaussian_fwhm_5(t, args):
 
     return ampl_5*exp(-4*log(2)*((t - centre_5)/fwhm_5)**2)    
 
-def gaussian_fwhm_6(t, args):
+def gaussian_6(t, args):
 
     ampl_6 = args['ampl_6']
     fwhm_6 = args['fwhm_6']
@@ -89,7 +89,7 @@ def gaussian_fwhm_6(t, args):
 
     return ampl_6*exp(-4*log(2)*((t - centre_6)/fwhm_6)**2)    
 
-def gaussian_fwhm_7(t, args):
+def gaussian_7(t, args):
 
     ampl_7 = args['ampl_7']
     fwhm_7 = args['fwhm_7']
@@ -100,101 +100,107 @@ def gaussian_fwhm_7(t, args):
 def ramp_on_1(t, args):
 
     ampl_1 = args['ampl_1']
-    width_1 = args['width_1']
-    centre_1 = args['centre_1']
+    fwhm_1 = args['fwhm_1']
+    on_1 = args['on_1']
 
-    return ampl_1*(exp(-2*log(2)*((t - centre_1)/width_1)**2)*(t <= centre_1) +
-                   (t > centre_1))
+    return ampl_1*(exp(-4*log(2)*((t - on_1)/fwhm_1)**2)*(t <= on_1) +
+                   (t > on_1))
 
 def ramp_on_2(t, args):
 
     ampl_2 = args['ampl_2']
-    width_2 = args['width_2']
-    centre_2 = args['centre_2']
+    fwhm_2 = args['fwhm_2']
+    on_2 = args['on_2']
 
-    return ampl_2*(exp(-2*log(2)*((t - centre_2)/width_2)**2)*(t <= centre_2) +
-                   (t > centre_2))
+    return ampl_2*(exp(-4*log(2)*((t - on_2)/fwhm_2)**2)*(t <= on_2) +
+                   (t > on_2))
 
 def ramp_on_3(t, args):
 
     ampl_3 = args['ampl_3']
-    width_3 = args['width_3']
-    centre_3 = args['centre_3']
+    fwhm_3 = args['fwhm_3']
+    on_3 = args['on_3']
 
-    return ampl_3*(exp(-2*log(2)*((t - centre_3)/width_3)**2)*(t <= centre_3) +
-                   (t > centre_3))
+    return ampl_3*(exp(-4*log(2)*((t - on_3)/fwhm_3)**2)*(t <= on_3) +
+                   (t > on_3))
 
 def ramp_off_1(t, args):
 
     ampl_1 = args['ampl_1']
-    width_1 = args['width_1']
-    centre_1 = args['centre_1']
+    fwhm_1 = args['fwhm_1']
+    off_1 = args['off_1']
 
-    return ampl_1*(exp(-2*log(2)*((t - centre_1)/width_1)**2)*(t >= centre_1) +
-                   (t < centre_1))
+    return ampl_1*(exp(-4*log(2)*((t - off_1)/fwhm_1)**2)*(t >= off_1) +
+                   (t < off_1))
 
 def ramp_off_2(t, args):
 
     ampl_2 = args['ampl_2']
-    width_2 = args['width_2']
-    centre_2 = args['centre_2']
+    fwhm_2 = args['fwhm_2']
+    off_2 = args['off_2']
 
-    return ampl_2*(exp(-2*log(2)*((t - centre_2)/width_2)**2)*(t >= centre_2) +
-                   (t < centre_2))
+    return ampl_2*(exp(-4*log(2)*((t - off_2)/fwhm_2)**2)*(t >= off_2) +
+                   (t < off_2))
 
 def ramp_off_3(t, args):
 
     ampl_3 = args['ampl_3']
-    width_3 = args['width_3']
-    centre_3 = args['centre_3']
+    fwhm_3 = args['fwhm_3']
+    off_3 = args['off_3']
 
-    return ampl_3*(exp(-2*log(2)*((t - centre_3)/width_3)**2)*(t >= centre_3) +
-                   (t < centre_3))
+    return ampl_3*(exp(-4*log(2)*((t - off_3)/fwhm_3)**2)*(t >= off_3) +
+                   (t < off_3))
 
 def ramp_onoff_1(t, args):
 
     ampl_1 = args['ampl_1']
-    width_1 = args['width_1']
+    fwhm_1 = args['fwhm_1']
     on_1 = args['on_1']
     off_1 = args['off_1']
 
-    ramp_on = (exp(-2*log(2)*((t - on_1)/width_1)**2)*
+    ramp_on = (exp(-4*log(2)*((t - on_1)/fwhm_1)**2)*
                         (t <= on_1) + (t > on_1))
 
-    ramp_off = (exp(-2*log(2)*((t - off_1)/width_1)**2)*
+    ramp_off = (exp(-4*log(2)*((t - off_1)/fwhm_1)**2)*
                         (t >= off_1) + (t < off_1))
 
-    return ampl_1*(ramp_on + ramp_off - 1.)
+    ramp_onoff = ramp_on + ramp_off - 1
+
+    return ampl_1*ramp_onoff
 
 def ramp_onoff_2(t, args):
 
     ampl_2 = args['ampl_2']
-    width_2 = args['width_2']
+    fwhm_2 = args['fwhm_2']
     on_2 = args['on_2']
     off_2 = args['off_2']
 
-    ramp_on = (exp(-2*log(2)*((t - on_2)/width_2)**2)*
+    ramp_on = (exp(-4*log(2)*((t - on_2)/fwhm_2)**2)*
                         (t <= on_2) + (t > on_2))
 
-    ramp_off = (exp(-2*log(2)*((t - off_2)/width_2)**2)*
+    ramp_off = (exp(-4*log(2)*((t - off_2)/fwhm_2)**2)*
                         (t >= off_2) + (t < off_2))
 
-    return ampl_2*(ramp_on + ramp_off - 1.)
+    ramp_onoff = ramp_on + ramp_off - 1
+
+    return ampl_2*ramp_onoff
 
 def ramp_onoff_3(t, args):
 
     ampl_3 = args['ampl_3']
-    width_3 = args['width_3']
+    fwhm_3 = args['fwhm_3']
     on_3 = args['on_3']
     off_3 = args['off_3']
 
-    ramp_on = (exp(-2*log(2)*((t - on_3)/width_3)**2)*
+    ramp_on = (exp(-4*log(2)*((t - on_3)/fwhm_3)**2)*
                         (t <= on_3) + (t > on_3))
 
-    ramp_off = (exp(-2*log(2)*((t - off_3)/width_3)**2)*
+    ramp_off = (exp(-4*log(2)*((t - off_3)/fwhm_3)**2)*
                         (t >= off_3) + (t < off_3))
 
-    return ampl_3*(ramp_on + ramp_off - 1.)
+    ramp_onoff = ramp_on + ramp_off - 1
+
+    return ampl_3*ramp_onoff
 
 def sinc_1(t, args):
 
