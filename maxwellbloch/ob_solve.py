@@ -15,7 +15,7 @@ class OBSolve(object):
     """docstring for OBSolve"""
 
     def __init__(self, ob_atom={}, t_min=0.0, t_max=1.0, t_steps=100, 
-                 method='mesolve', opts={}):
+                 method='mesolve', opts={}, savefile=None):
     
         self.build_ob_atom(ob_atom)
 
@@ -23,6 +23,8 @@ class OBSolve(object):
 
         self.method = method
         self.build_opts(opts)
+
+        self.savefile = savefile
 
     def __repr__(self):
         return ("OBSolve(ob_atom={0}, " +
@@ -58,13 +60,13 @@ class OBSolve(object):
         self.opts = qu.Options()
         return self.opts
 
-    def solve(self, method=self.method, rho0=None, e_ops=[], opts=self.opts, 
+    def solve(self, rho0=None, e_ops=[], 
               recalc=True, savefile=None, show_pbar=False):
 
-        if method == 'mesolve':
-            ob_obj.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
-                           opts=qu.Options(), recalc=True, savefile=None, 
-                           show_pbar=False)
+        if self.method == 'mesolve':
+            self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
+                                opts=qu.Options(), recalc=True, savefile=None, 
+                                show_pbar=show_pbar)
 
     @classmethod
     def from_json_str(cls, json_str):
@@ -75,6 +77,11 @@ class OBSolve(object):
     def from_json(cls, file_path):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
+
+            if 'savefile' not in json_dict:
+                s = os.path.splitext(file_path)[0]
+                json_dict['savefile'] = s
+
         return cls(**json_dict)
 
 def main():
