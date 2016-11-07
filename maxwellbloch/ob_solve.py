@@ -61,12 +61,12 @@ class OBSolve(object):
         return self.opts
 
     def solve(self, rho0=None, e_ops=[], 
-              recalc=True, savefile=None, show_pbar=False):
+              recalc=True, show_pbar=False):
 
         if self.method == 'mesolve':
             self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
-                                opts=qu.Options(), recalc=True, savefile=None, 
-                                show_pbar=show_pbar)
+                                opts=qu.Options(), recalc=recalc, 
+                                savefile=self.savefile, show_pbar=show_pbar)
 
     @classmethod
     def from_json_str(cls, json_str):
@@ -78,6 +78,7 @@ class OBSolve(object):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
 
+            # TODO: Do I need to do this here? Just pass null and build_savefile?
             if 'savefile' not in json_dict:
                 s = os.path.splitext(file_path)[0]
                 json_dict['savefile'] = s
