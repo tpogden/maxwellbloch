@@ -4,10 +4,12 @@ import os
 import sys
 
 import json
+from time import strftime
 
 import qutip as qu
 
 from maxwellbloch import ob_atom
+
 
 # Main
 
@@ -24,7 +26,7 @@ class OBSolve(object):
         self.method = method
         self.build_opts(opts)
 
-        self.savefile = savefile
+        self.build_savefile(savefile)
 
     def __repr__(self):
         return ("OBSolve(ob_atom={0}, " +
@@ -68,6 +70,14 @@ class OBSolve(object):
                                 opts=qu.Options(), recalc=recalc, 
                                 savefile=self.savefile, show_pbar=show_pbar)
 
+    def states_t(self):
+
+        return self.ob_atom.states_t()
+
+    def build_savefile(self, savefile):
+
+        self.savefile = savefile
+
     @classmethod
     def from_json_str(cls, json_str):
         json_dict = json.loads(json_str)
@@ -78,10 +88,12 @@ class OBSolve(object):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
 
-            # TODO: Do I need to do this here? Just pass null and build_savefile?
+            # This needs to be here to get the savefile name from json
             if 'savefile' not in json_dict:
                 s = os.path.splitext(file_path)[0]
                 json_dict['savefile'] = s
+
+                print(json_dict['savefile'])
 
         return cls(**json_dict)
 
