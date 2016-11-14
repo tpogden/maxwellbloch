@@ -183,10 +183,16 @@ class OBBase(object):
 
             # Only save the file if we have a place to save it.
             if (savefile != None):
+
+                print('Saving to {0}.qu'.format(savefile))
+
                 qu.qsave(self.result, savefile)
 
         # Otherwise load the steady state rho_v_delta from file
         else:
+
+            print('Loading from {0}.qu'.format(savefile))
+
             self.result = qu.qload(savefile)
             self.rho = self.result.states[-1]
 
