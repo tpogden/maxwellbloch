@@ -134,6 +134,10 @@ class OBAtom(ob_base.OBBase):
 
         return self.H_Omega_list
 
+    def set_H_Omega(self):
+
+        pass
+
     def get_field_args(self):
 
         args = {}

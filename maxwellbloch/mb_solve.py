@@ -5,7 +5,13 @@ import sys
 
 import numpy as np
 
+import qutip as qu # TODO: remve if not needed in average_states_Delta
+
 from maxwellbloch import ob_solve, t_funcs
+
+from copy import deepcopy
+
+
 
 class MBSolve(ob_solve.OBSolve):
 
@@ -26,6 +32,8 @@ class MBSolve(ob_solve.OBSolve):
         self.build_velocity_classes(velocity_classes)
 
     def __repr__(self):
+        """ TODO: needs interaction strengths """
+
         return ("MBSolve(ob_atom={0}, " +
                 "t_min={1}, " +
                 "t_max={2}, " +
@@ -88,6 +96,7 @@ class MBSolve(ob_solve.OBSolve):
             self.velocity_classes['thermal_delta_inner_min'] = 0.0
             self.velocity_classes['thermal_delta_inner_max'] = 0.0
             self.velocity_classes['thermal_delta_inner_steps'] = 0
+            self.velocity_classes['thermal_width'] = 1.0
 
         Delta_min = 2*np.pi*self.velocity_classes['thermal_delta_min']
         Delta_max = 2*np.pi*self.velocity_classes['thermal_delta_max']
@@ -101,11 +110,13 @@ class MBSolve(ob_solve.OBSolve):
         Delta2_range = np.linspace(Delta2_min, Delta2_max, Delta2_steps+1)
 
         # Merge the two ranges
-        Delta_range = np.unique(np.sort(np.append(Delta_range, Delta2_range)))
+        self.thermal_delta_list = np.unique(np.sort(np.append(Delta_range, 
+                                                              Delta2_range)))
 
-        print(Delta_range)
+        self.thermal_weights = maxwell_boltzmann(self.thermal_delta_list, 
+                                        self.velocity_classes['thermal_width'])
 
-        return Delta_range
+        return self.thermal_delta_list, self.thermal_weights
 
     def build_number_density(self, num_density_z_func, num_density_z_args,
                          interaction_strengths):
@@ -125,22 +136,39 @@ class MBSolve(ob_solve.OBSolve):
         else:
             self.num_density_z_args = {'on_1': 0.0, 'off_1': 1.0, 'ampl_1':1.0}
 
-    def solve(self, rho0=None, recalc=True, show_pbar=False):
+    def init_Omegas_zt(self):
 
-        num_fields = len(self.ob_atom.fields)
+        self.Omegas_zt = np.zeros((len(self.ob_atom.fields), len(self.zlist), 
+                                  len(self.tlist)), dtype=complex) 
 
-        Omegas_zt = np.zeros((num_fields, len(self.zlist), len(self.tlist)), 
-                             dtype=complex)        
+        return self.Omegas_zt
+
+    def init_result_zt(self):
+
+        self.result_zt = [None]*len(self.zlist)     
+
+        return self.result_zt
+
+    def mbsolve(self, rho0=None, recalc=True, show_pbar=False):
+
+        # num_fields = len(self.ob_atom.fields)
+
+        self.init_Omegas_zt()      
+
+        self.init_result_zt()
 
         result_zt = [None]*len(self.zlist) 
 
         savefile_exists = os.path.isfile(str(self.savefile) + '.qu')
 
         if (recalc or not savefile_exists):
+
+            # Set Omega_0 to the initial tfunc of the field
       
-            Omega_0_agrs = {}
-            for i, f in enumerate(self.ob_atom.fields):
-                Omegas_zt[i][0] = f.rabi_freq_t_func(tlist, rabi_freq_t_args)
+            Omega_0_args = {}
+            for f_i, f in enumerate(self.ob_atom.fields):
+                self.Omegas_zt[f_i][0] = f.rabi_freq_t_func(self.tlist, 
+                                                          f.rabi_freq_t_args)
                 Omega_0_args.update(f.rabi_freq_t_args)  
 
             len_z = len(self.zlist)-1 # only for printing progress
@@ -149,14 +177,108 @@ class MBSolve(ob_solve.OBSolve):
 
             print('j: 0/{:d}, z = {:.3f}'.format(len_z, self.zlist[0])) # Progress 
 
-            h_0 = self.zlist[1] - self.zlist[0]
+            # H_Omega should be as it was defined
+            # self.ob_atom.build_H_Omega()
 
-            # Number density
-            N = self.num_density_z_func(self.zlist[1], self.num_density_z_args) 
+            result_Delta = self.solve_over_thermal_detunings()
 
-            pass
+            # Need any one of the result objects to fill with averaged states
+            result_zt[0] = deepcopy(result_Delta[0])
 
-        return Omegas_zt, result_zt                        
+            for k, t in enumerate(self.tlist):
+                self.result_zt[0].states[k] = self.average_states_over_thermal_detunings(result_Delta, k)
+
+            self.z_step_fields_euler(j=1)
+                # for f_i, f in enumerate(self.ob_atom.fields):
+
+                #     rho = result_zt[0].states[k]
+
+                #     # f.coupled_levels
+
+                #     dOmegas_dz[f_i] = 1j*N*self.g[f_i]*rho[]
+
+
+
+
+        return self.Omegas_zt, self.result_zt                        
+
+    def z_step_fields_euler(self, j):
+        """ Should this take and return? """
+
+        h_0 = self.zlist[j] - self.zlist[j-1] # J SHOULD BE 1 for first step
+
+        # Number density
+        N = self.num_density_z_func(self.zlist[j], self.num_density_z_args) 
+
+        # Array, one derivative for each field
+        # dOmegas_dz =  np.zeros(len(self.ob_atom.fields))
+
+        for k, t in enumerate(self.tlist):
+
+            rho = result_zt[j-1].states[k]
+
+            for f_i, f in enumerate(self.ob_atom.fields):
+
+                dOmega_f_dz = 1j*N*self.g[f_i]*rho[f.coupled_levels]
+                self.Omegas_zt[f_i, j, k] = Omegas_zt[f_i, j-1, k] + h_0*dOmega_f_dz
+
+    def z_step_fields_adams_bashforth(self):
+
+        pass
+
+    def solve_over_thermal_detunings(self):
+        """  """
+
+        len_Delta = len(self.thermal_delta_list)
+
+        result_Delta = [None]*len_Delta
+
+        for Delta_i, Delta in enumerate(self.thermal_delta_list):
+
+            # Progress Indicator
+            print('    i: {:d}/{:d}, Delta = {:.3f}'
+                  .format(Delta_i, len_Delta-1, Delta))  
+
+            # Set the detuning for this vel class
+            self.ob_atom.set_H_Delta([Delta])
+
+            result_Delta[Delta_i] = super().solve()
+
+        return result_Delta
+
+    def average_states_over_thermal_detunings(self, result_Delta, t_step):
+
+        len_Delta = len(self.thermal_delta_list)
+
+        states_Delta = np.zeros((len_Delta, self.ob_atom.num_states, 
+                                self.ob_atom.num_states), 
+                                dtype=np.complex)
+
+        for Delta_i, Delta in enumerate(self.thermal_delta_list):
+            states_Delta[Delta_i] = result_Delta[Delta_i].states[t_step].full()
+
+        # Average of states TODO: Do we need this to be a qu object?
+        return qu.Qobj(np.average(states_Delta, axis=0, 
+                        weights=self.thermal_weights))
+
+### Helper Functions
+
+# def Omega_intp(t, args):
+
+#     t_range = args['t_range']
+#     Omega_range = args['Omega_range']
+
+#     Omega_intp = interp1d(t_range, Omega_range,
+#                           bounds_error=False, fill_value=0.0)
+
+#     return Omega_intp(t)
+
+def maxwell_boltzmann(v, fwhm):
+    """ Maxwell Boltzmann probability distribution function. """
+
+    # TODO: Allow offset, v_0.
+
+    return 1./(fwhm*np.sqrt(np.pi))*np.exp(-(v/fwhm)**2)
 
 def main():
 
@@ -164,7 +286,7 @@ def main():
 
     a = MBSolve()
     print(a)
-    a.solve()
+    # a.mbsolve()
 
 if __name__ == '__main__':
     status = main()
