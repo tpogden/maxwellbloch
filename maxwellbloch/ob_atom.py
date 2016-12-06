@@ -89,6 +89,7 @@ class OBAtom(ob_base.OBBase):
     def build_H_Delta(self):
 
         # TODO: check fields has been built.
+        # TODO: Shouldn't this be in build fields?
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
@@ -111,6 +112,12 @@ class OBAtom(ob_base.OBBase):
             f.detuning = detunings[i]
 
         return self.build_H_Delta()
+
+    def shift_H_Delta(self, detuning_shifts):
+        """ TODO: Could make use of set_H_Delta """
+
+        for i, f in enumerate(self.fields):
+            f.detuning = f.detuning + detuning_shifts[i]
 
     def build_H_Omega(self):
 
