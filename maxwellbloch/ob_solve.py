@@ -70,6 +70,8 @@ class OBSolve(object):
                                 opts=qu.Options(), recalc=recalc, 
                                 savefile=self.savefile, show_pbar=show_pbar)
 
+        return self.ob_atom.result
+
     def states_t(self):
 
         return self.ob_atom.states_t()

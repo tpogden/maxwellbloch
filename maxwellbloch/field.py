@@ -59,7 +59,7 @@ class Field(object):
     def build_rabi_freq_t_func(self, rabi_freq_t_func):
 
         if rabi_freq_t_func:
-            self.rabi_freq_t_func = t_funcs.square_1#= getattr(t_funcs, rabi_freq_t_func)
+            self.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_func)
         else:
             self.rabi_freq_t_func = None
 
