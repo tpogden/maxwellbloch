@@ -180,25 +180,17 @@ class MBSolve(ob_solve.OBSolve):
             # H_Omega should be as it was defined
             # self.ob_atom.build_H_Omega()
 
+            # TODO: If I did this with a np array instead of an array of 
+            # qu results, it might be easier
             result_Delta = self.solve_over_thermal_detunings()
 
             # Need any one of the result objects to fill with averaged states
-            result_zt[0] = deepcopy(result_Delta[0])
+            self.result_zt[0] = deepcopy(result_Delta[0])
 
             for k, t in enumerate(self.tlist):
                 self.result_zt[0].states[k] = self.average_states_over_thermal_detunings(result_Delta, k)
 
             self.z_step_fields_euler(j=1)
-                # for f_i, f in enumerate(self.ob_atom.fields):
-
-                #     rho = result_zt[0].states[k]
-
-                #     # f.coupled_levels
-
-                #     dOmegas_dz[f_i] = 1j*N*self.g[f_i]*rho[]
-
-
-
 
         return self.Omegas_zt, self.result_zt                        
 
@@ -215,32 +207,41 @@ class MBSolve(ob_solve.OBSolve):
 
         for k, t in enumerate(self.tlist):
 
-            rho = result_zt[j-1].states[k]
+            rho = self.result_zt[j-1].states[k]
 
             for f_i, f in enumerate(self.ob_atom.fields):
 
-                dOmega_f_dz = 1j*N*self.g[f_i]*rho[f.coupled_levels]
-                self.Omegas_zt[f_i, j, k] = Omegas_zt[f_i, j-1, k] + h_0*dOmega_f_dz
+                # print(f.coupled_levels)
+
+                # a, b = f.coupled_levels
+                sum_rho_ij = 0
+                for cl in f.coupled_levels:
+                    sum_rho_ij += rho[cl[0], cl[1]]
+
+                print('sum_rho_ij: ', sum_rho_ij)
+
+                dOmega_f_dz = 1j*N*self.g[f_i]*sum_rho_ij
+                self.Omegas_zt[f_i, j, k] = self.Omegas_zt[f_i, j-1, k] + h_0*dOmega_f_dz
 
     def z_step_fields_adams_bashforth(self):
 
         pass
 
     def solve_over_thermal_detunings(self):
-        """  """
 
         len_Delta = len(self.thermal_delta_list)
 
         result_Delta = [None]*len_Delta
 
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
+            """ Which field? All of them!"""
 
             # Progress Indicator
             print('    i: {:d}/{:d}, Delta = {:.3f}'
                   .format(Delta_i, len_Delta-1, Delta))  
 
-            # Set the detuning for this vel class
-            self.ob_atom.set_H_Delta([Delta])
+            # Shift each detuning by Delta
+            self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))
 
             result_Delta[Delta_i] = super().solve()
 

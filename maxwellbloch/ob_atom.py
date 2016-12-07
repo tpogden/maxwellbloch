@@ -119,6 +119,8 @@ class OBAtom(ob_base.OBBase):
         for i, f in enumerate(self.fields):
             f.detuning = f.detuning + detuning_shifts[i]
 
+        return self.build_H_Delta()
+
     def build_H_Omega(self):
 
         self.H_Omega_list = []
