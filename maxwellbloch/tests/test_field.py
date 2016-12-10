@@ -7,7 +7,7 @@ Thomas Ogden <t@ogden.eu>
 
 import unittest
 
-from maxwellbloch import field
+from maxwellbloch import field, t_funcs
 
 class TestInit(unittest.TestCase):
 
@@ -63,7 +63,7 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_1": 1.0, 
                                                      "off_1": 0.7,
                                                      "on_1": 0.3})
-        self.assertEqual(self.field_02.rabi_freq_t_func, "square_1")        
+        self.assertEqual(self.field_02.rabi_freq_t_func, t_funcs.square_1)        
            
     def test_to_from_json(self):
 
