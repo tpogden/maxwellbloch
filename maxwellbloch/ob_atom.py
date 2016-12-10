@@ -178,7 +178,7 @@ class OBAtom(ob_base.OBBase):
         json_dict = { "num_states": self.num_states,
                       "energies": self.energies,
                       "decays": self.decays,
-                      "fields": [f.__dict__ for f in self.fields] }
+                      "fields": [f.get_json_dict() for f in self.fields] }
         return json_dict
 
     def to_json_str(self):

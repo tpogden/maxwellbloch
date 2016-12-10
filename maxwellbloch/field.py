@@ -72,8 +72,14 @@ class Field(object):
                       "detuning": self.detuning,
                       "detuning_positive": self.detuning_positive,
                       "rabi_freq": self.rabi_freq,
-                      "rabi_freq_t_func": self.rabi_freq_t_func,
                       "rabi_freq_t_args": self.rabi_freq_t_args }
+
+        if self.rabi_freq_t_func:
+            json_dict.update({"rabi_freq_t_func": 
+                             self.rabi_freq_t_func.__name__})
+        else:
+            json_dict.update({"rabi_freq_t_func": None})
+
         return json_dict
 
     def to_json_str(self):
