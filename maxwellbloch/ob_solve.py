@@ -65,12 +65,12 @@ class OBSolve(object):
         self.opts = qu.Options()
         return self.opts
 
-    def solve(self, rho0=None, e_ops=[], 
-              recalc=True, show_pbar=False):
+    def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True, 
+                show_pbar=False):
 
         if self.method == 'mesolve':
             self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
-                                opts=qu.Options(), recalc=recalc, 
+                                opts=opts, recalc=recalc, 
                                 savefile=self.savefile, show_pbar=show_pbar)
 
         return self.ob_atom.result
@@ -82,6 +82,10 @@ class OBSolve(object):
     def build_savefile(self, savefile):
 
         self.savefile = savefile
+
+    def t_step(self):
+
+        return (self.t_max - self.t_min)/self.t_steps
 
     def get_json_dict(self):
 
