@@ -31,6 +31,9 @@ class MBSolve(ob_solve.OBSolve):
 
         self.build_velocity_classes(velocity_classes)
 
+        self.init_Omegas_zt()
+        self.init_states_zt()
+
     def __repr__(self):
         """ TODO: needs interaction strengths """
 
@@ -139,37 +142,33 @@ class MBSolve(ob_solve.OBSolve):
     def init_Omegas_zt(self):
 
         self.Omegas_zt = np.zeros((len(self.ob_atom.fields), len(self.zlist), 
-                                  len(self.tlist)), dtype=complex) 
+                                  len(self.tlist)), dtype=np.complex) 
 
         return self.Omegas_zt
 
-    def init_result_zt(self):
+    def init_states_zt(self):
 
-        self.result_zt = [None]*len(self.zlist)     
+        self.states_zt = np.zeros((len(self.zlist), len(self.tlist), 
+                            self.ob_atom.num_states, self.ob_atom.num_states), 
+                            dtype=np.complex) 
 
-        return self.result_zt
+        return self.states_zt       
 
     def mbsolve(self, rho0=None, recalc=True, show_pbar=False):
 
-        # num_fields = len(self.ob_atom.fields)
-
-        self.init_Omegas_zt()      
-
-        self.init_result_zt()
-
-        result_zt = [None]*len(self.zlist) 
+        self.init_Omegas_zt()
+        self.init_states_zt()
 
         savefile_exists = os.path.isfile(str(self.savefile) + '.qu')
 
         if (recalc or not savefile_exists):
 
             # Set Omega_0 to the initial tfunc of the field
-      
             Omega_0_args = {}
             for f_i, f in enumerate(self.ob_atom.fields):
                 self.Omegas_zt[f_i][0] = f.rabi_freq_t_func(self.tlist, 
                                                           f.rabi_freq_t_args)
-                Omega_0_args.update(f.rabi_freq_t_args)  
+                Omega_0_args.update(f.rabi_freq_t_args)
 
             len_z = len(self.zlist)-1 # only for printing progress
 
@@ -180,19 +179,11 @@ class MBSolve(ob_solve.OBSolve):
             # H_Omega should be as it was defined
             # self.ob_atom.build_H_Omega()
 
-            # TODO: If I did this with a np array instead of an array of 
-            # qu results, it might be easier
-            result_Delta = self.solve_over_thermal_detunings()
+            self.states_zt[0] = self.solve_and_average_over_thermal_detunings()
 
-            # Need any one of the result objects to fill with averaged states
-            self.result_zt[0] = deepcopy(result_Delta[0])
+            # self.z_step_fields_euler(j=1)
 
-            for k, t in enumerate(self.tlist):
-                self.result_zt[0].states[k] = self.average_states_over_thermal_detunings(result_Delta, k)
-
-            self.z_step_fields_euler(j=1)
-
-        return self.Omegas_zt, self.result_zt                        
+        return self.Omegas_zt, self.states_zt                        
 
     def z_step_fields_euler(self, j):
         """ Should this take and return? """
@@ -227,40 +218,29 @@ class MBSolve(ob_solve.OBSolve):
 
         pass
 
-    def solve_over_thermal_detunings(self):
+    def solve_and_average_over_thermal_detunings(self):
 
-        len_Delta = len(self.thermal_delta_list)
-
-        result_Delta = [None]*len_Delta
+        states_t_Delta = np.zeros((len(self.thermal_delta_list), 
+                                  len(self.tlist), self.ob_atom.num_states, 
+                                  self.ob_atom.num_states), dtype=np.complex)
 
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
-            """ Which field? All of them!"""
 
             # Progress Indicator
             print('    i: {:d}/{:d}, Delta = {:.3f}'
-                  .format(Delta_i, len_Delta-1, Delta))  
+                  .format(Delta_i, len(self.thermal_delta_list)-1, Delta))    
 
             # Shift each detuning by Delta
-            self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))
+            self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))            
 
-            result_Delta[Delta_i] = super().solve()
+            self.solve() # Don't need result, but will update states_t
 
-        return result_Delta
+            states_t_Delta[Delta_i] = self.states_t()
 
-    def average_states_over_thermal_detunings(self, result_Delta, t_step):
+        thermal_states_t = np.average(states_t_Delta, axis=0, 
+                                      weights=self.thermal_weights)
 
-        len_Delta = len(self.thermal_delta_list)
-
-        states_Delta = np.zeros((len_Delta, self.ob_atom.num_states, 
-                                self.ob_atom.num_states), 
-                                dtype=np.complex)
-
-        for Delta_i, Delta in enumerate(self.thermal_delta_list):
-            states_Delta[Delta_i] = result_Delta[Delta_i].states[t_step].full()
-
-        # Average of states TODO: Do we need this to be a qu object?
-        return qu.Qobj(np.average(states_Delta, axis=0, 
-                        weights=self.thermal_weights))
+        return thermal_states_t
 
 ### Helper Functions
 
