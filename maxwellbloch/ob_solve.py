@@ -58,6 +58,9 @@ class OBSolve(object):
         return self.tlist
 
     def build_opts(self, opts):
+        """ This currently just sets the options to default.
+            TODO: Fix this!
+        """
 
         self.opts = qu.Options()
         return self.opts
@@ -79,6 +82,27 @@ class OBSolve(object):
     def build_savefile(self, savefile):
 
         self.savefile = savefile
+
+    def get_json_dict(self):
+
+        json_dict = { "ob_atom": self.ob_atom.get_json_dict(),
+                      "t_min": self.t_min,
+                      "t_max": self.t_max,
+                      "t_steps": self.t_steps,
+                      "method": self.method,
+                      "opts": '{}' # TODO fix when opts fixed.
+                    }
+        return json_dict
+
+    def to_json_str(self):
+
+        return json.dumps(self.get_json_dict())
+
+    def to_json(self, file_path):
+
+        with open(file_path, 'w') as fp:
+            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None, 
+                      sort_keys=True)
 
     @classmethod
     def from_json_str(cls, json_str):
