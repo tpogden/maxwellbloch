@@ -79,6 +79,32 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.to_json_str(),
                          field_03.to_json_str())
 
+class TestBuildRabiFreqTFunc(unittest.TestCase):
+
+    field_00 = field.Field()
+
+    def test_null(self):
+
+        self.field_00.build_rabi_freq_t_func(None)
+        self.assertEqual(self.field_00.rabi_freq_t_func, None)
+
+    def test_square_1(self):
+
+        self.field_00.build_rabi_freq_t_func('square_1')
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.square_1)
+
+    def test_ramp_onoff_2(self):
+
+        self.field_00.build_rabi_freq_t_func('ramp_onoff_2')
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.ramp_onoff_2)
+
+    def test_undefined_t_func(self):
+
+        with self.assertRaises(AttributeError) as context:
+            self.field_00.build_rabi_freq_t_func('f_1')
+
+        self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f_1'"
+                        in str(context.exception))
 
 def main():
     unittest.main(verbosity=3)
