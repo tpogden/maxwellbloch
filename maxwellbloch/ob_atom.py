@@ -193,7 +193,7 @@ class OBAtom(ob_base.OBBase):
 
         """
 
-        sum_coh = 0j
+        sum_coh = np.zeros(len(self.states_t()), dtype=np.complex)
         for cl in self.fields[field_idx].coupled_levels:
             sum_coh += self.states_t()[:, cl[0], cl[1]]
         return sum_coh
@@ -228,7 +228,7 @@ class OBAtom(ob_base.OBBase):
             (string) JSON representation of the Atom object.
         """
 
-        return json.dumps(self.get_json_dict())
+        return json.dumps(self.get_json_dict(), sort_keys=True)
 
     def to_json(self, file_path):
 

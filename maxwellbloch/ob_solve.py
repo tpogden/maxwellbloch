@@ -100,7 +100,7 @@ class OBSolve(object):
 
     def to_json_str(self):
 
-        return json.dumps(self.get_json_dict())
+        return json.dumps(self.get_json_dict(), sort_keys=True)
 
     def to_json(self, file_path):
 
