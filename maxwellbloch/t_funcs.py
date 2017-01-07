@@ -224,4 +224,37 @@ def sech_2(t, args):
     centre_2 = args['centre_2']
     
     return ampl_2*sech((t - centre_2)/width_2)
+
+def intp_1(t, args):
+
+    from scipy.interpolate import interp1d
+
+    tlist = args['tlist_1']
+    ylist = args['ylist_1']
+
+    yintp = interp1d(tlist, ylist, bounds_error=False, fill_value=0.0)
+
+    return yintp(t)
+    
+def intp_2(t, args):
+
+    from scipy.interpolate import interp1d
+
+    tlist = args['tlist_2']
+    ylist = args['ylist_2']
+
+    yintp = interp1d(tlist, ylist, bounds_error=False, fill_value=0.0)
+
+    return yintp(t)
+    
+def intp_3(t, args):
+
+    from scipy.interpolate import interp1d
+
+    tlist = args['tlist_3']
+    ylist = args['ylist_3']
+
+    yintp = interp1d(tlist, ylist, bounds_error=False, fill_value=0.0)
+
+    return yintp(t)
     

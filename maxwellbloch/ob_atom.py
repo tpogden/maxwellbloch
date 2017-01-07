@@ -6,11 +6,13 @@ import numpy as np
 from numpy import pi
 import qutip as qu
 
-from maxwellbloch import ob_base, field
+from maxwellbloch import ob_base, field, t_funcs
 
 class OBAtom(ob_base.OBBase):
 
-    def __init__(self, num_states=0, energies=[], decays=[], fields=[]):
+    def __init__(self, num_states=1, energies=[], decays=[], fields=[]):
+
+        super().__init__()
 
         self.num_states = num_states
         self.energies = energies
@@ -23,6 +25,8 @@ class OBAtom(ob_base.OBBase):
 
         self.build_H_Delta()
         self.build_H_Omega()
+
+        self.init_rho()
 
     def __repr__(self):
         return ("Atom(num_states={0}, " +
@@ -143,9 +147,29 @@ class OBAtom(ob_base.OBBase):
 
         return self.H_Omega_list
 
-    def set_H_Omega(self):
+    def set_H_Omega(self, rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args):
+        """
+        Args:
+            rabi_freqs: [floats]
+            rabi_freq_t_funcs: [strings]
+            rabi_freqs_t_args: [dicts]
 
-        pass
+        Returns:
+
+        """
+
+        for f_i, f in enumerate(self.fields):
+            f.rabi_freq = rabi_freqs[f_i]
+            f.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_funcs[f_i])
+            f.rabi_freq_t_args = rabi_freq_t_args[f_i]
+
+        return self.build_H_Omega()
+
+    def init_rho(self):
+
+        self.rho = self.ground_state()*self.ground_state().dag()
+
+        return self.rho
 
     def get_field_args(self):
 
@@ -158,6 +182,22 @@ class OBAtom(ob_base.OBBase):
 
         # Time-dependent if there are any t_funcs specified
         return any(f.rabi_freq_t_func is not None for f in self.fields)
+
+    def get_field_sum_coherence(self, field_idx):
+        """ Returns the sum coherences of the atom density matrix for the field
+
+        Args:
+            field_idx: index in the array of fields
+
+        Returns:
+
+        """
+
+        sum_coh = np.zeros(len(self.states_t()), dtype=np.complex)
+        for cl in self.fields[field_idx].coupled_levels:
+            sum_coh += self.states_t()[:, cl[0], cl[1]]
+        return sum_coh
+
 
     def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(), 
                 recalc=True, savefile=None, show_pbar=False):
@@ -188,7 +228,7 @@ class OBAtom(ob_base.OBBase):
             (string) JSON representation of the Atom object.
         """
 
-        return json.dumps(self.get_json_dict())
+        return json.dumps(self.get_json_dict(), sort_keys=True)
 
     def to_json(self, file_path):
 

@@ -11,7 +11,7 @@ from maxwellbloch import ob_solve, t_funcs
 
 from copy import deepcopy
 
-
+from tqdm import tqdm # progress bar
 
 class MBSolve(ob_solve.OBSolve):
 
@@ -75,9 +75,13 @@ class MBSolve(ob_solve.OBSolve):
         self.z_steps_inner = z_steps_inner
 
         # TODO: does this even work? Did it ever? Where are inner steps?
-        z_inner_stepsize = (z_max - z_min)/(z_steps*z_steps_inner + 1)
-        zlist = np.linspace(z_min + z_inner_stepsize, z_max, z_steps + 1)
-        zlist = np.insert(zlist, 0, z_min) # One more for first step    
+        # z_inner_stepsize = (z_max - z_min)/(z_steps*z_steps_inner + 1)
+        # zlist = np.linspace(z_min + z_inner_stepsize, z_max, z_steps + 1)
+        # zlist = np.insert(zlist, 0, z_min) # One more for first step    
+
+        z_steps_total = z_steps #*z_steps_inner
+
+        zlist = np.linspace(z_min, z_max, z_steps_total+1)
 
         self.zlist = zlist
 
@@ -117,7 +121,7 @@ class MBSolve(ob_solve.OBSolve):
                                                               Delta2_range)))
 
         self.thermal_weights = maxwell_boltzmann(self.thermal_delta_list, 
-                                        self.velocity_classes['thermal_width'])
+                                    self.velocity_classes['thermal_width'])
 
         return self.thermal_delta_list, self.thermal_weights
 
@@ -144,15 +148,23 @@ class MBSolve(ob_solve.OBSolve):
         self.Omegas_zt = np.zeros((len(self.ob_atom.fields), len(self.zlist), 
                                   len(self.tlist)), dtype=np.complex) 
 
+        ### Set the initial Omegas to the field time func values
+        for f_i, f in enumerate(self.ob_atom.fields):
+            self.Omegas_zt[f_i][0] = 2.0*np.pi*f.rabi_freq* \
+                f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
+
         return self.Omegas_zt
 
     def init_states_zt(self):
+
+        # TODO: Change states_zt to state_zt. Omegas refers to the fact that 
+        # there are multiple fields.
 
         self.states_zt = np.zeros((len(self.zlist), len(self.tlist), 
                             self.ob_atom.num_states, self.ob_atom.num_states), 
                             dtype=np.complex) 
 
-        return self.states_zt       
+        return self.states_zt
 
     def mbsolve(self, rho0=None, recalc=True, show_pbar=False):
 
@@ -163,60 +175,110 @@ class MBSolve(ob_solve.OBSolve):
 
         if (recalc or not savefile_exists):
 
-            # Set Omega_0 to the initial tfunc of the field
-            Omega_0_args = {}
-            for f_i, f in enumerate(self.ob_atom.fields):
-                self.Omegas_zt[f_i][0] = f.rabi_freq_t_func(self.tlist, 
-                                                          f.rabi_freq_t_args)
-                Omega_0_args.update(f.rabi_freq_t_args)
-
             len_z = len(self.zlist)-1 # only for printing progress
 
-    ### First step: Euler
+            rabi_freq_ones = np.ones(len(self.ob_atom.fields))
 
-            print('j: 0/{:d}, z = {:.3f}'.format(len_z, self.zlist[0])) # Progress 
+            ### Set initial states at z=0
+            self.states_zt[0, :] = \
+                self.solve_and_average_over_thermal_detunings()
 
-            # H_Omega should be as it was defined
-            # self.ob_atom.build_H_Omega()
+        ### All Steps:
 
-            self.states_zt[0] = self.solve_and_average_over_thermal_detunings()
+            h = (self.zlist[2] - self.zlist[1])/self.z_steps_inner # Stepsize
 
-            # self.z_step_fields_euler(j=1)
+            # print('z_step = {0}'.format(h))
+
+            for j, z in tqdm(enumerate(self.zlist[:-1]), 
+                             total=len(self.zlist)-1):
+
+                # print('j: {:d}/{:d}, z = {:.3f}'.format(j, len_z, z))
+
+                # Set initial fields and state
+                Omegas_z_this = self.Omegas_zt[:, j, :]
+                states_z_this = self.states_zt[j, :]
+
+                z_this = z
+
+            ### Inner z loop
+
+                for jj in np.arange(self.z_steps_inner):
+
+                    # print('  jj: {:d}/{:d}, zz = {:.3f}'
+                          # .format(jj, self.z_steps_inner, z_this))
+
+                    z_next = z_this + h
+
+                    self.solve_and_average_over_thermal_detunings()
+
+                    Omegas_z_next = self.z_step_fields_euler(z_this, z_next, 
+                        Omegas_z_this)
+
+                    Omegas_z_next_args = \
+                        self.get_Omegas_intp_t_args(Omegas_z_next)
+                    self.ob_atom.set_H_Omega(rabi_freq_ones,
+                        self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
+
+                    # Set up for next inner step
+                    Omegas_z_this = Omegas_z_next
+                    z_this = z_next
+
+                self.states_zt[j+1, :] = self.states_t()
+                self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
         return self.Omegas_zt, self.states_zt                        
 
-    def z_step_fields_euler(self, j):
-        """ Should this take and return? """
+    def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
+        """ For the current state of the atom, given field Omegas_z_this.
 
-        h_0 = self.zlist[j] - self.zlist[j-1] # J SHOULD BE 1 for first step
+        """
 
-        # Number density
-        N = self.num_density_z_func(self.zlist[j], self.num_density_z_args) 
+        h = z_next - z_this
 
-        # Array, one derivative for each field
-        # dOmegas_dz =  np.zeros(len(self.ob_atom.fields))
+        N = self.num_density_z_func(z_next, self.num_density_z_args)
 
-        for k, t in enumerate(self.tlist):
+        Omegas_z_next = np.zeros((len(self.ob_atom.fields), len(self.tlist)),
+                               dtype=np.complex)
 
-            rho = self.result_zt[j-1].states[k]
 
-            for f_i, f in enumerate(self.ob_atom.fields):
+        for f_i, f in enumerate(self.ob_atom.fields):
 
-                # print(f.coupled_levels)
+            sum_coh = self.ob_atom.get_field_sum_coherence(f_i)
 
-                # a, b = f.coupled_levels
-                sum_rho_ij = 0
-                for cl in f.coupled_levels:
-                    sum_rho_ij += rho[cl[0], cl[1]]
+            dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh
 
-                print('sum_rho_ij: ', sum_rho_ij)
+            Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
 
-                dOmega_f_dz = 1j*N*self.g[f_i]*sum_rho_ij
-                self.Omegas_zt[f_i, j, k] = self.Omegas_zt[f_i, j-1, k] + h_0*dOmega_f_dz
+        return Omegas_z_next
 
-    def z_step_fields_adams_bashforth(self):
+    def z_step_fields_adams_bashforth(self, j):
 
         pass
+
+    def get_Omegas_intp_t_funcs(self):
+
+        rabi_freq_t_funcs = []
+        for f_i, f in enumerate(self.ob_atom.fields, start=1):
+            rabi_freq_t_funcs.append('intp_{0}'.format(f_i))
+        return rabi_freq_t_funcs
+
+    def get_Omegas_intp_t_args(self, Omegas_z):
+        """ Return the values of Omegas at a given point as a list of 
+            args for interpolation
+            TODO complete doc!  
+    
+            e.g. [{'tlist_1': [], 'ylist_1': []}, 
+                  {'tlist_2': [], 'ylist_2': []}]
+
+        """
+
+        fields_args = [{}]*len(self.ob_atom.fields)
+
+        for f_i, f in enumerate(Omegas_z):
+            fields_args[f_i] = {'tlist_{0}'.format(f_i+1): self.tlist, 
+                                'ylist_{0}'.format(f_i+1): Omegas_z[f_i]}
+
+        return fields_args
 
     def solve_and_average_over_thermal_detunings(self):
 
@@ -227,13 +289,14 @@ class MBSolve(ob_solve.OBSolve):
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
 
             # Progress Indicator
-            print('    i: {:d}/{:d}, Delta = {:.3f}'
-                  .format(Delta_i, len(self.thermal_delta_list)-1, Delta))    
+            # print('    i: {:d}/{:d}, Delta = {:.3f}'
+                  # .format(Delta_i, len(self.thermal_delta_list)-1, 
+                          # Delta/(2*np.pi)))    
 
             # Shift each detuning by Delta
             self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))            
 
-            self.solve() # Don't need result, but will update states_t
+            self.solve(opts=qu.Options(max_step=self.t_step()))
 
             states_t_Delta[Delta_i] = self.states_t()
 
@@ -243,16 +306,6 @@ class MBSolve(ob_solve.OBSolve):
         return thermal_states_t
 
 ### Helper Functions
-
-# def Omega_intp(t, args):
-
-#     t_range = args['t_range']
-#     Omega_range = args['Omega_range']
-
-#     Omega_intp = interp1d(t_range, Omega_range,
-#                           bounds_error=False, fill_value=0.0)
-
-#     return Omega_intp(t)
 
 def maxwell_boltzmann(v, fwhm):
     """ Maxwell Boltzmann probability distribution function. """
