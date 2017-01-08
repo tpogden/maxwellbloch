@@ -96,6 +96,8 @@ class OBSolve(object):
 
         return os.path.isfile(str(self.savefile) + '.qu')
 
+### JSON Serialise and Deserialise
+
     def get_json_dict(self):
 
         json_dict = {"ob_atom": self.ob_atom.get_json_dict(),

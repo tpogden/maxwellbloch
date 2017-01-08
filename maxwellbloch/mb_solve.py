@@ -166,7 +166,17 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.states_zt
 
-    def mbsolve(self, rho0=None, recalc=True, show_pbar=False):
+    def mbsolve(self, step='euler', rho0=None, recalc=True, show_pbar=False):
+
+        if step == 'euler':
+
+            return self.mbsolve_euler(rho0, recalc, show_pbar)
+        
+        elif step == 'ab':
+        
+            return self.mbsolve_ab(rho0, recalc, show_pbar)
+
+    def mbsolve_euler(self, rho0=None, recalc=True, show_pbar=False):
 
         self.init_Omegas_zt()
         self.init_states_zt()
@@ -231,6 +241,15 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.Omegas_zt, self.states_zt
 
+    def mbsolve_ab(self, rho0=None, recalc=True, show_pbar=False):
+
+        self.init_Omegas_zt()
+        self.init_states_zt()
+
+        return self.Omegas_zt, self.states_zt
+
+
+
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
         """ For the current state of the atom, given field Omegas_z_this.
 
@@ -254,9 +273,29 @@ class MBSolve(ob_solve.OBSolve):
 
         return Omegas_z_next
 
-    def z_step_fields_adams_bashforth(self, j):
+    def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev, 
+        sum_coh_this, Omegas_z_prev, Omegas_z_this):
 
-        pass
+        # this assumes same step size for now
+        h = z_next - z_this
+
+        N = self.num_density_z_func(z_next, self.num_density_z_args)
+
+        Omegas_z_next = np.zeros((len(self.ob_atom.fields), len(self.tlist)),
+            dtype=np.complex)
+
+        for f_i, f in enumerate(self.ob_atom.fields):
+
+            sum_coh_this_f = sum_coh_this(f_i)
+            sum_coh_prev_f = sum_coh_prev(f_i)
+
+            dOmega_f_dz_this = 1.0j*N*self.g[f_i]*sum_coh_this_f
+            dOmega_f_dz_prev = 1.0j*N*self.g[f_i]*sum_coh_prev_f
+
+            Omegas_z_next[f_i, :] = (Omegas_z_this[f_i, :] + 
+                1.5*h*dOmega_f_dz_this - 0.5*h*dOmega_f_dz_prev)
+
+        return Omegas_z_next
 
     def get_Omegas_intp_t_funcs(self):
         """ Gets a list of strings representing the interpolation t_funcs for
