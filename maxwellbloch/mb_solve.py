@@ -306,6 +306,12 @@ class MBSolve(ob_solve.OBSolve):
         return thermal_states_t
 
     def fields_area(self):
+        """ Get the integrated pulse area of each field.
+
+        Returns:
+            np.array [num_fields, num_z_steps]: Integrated area of each field 
+            over time
+        """
 
         return np.trapz(np.abs(self.Omegas_zt), self.tlist, axis=2)
 
