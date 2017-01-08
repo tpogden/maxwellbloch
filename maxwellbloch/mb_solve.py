@@ -305,6 +305,10 @@ class MBSolve(ob_solve.OBSolve):
 
         return thermal_states_t
 
+    def fields_area(self):
+
+        return np.trapz(np.abs(self.Omegas_zt), self.tlist, axis=2)
+
 ### Helper Functions
 
 def maxwell_boltzmann(v, fwhm):
