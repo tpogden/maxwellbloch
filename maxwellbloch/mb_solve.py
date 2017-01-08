@@ -17,7 +17,7 @@ class MBSolve(ob_solve.OBSolve):
 
     def __init__(self, ob_atom={}, t_min=0.0, t_max=1.0, t_steps=100, 
                  method='mesolve', opts={}, savefile=None, z_min=0.0, 
-                 z_max=1.0, z_steps=5, z_steps_inner=2, 
+                 z_max=1.0, z_steps=10, z_steps_inner=2, 
                  num_density_z_func=None, num_density_z_args={}, 
                  interaction_strengths=[], velocity_classes={}):
 
@@ -87,6 +87,22 @@ class MBSolve(ob_solve.OBSolve):
 
         # print(zlist)
         return zlist
+
+    def z_step(self):
+
+        return (self.z_max - self.z_min)/self.z_steps
+
+    def z_step_inner(self):
+
+        return self.z_step()/self.z_steps_inner
+
+    def insert_first_inner_z_step(self):
+        """ TODO: doc, test """
+
+        self.zlist = np.insert(self.zlist, 1, self.z_min + 
+            self.z_step_inner())
+
+        return self.zlist
 
     def build_velocity_classes(self, velocity_classes={}):
 
@@ -168,54 +184,51 @@ class MBSolve(ob_solve.OBSolve):
 
     def mbsolve(self, step='euler', rho0=None, recalc=True, show_pbar=False):
 
-        if step == 'euler':
-
-            return self.mbsolve_euler(rho0, recalc, show_pbar)
-        
-        elif step == 'ab':
-        
-            return self.mbsolve_ab(rho0, recalc, show_pbar)
-
-    def mbsolve_euler(self, rho0=None, recalc=True, show_pbar=False):
+        # Insert a z_inner_step to make a Euler step first
+        # NOTE: this needs to be before init_Omegas_zt, init_states_zt as
+        # the size of these will be changed
+        if step == 'ab':
+            self.insert_first_inner_z_step()
 
         self.init_Omegas_zt()
         self.init_states_zt()
+
+        if step == 'euler':
+            return self.mbsolve_euler(rho0, recalc, show_pbar)
+        
+        elif step == 'ab':
+            return self.mbsolve_ab(rho0, recalc, show_pbar)
+
+    def mbsolve_euler(self, rho0=None, recalc=True, show_pbar=False):
 
         if (recalc or not self.savefile_exists()):
 
             len_z = len(self.zlist)-1 # only for printing progress
 
+            # TODO: What for
             rabi_freq_ones = np.ones(len(self.ob_atom.fields))
 
             ### Set initial states at z=0
             self.states_zt[0, :] = \
                 self.solve_and_average_over_thermal_detunings()
+                # NOTE: This means the first z gets ob solved twice. 
+                # Can I avoid?
 
         ### All Steps:
-
-            h = (self.zlist[2] - self.zlist[1])/self.z_steps_inner # Stepsize
-
-            # print('z_step = {0}'.format(h))
 
             for j, z in tqdm(enumerate(self.zlist[:-1]), 
                              total=len(self.zlist)-1):
 
-                # print('j: {:d}/{:d}, z = {:.3f}'.format(j, len_z, z))
-
                 # Set initial fields and state
                 Omegas_z_this = self.Omegas_zt[:, j, :]
-                states_z_this = self.states_zt[j, :]
 
                 z_this = z
 
             ### Inner z loop
 
-                for jj in np.arange(self.z_steps_inner):
+                for jj in range(self.z_steps_inner):
 
-                    # print('  jj: {:d}/{:d}, zz = {:.3f}'
-                          # .format(jj, self.z_steps_inner, z_this))
-
-                    z_next = z_this + h
+                    z_next = z_this + self.z_step_inner()
 
                     self.solve_and_average_over_thermal_detunings()
 
@@ -231,6 +244,8 @@ class MBSolve(ob_solve.OBSolve):
                     Omegas_z_this = Omegas_z_next
                     z_this = z_next
 
+                # Once we've been through the inner loops we can set the field
+                # and states at the next outer space step and continue.
                 self.states_zt[j+1, :] = self.states_t()
                 self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
@@ -243,12 +258,92 @@ class MBSolve(ob_solve.OBSolve):
 
     def mbsolve_ab(self, rho0=None, recalc=True, show_pbar=False):
 
-        self.init_Omegas_zt()
-        self.init_states_zt()
+        if (recalc or not self.savefile_exists()):
+
+            # TODO: What for
+            rabi_freq_ones = np.ones(len(self.ob_atom.fields))
+
+            ### Set initial states at z=0
+            self.states_zt[0, :] = \
+                self.solve_and_average_over_thermal_detunings()
+
+            # We won't need these until the first AB step
+            sum_coh_prev = self.ob_atom.get_fields_sum_coherence()
+            z_prev = self.z_min
+
+        ### First z step, Euler
+
+            j = 0
+            z = self.z_min
+
+            print('  Euler: {:d}, z = {:.3f}'
+                          .format(j, z))
+
+            # Set initial fields and state
+            Omegas_z_this = self.Omegas_zt[:, j, :]
+
+            z_this = z
+            z_next = z_this + self.z_step_inner()
+
+            Omegas_z_next = self.z_step_fields_euler(z_this, z_next, 
+                                Omegas_z_this)
+
+            Omegas_z_next_args = \
+                self.get_Omegas_intp_t_args(Omegas_z_next)
+            self.ob_atom.set_H_Omega(rabi_freq_ones,
+                self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
+
+            self.states_zt[j+1, :] = self.states_t()
+            self.Omegas_zt[:, j+1, :] = Omegas_z_next  
+
+        ### Remaining steps, Adams-Bashforth
+
+            for j, z in tqdm(enumerate(self.zlist[1:-1], start=1), 
+                             total=len(self.zlist)-2, disable=True):
+
+                print('j: {:d}'.format(j))
+
+                # Set initial fields and state
+                Omegas_z_this = self.Omegas_zt[:, j, :]
+
+                z_this = z
+
+            ### Inner z loop
+
+                for jj in range(self.z_steps_inner):
+
+                    print('  jj: {:d}/{:d}, zz = {:.3f}'
+                          .format(jj, self.z_steps_inner, z_this))
+
+                    z_next = z_this + self.z_step_inner()
+
+                    self.solve_and_average_over_thermal_detunings()
+
+                    ## TODO: need z_prev, sum_coh_prev, sum_coh_this, 
+                    ## Omegas_z_this
+
+                    sum_coh_this = self.ob_atom.get_fields_sum_coherence()
+
+                    Omegas_z_next = self.z_step_fields_ab(z_prev, z_this, 
+                        z_next, sum_coh_prev, sum_coh_this, Omegas_z_this)
+
+                    Omegas_z_next_args = \
+                        self.get_Omegas_intp_t_args(Omegas_z_next)
+                    self.ob_atom.set_H_Omega(rabi_freq_ones,
+                        self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
+
+                    # Set up for next inner step
+                    Omegas_z_this = Omegas_z_next
+                    z_this = z_next
+                    z_prev = z_this
+                    sum_coh_prev = sum_coh_this
+
+                # Once we've been through the inner loops we can set the field
+                # and states at the next outer space step and continue.
+                self.states_zt[j+1, :] = self.states_t()
+                self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
         return self.Omegas_zt, self.states_zt
-
-
 
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
         """ For the current state of the atom, given field Omegas_z_this.
@@ -263,18 +358,18 @@ class MBSolve(ob_solve.OBSolve):
                                dtype=np.complex)
 
 
+        sum_coh = self.ob_atom.get_fields_sum_coherence()
+
         for f_i, f in enumerate(self.ob_atom.fields):
 
-            sum_coh = self.ob_atom.get_field_sum_coherence(f_i)
-
-            dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh
+            dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh[f_i]
 
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
 
         return Omegas_z_next
 
     def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev, 
-        sum_coh_this, Omegas_z_prev, Omegas_z_this):
+        sum_coh_this, Omegas_z_this):
 
         # this assumes same step size for now
         h = z_next - z_this
@@ -286,8 +381,8 @@ class MBSolve(ob_solve.OBSolve):
 
         for f_i, f in enumerate(self.ob_atom.fields):
 
-            sum_coh_this_f = sum_coh_this(f_i)
-            sum_coh_prev_f = sum_coh_prev(f_i)
+            sum_coh_this_f = sum_coh_this[f_i]
+            sum_coh_prev_f = sum_coh_prev[f_i]
 
             dOmega_f_dz_this = 1.0j*N*self.g[f_i]*sum_coh_this_f
             dOmega_f_dz_prev = 1.0j*N*self.g[f_i]*sum_coh_prev_f
