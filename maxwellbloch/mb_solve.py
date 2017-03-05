@@ -237,6 +237,7 @@ class MBSolve(ob_solve.OBSolve):
 
                     Omegas_z_next_args = \
                         self.get_Omegas_intp_t_args(Omegas_z_next)
+
                     self.ob_atom.set_H_Omega(rabi_freq_ones,
                         self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
 
@@ -290,6 +291,7 @@ class MBSolve(ob_solve.OBSolve):
 
             Omegas_z_next_args = \
                 self.get_Omegas_intp_t_args(Omegas_z_next)
+
             self.ob_atom.set_H_Omega(rabi_freq_ones,
                 self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
 
@@ -329,6 +331,7 @@ class MBSolve(ob_solve.OBSolve):
 
                     Omegas_z_next_args = \
                         self.get_Omegas_intp_t_args(Omegas_z_next)
+
                     self.ob_atom.set_H_Omega(rabi_freq_ones,
                         self.get_Omegas_intp_t_funcs(), Omegas_z_next_args)
 
@@ -407,11 +410,14 @@ class MBSolve(ob_solve.OBSolve):
 
     def get_Omegas_intp_t_args(self, Omegas_z):
         """ Return the values of Omegas at a given point as a list of 
-            args for interpolation
-            TODO complete doc!  
+            args for interpolation.
     
             e.g. [{'tlist_1': [], 'ylist_1': []}, 
                   {'tlist_2': [], 'ylist_2': []}]
+
+            Note: 
+                The factor of 1/2pi is needed as we pass Rabi freq functions
+                in without the factor of 2pi.
 
         """
 
@@ -419,7 +425,8 @@ class MBSolve(ob_solve.OBSolve):
 
         for f_i, f in enumerate(Omegas_z):
             fields_args[f_i] = {'tlist_{0}'.format(f_i+1): self.tlist, 
-                                'ylist_{0}'.format(f_i+1): Omegas_z[f_i]}
+                                'ylist_{0}'.format(f_i+1): 
+                                Omegas_z[f_i]/(2.0*np.pi)}
 
         return fields_args
 
