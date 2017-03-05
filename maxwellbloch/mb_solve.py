@@ -468,7 +468,7 @@ class MBSolve(ob_solve.OBSolve):
             over time
         """
 
-        return np.trapz(np.abs(self.Omegas_zt), self.tlist, axis=2)
+        return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
 
 ### Helper Functions
 
