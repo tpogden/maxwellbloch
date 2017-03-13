@@ -259,6 +259,12 @@ class MBSolve(ob_solve.OBSolve):
         pass
 
     def get_Omegas_intp_t_funcs(self):
+        """ Gets a list of strings representing the interpolation t_funcs for
+            use the MB solver, which needs a function representing the field
+            at a z step to perform the next master equation solver.
+
+            Returns: A list of strings ['intp_1', 'intp_2', …]
+        """
 
         rabi_freq_t_funcs = []
         for f_i, f in enumerate(self.ob_atom.fields, start=1):
