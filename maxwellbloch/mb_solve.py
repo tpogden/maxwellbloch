@@ -171,9 +171,7 @@ class MBSolve(ob_solve.OBSolve):
         self.init_Omegas_zt()
         self.init_states_zt()
 
-        savefile_exists = os.path.isfile(str(self.savefile) + '.qu')
-
-        if (recalc or not savefile_exists):
+        if (recalc or not self.savefile_exists()):
 
             len_z = len(self.zlist)-1 # only for printing progress
 
@@ -211,7 +209,7 @@ class MBSolve(ob_solve.OBSolve):
 
                     self.solve_and_average_over_thermal_detunings()
 
-                    Omegas_z_next = self.z_step_fields_euler(z_this, z_next, 
+                    Omegas_z_next = self.z_step_fields_euler(z_this, z_next,
                         Omegas_z_this)
 
                     Omegas_z_next_args = \
@@ -226,7 +224,12 @@ class MBSolve(ob_solve.OBSolve):
                 self.states_zt[j+1, :] = self.states_t()
                 self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
-        return self.Omegas_zt, self.states_zt                        
+            self.save_results()
+
+        else:
+            self.load_results()
+
+        return self.Omegas_zt, self.states_zt
 
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
         """ For the current state of the atom, given field Omegas_z_this.
@@ -256,6 +259,12 @@ class MBSolve(ob_solve.OBSolve):
         pass
 
     def get_Omegas_intp_t_funcs(self):
+        """ Gets a list of strings representing the interpolation t_funcs for
+            use the MB solver, which needs a function representing the field
+            at a z step to perform the next master equation solver.
+
+            Returns: A list of strings ['intp_1', 'intp_2', …]
+        """
 
         rabi_freq_t_funcs = []
         for f_i, f in enumerate(self.ob_atom.fields, start=1):
@@ -296,6 +305,7 @@ class MBSolve(ob_solve.OBSolve):
             # Shift each detuning by Delta
             self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))            
 
+            # We don't want the obsolve to save.
             self.solve(opts=qu.Options(max_step=self.t_step()))
 
             states_t_Delta[Delta_i] = self.states_t()
@@ -304,6 +314,17 @@ class MBSolve(ob_solve.OBSolve):
                                       weights=self.thermal_weights)
 
         return thermal_states_t
+
+    def save_results(self):
+
+        # Only save the file if we have a place to save it.
+        if self.savefile:
+            print('Saving to', self.savefile, '.qu')
+            qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
+
+    def load_results(self):
+
+        self.Omegas_zt, self.states_zt = qu.qload(self.savefile)
 
     def fields_area(self):
         """ Get the integrated pulse area of each field.

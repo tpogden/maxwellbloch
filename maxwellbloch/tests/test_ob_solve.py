@@ -97,6 +97,27 @@ class TestJSON(unittest.TestCase):
         self.assertEqual(ob_solve_02.to_json_str(),
                          ob_solve_03.to_json_str())
 
+class TestSaveLoad(unittest.TestCase):
+    """ Tests for the OBSolve save and load methods."""
+
+    def test_save_load_01(self):
+        """ Solve a basic OBSolve problem. Save the results to file. Set the
+            results in the OBSolve object to null. Load the results from file
+            and check that they match the original values.
+        """
+
+        ob_solve_02 = ob_solve.OBSolve().from_json("maxwellbloch/tests/json/ob_solve_02.json")
+
+        states_t = ob_solve_02.solve()
+
+        ob_solve_02.save_results()
+
+        ob_solve_02.load_results()
+
+        states_t_loaded = ob_solve_02.states_t()
+
+        self.assertTrue((states_t == states_t_loaded).all())
+
 def main():
 
     unittest.main(verbosity=3)
