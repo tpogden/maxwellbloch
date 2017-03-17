@@ -315,16 +315,11 @@ class MBSolve(ob_solve.OBSolve):
 
         return thermal_states_t
 
-    def savefile_exists(self): 
-        """ Returns true if savefile (with appended extension .qu) exists. """
-
-        return os.path.isfile(str(self.savefile) + '.qu')
-
     def save_results(self):
 
         # Only save the file if we have a place to save it.
         if self.savefile:
-            print('SAVING')
+            print('Saving to', self.savefile, '.qu')
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
     def load_results(self):

@@ -285,7 +285,8 @@ class TestSaveLoad(unittest.TestCase):
     def test_save_load_01(self):
         """ Solve a basic MBSolve problem. Save the results to file. Set the 
             results in the MBSolve object to null. Load the results from
-            file and check that they equal the original values. """
+            file and check that they equal the original values. 
+        """
 
         mb_solve_01 = mb_solve.MBSolve().from_json_str(json_str_01)
 

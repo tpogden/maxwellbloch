@@ -65,25 +65,47 @@ class OBSolve(object):
     def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True, 
                 show_pbar=False):
 
-        # TODO: put the save code here, and take out of ob_base.
-        if self.method == 'mesolve':
-            self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
-                                 opts=opts, recalc=recalc,
-                                 savefile=None, show_pbar=show_pbar)
+        if (recalc or not self.savefile_exists()):
 
-        return self.ob_atom.result
+            if self.method == 'mesolve':
+                self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
+                                    opts=opts, recalc=recalc,
+                                    savefile=None, show_pbar=show_pbar)
+
+            self.save_results()
+
+        else:
+            self.load_results()
+
+        return self.ob_atom.states_t() #self.ob_atom.result
 
     def states_t(self):
 
         return self.ob_atom.states_t()
 
+    def t_step(self):
+
+        return (self.t_max - self.t_min)/self.t_steps
+
     def build_savefile(self, savefile):
 
         self.savefile = savefile
 
-    def t_step(self):
+    def savefile_exists(self): 
+        """ Returns true if savefile (with appended extension .qu) exists. """
 
-        return (self.t_max - self.t_min)/self.t_steps
+        return os.path.isfile(str(self.savefile) + '.qu')
+
+    def save_results(self):
+
+        # Only save the file if we have a place to save it.
+        if self.savefile:
+            print('Saving to', self.savefile, '.qu')
+            qu.qsave(self.states_t, self.savefile)
+
+    def load_results(self):
+
+        self.states_t = qu.qload(self.savefile)
 
     def get_json_dict(self):
 
@@ -119,14 +141,16 @@ class OBSolve(object):
             json_dict = json.load(json_file)
 
             # This needs to be here to get the savefile name from json
-            if 'savefile' not in json_dict:# or not json_dict['savefile']:
+            if 'savefile' not in json_dict:
 
-                logging.debug('The savefile JSON element is missing or null.')
+                logging.debug('The savefile JSON element is missing.')
 
                 savefile = os.path.splitext(file_path)[0]
                 json_dict['savefile'] = savefile
 
-#                print(json_dict['savefile'])
+            elif not json_dict['savefile']:
+
+                logging.debug('The savefile JSON element is null.')
 
         return cls(**json_dict)
 
