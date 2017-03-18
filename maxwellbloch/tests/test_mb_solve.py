@@ -70,7 +70,7 @@ json_str_01 = (
 '  "method": "mesolve",'
 '  "opts": {},'
 ''
-'  "savefile": null'
+'  "savefile": "json_str_01"'
 ''
 '}')
 
@@ -267,7 +267,6 @@ class TestMBSolve(unittest.TestCase):
         """ Setting the number density ampl to 0.0, i.e. no atoms. The end
             pulse should be the same as the start. """
 
-<<<<<<< cadc96b557883abe3cb04eae1206934b30ffd28a
         json_no_atoms = (
             '{'
             ''
@@ -330,8 +329,6 @@ class TestMBSolve(unittest.TestCase):
             '}'
         )
 
-=======
->>>>>>> Add first test for mb_solve using AB step, build zlist tests.
         mbs = \
             mb_solve.MBSolve().from_json_str(json_no_atoms)
 
@@ -346,7 +343,6 @@ class TestMBSolve(unittest.TestCase):
 
         # self.assertEqual(mbs.Omegas_zt[:,0,:], mbs.Omegas_zt[:,-1,:])
 
-<<<<<<< cadc96b557883abe3cb04eae1206934b30ffd28a
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """
 
@@ -391,7 +387,7 @@ class TestSaveLoad(unittest.TestCase):
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
         self.assertTrue((states_zt == states_zt_loaded).all())
-=======
+
     def test_no_atoms_ab(self):
 
         mbs = \
@@ -422,7 +418,6 @@ class TestInsertFirstInnerZStep(unittest.TestCase):
         mb_solve_00.insert_first_inner_z_step()
 
         self.assertTrue(np.allclose(mb_solve_00.zlist, zlist, rtol=1.0e-6))
->>>>>>> Add first test for mb_solve using AB step, build zlist tests.
 
 class TestGetOmegasIntpTFuncs(unittest.TestCase):
 
@@ -439,10 +434,6 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
 
         self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(),
                          ['intp_1', 'intp_2'])
-<<<<<<< cadc96b557883abe3cb04eae1206934b30ffd28a
-=======
-
-
 
 def main():
 
@@ -460,4 +451,4 @@ def main():
 if __name__ == "__main__":
     status = main()
     sys.exit(status)
->>>>>>> Add first test for mb_solve using AB step, build zlist tests.
+
