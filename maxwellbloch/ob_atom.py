@@ -183,21 +183,20 @@ class OBAtom(ob_base.OBBase):
         # Time-dependent if there are any t_funcs specified
         return any(f.rabi_freq_t_func is not None for f in self.fields)
 
-    def get_field_sum_coherence(self, field_idx):
-        """ Returns the sum coherences of the atom density matrix for the field
-
-        Args:
-            field_idx: index in the array of fields
+    def get_fields_sum_coherence(self):
+        """ Returns the sum coherences of the atom density matrix for each 
+            field
 
         Returns:
 
         """
 
-        sum_coh = np.zeros(len(self.states_t()), dtype=np.complex)
-        for cl in self.fields[field_idx].coupled_levels:
-            sum_coh += self.states_t()[:, cl[0], cl[1]]
+        sum_coh = np.zeros((len(self.fields), len(self.states_t())), 
+            dtype=np.complex)
+        for f_i, f in enumerate(self.fields):
+            for cl in f.coupled_levels:
+                sum_coh[f_i, :] += self.states_t()[:, cl[0], cl[1]]
         return sum_coh
-
 
     def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(), 
                 recalc=True, savefile=None, show_pbar=False):
