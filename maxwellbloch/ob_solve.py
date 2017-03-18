@@ -63,19 +63,19 @@ class OBSolve(object):
     
     # TODO: Rename to obsolve for clarity when calling from derived class
     def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True, 
-                show_pbar=False):
+                show_pbar=False, save=True):
 
-        if (recalc or not self.savefile_exists()):
-
-            if self.method == 'mesolve':
-                self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
-                                    opts=opts, recalc=recalc,
-                                    savefile=None, show_pbar=show_pbar)
-
-            self.save_results()
-
+        # When we're calling from MBSolve, we don't want to save each step.
+        # So we pass in save=False.
+        if save:
+            savefile = self.savefile
         else:
-            self.load_results()
+            savefile = None
+
+        if self.method == 'mesolve':
+            self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
+                                opts=opts, recalc=recalc,
+                                savefile=savefile, show_pbar=show_pbar)
 
         return self.ob_atom.states_t() #self.ob_atom.result
 
@@ -95,17 +95,6 @@ class OBSolve(object):
         """ Returns true if savefile (with appended extension .qu) exists. """
 
         return os.path.isfile(str(self.savefile) + '.qu')
-
-    def save_results(self):
-
-        # Only save the file if we have a place to save it.
-        if self.savefile:
-            print('Saving to', self.savefile, '.qu')
-            qu.qsave(self.states_t, self.savefile)
-
-    def load_results(self):
-
-        self.states_t = qu.qload(self.savefile)
 
     def get_json_dict(self):
 

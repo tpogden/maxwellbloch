@@ -184,7 +184,7 @@ class OBBase(object):
             # Only save the file if we have a place to save it.
             if (savefile != None):
 
-                print('Saving to {0}.qu'.format(savefile))
+                print('Saving OBBase to {0}.qu'.format(savefile))
 
                 qu.qsave(self.result, savefile)
 
