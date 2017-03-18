@@ -332,7 +332,7 @@ class TestMBSolve(unittest.TestCase):
         mbs = \
             mb_solve.MBSolve().from_json_str(json_no_atoms)
 
-        mbs.mbsolve()
+        mbs.mbsolve(step='euler')
 
         self.assertEqual(mbs.Omegas_zt.shape, (1, 5, 101))
 
