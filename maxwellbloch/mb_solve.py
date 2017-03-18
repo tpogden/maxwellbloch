@@ -306,7 +306,7 @@ class MBSolve(ob_solve.OBSolve):
             self.ob_atom.shift_H_Delta([Delta]*len(self.ob_atom.fields))            
 
             # We don't want the obsolve to save.
-            self.solve(opts=qu.Options(max_step=self.t_step()))
+            self.solve(opts=qu.Options(max_step=self.t_step()), save=False)
 
             states_t_Delta[Delta_i] = self.states_t()
 
@@ -319,7 +319,7 @@ class MBSolve(ob_solve.OBSolve):
 
         # Only save the file if we have a place to save it.
         if self.savefile:
-            print('Saving to', self.savefile, '.qu')
+            print('Saving MBSolve to', self.savefile, '.qu')
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
     def load_results(self):

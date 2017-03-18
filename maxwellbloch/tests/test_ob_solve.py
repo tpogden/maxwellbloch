@@ -110,11 +110,7 @@ class TestSaveLoad(unittest.TestCase):
 
         states_t = ob_solve_02.solve()
 
-        ob_solve_02.save_results()
-
-        ob_solve_02.load_results()
-
-        states_t_loaded = ob_solve_02.states_t()
+        states_t_loaded = ob_solve_02.solve(recalc=False)
 
         self.assertTrue((states_t == states_t_loaded).all())
 
