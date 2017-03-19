@@ -9,6 +9,7 @@ import qutip as qu
 
 from maxwellbloch import ob_atom
 
+
 class OBSolve(object):
     """docstring for OBSolve"""
 
@@ -38,7 +39,7 @@ class OBSolve(object):
                                     self.opts)
 
     def build_ob_atom(self, ob_atom_dict):
-    
+
         self.ob_atom = ob_atom.OBAtom(**ob_atom_dict)
         return self.ob_atom
 
@@ -50,7 +51,7 @@ class OBSolve(object):
         self.t_max = t_max
         self.t_steps = t_steps
 
-        self.tlist = linspace(t_min, t_max, t_steps+1)
+        self.tlist = linspace(t_min, t_max, t_steps + 1)
         return self.tlist
 
     def build_opts(self, opts):
@@ -60,10 +61,10 @@ class OBSolve(object):
 
         self.opts = qu.Options()
         return self.opts
-    
+
     # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True, 
-                show_pbar=False, save=True):
+    def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True,
+              show_pbar=False, save=True):
 
         # When we're calling from MBSolve, we don't want to save each step.
         # So we pass in save=False.
@@ -74,10 +75,10 @@ class OBSolve(object):
 
         if self.method == 'mesolve':
             self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
-                                opts=opts, recalc=recalc,
-                                savefile=savefile, show_pbar=show_pbar)
+                                 opts=opts, recalc=recalc,
+                                 savefile=savefile, show_pbar=show_pbar)
 
-        return self.ob_atom.states_t() #self.ob_atom.result
+        return self.ob_atom.states_t()  # self.ob_atom.result
 
     def states_t(self):
 
@@ -85,13 +86,13 @@ class OBSolve(object):
 
     def t_step(self):
 
-        return (self.t_max - self.t_min)/self.t_steps
+        return (self.t_max - self.t_min) / self.t_steps
 
     def build_savefile(self, savefile):
 
         self.savefile = savefile
 
-    def savefile_exists(self): 
+    def savefile_exists(self):
         """ Returns true if savefile (with appended extension .qu) exists. """
 
         return os.path.isfile(str(self.savefile) + '.qu')
@@ -105,7 +106,7 @@ class OBSolve(object):
                      "t_max": self.t_max,
                      "t_steps": self.t_steps,
                      "method": self.method,
-                     "opts": '{}' # TODO fix when opts fixed.
+                     "opts": '{}'  #  TODO fix when opts fixed.
                     }
         return json_dict
 
@@ -145,11 +146,13 @@ class OBSolve(object):
 
         return cls(**json_dict)
 
+
 def main():
 
     print(OBSolve())
 
     return 0
+
 
 if __name__ == '__main__':
 

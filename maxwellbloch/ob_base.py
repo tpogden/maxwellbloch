@@ -8,8 +8,9 @@ from maxwellbloch import sigma
 import numpy as np
 import qutip as qu
 
+
 class OBBase(object):
-    """ TODO: Desc here. Parent class.    
+    """ TODO: Desc here. Parent class.
 
     Attributes:
         num_states: the number of states of the system, in this case: 2.
@@ -37,7 +38,7 @@ class OBBase(object):
         self.c_ops = []
 
         # These will be set by functions in the child class.
-        self.H_Delta = qu.Qobj() 
+        self.H_Delta = qu.Qobj()
         self.H_Omega_list = [qu.Qobj()]
 
         self.result = qu.solver.Result()
@@ -141,7 +142,7 @@ class OBBase(object):
         # Collapse operators, so states is a list of density matrices
         else:
             states_t = np.zeros((len(self.result.times),
-                                self.num_states, self.num_states),
+                                 self.num_states, self.num_states),
                                 dtype=np.complex)
 
         for t, state_t in enumerate(self.result.states):
@@ -149,24 +150,24 @@ class OBBase(object):
 
         return states_t
 
-    def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={}, 
-                opts=qu.Options(), recalc=True, savefile=None, 
+    def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={},
+                opts=qu.Options(), recalc=True, savefile=None,
                 show_pbar=False):
-        
+
         if not rho0:
             rho0 = self.ground_state()
 
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
-        # Solve if 1) we ask for it to be recalculated or 2) it *must* be 
+        # Solve if 1) we ask for it to be recalculated or 2) it *must* be
         # calculated because no savefile exists.
-        if (recalc or not savefile_exists):
+        if recalc or not savefile_exists:
 
-            # Is the Hamiltonian time-dependent? 
-            if td: # If so H is a list of [H_i, t_func_i] pairs.
+            # Is the Hamiltonian time-dependent?
+            if td:  # If so H is a list of [H_i, t_func_i] pairs.
                 H = [self.H_0, self.H_Delta]
                 H.extend(self.H_I_list())
-            else: # If not it's a single QObj
+            else:  # If not it's a single QObj
                 H = self.H_0 + self.H_Delta + self.H_I_sum()
 
             if show_pbar:
@@ -175,14 +176,14 @@ class OBBase(object):
                 pbar = qu.ui.progressbar.BaseProgressBar()
 
             self.result = qu.mesolve(H, rho0, tlist,
-                                      self.c_ops, e_ops,
-                                      args=args, options=opts, 
-                                      progress_bar=pbar)
+                                     self.c_ops, e_ops,
+                                     args=args, options=opts,
+                                     progress_bar=pbar)
 
-            self.rho = self.result.states[-1] # Set rho to the final state.
+            self.rho = self.result.states[-1]  #  Set rho to the final state.
 
             # Only save the file if we have a place to save it.
-            if (savefile != None):
+            if savefile:
 
                 print('Saving OBBase to {0}.qu'.format(savefile))
 
@@ -199,7 +200,7 @@ class OBBase(object):
         return self.result
 
     def essolve(self, tlist, rho0=None, recalc=True, savefile=None):
-        """ 
+        """
         Evolution of the density matrix by
         expressing the ODE as an exponential series.
 
@@ -216,18 +217,18 @@ class OBBase(object):
             QuTiP essolve method doesn't return the states properly so I use
             the underlying ode2es method.
 
-            Unlike the mesolve method, the tlist here doesn't have any need 
-            for high resolution to solve. So better when the density matrix 
+            Unlike the mesolve method, the tlist here doesn't have any need
+            for high resolution to solve. So better when the density matrix
             is only needed at a few points.
 
         """
 
         if not rho0:
-            rho0 = self.ground_state()*self.ground_state().dag()
+            rho0 = self.ground_state() * self.ground_state().dag()
 
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
-        # Solve if 1) we ask for it to be recalculated or 2) it *must* be 
+        # Solve if 1) we ask for it to be recalculated or 2) it *must* be
         # calculated because no savefile exists.
         if (recalc or not savefile_exists):
 
@@ -242,7 +243,7 @@ class OBBase(object):
             self.result.solver = "essolve"
             self.result.times = tlist
 
-            self.rho = self.result.states[-1] # Set rho to the final state.
+            self.rho = self.result.states[-1]  #  Set rho to the final state.
 
             # Only save the file if we have a place to save it.
             if (savefile != None):
@@ -270,9 +271,11 @@ class OBBase(object):
 
 # Main
 
+
 def main():
 
     print(OBBase())
+
 
 if __name__ == '__main__':
     status = main()
