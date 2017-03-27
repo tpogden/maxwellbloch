@@ -230,7 +230,7 @@ class OBBase(object):
 
         # Solve if 1) we ask for it to be recalculated or 2) it *must* be
         # calculated because no savefile exists.
-        if (recalc or not savefile_exists):
+        if recalc or not savefile_exists:
 
             H = self.H_0 + self.H_Delta + self.H_I_sum()
             L = qu.liouvillian(H, self.c_ops)
@@ -246,7 +246,7 @@ class OBBase(object):
             self.rho = self.result.states[-1]  #  Set rho to the final state.
 
             # Only save the file if we have a place to save it.
-            if (savefile != None):
+            if savefile:
                 qu.qsave(self.result, savefile)
 
         # Otherwise load the steady state rho_v_delta from file
