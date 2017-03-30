@@ -8,6 +8,7 @@ import qutip as qu
 
 from maxwellbloch import ob_base, field, t_funcs
 
+
 class OBAtom(ob_base.OBBase):
 
     def __init__(self, num_states=1, energies=[], decays=[], fields=[]):
@@ -33,9 +34,9 @@ class OBAtom(ob_base.OBBase):
                 "energies={1}, " +
                 "decays={2}, " +
                 "fields={3})").format(self.num_states,
-                                    self.energies,
-                                    self.decays,
-                                    self.fields)
+                                      self.energies,
+                                      self.decays,
+                                      self.fields)
 
     def add_field(self, field_dict):
         self.fields.append(field.Field(**field_dict))
@@ -46,7 +47,7 @@ class OBAtom(ob_base.OBBase):
             self.add_field(f)
         return self.fields
 
-    def build_H_0(self, energies=[]): 
+    def build_H_0(self, energies=[]):
         """ Takes a list of energies and makes a Bare Hamiltonian with the
         energies as diagonals.
 
@@ -75,7 +76,7 @@ class OBAtom(ob_base.OBBase):
         """ Takes a list of spontaneous decay rates and makes a list of
         collapse operators to be passed to the solver.
 
-        Args: 
+        Args:
             decays: list of dicts representing decays.
             e.g.
             [ { "rate": 1.0, "channels": [[0,1]] }
@@ -87,7 +88,7 @@ class OBAtom(ob_base.OBBase):
         for d in decays:
             r = d["rate"]
             for c in d["channels"]:
-                self.c_ops.append(np.sqrt(2*pi*r)*self.sigma(c[0],c[1]))
+                self.c_ops.append(np.sqrt(2 * pi * r) * self.sigma(c[0], c[1]))
         return self.c_ops
 
     def build_H_Delta(self):
@@ -103,7 +104,7 @@ class OBAtom(ob_base.OBBase):
             else:
                 sgn = -1.
             for c in f.coupled_levels:
-                self.H_Delta -= sgn*f.detuning*self.sigma(c[1], c[1])
+                self.H_Delta -= sgn * f.detuning * self.sigma(c[1], c[1])
 
         return self.H_Delta
 
@@ -132,17 +133,17 @@ class OBAtom(ob_base.OBBase):
         H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
         for f in self.fields:
-            
-            H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-            
-            for c in f.coupled_levels:
-                H_Omega += self.sigma(c[0],c[1]) + self.sigma(c[1],c[0])
-                H_Omega *= pi*f.rabi_freq # 2π*rabi_freq/2
 
-            if self.is_field_td(): # time-dependent interaction
+            H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
+
+            for c in f.coupled_levels:
+                H_Omega += self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])
+                H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
+
+            if self.is_field_td():  # time-dependent interaction
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
-            
-            else: # time-independent
+
+            else:  # time-independent
                 self.H_Omega_list.append(H_Omega)
 
         return self.H_Omega_list
@@ -167,7 +168,7 @@ class OBAtom(ob_base.OBBase):
 
     def init_rho(self):
 
-        self.rho = self.ground_state()*self.ground_state().dag()
+        self.rho = self.ground_state() * self.ground_state().dag()
 
         return self.rho
 
@@ -184,40 +185,40 @@ class OBAtom(ob_base.OBBase):
         return any(f.rabi_freq_t_func is not None for f in self.fields)
 
     def get_fields_sum_coherence(self):
-        """ Returns the sum coherences of the atom density matrix for each 
+        """ Returns the sum coherences of the atom density matrix for each
             field
 
         Returns:
 
         """
 
-        sum_coh = np.zeros((len(self.fields), len(self.states_t())), 
-            dtype=np.complex)
+        sum_coh = np.zeros((len(self.fields), len(self.states_t())),
+                           dtype=np.complex)
         for f_i, f in enumerate(self.fields):
             for cl in f.coupled_levels:
                 sum_coh[f_i, :] += self.states_t()[:, cl[0], cl[1]]
         return sum_coh
 
-    def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(), 
+    def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(),
                 recalc=True, savefile=None, show_pbar=False):
 
         args = self.get_field_args()
 
         td = self.is_field_td()
 
-        self.result = super().mesolve(tlist=tlist, rho0=rho0, td=td, 
-                                      e_ops=e_ops, args=args, opts=opts, 
-                                      recalc=recalc, savefile=savefile, 
+        self.result = super().mesolve(tlist=tlist, rho0=rho0, td=td,
+                                      e_ops=e_ops, args=args, opts=opts,
+                                      recalc=recalc, savefile=savefile,
                                       show_pbar=show_pbar)
 
         return self.result
 
     def get_json_dict(self):
 
-        json_dict = { "num_states": self.num_states,
-                      "energies": self.energies,
-                      "decays": self.decays,
-                      "fields": [f.get_json_dict() for f in self.fields] }
+        json_dict = {"num_states": self.num_states,
+                     "energies": self.energies,
+                     "decays": self.decays,
+                     "fields": [f.get_json_dict() for f in self.fields]}
         return json_dict
 
     def to_json_str(self):
@@ -232,7 +233,7 @@ class OBAtom(ob_base.OBBase):
     def to_json(self, file_path):
 
         with open(file_path, 'w') as fp:
-            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None, 
+            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None,
                       sort_keys=True)
 
     @classmethod
@@ -246,9 +247,11 @@ class OBAtom(ob_base.OBBase):
             json_dict = json.load(json_file)
         return cls(**json_dict)
 
+
 def main():
 
     print(OBAtom())
+
 
 if __name__ == '__main__':
     status = main()
