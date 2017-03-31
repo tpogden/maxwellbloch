@@ -11,8 +11,6 @@ from maxwellbloch import ob_solve, t_funcs
 
 from copy import deepcopy
 
-from tqdm import tqdm # progress bar
-
 class MBSolve(ob_solve.OBSolve):
 
     def __init__(self, ob_atom={}, t_min=0.0, t_max=1.0, t_steps=100,
@@ -42,30 +40,28 @@ class MBSolve(ob_solve.OBSolve):
                 "t_max={2}, " +
                 "t_steps={3}, " +
                 "method={4}, " +
-                "opts={5}, " +
-                "savefile={6}, " +
-                "z_min={7}, " +
-                "z_max={8}, " +
-                "z_steps={9}, " +
-                "z_steps_inner={10}, " +
-                "num_density_z_func={11}, " +
-                "num_density_z_args={12}, " +
-                "velocity_classes={13})").format(self.ob_atom,
-                                                 self.t_min,
-                                                 self.t_max,
-                                                 self.t_steps,
-                                                 self.method,
-                                                 self.opts,
-                                                 self.savefile,
-                                                 self.z_min,
-                                                 self.z_max,
-                                                 self.z_steps,
-                                                 self.z_steps_inner,
-                                                 self.num_density_z_func,
-                                                 self.num_density_z_args,
-                                                 self.velocity_classes)
-
-        ## TODO: move opts and savefile to end
+                "z_min={5}, " +
+                "z_max={6}, " +
+                "z_steps={7}, " +
+                "z_steps_inner={8}, " +
+                "num_density_z_func={9}, " +
+                "num_density_z_args={10}, " +
+                "velocity_classes={11}, " +
+                "opts={12}, " +
+                "savefile={13})").format(self.ob_atom,
+                                         self.t_min,
+                                         self.t_max,
+                                         self.t_steps,
+                                         self.method,
+                                         self.z_min,
+                                         self.z_max,
+                                         self.z_steps,
+                                         self.z_steps_inner,
+                                         self.num_density_z_func,
+                                         self.num_density_z_args,
+                                         self.velocity_classes,
+                                         self.opts,
+                                         self.savefile)
 
     def build_zlist(self, z_min, z_max, z_steps, z_steps_inner):
 
@@ -173,7 +169,7 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.states_zt
 
-    def mbsolve(self, step='ab', rho0=None, recalc=True, show_pbar=False):
+    def mbsolve(self, step='ab', rho0=None, recalc=True, pbar_chunk_size=10):
 
         # Insert a z_inner_step to make a Euler step first
         # NOTE: this needs to be before init_Omegas_zt, init_states_zt as
@@ -187,10 +183,10 @@ class MBSolve(ob_solve.OBSolve):
         if recalc or not self.savefile_exists():
 
             if step == 'euler':
-                self.mbsolve_euler(rho0, recalc, show_pbar)
+                self.mbsolve_euler(rho0, recalc, pbar_chunk_size)
 
             elif step == 'ab':
-                self.mbsolve_ab(rho0, recalc, show_pbar)
+                self.mbsolve_ab(rho0, recalc, pbar_chunk_size)
 
             self.save_results()
 
@@ -199,11 +195,11 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.Omegas_zt, self.states_zt
 
-    def mbsolve_euler(self, rho0=None, recalc=True, show_pbar=False):
+    def mbsolve_euler(self, rho0=None, recalc=True, pbar_chunk_size=0):
 
         len_z = len(self.zlist)-1 # only for printing progress
 
-        # TODO: What for
+        # For the interpolation
         rabi_freq_ones = np.ones(len(self.ob_atom.fields))
 
         ### Set initial states at z=0
@@ -214,8 +210,12 @@ class MBSolve(ob_solve.OBSolve):
 
     ### All Steps:
 
-        for j, z in tqdm(enumerate(self.zlist[:-1]),
-                         total=len(self.zlist)-1):
+        pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
+                                     chunk_size=pbar_chunk_size)
+
+        for j, z in enumerate(self.zlist[:-1]):
+
+            pbar.update(j)
 
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
@@ -237,7 +237,7 @@ class MBSolve(ob_solve.OBSolve):
                     self.get_Omegas_intp_t_args(Omegas_z_next)
 
                 self.ob_atom.set_H_Omega(rabi_freq_ones,
-                                         self.get_Omegas_intp_t_funcs(), 
+                                         self.get_Omegas_intp_t_funcs(),
                                          Omegas_z_next_args)
 
                 # Set up for next inner step
@@ -249,9 +249,11 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
+        pbar.finished()
+
         return self.Omegas_zt, self.states_zt
 
-    def mbsolve_ab(self, rho0=None, recalc=True, show_pbar=False):
+    def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
 
         # TODO: What for
         rabi_freq_ones = np.ones(len(self.ob_atom.fields))
@@ -290,8 +292,12 @@ class MBSolve(ob_solve.OBSolve):
 
     ### Remaining steps, Adams-Bashforth
 
-        for j, z in tqdm(enumerate(self.zlist[1:-1], start=1),
-                         total=len(self.zlist) - 2, disable=False):
+        pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
+                                     chunk_size=pbar_chunk_size)
+
+        for j, z in enumerate(self.zlist[1:-1], start=1):
+
+            pbar.update(j)
 
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
@@ -331,6 +337,8 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
 
+        pbar.finished()
+
         return self.Omegas_zt, self.states_zt
 
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
@@ -356,7 +364,7 @@ class MBSolve(ob_solve.OBSolve):
 
         return Omegas_z_next
 
-    def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev, 
+    def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev,
         sum_coh_this, Omegas_z_this):
 
         # this assumes same step size for now
