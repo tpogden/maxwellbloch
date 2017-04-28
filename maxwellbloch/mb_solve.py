@@ -468,11 +468,30 @@ class MBSolve(ob_solve.OBSolve):
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
 
     def tlist_fixed_frame(self, speed_of_light):
+        """ Return the time points shifted to the fixed (lab) frame of
+            reference given a speed-of-light.
+
+            Args:
+                speed_of_light: The speed of light in the system.
+
+            Returns:
+                Array of time values in the fixed frame of reference.
+        """
 
         t_scale = 1.0 + self.z_max/(speed_of_light*self.t_max)
         return self.tlist*t_scale
 
     def Omegas_fixed_frame(self, field_idx, speed_of_light):
+        """ Return the solved field results shifted to the fixed (lab) frame of
+            reference given a speed-of-light.
+
+            Args:
+                speed_of_light: The speed of light in the system.
+
+            Returns:
+                Array[num_fields, num_space_points, num_time_points] of field
+                values in the fixed frame of reference.
+        """
 
         Omegas_intp = interpolate.interp2d(self.tlist, self.zlist,
                                            self.Omegas_zt[field_idx].real,
