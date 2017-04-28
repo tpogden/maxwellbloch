@@ -4,6 +4,7 @@ import os
 import sys
 
 import numpy as np
+from scipy import interpolate
 
 import qutip as qu
 
@@ -465,6 +466,26 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
+
+    def tlist_fixed_frame(self, speed_of_light):
+
+        t_scale = 1.0 + self.z_max/(speed_of_light*self.t_max)
+        return self.tlist*t_scale
+
+    def Omegas_fixed_frame(self, field_idx, speed_of_light):
+
+        Omegas_intp = interpolate.interp2d(self.tlist, self.zlist,
+                                           self.Omegas_zt[field_idx].real,
+                                           bounds_error=False, fill_value=0.,
+                                           kind='quintic')
+
+        Omegas_fixed = np.zeros(self.Omegas_zt[field_idx].shape, dtype=np.float)
+
+        for j, t_j in enumerate(self.tlist_fixed_frame(speed_of_light)):
+            for i, z_i in enumerate(self.zlist):
+                Omegas_fixed[i, j] = Omegas_intp(t_j - z_i/speed_of_light, z_i)
+
+        return Omegas_fixed
 
     # def get_field_fft(f_i):
 
