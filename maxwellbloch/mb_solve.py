@@ -481,12 +481,16 @@ class MBSolve(ob_solve.OBSolve):
         t_scale = 1.0 + self.z_max/(speed_of_light*self.t_max)
         return self.tlist*t_scale
 
-    def Omegas_fixed_frame(self, field_idx, speed_of_light):
+    def Omegas_fixed_frame(self, field_idx, speed_of_light,
+                           interp_kind='linear'):
+
         """ Return the solved field results shifted to the fixed (lab) frame of
-            reference given a speed-of-light.
+            reference given a speed-of-light by interpolation.
 
             Args:
                 speed_of_light: The speed of light in the system.
+                interp_kind: The kind of spline interpolation to use ('linear',
+                    'cubic' or 'quintic')
 
             Returns:
                 Array[num_fields, num_space_points, num_time_points] of field
@@ -496,7 +500,7 @@ class MBSolve(ob_solve.OBSolve):
         Omegas_intp = interpolate.interp2d(self.tlist, self.zlist,
                                            self.Omegas_zt[field_idx].real,
                                            bounds_error=False, fill_value=0.,
-                                           kind='quintic')
+                                           kind=interp_kind)
 
         Omegas_fixed = np.zeros(self.Omegas_zt[field_idx].shape, dtype=np.float)
 

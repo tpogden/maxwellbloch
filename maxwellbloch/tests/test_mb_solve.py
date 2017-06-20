@@ -1,4 +1,4 @@
-""" 
+"""
 Unit tests for the module.
 
 Thomas Ogden <t@ogden.eu>
@@ -29,10 +29,10 @@ json_str_01 = (
 '        "detuning_positive": true,'
 '        "label": "probe",'
 '        "rabi_freq": 0.01,'
-'        "rabi_freq_t_args": {' 
+'        "rabi_freq_t_args": {'
 '           "ampl_1": 1.0,'
-'           "centre_1": 0.0, ' 
-'           "fwhm_1": 0.1' 
+'           "centre_1": 0.0, '
+'           "fwhm_1": 0.1'
 '        },'
 '        "rabi_freq_t_func": "gaussian_1"'
 '      }'
@@ -347,9 +347,9 @@ class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """
 
     def test_save_load_01(self):
-        """ Solve a basic MBSolve problem. Save the results to file. Set the 
+        """ Solve a basic MBSolve problem. Save the results to file. Set the
             results in the MBSolve object to null. Load the results from
-            file and check that they equal the original values. 
+            file and check that they equal the original values.
         """
 
         mb_solve_01 = mb_solve.MBSolve().from_json_str(json_str_01)
@@ -370,7 +370,7 @@ class TestSaveLoad(unittest.TestCase):
         self.assertTrue((states_zt == states_zt_loaded).all())
 
     def test_save_load_no_recalc(self):
-        
+
         mb_solve_01 = mb_solve.MBSolve().from_json_str(json_str_01)
 
         Omegas_zt, states_zt = mb_solve_01.mbsolve()
@@ -393,13 +393,13 @@ class TestSaveLoad(unittest.TestCase):
         mbs = \
             mb_solve.MBSolve().from_json_str(json_no_atoms)
 
-        mbs.mbsolve(step='ab') 
+        mbs.mbsolve(step='ab')
 
 class TestBuildZlist(unittest.TestCase):
 
     def test_00(self):
 
-        mb_solve_00 = mb_solve.MBSolve()        
+        mb_solve_00 = mb_solve.MBSolve()
 
         zlist = np.array([0., .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.])
 
@@ -412,7 +412,7 @@ class TestInsertFirstInnerZStep(unittest.TestCase):
         mb_solve_00 = mb_solve.MBSolve()
 
         zlist = np.array([0., .05, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.])
-        
+
         self.assertFalse(len(mb_solve_00.zlist) == len(zlist))
 
         mb_solve_00.insert_first_inner_z_step()
@@ -434,6 +434,22 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
 
         self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(),
                          ['intp_1', 'intp_2'])
+
+class TestTlistFixedFrame(unittest.TestCase):
+    """ Unit tests of the tlist_fixed_frame method. """
+
+    def test_tlist_fixed_frame(self):
+        """ When the speed of light is 1.5, for t_max = 1.0 and z_max = 1.0,
+            the t_max_fixed should be 1 + 1/1.5 = 5/3. """
+
+        mb_solve_00 = mb_solve.MBSolve()
+
+        speed = 1.5 # speed of light
+        t_max_fixed_expected = mb_solve_00.t_max + 1/(speed*mb_solve_00.z_max)
+
+        t_max_fixed = mb_solve_00.tlist_fixed_frame(speed)[-1]
+
+        self.assertAlmostEqual(t_max_fixed, t_max_fixed_expected)
 
 def main():
 
