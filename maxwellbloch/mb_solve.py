@@ -543,11 +543,21 @@ def maxwell_boltzmann(v, fwhm):
 
 def main():
 
-    # print(MBSolve())
+    import argparse
+    parser = argparse.ArgumentParser()
 
-    a = MBSolve()
-    print(a)
-    # a.mbsolve()
+    parser.add_argument('-f', '--file',
+                        help='path of a JSON file containing an mb_solve \
+                              problem definition', required=False)
+
+    args = vars(parser.parse_args())
+
+    if args['file']:
+
+        print('Loading problem definition from file {0}'.format(args['file']))
+
+        mb_solve_obj = MBSolve().from_json(args['file'])
+        mb_solve_obj.mbsolve()
 
 if __name__ == '__main__':
     status = main()
