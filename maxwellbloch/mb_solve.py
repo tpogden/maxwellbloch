@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+# import os
 import sys
 
 import numpy as np
@@ -10,7 +10,7 @@ import qutip as qu
 
 from maxwellbloch import ob_solve, t_funcs
 
-from copy import deepcopy
+# from cppy import deepcopy
 
 class MBSolve(ob_solve.OBSolve):
 
@@ -541,14 +541,40 @@ def maxwell_boltzmann(v, fwhm):
 
 #     return freq_range, Omega_abs_freq, Omega_angle_freq
 
+def parse_args():
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--file',
+                        help='path of a JSON file containing an mb_solve \
+                              problem definition', required=True)
+    parser.add_argument('-s', '--step',
+                        help="Finite difference step to use. 'ab' or 'euler'",
+                        required=False, choices=['ab', 'euler'], default='ab')
+    parser.add_argument('-r', '--recalc',
+                        help='',
+                        default=False, action="store_true", required=False)
+    parser.add_argument('-p', '--pbarchunksize',
+                        help="How often should the progress bar be updated? \
+                              Default: 10 for update every 10%.",
+                        required=False, type=int, default=10)
+
+    args = vars(parser.parse_args())
+
+    print('Loading problem definition from file {0}'.format(args['file']))
+    mb_solve_obj = MBSolve().from_json(args['file'])
+
+    mb_solve_obj.mbsolve(step=args['step'], rho0=None, recalc=args['recalc'],
+                         pbar_chunk_size=args['pbarchunksize'])
+
+
 def main():
 
-    # print(MBSolve())
+    parse_args()
 
-    a = MBSolve()
-    print(a)
-    # a.mbsolve()
+    return 0
 
 if __name__ == '__main__':
-    status = main()
-    sys.exit(status)
+    STATUS = main()
+    sys.exit(STATUS)
