@@ -420,8 +420,9 @@ class TestInsertFirstInnerZStep(unittest.TestCase):
         self.assertTrue(np.allclose(mb_solve_00.zlist, zlist, rtol=1.0e-6))
 
 class TestGetOmegasIntpTFuncs(unittest.TestCase):
-
-    def test_one_fields(self):
+    """ Unit tests of the get_Omegas_intp_t_funcs method """
+    def test_one_field(self):
+        """ For the case of a single field """
 
         mb_solve_00 = mb_solve.MBSolve().from_json_str(json_str_01)
 
@@ -429,11 +430,29 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
                          ['intp_1'])
 
     def test_two_fields(self):
+        """ For the case of two fields """
 
         mb_solve_lamda = mb_solve.MBSolve().from_json_str(json_str_lamda)
 
         self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(),
                          ['intp_1', 'intp_2'])
+
+class TestGetOmegasIntpTArgs(unittest.TestCase):
+    """ Unit tests of the get_Omegas_intp_t_args method """
+
+    def test_one_field(self):
+        """ For the case of a single field """
+
+        mb_solve_00 = mb_solve.MBSolve().from_json_str(json_str_01)
+
+        Omegas_z =  mb_solve_00.Omegas_zt[:, 0, :]
+
+        t_args = mb_solve_00.get_Omegas_intp_t_args(Omegas_z)
+
+        self.assertEqual(len(t_args), 1)
+
+        self.assertTrue(np.all(t_args[0]['tlist_1'] == mb_solve_00.tlist))
+        self.assertTrue(np.all(t_args[0]['ylist_1'] == Omegas_z/(2.0*np.pi)))
 
 class TestTlistFixedFrame(unittest.TestCase):
     """ Unit tests of the tlist_fixed_frame method. """
@@ -450,6 +469,7 @@ class TestTlistFixedFrame(unittest.TestCase):
         t_max_fixed = mb_solve_00.tlist_fixed_frame(speed)[-1]
 
         self.assertAlmostEqual(t_max_fixed, t_max_fixed_expected)
+
 
 def main():
 
