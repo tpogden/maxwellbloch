@@ -13,7 +13,7 @@ dense atomic vapour. The pulse immediately breaks up on entering the medium and
 the resultant pulses form two optical solitons each with a pulse
 area of 2π.
 
-[4pi]: https://github.com/tommyogden/notebooks-maxwellbloch/blob/master/mb-solve-two-sech-4pi.ipynb
+[4pi]: https://github.com/tommyogden/notebooks-maxwellbloch/blob/master/examples/mb-solve-two-sech-4pi.ipynb
 
 ## Install
 
