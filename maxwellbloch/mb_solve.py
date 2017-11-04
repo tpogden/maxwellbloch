@@ -510,9 +510,62 @@ class MBSolve(ob_solve.OBSolve):
 
         return Omegas_fixed
 
-    # def get_field_fft(f_i):
+    def freq_list(self):
+        """ Fourier transform of the tlist into the frequency domain for
+            spectral analysis.
 
-    #     return field_fft(self.Omegas_zt, )
+            Returns:
+                Array[num_time_points] of frequency values.
+
+        """
+
+        t_step = self.tlist[1] - self.tlist[0]
+        freq_list = np.fft.fftfreq(len(self.tlist), t_step)  # FFT Freq
+        return np.fft.fftshift(freq_list)
+
+    def Omegas_freq(self, field_idx):
+        """ Fourier transform of the field result of field index.
+
+        Returns:
+            Array[num_z_steps, num_t_steps] Field result in frequency domain.
+
+        """
+
+        Omega_zt = self.Omegas_zt[field_idx]
+
+        Omega_fft = np.zeros(Omega_zt.shape, dtype=np.complex)
+
+        # TODO: I should be able to do this without the loop by specifying axis?
+        for i, Omega_z_i in enumerate(Omega_zt):
+
+            Omega_fft[i] = np.fft.fft(Omega_zt[i])
+            Omega_fft[i] = np.fft.fftshift(Omega_fft[i])
+
+        return Omega_fft
+
+    def Omegas_freq_abs(self, field_idx):
+
+        return np.abs(self.Omegas_freq(field_idx))
+
+    def Omegas_freq_angle(self, field_idx):
+
+        return np.angle(self.Omegas_freq(field_idx))
+
+# def calc_transmission_freq(Omega_z, t_range):
+
+#     Omega_abs_freq, freq_range = calc_Omega_abs_freq(Omega_z, t_range)
+
+#     I_freq = Omega_abs_freq**2  # Intensity is prop to Omega_z**2
+
+# ### Transmission
+
+#     T_freq = np.zeros(I_freq.shape, dtype=np.float)
+
+#     for i, T_z in enumerate(T_freq):
+
+#         T_freq[i] = I_freq[i] / I_freq[0]
+
+#     return T_freq, freq_range
 
 ### Helper Functions
 
@@ -522,24 +575,6 @@ def maxwell_boltzmann(v, fwhm):
     # TODO: Allow offset, v_0.
 
     return 1./(fwhm*np.sqrt(np.pi))*np.exp(-(v/fwhm)**2)
-
-# def field_fft(Omega_zt, tlist):
-
-#     Omega_fft = np.zeros(f.shape, dtype=np.complex)
-
-#     t_step = tlist[1] - tlist[0]
-#     freq_range = np.fft.fftfreq(len(tlist), t_step) # FFT Freq
-#     freq_range = np.fft.fftshift(freq_range)
-
-#     for i, Omega_z_i  in enumerate(Omega_zt):
-
-#         Omega_fft[i] = np.fft.fft(Omega_z[i])
-#         Omega_fft[i] = np.fft.fftshift(Omega_fft[i])
-
-#     Omega_abs_freq = np.abs(Omega_fft)
-#     Omega_angle_freq = np.angle(Omega_fft)
-
-#     return freq_range, Omega_abs_freq, Omega_angle_freq
 
 def parse_args():
 
