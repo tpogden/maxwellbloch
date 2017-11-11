@@ -8,4 +8,8 @@ setup(name='MaxwellBloch',
       author_email='t@ogden.eu',
       license='MIT',
       packages=['maxwellbloch'],
+      install_requires=[
+          'qutip',
+          'tqdm',
+      ],
       zip_safe=False)
