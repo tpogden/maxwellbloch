@@ -523,7 +523,7 @@ class MBSolve(ob_solve.OBSolve):
         freq_list = np.fft.fftfreq(len(self.tlist), t_step)  # FFT Freq
         return np.fft.fftshift(freq_list)
 
-    def Omegas_freq(self, field_idx):
+    def Omega_freq(self, field_idx):
         """ Fourier transform of the field result of field index.
 
         Returns:
@@ -543,29 +543,39 @@ class MBSolve(ob_solve.OBSolve):
 
         return Omega_fft
 
-    def Omegas_freq_abs(self, field_idx):
+    def spectral_absorption(self, field_idx, z_idx):
+        """ Field absorption in the frequency domain.
 
-        return np.abs(self.Omegas_freq(field_idx))
+        Args:
+            field_idx: Field to return spectrum of.
+            z_idx: z step at which to return absorption.
 
-    def Omegas_freq_angle(self, field_idx):
+        Returns:
+            Array[num_freq_points] of absorption values.
 
-        return np.angle(self.Omegas_freq(field_idx))
+        Note:
+            In the linear regime this is the imaginary part of the linear
+            susceptibility (with a factor k/2).
+            See TP Ogden thesis Eqn (2.58)
+        """
 
-# def calc_transmission_freq(Omega_z, t_range):
+        Omega_freq_abs = np.abs(self.Omega_freq(field_idx))
 
-#     Omega_abs_freq, freq_range = calc_Omega_abs_freq(Omega_z, t_range)
+        return -np.log(Omega_freq_abs[z_idx]/Omega_freq_abs[0])
 
-#     I_freq = Omega_abs_freq**2  # Intensity is prop to Omega_z**2
+    def spectral_dispersion(self, field_idx, z_idx):
+        """ Field dispersion in the frequency domain.
 
-# ### Transmission
+        Note:
+            In the linear regime this is the real part of the linear
+            susceptibility.
 
-#     T_freq = np.zeros(I_freq.shape, dtype=np.float)
+            See TP Ogden Thesis Eqn (2.59)
+        """
 
-#     for i, T_z in enumerate(T_freq):
+        Omega_freq_angle = np.angle(self.Omega_freq(field_idx))
 
-#         T_freq[i] = I_freq[i] / I_freq[0]
-
-#     return T_freq, freq_range
+        return Omega_freq_angle[0] - Omega_freq_angle[z_idx]
 
 ### Helper Functions
 
