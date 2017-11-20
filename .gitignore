@@ -56,3 +56,8 @@ target/
 # VSCode
 .idea/
 .vscode/
+
+# MacOS
+
+.DS_Store
+*.qu
