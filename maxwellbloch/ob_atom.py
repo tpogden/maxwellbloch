@@ -138,7 +138,8 @@ class OBAtom(ob_base.OBBase):
 
             for c in f.coupled_levels:
                 H_Omega += self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])
-                H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
+
+            H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
 
             if self.is_field_td():  # time-dependent interaction
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
