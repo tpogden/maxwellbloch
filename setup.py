@@ -10,6 +10,5 @@ setup(name='MaxwellBloch',
       packages=['maxwellbloch'],
       install_requires=[
           'qutip',
-          'tqdm',
       ],
       zip_safe=False)
