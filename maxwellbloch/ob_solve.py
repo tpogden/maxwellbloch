@@ -62,6 +62,29 @@ class OBSolve(object):
         self.opts = qu.Options()
         return self.opts
 
+    def set_field_rabi_freq_t_func(self, field_idx, t_func):
+        """ Set the Rabi frequency time function of a field to a new time
+            function. This is useful when you want to set a custom function,
+            not one available in t_funcs.py
+
+        Args:
+            field_idx: The field for which to set the Rabi frequency t_func
+            t_func: Rabi frequency as a function of time, f(t, args)
+        """
+
+        self.ob_atom.fields[field_idx].rabi_freq_t_func = t_func
+
+    def set_field_rabi_freq_t_args(self, field_idx, t_args):
+        """ Set the Rabi frequency time function arguments. To be used with
+            set_field_rabi_freq_t_func
+
+        Args:
+            field_idx: The field for which to set the Rabi frequency t_args
+            t_args: A dict representing the args to go with the t_func.
+        """
+
+        self.ob_atom.fields[field_idx].rabi_freq_t_args = t_args
+
     # TODO: Rename to obsolve for clarity when calling from derived class
     def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True,
               show_pbar=False, save=True):
