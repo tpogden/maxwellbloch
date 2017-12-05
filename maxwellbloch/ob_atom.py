@@ -12,6 +12,13 @@ from maxwellbloch import ob_base, field, t_funcs
 class OBAtom(ob_base.OBBase):
 
     def __init__(self, num_states=1, energies=[], decays=[], fields=[]):
+        """
+        Args:
+            decays: list of dicts representing decays.
+            e.g.
+            [ { "rate": 1.0, "channels": [[0,1]] }
+              { "rate": 2.0, "channels": [[2,1], [3,1]] } ]
+        """
 
         super().__init__()
 
@@ -21,11 +28,7 @@ class OBAtom(ob_base.OBBase):
 
         self.build_fields(fields)
 
-        self.build_H_0(energies)
-        self.build_c_ops(decays)
-
-        self.build_H_Delta()
-        self.build_H_Omega()
+        self.build_operators()
 
         self.init_rho()
 
@@ -47,15 +50,21 @@ class OBAtom(ob_base.OBBase):
             self.add_field(f)
         return self.fields
 
-    def build_H_0(self, energies=[]):
-        """ Takes a list of energies and makes a Bare Hamiltonian with the
-        energies as diagonals.
+    def build_operators(self):
+        """ Build the quantum operators representing the bare Hamiltonian,
+            collapse operators and interaction Hamiltonian.
+        """
+
+        self.build_H_0()
+        self.build_c_ops()
+        self.build_H_Delta()
+        self.build_H_Omega()
+
+    def build_H_0(self):
+        """ Makes a Bare Hamiltonian with the energies as diagonals.
 
         Leave the list empty for all zero energies (i.e. if you don't care
         about absolute energies.)
-
-        Args:
-            energies: list of pre-interaction energies
 
         Returns:
             H_0 = [energies[0]             0  ...]
@@ -64,37 +73,28 @@ class OBAtom(ob_base.OBBase):
 
         """
 
-        if energies:
-            H_0 = np.diag(np.array(energies))
+        if self.energies:
+            H_0 = np.diag(np.array(self.energies))
         else:
             H_0 = np.zeros([self.num_states, self.num_states])
 
         self.H_0 = qu.Qobj(H_0)
         return self.H_0
 
-    def build_c_ops(self, decays=[]):
-        """ Takes a list of spontaneous decay rates and makes a list of
-        collapse operators to be passed to the solver.
-
-        Args:
-            decays: list of dicts representing decays.
-            e.g.
-            [ { "rate": 1.0, "channels": [[0,1]] }
-              { "rate": 2.0, "channels": [[2,1], [3,1]] } ]
+    def build_c_ops(self):
+        """ Takes the list of decays and makes a list of collapse operators to
+            be passed to the solver.
         """
 
         self.c_ops = []
 
-        for d in decays:
+        for d in self.decays:
             r = d["rate"]
             for c in d["channels"]:
                 self.c_ops.append(np.sqrt(2 * pi * r) * self.sigma(c[0], c[1]))
         return self.c_ops
 
     def build_H_Delta(self):
-
-        # TODO: check fields has been built.
-        # TODO: Shouldn't this be in build fields?
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
