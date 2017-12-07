@@ -73,6 +73,7 @@ class OBSolve(object):
         """
 
         self.ob_atom.fields[field_idx].rabi_freq_t_func = t_func
+        self.ob_atom.build_operators() # Rebuild so H_Omega is updated
 
     def set_field_rabi_freq_t_args(self, field_idx, t_args):
         """ Set the Rabi frequency time function arguments. To be used with
