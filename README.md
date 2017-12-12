@@ -45,6 +45,11 @@ notebooks available here:
 
 https://github.com/tommyogden/notebooks-maxwellbloch#examples
 
+Tools for making videos and gifs (like the one above) of the solved field
+propagation are available here:
+
+https://github.com/tommyogden/notebooks-maxwellbloch#tools
+
 ## Documentation
 
 On the way…
