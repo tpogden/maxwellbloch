@@ -83,14 +83,6 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.z_step()/self.z_steps_inner
 
-    def insert_first_inner_z_step(self):
-        """ TODO: doc, test """
-
-        self.zlist = np.insert(self.zlist, 1, self.z_min +
-                               self.z_step_inner())
-
-        return self.zlist
-
     def build_velocity_classes(self, velocity_classes={}):
 
         self.velocity_classes = {}
@@ -172,12 +164,6 @@ class MBSolve(ob_solve.OBSolve):
 
     def mbsolve(self, step='ab', rho0=None, recalc=True, pbar_chunk_size=10):
 
-        # Insert a z_inner_step to make a Euler step first
-        # NOTE: this needs to be before init_Omegas_zt, init_states_zt as
-        # the size of these will be changed
-        if step == 'ab':
-            self.insert_first_inner_z_step()
-
         self.init_Omegas_zt()
         self.init_states_zt()
 
@@ -256,7 +242,7 @@ class MBSolve(ob_solve.OBSolve):
 
     def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
 
-        # TODO: What for
+        # For use in the loop
         rabi_freq_ones = np.ones(len(self.ob_atom.fields))
 
         ### Set initial states at z=0
@@ -368,7 +354,7 @@ class MBSolve(ob_solve.OBSolve):
     def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev,
         sum_coh_this, Omegas_z_this):
 
-        # this assumes same step size for now
+        # Assumes same step size
         h = z_next - z_this
 
         N = self.num_density_z_func(z_next, self.num_density_z_args)
