@@ -7,9 +7,16 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
+import sys
+import os
+
 import unittest
 
 from maxwellbloch import ob_solve, t_funcs
+
+# Absolute path of tests/json directory, so that tests can be called from
+# different directories.
+JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
 
 JSON_STR_02 = (
     '{'
@@ -136,7 +143,8 @@ class TestSaveLoad(unittest.TestCase):
             and check that they match the original values.
         """
 
-        ob_solve_02 = ob_solve.OBSolve().from_json("maxwellbloch/tests/json/ob_solve_02.json")
+        json_path = os.path.join(JSON_DIR, "ob_solve_02.json")
+        ob_solve_02 = ob_solve.OBSolve().from_json(json_path)
 
         states_t = ob_solve_02.solve()
 

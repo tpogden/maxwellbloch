@@ -84,14 +84,24 @@ class OBAtom(ob_base.OBBase):
     def build_c_ops(self):
         """ Takes the list of decays and makes a list of collapse operators to
             be passed to the solver.
+
+        Notes:
+            We want at least one collapse operator to force the master equation
+            solver to produce density matrices, not state vectors. In the case
+            that self.decays is empty, we'll add a zero collapse operator.
         """
 
         self.c_ops = []
 
-        for d in self.decays:
-            r = d["rate"]
-            for c in d["channels"]:
-                self.c_ops.append(np.sqrt(2 * pi * r) * self.sigma(c[0], c[1]))
+        if not self.decays:
+            self.c_ops.append(qu.Qobj(np.zeros([self.num_states,
+                self.num_states])))
+        else:
+            for d in self.decays:
+                r = d["rate"]
+                for c in d["channels"]:
+                    self.c_ops.append(np.sqrt(2*pi*r)*self.sigma(c[0], c[1]))
+
         return self.c_ops
 
     def build_H_Delta(self):
