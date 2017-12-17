@@ -192,22 +192,6 @@ class TestGetOmegasIntpTArgs(unittest.TestCase):
         self.assertTrue(np.all(t_args[0]['tlist_1'] == mb_solve_00.tlist))
         self.assertTrue(np.all(t_args[0]['ylist_1'] == Omegas_z/(2.0*np.pi)))
 
-class TestTlistFixedFrame(unittest.TestCase):
-    """ Unit tests of the tlist_fixed_frame method. """
-
-    def test_tlist_fixed_frame(self):
-        """ When the speed of light is 1.5, for t_max = 1.0 and z_max = 1.0,
-            the t_max_fixed should be 1 + 1/1.5 = 5/3. """
-
-        mb_solve_00 = mb_solve.MBSolve()
-
-        speed = 1.5 # speed of light
-        t_max_fixed_expected = mb_solve_00.t_max + 1/(speed*mb_solve_00.z_max)
-
-        t_max_fixed = mb_solve_00.tlist_fixed_frame(speed)[-1]
-
-        self.assertAlmostEqual(t_max_fixed, t_max_fixed_expected)
-
 
 def main():
 

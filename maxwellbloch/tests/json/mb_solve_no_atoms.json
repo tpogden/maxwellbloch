@@ -13,7 +13,7 @@
         "detuning": 0.0,
         "detuning_positive": true,
         "label": "probe",
-        "rabi_freq": 5.0,
+        "rabi_freq": 1.0,
         "rabi_freq_t_args": {
           "ampl_1": 1.0,
           "centre_1": 0.0,
