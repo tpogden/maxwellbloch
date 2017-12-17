@@ -24,7 +24,7 @@ class OBAtom(ob_base.OBBase):
 
         self.num_states = num_states
         self.energies = energies
-        self.decays = decays # TODO: Do we need self.decays if building c_ops?
+        self.decays = decays
 
         self.build_fields(fields)
 
@@ -87,7 +87,7 @@ class OBAtom(ob_base.OBBase):
 
         Notes:
             We want at least one collapse operator to force the master equation
-            solver producing density matrices, not state vectors. In the case
+            solver to produce density matrices, not state vectors. In the case
             that self.decays is empty, we'll add a zero collapse operator.
         """
 

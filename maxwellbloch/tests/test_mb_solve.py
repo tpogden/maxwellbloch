@@ -6,12 +6,17 @@ Thomas Ogden <t@ogden.eu>
 """
 
 import sys
+import os
 
 import unittest
 
 import numpy as np
 
 from maxwellbloch import mb_solve
+
+# Absolute path of tests/json directory, so that tests can be called from
+# different directories.
+JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
 
 json_str_01 = (
 '{'
@@ -280,6 +285,15 @@ class TestMBSolve(unittest.TestCase):
                                     mbs.Omegas_zt[:, -1, :], rtol=1.0e-6))
 
         # self.assertEqual(mbs.Omegas_zt[:,0,:], mbs.Omegas_zt[:,-1,:])
+
+    def test_no_decays(self):
+        """ Empty decay list. """
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_no_decays.json")
+
+        mb_solve_nd = mb_solve.MBSolve().from_json(json_path)
+
+        mb_solve_nd.mbsolve()
 
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """
