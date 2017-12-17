@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+- Fixed bug where empty decay list would cause exception
+- Fixed bug where fixed frame didn't work if no inner z steps
+- Added testing.py to run tests
+- Added link to video and gif tools
+- Fixed multiple coupled levels bug
 - Added MBSolve.set_field_rabi_freq_t_func() and set_field_rabi_freq_t_args()
     methods so we can add custom input fields
 - Added OBAtom.build() method for resetting operators
