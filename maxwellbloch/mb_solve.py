@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# import os
 import sys
 
 import numpy as np
-from scipy import interpolate # TODO: Remove when fixedframe ready
 
 import qutip as qu
 
 from maxwellbloch import ob_solve, t_funcs
-
-# from cppy import deepcopy
 
 class MBSolve(ob_solve.OBSolve):
 
@@ -329,8 +325,14 @@ class MBSolve(ob_solve.OBSolve):
         return self.Omegas_zt, self.states_zt
 
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
-        """ For the current state of the atom, given field Omegas_z_this.
+        """ For the current state of the atom, given fields Omegas_z_this,
+            make an Euler step to determine the field at the next space step.
 
+            Args:
+                z_this: The current space point
+                z_next: the next space point
+                Omegas_z_this: np.complex[num_t_steps]
+                    The field rabi frequencies at z_step.
         """
 
         h = z_next - z_this
@@ -353,6 +355,16 @@ class MBSolve(ob_solve.OBSolve):
 
     def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev,
         sum_coh_this, Omegas_z_this):
+        """ For the current state of the atom, given fields Omegas_z_this,
+            make an Euler step to determine the field at the next space step.
+
+            Args:
+                z_prev: The previous space point
+                z_this: The current space point
+                z_next: the next space point
+                Omegas_z_this: np.complex[num_t_steps]
+                    The field rabi frequencies at z_step.
+        """
 
         # Assumes same step size
         h = z_next - z_this
@@ -452,73 +464,6 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
-
-    def freq_list(self):
-        """ Fourier transform of the tlist into the frequency domain for
-            spectral analysis.
-
-            Returns:
-                Array[num_time_points] of frequency values.
-
-        """
-
-        t_step = self.tlist[1] - self.tlist[0]
-        freq_list = np.fft.fftfreq(len(self.tlist), t_step)  # FFT Freq
-        return np.fft.fftshift(freq_list)
-
-    def Omega_freq(self, field_idx):
-        """ Fourier transform of the field result of field index.
-
-        Returns:
-            Array[num_z_steps, num_t_steps] Field result in frequency domain.
-
-        """
-
-        Omega_zt = self.Omegas_zt[field_idx]
-
-        Omega_fft = np.zeros(Omega_zt.shape, dtype=np.complex)
-
-        # TODO: I should be able to do this without the loop by specifying axis?
-        for i, Omega_z_i in enumerate(Omega_zt):
-
-            Omega_fft[i] = np.fft.fft(Omega_zt[i])
-            Omega_fft[i] = np.fft.fftshift(Omega_fft[i])
-
-        return Omega_fft
-
-    def spectral_absorption(self, field_idx, z_idx):
-        """ Field absorption in the frequency domain.
-
-        Args:
-            field_idx: Field to return spectrum of.
-            z_idx: z step at which to return absorption.
-
-        Returns:
-            Array[num_freq_points] of absorption values.
-
-        Note:
-            In the linear regime this is the imaginary part of the linear
-            susceptibility (with a factor k/2).
-            See TP Ogden thesis Eqn (2.58)
-        """
-
-        Omega_freq_abs = np.abs(self.Omega_freq(field_idx))
-
-        return -np.log(Omega_freq_abs[z_idx]/Omega_freq_abs[0])
-
-    def spectral_dispersion(self, field_idx, z_idx):
-        """ Field dispersion in the frequency domain.
-
-        Note:
-            In the linear regime this is the real part of the linear
-            susceptibility.
-
-            See TP Ogden Thesis Eqn (2.59)
-        """
-
-        Omega_freq_angle = np.angle(self.Omega_freq(field_idx))
-
-        return Omega_freq_angle[0] - Omega_freq_angle[z_idx]
 
 ### Helper Functions
 

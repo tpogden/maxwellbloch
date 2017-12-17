@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Refactored spectral methods to separate module
+- Refactored fixed frame methods to separate module
 - Fixed bug where empty decay list would cause exception
 - Fixed bug where fixed frame didn't work if no inner z steps
 - Added testing.py to run tests
