@@ -4,7 +4,7 @@
 import sys
 
 import numpy as np
-from scipy import interpolate
+from scipy import interpolate # TODO: Remove when fixedframe ready
 
 import qutip as qu
 
@@ -453,49 +453,6 @@ class MBSolve(ob_solve.OBSolve):
 
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
 
-    def tlist_fixed_frame(self, speed_of_light):
-        """ Return the time points shifted to the fixed (lab) frame of
-            reference given a speed-of-light.
-
-            Args:
-                speed_of_light: The speed of light in the system.
-
-            Returns:
-                Array of time values in the fixed frame of reference.
-        """
-
-        t_scale = 1.0 + self.z_max/(speed_of_light*self.t_max)
-        return self.tlist*t_scale
-
-    def Omegas_fixed_frame(self, field_idx, speed_of_light,
-                           interp_kind='linear'):
-
-        """ Return the solved field results shifted to the fixed (lab) frame of
-            reference given a speed-of-light by interpolation.
-
-            Args:
-                speed_of_light: The speed of light in the system.
-                interp_kind: The kind of spline interpolation to use ('linear',
-                    'cubic' or 'quintic')
-
-            Returns:
-                Array[num_fields, num_space_points, num_time_points] of field
-                values in the fixed frame of reference.
-        """
-
-        Omegas_intp = interpolate.interp2d(self.tlist, self.zlist,
-                                           self.Omegas_zt[field_idx].real,
-                                           bounds_error=False, fill_value=0.,
-                                           kind=interp_kind)
-
-        Omegas_fixed = np.zeros(self.Omegas_zt[field_idx].shape, dtype=np.float)
-
-        for j, t_j in enumerate(self.tlist_fixed_frame(speed_of_light)):
-            for i, z_i in enumerate(self.zlist):
-                Omegas_fixed[i, j] = Omegas_intp(t_j - z_i/speed_of_light, z_i)
-
-        return Omegas_fixed
-
     def freq_list(self):
         """ Fourier transform of the tlist into the frequency domain for
             spectral analysis.
@@ -598,7 +555,6 @@ def parse_args():
 
     mb_solve_obj.mbsolve(step=args['step'], rho0=None, recalc=args['recalc'],
                          pbar_chunk_size=args['pbarchunksize'])
-
 
 def main():
 
