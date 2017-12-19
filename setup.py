@@ -8,7 +8,7 @@ setup(name='MaxwellBloch',
       author_email='t@ogden.eu',
       license='MIT',
       packages=['maxwellbloch'],
-      install_requires=[
-          'qutip',
-      ],
+      install_requires=['qutip'],
+      scripts=['bin/make-mp4-fixed-frame.py',
+               'bin/make-gif-ffmpeg.sh'],
       zip_safe=False)
