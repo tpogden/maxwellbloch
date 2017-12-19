@@ -5,7 +5,6 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
-import sys
 import os
 
 import unittest
