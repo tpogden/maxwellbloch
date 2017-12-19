@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+- Add methods to save field CSV files
 - Refactored spectral methods to separate module
 - Refactored fixed frame methods to separate module
 - Fixed bug where empty decay list would cause exception
