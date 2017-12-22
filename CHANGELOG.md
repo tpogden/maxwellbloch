@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+- Add scripts to make MP4s and gifs to /bin
 - Add methods to save field CSV files
 - Refactored spectral methods to separate module
 - Refactored fixed frame methods to separate module
