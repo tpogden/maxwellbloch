@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import subprocess
 
 # Semantic versioning
@@ -27,7 +27,8 @@ setup(name='MaxwellBloch',
       author='Thomas P Ogden',
       author_email='t@ogden.eu',
       license='MIT',
-      packages=['maxwellbloch'],
+      packages=find_packages(),
+      package_data={'maxwellbloch.tests': ['json/*.json']},
       install_requires=['qutip'],
       scripts=['bin/make-mp4-fixed-frame.py',
                'bin/make-gif-ffmpeg.sh'],
