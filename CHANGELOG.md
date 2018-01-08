@@ -1,7 +1,10 @@
-## [Unreleased]
+## [0.3.0] 2017-01-08
 
-- Add scripts to make MP4s and gifs to /bin
-- Add methods to save field CSV files
+- Added Travis CI build
+- Fixed bug that tests submodule not in package
+- Added git hash to unreleased version number
+- Added scripts to make MP4s and gifs to /bin
+- Added methods to save field CSV files
 - Refactored spectral methods to separate module
 - Refactored fixed frame methods to separate module
 - Fixed bug where empty decay list would cause exception
