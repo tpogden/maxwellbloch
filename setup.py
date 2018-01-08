@@ -5,7 +5,7 @@ import subprocess
 MAJOR = 0
 MINOR = 3
 PATCH = 0
-IS_RELEASED = False
+IS_RELEASED = True
 
 VERSION = '{0}.{1}.{2}'.format(MAJOR, MINOR, PATCH)
 
