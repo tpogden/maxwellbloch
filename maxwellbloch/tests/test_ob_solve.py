@@ -108,14 +108,16 @@ class TestJSON(unittest.TestCase):
         self.assertEqual(ob_solve_02.t_steps, 100)
         self.assertEqual(ob_solve_02.method, "mesolve")
 
-    def test_to_from_json_str_02(self):
+    def test_to_from_json_str_03(self):
 
-        ob_solve_02 = ob_solve.OBSolve().from_json_str(JSON_STR_02)
-        ob_solve_03 = ob_solve.OBSolve.from_json_str(ob_solve_02.to_json_str())
+        json_path = os.path.join(JSON_DIR, "ob_solve_03.json")
+
+        obs = ob_solve.OBSolve().from_json(json_path)
+        obs_test = ob_solve.OBSolve.from_json_str(obs.to_json_str())
 
         self.maxDiff = None
-        self.assertEqual(ob_solve_02.to_json_str.__repr__(),
-                         ob_solve_03.to_json_str.__repr__())
+        self.assertEqual(obs.to_json_str.__repr__(),
+                         obs_test.to_json_str.__repr__())
 
     def test_to_from_json(self):
 
