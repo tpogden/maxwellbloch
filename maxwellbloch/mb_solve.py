@@ -80,12 +80,30 @@ class MBSolve(ob_solve.OBSolve):
         return self.z_step()/self.z_steps_inner
 
     def build_velocity_classes(self, velocity_classes={}):
+        """ Build the velocity class structure from dict. """
 
         self.velocity_classes = {}
 
-        # What if only some elements are defined?
         if velocity_classes:
+
             self.velocity_classes = velocity_classes
+
+            if 'thermal_width' not in velocity_classes:
+                self.velocity_classes['thermal_width'] = 1.0
+
+            if velocity_classes['thermal_width'] <= 0.0:
+                raise ValueError('Thermal width must be > 0.0.')
+
+            if 'thermal_delta_steps' not in velocity_classes:
+                self.velocity_classes['thermal_delta_min'] = 0.0
+                self.velocity_classes['thermal_delta_max'] = 0.0
+                self.velocity_classes['thermal_delta_steps'] = 0
+
+            # If no inner steps, set to default
+            if 'thermal_delta_inner_steps' not in velocity_classes:
+                self.velocity_classes['thermal_delta_inner_min'] = 0.0
+                self.velocity_classes['thermal_delta_inner_max'] = 0.0
+                self.velocity_classes['thermal_delta_inner_steps'] = 0
 
         else:
             self.velocity_classes['thermal_delta_min'] = 0.0
