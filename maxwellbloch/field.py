@@ -57,7 +57,8 @@ class Field(object):
         if rabi_freq_t_func:
             self.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_func)
         else:
-            self.rabi_freq_t_func = None
+            self.rabi_freq_t_func = t_funcs.square_1
+            self.rabi_freq_t_args = {'on_1': 0.0, 'off_1': 1.0, 'ampl_1': 1.0}
 
         return self.rabi_freq_t_func
 

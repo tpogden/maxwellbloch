@@ -12,7 +12,7 @@ import unittest
 
 import numpy as np
 
-from maxwellbloch import mb_solve
+from maxwellbloch import mb_solve, t_funcs
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -96,6 +96,17 @@ class TestMBSolve(unittest.TestCase):
         mb_solve_nd = mb_solve.MBSolve().from_json(json_path)
 
         mb_solve_nd.mbsolve()
+
+    def test_no_rabi_freq_t_func(self):
+        """ Empty decay list. """
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_no_rabi_freq_t_func.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        self.assertEqual(mbs.ob_atom.fields[0].rabi_freq_t_func,
+            t_funcs.square_1)
+        self.assertDictEqual(mbs.ob_atom.fields[0].rabi_freq_t_args,
+                             {"ampl_1": 1.0, "on_1": 0.0, "off_1": 1.0})
 
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """

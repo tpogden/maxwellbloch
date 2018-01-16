@@ -1,4 +1,4 @@
-""" 
+"""
 Unit tests for the field module.
 
 Thomas Ogden <t@ogden.eu>
@@ -33,7 +33,7 @@ class TestInit(unittest.TestCase):
     field_02 = field.Field.from_json_str(json_str_02)
 
     def test_init_default(self):
-        """  Test Default Initialise """ 
+        """  Test Default Initialise """
 
         field_00 = field.Field()
 
@@ -42,8 +42,9 @@ class TestInit(unittest.TestCase):
         self.assertEqual(field_00.detuning_positive, True)
         self.assertEqual(field_00.label, '')
         self.assertEqual(field_00.rabi_freq, 0.0)
-        self.assertEqual(field_00.rabi_freq_t_args, {})
-        self.assertEqual(field_00.rabi_freq_t_func, None)
+        self.assertEqual(field_00.rabi_freq_t_args, {'ampl_1': 1.0,
+            'on_1': 0.0, 'off_1': 1.0})
+        self.assertEqual(field_00.rabi_freq_t_func, t_funcs.square_1)
 
     def test_to_from_json_str(self):
 
@@ -60,11 +61,11 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.detuning_positive, True)
         self.assertEqual(self.field_02.label, 'coupling')
         self.assertEqual(self.field_02.rabi_freq, 10.0)
-        self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_1": 1.0, 
+        self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_1": 1.0,
                                                      "off_1": 0.7,
                                                      "on_1": 0.3})
-        self.assertEqual(self.field_02.rabi_freq_t_func, t_funcs.square_1)        
-           
+        self.assertEqual(self.field_02.rabi_freq_t_func, t_funcs.square_1)
+
     def test_to_from_json(self):
 
         import os
@@ -86,7 +87,9 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
     def test_null(self):
 
         self.field_00.build_rabi_freq_t_func(None)
-        self.assertEqual(self.field_00.rabi_freq_t_func, None)
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.square_1)
+        self.assertEqual(self.field_00.rabi_freq_t_args, {'ampl_1': 1.0,
+            'on_1': 0.0, 'off_1': 1.0})
 
     def test_square_1(self):
 

@@ -56,7 +56,7 @@ class OBSolve(object):
 
     def build_opts(self, opts):
         """ This currently just sets the options to default.
-            TODO: Fix this!
+            Issue #96.
         """
 
         self.opts = qu.Options()
