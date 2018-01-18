@@ -108,6 +108,52 @@ class TestMBSolve(unittest.TestCase):
         self.assertDictEqual(mbs.ob_atom.fields[0].rabi_freq_t_args,
                              {"ampl_1": 1.0, "on_1": 0.0, "off_1": 1.0})
 
+    def test_no_vel_classes(self):
+        """ Empty velocity class dict. """
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        vc = {}
+
+        mbs.build_velocity_classes(vc)
+        mbs.mbsolve()
+
+    def test_no_vel_classes_inner(self):
+        """ No inner delta values in dict. """
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        vc = {
+            "thermal_delta_min": -1.0,
+            "thermal_delta_max": 1.0,
+            "thermal_delta_steps": 2,
+            "thermal_width": 1.0
+        }
+
+        mbs.build_velocity_classes(vc)
+        mbs.mbsolve()
+
+    def test_zero_thermal_width(self):
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        vc = {
+            "thermal_delta_min": -1.0,
+            "thermal_delta_max": 1.0,
+            "thermal_delta_steps": 2,
+            "thermal_delta_inner_min": 0.0,
+            "thermal_delta_inner_max": 0.0,
+            "thermal_delta_inner_steps": 0,
+            "thermal_width": 0.0
+        }
+
+        self.assertRaises(ValueError, mbs.build_velocity_classes, vc)
+
+        mbs.mbsolve()
+
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """
 
