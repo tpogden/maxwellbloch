@@ -52,8 +52,8 @@ mb_solve_00.mbsolve(recalc=False)
 ### ANIMATION
 
 tlist_fixed_frame = fixed.t_list(mb_solve_00, speed_of_light)
-field_fixed_frame = fixed.rabi_freq_abs(mb_solve_00, 0, speed_of_light,
-    interp_kind='cubic')
+field_fixed_frame = fixed.rabi_freq(mb_solve_00, 0, speed_of_light,
+    part='real', interp_kind='cubic')
 
 t_min = np.min(tlist_fixed_frame)
 t_max = np.max(tlist_fixed_frame)
@@ -90,7 +90,7 @@ def init():
 
 def animate(i):
     x = zlist
-    y = np.abs(field_fixed_frame[:, i]) / (2.0 * np.pi)
+    y = field_fixed_frame[:, i]/(2.0*np.pi)
     line.set_data(x, y)
 
     for coll in (ax.collections):
