@@ -34,6 +34,8 @@ parser.add_argument('-z', '--zoom', help="To use interpolation on the output \
     required=False)
 parser.add_argument('-p', '--fps', help='Frames per second', default=30,
     required=False)
+parser.add_argument('-a', '--atoms-alpha', help='Atoms alpha', default=0.2,
+    required=False)
 
 opts = parser.parse_args()
 print(opts)
@@ -43,6 +45,7 @@ speed_of_light = float(opts.speed_of_light)
 y_min = float(opts.y_min)
 y_max = float(opts.y_max)
 fps = float(opts.fps)
+atoms_alpha = float(opts.atoms_alpha)
 
 mb_solve_00 = mb_solve.MBSolve().\
                 from_json(json_file)
@@ -66,14 +69,20 @@ field_fixed_frame = zoom(field_fixed_frame, z)
 tlist_fixed_frame = zoom(tlist_fixed_frame, z)
 zlist = zoom(zlist, z)
 
+pal = sns.color_palette("deep", 10)
+
 fig = plt.figure(2, figsize=(12, 4))
 ax = fig.add_subplot(111)
 
-line, = ax.plot([], [], lw=2, clip_on=False)
+line, = ax.plot([], [], lw=2, color=pal[2], clip_on=False)
 t_text = ax.text(0.90, 0.90, '', transform=ax.transAxes)
 
-for y in [0.0, 1.0]:
-    ax.axvline(y, c='black', lw=1.0, ls='dashed')
+c_line = ax.axvline(0.0, lw=2.0, c=pal[1], ls='solid', alpha=0.5)
+
+# Atoms indicator
+# for y in [0.0, 1.0]:
+    # ax.axvline(y, lw=1.0, c=pal[0], ls='solid', alpha=0.4)
+ax.axvspan(0.0, 1.0, color=pal[0], alpha=atoms_alpha)
 
 ax.set_xlim((mb_solve_00.z_min, mb_solve_00.z_max))
 ax.set_ylim((y_min, y_max))
@@ -88,6 +97,10 @@ def init():
     t_text.set_text('')
     return (line, t_text)
 
+    c_line = ax.axvline(0.0, lw=1.5, c=pal[1], ls='solid', alpha=0.5)
+
+    return line, t_text, c_line
+
 def animate(i):
     x = zlist
     y = field_fixed_frame[:, i]/(2.0*np.pi)
@@ -96,10 +109,30 @@ def animate(i):
     for coll in (ax.collections):
         ax.collections.remove(coll)
 
-    ax.fill_between(x, 0., y, alpha=0.5, clip_on=False, interpolate=True)
+    # for l in (ax.lines):
+    # ax.lines.remove(l)
+
+    ax.lines = ax.lines[:-1]
+    c_line = ax.axvline(speed_of_light*tlist_fixed_frame[i], lw=1.5, c=pal[1], ls='solid', alpha=0.5)
+
+    ax.fill_between(x, 0., y, alpha=0.5, color=pal[2], clip_on=False, interpolate=True)
 
     t_text.set_text('t = {:.1f} $/\Gamma$'.format(tlist_fixed_frame[i]))
-    return (line, t_text)
+
+    return line, t_text, c_line
+
+### USE THESE FOR SIMPLER PLOT
+
+# def init():
+#     line.set_data([], [])
+#     return line
+
+# def animate(i):
+#     x = zlist
+#     y = np.abs(field_fixed_frame[:, i]) / (2.0 * np.pi)
+#     line.set_data(x, y)
+
+#     return line
 
 # call the animator. blit=True means only re-draw the parts that have changed.
 anim = animation.FuncAnimation(fig, animate, init_func=init,
