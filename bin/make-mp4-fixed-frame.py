@@ -48,6 +48,7 @@ json_file = opts.file
 speed_of_light = float(opts.speed_of_light)
 y_min = float(opts.y_min)
 y_max = float(opts.y_max)
+z = int(opts.zoom)
 fps = float(opts.fps)
 atoms_alpha = float(opts.atoms_alpha)
 show_c_line = opts.c_line
@@ -70,7 +71,6 @@ t_max = np.max(tlist_fixed_frame)
 zlist = mb_solve_00.zlist
 
 # Zoom
-z = 4
 field_fixed_frame = zoom(field_fixed_frame, z)
 tlist_fixed_frame = zoom(tlist_fixed_frame, z)
 zlist = zoom(zlist, z)
