@@ -25,7 +25,7 @@ class TestInit(unittest.TestCase):
 
         mb_solve_00 = mb_solve.MBSolve()
 
-        self.assertEqual(mb_solve_00.ob_atom.num_states, 1)
+        self.assertEqual(mb_solve_00.atom.num_states, 1)
 
         # TODO: And the rest!
 
@@ -103,9 +103,9 @@ class TestMBSolve(unittest.TestCase):
         json_path = os.path.join(JSON_DIR, "mb_solve_no_rabi_freq_t_func.json")
         mbs = mb_solve.MBSolve().from_json(json_path)
 
-        self.assertEqual(mbs.ob_atom.fields[0].rabi_freq_t_func,
+        self.assertEqual(mbs.atom.fields[0].rabi_freq_t_func,
             t_funcs.square_1)
-        self.assertDictEqual(mbs.ob_atom.fields[0].rabi_freq_t_args,
+        self.assertDictEqual(mbs.atom.fields[0].rabi_freq_t_args,
                              {"ampl_1": 1.0, "on_1": 0.0, "off_1": 1.0})
 
     def test_no_vel_classes(self):

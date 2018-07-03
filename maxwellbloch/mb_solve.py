@@ -10,13 +10,13 @@ from maxwellbloch import ob_solve, t_funcs
 
 class MBSolve(ob_solve.OBSolve):
 
-    def __init__(self, ob_atom={}, t_min=0.0, t_max=1.0, t_steps=100,
+    def __init__(self, atom={}, t_min=0.0, t_max=1.0, t_steps=100,
                  method='mesolve', opts={}, savefile=None, z_min=0.0,
                  z_max=1.0, z_steps=10, z_steps_inner=2,
                  num_density_z_func=None, num_density_z_args={},
                  interaction_strengths=[], velocity_classes={}):
 
-        super().__init__(ob_atom, t_min, t_max, t_steps,
+        super().__init__(atom, t_min, t_max, t_steps,
                          method, opts, savefile)
 
         self.build_zlist(z_min, z_max, z_steps, z_steps_inner)
@@ -32,7 +32,7 @@ class MBSolve(ob_solve.OBSolve):
     def __repr__(self):
         """ TODO: needs interaction strengths """
 
-        return ("MBSolve(ob_atom={0}, " +
+        return ("MBSolve(atom={0}, " +
                 "t_min={1}, " +
                 "t_max={2}, " +
                 "t_steps={3}, " +
@@ -45,7 +45,7 @@ class MBSolve(ob_solve.OBSolve):
                 "num_density_z_args={10}, " +
                 "velocity_classes={11}, " +
                 "opts={12}, " +
-                "savefile={13})").format(self.ob_atom,
+                "savefile={13})").format(self.atom,
                                          self.t_min,
                                          self.t_max,
                                          self.t_steps,
@@ -154,11 +154,11 @@ class MBSolve(ob_solve.OBSolve):
 
     def init_Omegas_zt(self):
 
-        self.Omegas_zt = np.zeros((len(self.ob_atom.fields), len(self.zlist),
+        self.Omegas_zt = np.zeros((len(self.atom.fields), len(self.zlist),
                                    len(self.tlist)), dtype=np.complex)
 
         ### Set the initial Omegas to the field time func values
-        for f_i, f in enumerate(self.ob_atom.fields):
+        for f_i, f in enumerate(self.atom.fields):
             self.Omegas_zt[f_i][0] = 2.0*np.pi*f.rabi_freq* \
                 f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
 
@@ -170,8 +170,8 @@ class MBSolve(ob_solve.OBSolve):
         # there are multiple fields.
 
         self.states_zt = np.zeros((len(self.zlist), len(self.tlist),
-                                   self.ob_atom.num_states,
-                                   self.ob_atom.num_states),
+                                   self.atom.num_states,
+                                   self.atom.num_states),
                                   dtype=np.complex)
 
         return self.states_zt
@@ -201,7 +201,7 @@ class MBSolve(ob_solve.OBSolve):
         len_z = len(self.zlist)-1 # only for printing progress
 
         # For the interpolation
-        rabi_freq_ones = np.ones(len(self.ob_atom.fields))
+        rabi_freq_ones = np.ones(len(self.atom.fields))
 
         ### Set initial states at z=0
         self.states_zt[0, :] = \
@@ -237,7 +237,7 @@ class MBSolve(ob_solve.OBSolve):
                 Omegas_z_next_args = \
                     self.get_Omegas_intp_t_args(Omegas_z_next)
 
-                self.ob_atom.set_H_Omega(rabi_freq_ones,
+                self.atom.set_H_Omega(rabi_freq_ones,
                                          self.get_Omegas_intp_t_funcs(),
                                          Omegas_z_next_args)
 
@@ -257,14 +257,14 @@ class MBSolve(ob_solve.OBSolve):
     def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
 
         # For use in the loop
-        rabi_freq_ones = np.ones(len(self.ob_atom.fields))
+        rabi_freq_ones = np.ones(len(self.atom.fields))
 
         ### Set initial states at z=0
         self.states_zt[0, :] = \
             self.solve_and_average_over_thermal_detunings()
 
         # We won't need these until the first AB step
-        sum_coh_prev = self.ob_atom.get_fields_sum_coherence()
+        sum_coh_prev = self.atom.get_fields_sum_coherence()
         z_prev = self.z_min
 
     ### First z step, Euler
@@ -284,7 +284,7 @@ class MBSolve(ob_solve.OBSolve):
         Omegas_z_next_args = \
             self.get_Omegas_intp_t_args(Omegas_z_next)
 
-        self.ob_atom.set_H_Omega(rabi_freq_ones,
+        self.atom.set_H_Omega(rabi_freq_ones,
                                  self.get_Omegas_intp_t_funcs(),
                                  Omegas_z_next_args)
 
@@ -313,7 +313,7 @@ class MBSolve(ob_solve.OBSolve):
 
                 self.solve_and_average_over_thermal_detunings()
 
-                sum_coh_this = self.ob_atom.get_fields_sum_coherence()
+                sum_coh_this = self.atom.get_fields_sum_coherence()
 
                 Omegas_z_next = self.z_step_fields_ab(z_prev, z_this,
                                                       z_next, sum_coh_prev,
@@ -323,7 +323,7 @@ class MBSolve(ob_solve.OBSolve):
                 Omegas_z_next_args = \
                     self.get_Omegas_intp_t_args(Omegas_z_next)
 
-                self.ob_atom.set_H_Omega(rabi_freq_ones,
+                self.atom.set_H_Omega(rabi_freq_ones,
                                          self.get_Omegas_intp_t_funcs(),
                                          Omegas_z_next_args)
 
@@ -357,13 +357,13 @@ class MBSolve(ob_solve.OBSolve):
 
         N = self.num_density_z_func(z_next, self.num_density_z_args)
 
-        Omegas_z_next = np.zeros((len(self.ob_atom.fields), len(self.tlist)),
+        Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
                                  dtype=np.complex)
 
 
-        sum_coh = self.ob_atom.get_fields_sum_coherence()
+        sum_coh = self.atom.get_fields_sum_coherence()
 
-        for f_i, f in enumerate(self.ob_atom.fields):
+        for f_i, f in enumerate(self.atom.fields):
 
             dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh[f_i]
 
@@ -389,10 +389,10 @@ class MBSolve(ob_solve.OBSolve):
 
         N = self.num_density_z_func(z_next, self.num_density_z_args)
 
-        Omegas_z_next = np.zeros((len(self.ob_atom.fields), len(self.tlist)),
+        Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
                                  dtype=np.complex)
 
-        for f_i, f in enumerate(self.ob_atom.fields):
+        for f_i, f in enumerate(self.atom.fields):
 
             sum_coh_this_f = sum_coh_this[f_i]
             sum_coh_prev_f = sum_coh_prev[f_i]
@@ -415,7 +415,7 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         rabi_freq_t_funcs = []
-        for f_i, f in enumerate(self.ob_atom.fields, start=1):
+        for f_i, f in enumerate(self.atom.fields, start=1):
             rabi_freq_t_funcs.append('intp_{0}'.format(f_i))
         return rabi_freq_t_funcs
 
@@ -432,7 +432,7 @@ class MBSolve(ob_solve.OBSolve):
 
         """
 
-        fields_args = [{}] * len(self.ob_atom.fields)
+        fields_args = [{}] * len(self.atom.fields)
 
         for f_i, f in enumerate(Omegas_z):
             fields_args[f_i] = {'tlist_{0}'.format(f_i + 1): self.tlist,
@@ -444,13 +444,13 @@ class MBSolve(ob_solve.OBSolve):
     def solve_and_average_over_thermal_detunings(self):
 
         states_t_Delta = np.zeros((len(self.thermal_delta_list),
-                                   len(self.tlist), self.ob_atom.num_states,
-                                   self.ob_atom.num_states), dtype=np.complex)
+                                   len(self.tlist), self.atom.num_states,
+                                   self.atom.num_states), dtype=np.complex)
 
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
 
             # Shift each detuning by Delta
-            self.ob_atom.shift_H_Delta([Delta] * len(self.ob_atom.fields))
+            self.atom.shift_H_Delta([Delta] * len(self.atom.fields))
 
             # We don't want the obsolve to save.
             self.solve(opts=qu.Options(max_step=self.t_step()), save=False)
