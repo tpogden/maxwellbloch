@@ -75,7 +75,9 @@ field_fixed_frame = zoom(field_fixed_frame, z)
 tlist_fixed_frame = zoom(tlist_fixed_frame, z)
 zlist = zoom(zlist, z)
 
+sns.set_style("darkgrid")
 pal = sns.color_palette("deep", 10)
+
 
 fig = plt.figure(2, figsize=(12, 4))
 ax = fig.add_subplot(111)

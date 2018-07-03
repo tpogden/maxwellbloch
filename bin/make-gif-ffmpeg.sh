@@ -63,5 +63,5 @@ ffmpeg -y -i $FILENAME -vf fps=$INFPS,scale=$INSCALE:-1:flags=lanczos,palettegen
 
 echo "Outputting to $GIF"
 
-ffmpeg -i $FILENAME -i palette.png -filter_complex \
+ffmpeg -y -i $FILENAME -i palette.png -filter_complex \
     "fps=$FPS,scale=$SCALE:-1:flags=lanczos[x];[x][1:v]paletteuse" $GIF
