@@ -116,6 +116,7 @@ def init():
     return line, t_text, peak_line
 
 def animate(i):
+    
     x = zlist
     y = field_fixed_frame[:, i]/(2.0*np.pi)
 
@@ -159,6 +160,7 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
+print('Saving MP4')
 anim.save(json_file + '.mp4', writer=writer)
 
 plt.show()
