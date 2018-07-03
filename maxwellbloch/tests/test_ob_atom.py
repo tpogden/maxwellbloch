@@ -5,80 +5,73 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
+import sys
+import os
+
 import unittest
 
 from maxwellbloch import ob_atom
 
-json_str_02 = ('{'
-               '  "decays": ['
-               '    {'
-               '      "channels": ['
-               '        ['
-               '          0,'
-               '          1'
-               '        ],'
-               '        ['
-               '          2,'
-               '          1'
-               '        ]'
-               '      ],'
-               '      "rate": 1.0'
-               '    },'
-               '    {'
-               '      "channels": ['
-               '        ['
-               '          2,'
-               '          1'
-               '        ]'
-               '      ],'
-               '      "rate": 2.0'
-               '    }'
-               '  ],'
-               '  "energies": ['
-               '    1.0,'
-               '    2.0,'
-               '    3.0'
-               '  ],'
-               '  "fields": ['
-               '    {'
-               '      "coupled_levels": ['
-               '        ['
-               '         0,'
-               '          1'
-               '        ]'
-               '      ],'
-               '      "detuning": 1.0,'
-               '      "detuning_positive": true,'
-               '      "label": "probe",'
-               '      "rabi_freq": 0.001,'
-               '      "rabi_freq_t_args": {},'
-               '      "rabi_freq_t_func": null'
-               '    },'
-               '    {'
-               '      "coupled_levels": ['
-               '        ['
-               '          1,'
-               '          2'
-               '        ]'
-               '      ],'
-               '      "detuning": 2.0,'
-               '      "detuning_positive": false,'
-               '      "label": "coupling",'
-               '      "rabi_freq": 10.0,'
-               '      "rabi_freq_t_args": {'
-               '        "ampl_1": 1.0,'
-               '        "off_1": 0.7,'
-               '        "on_1": 0.3'
-               '      },'
-               '      "rabi_freq_t_func": "square_1"'
-               '    }'
-               '  ],'
-               '  "num_states": 3'
-               '}')
+# Absolute path of tests/json directory, so that tests can be called from
+# different directories.
+JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
+
+JSON_STR_02 = (
+    '{'
+    '  "decays": ['
+    '    {'
+    '      "channels": [[0,1], [2,1]],'
+    '      "rate": 1.0'
+    '    },'
+    '    {'
+    '      "channels": [[2,1]],'
+    '      "rate": 2.0'
+    '    }'
+    '  ],'
+    '  "energies": ['
+    '    1.0,'
+    '    2.0,'
+    '    3.0'
+    '  ],'
+    '  "fields": ['
+    '    {'
+    '      "coupled_levels": ['
+    '        ['
+    '         0,'
+    '          1'
+    '        ]'
+    '      ],'
+    '      "detuning": 1.0,'
+    '      "detuning_positive": true,'
+    '      "label": "probe",'
+    '      "rabi_freq": 0.001,'
+    '      "rabi_freq_t_args": {},'
+    '      "rabi_freq_t_func": null'
+    '    },'
+    '    {'
+    '      "coupled_levels": ['
+    '        ['
+    '          1,'
+    '          2'
+    '        ]'
+    '      ],'
+    '      "detuning": 2.0,'
+    '      "detuning_positive": false,'
+    '      "label": "coupling",'
+    '      "rabi_freq": 10.0,'
+    '      "rabi_freq_t_args": {'
+    '        "ampl_1": 1.0,'
+    '        "off_1": 0.7,'
+    '        "on_1": 0.3'
+    '      },'
+    '      "rabi_freq_t_func": "square_1"'
+    '    }'
+    '  ],'
+    '  "num_states": 3'
+    '}')
+
 
 class TestInit(unittest.TestCase):
-
-    ob_atom_02 = ob_atom.OBAtom.from_json_str(json_str_02)
 
     def test_init_default(self):
         """  Test Default Initialise """ 
@@ -89,6 +82,11 @@ class TestInit(unittest.TestCase):
         self.assertEqual(ob_atom_00.energies, [])
         self.assertEqual(ob_atom_00.decays, [])
         self.assertEqual(ob_atom_00.fields, [])
+
+
+class TestJSON(unittest.TestCase):
+
+    ob_atom_02 = ob_atom.OBAtom.from_json_str(JSON_STR_02)
 
     def test_to_from_json_str(self):
 
@@ -109,8 +107,6 @@ class TestInit(unittest.TestCase):
 
     def test_to_from_json(self):
 
-        import os
-
         filepath = "test_ob_atom_02.json"
 
         self.ob_atom_02.to_json(filepath)
@@ -121,6 +117,12 @@ class TestInit(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(self.ob_atom_02.to_json_str(),
                          ob_atom_03.to_json_str())
+
+    def test_from_json_file_02(self):
+
+        json_path = os.path.join(JSON_DIR, "ob_atom_02.json")
+
+        oba = ob_atom.OBAtom().from_json(json_path)
 
 class TestGetFieldSumCoherence(unittest.TestCase):
 
@@ -137,7 +139,7 @@ class TestGetFieldSumCoherence(unittest.TestCase):
     @unittest.skip("states_t() is not initialised so this doesn't work.")    
     def test_initial_condition(self):
 
-        ob_atom_02 = ob_atom.OBAtom.from_json_str(json_str_02)        
+        ob_atom_02 = ob_atom.OBAtom.from_json_str(JSON_STR_02)        
 
         self.assertEqual(ob_atom_02.get_field_sum_coherence(0)[0], 0j)
 

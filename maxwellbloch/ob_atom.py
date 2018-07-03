@@ -11,17 +11,24 @@ from maxwellbloch import ob_base, field, t_funcs
 
 class OBAtom(ob_base.OBBase):
 
-    def __init__(self, num_states=1, energies=[], decays=[], fields=[]):
-        """
+    def __init__(self, label=None, num_states=1, energies=[], decays=[], 
+        fields=[]):
+        """ Initialise OBAtom. 
+
         Args:
+            label: string label describing the atom-field object.
+            num_states: 
+            energies: absolute or relative energy levels of the states.
             decays: list of dicts representing decays.
             e.g.
             [ { "rate": 1.0, "channels": [[0,1]] }
               { "rate": 2.0, "channels": [[2,1], [3,1]] } ]
+            fields: list of Field objects that couple atom states.
         """
 
         super().__init__()
 
+        self.label = label
         self.num_states = num_states
         self.energies = energies
         self.decays = decays
@@ -33,18 +40,18 @@ class OBAtom(ob_base.OBBase):
         self.init_rho()
 
     def __repr__(self):
-        return ("Atom(num_states={0}, " +
-                "energies={1}, " +
-                "decays={2}, " +
-                "fields={3})").format(self.num_states,
-                                      self.energies,
-                                      self.decays,
-                                      self.fields)
+        return ("Atom(label={0}, " + "num_states={1}, " + "energies={2}, " +
+            "decays={3}, " + "fields={4})").format(self.label, self.num_states,
+            self.energies, self.decays, self.fields)
 
     def add_field(self, field_dict):
+        """ Add a Field to the list given a dict representing the field. """ 
+
         self.fields.append(field.Field(**field_dict))
 
     def build_fields(self, field_dicts):
+        """ Build the field list given a list of dicts representing fields. """
+
         self.fields = []
         for f in field_dicts:
             self.add_field(f)
@@ -119,9 +126,14 @@ class OBAtom(ob_base.OBBase):
         return self.H_Delta
 
     def set_H_Delta(self, detunings):
+        """ Set the detuning part of the interaction Hamiltonian, H_Delta,
+            given a list of detunings.
+
+        Args: 
+            detunings: list of floats: detunings of each field in the list
         """
-        TODO: assert len(detunings) == len(fields)
-        """
+
+        assert(len(detunings) == len(self.fields))
 
         for i, f in enumerate(self.fields):
             f.detuning = detunings[i]
@@ -226,7 +238,8 @@ class OBAtom(ob_base.OBBase):
 
     def get_json_dict(self):
 
-        json_dict = {"num_states": self.num_states,
+        json_dict = {"label": self.label,
+                     "num_states": self.num_states,
                      "energies": self.energies,
                      "decays": self.decays,
                      "fields": [f.get_json_dict() for f in self.fields]}
@@ -262,7 +275,7 @@ class OBAtom(ob_base.OBBase):
 def main():
 
     print(OBAtom())
-
+    return 0
 
 if __name__ == '__main__':
     status = main()
