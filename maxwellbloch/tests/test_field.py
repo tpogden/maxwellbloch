@@ -5,6 +5,7 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
+import sys
 import unittest
 
 from maxwellbloch import field, t_funcs
@@ -12,6 +13,7 @@ from maxwellbloch import field, t_funcs
 class TestInit(unittest.TestCase):
 
     json_str_02 = ('{'
+                   '  "index": 0,'
                    '  "coupled_levels": ['
                    '    ['
                    '      1,'
@@ -23,11 +25,11 @@ class TestInit(unittest.TestCase):
                    '  "label": "coupling",'
                    '  "rabi_freq": 10.0,'
                    '  "rabi_freq_t_args": {'
-                   '    "ampl_1": 1.0,'
-                   '    "off_1": 0.7,'
-                   '    "on_1": 0.3'
+                   '    "ampl": 1.0,'
+                   '    "off": 0.7,'
+                   '    "on": 0.3'
                    '  },'
-                   '  "rabi_freq_t_func": "square_1"'
+                   '  "rabi_freq_t_func": "square"'
                    '}')
 
     field_02 = field.Field.from_json_str(json_str_02)
@@ -42,9 +44,10 @@ class TestInit(unittest.TestCase):
         self.assertEqual(field_00.detuning_positive, True)
         self.assertEqual(field_00.label, '')
         self.assertEqual(field_00.rabi_freq, 0.0)
-        self.assertEqual(field_00.rabi_freq_t_args, {'ampl_1': 1.0,
-            'on_1': 0.0, 'off_1': 1.0})
-        self.assertEqual(field_00.rabi_freq_t_func, t_funcs.square_1)
+        self.assertEqual(field_00.rabi_freq_t_args, {'ampl_0': 1.0,
+            'on_0': 0.0, 'off_0': 1.0})
+        t_func = t_funcs.square(0)
+        self.assertEqual(field_00.rabi_freq_t_func, t_func)
 
     def test_to_from_json_str(self):
 
@@ -61,10 +64,11 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.detuning_positive, True)
         self.assertEqual(self.field_02.label, 'coupling')
         self.assertEqual(self.field_02.rabi_freq, 10.0)
-        self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_1": 1.0,
-                                                     "off_1": 0.7,
-                                                     "on_1": 0.3})
-        self.assertEqual(self.field_02.rabi_freq_t_func, t_funcs.square_1)
+        self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_0": 1.0,
+                                                     "off_0": 0.7,
+                                                     "on_0": 0.3})
+        t_func = t_funcs.square(0)
+        self.assertEqual(self.field_02.rabi_freq_t_func, t_func)
 
     def test_to_from_json(self):
 
@@ -87,19 +91,22 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
     def test_null(self):
 
         self.field_00.build_rabi_freq_t_func(None)
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.square_1)
-        self.assertEqual(self.field_00.rabi_freq_t_args, {'ampl_1': 1.0,
-            'on_1': 0.0, 'off_1': 1.0})
+        t_func = t_funcs.square(0)
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
+        self.assertEqual(self.field_00.rabi_freq_t_args, {'ampl_0': 1.0,
+            'on_0': 0.0, 'off_0': 1.0})
 
-    def test_square_1(self):
+    def test_square(self):
 
-        self.field_00.build_rabi_freq_t_func('square_1')
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.square_1)
+        self.field_00.build_rabi_freq_t_func('square')
+        t_func = t_funcs.square(0)
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
 
-    def test_ramp_onoff_2(self):
+    def test_ramp_onoff(self):
 
-        self.field_00.build_rabi_freq_t_func('ramp_onoff_2')
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_funcs.ramp_onoff_2)
+        self.field_00.build_rabi_freq_t_func('ramp_onoff')
+        t_func = t_funcs.ramp_onoff(0)
+        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
 
     def test_undefined_t_func(self):
 
@@ -111,6 +118,7 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
 
 def main():
     unittest.main(verbosity=3)
+    return 0
 
 if __name__ == "__main__":
     status = main()
