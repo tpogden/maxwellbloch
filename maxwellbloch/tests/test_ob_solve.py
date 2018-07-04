@@ -20,7 +20,7 @@ JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
 
 JSON_STR_02 = (
     '{'
-    '  "ob_atom": {'
+    '  "atom": {'
     '    "decays": ['
     '      { "channels": [[0,1], [1,2]], '
     '        "rate": 1.0'
@@ -80,7 +80,7 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
         ob_solve_02.set_field_rabi_freq_t_func(0, two_pulse_t_func)
         ob_solve_02.set_field_rabi_freq_t_args(0, two_pulse_t_args)
 
-        field_0 = ob_solve_02.ob_atom.fields[0]
+        field_0 = ob_solve_02.atom.fields[0]
 
         self.assertAlmostEqual(field_0.rabi_freq_t_func(0.0,
             field_0.rabi_freq_t_args), 1.0)

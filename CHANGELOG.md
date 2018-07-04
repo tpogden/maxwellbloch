@@ -1,3 +1,22 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic
+Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+- Changed ob_atom to atom
+- Added label to atom
+- Fixed interpolation on mp4 script
+- Changed look of animated plots
+- Fixed mp4 script to use real part of rabi freq
+- Added automatic update of version number from setup.py
+- Changed to allow empty velocity class to be set
+- Changed the time function for fields to be constant if none is given.
+
 ## [0.3.0] 2017-01-08
 
 - Added Travis CI build

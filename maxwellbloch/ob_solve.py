@@ -13,10 +13,10 @@ from maxwellbloch import ob_atom
 class OBSolve(object):
     """docstring for OBSolve"""
 
-    def __init__(self, ob_atom={}, t_min=0.0, t_max=1.0, t_steps=100,
+    def __init__(self, atom={}, t_min=0.0, t_max=1.0, t_steps=100,
                  method='mesolve', opts={}, savefile=None):
 
-        self.build_ob_atom(ob_atom)
+        self.build_atom(atom)
 
         self.build_tlist(t_min, t_max, t_steps)
 
@@ -26,22 +26,22 @@ class OBSolve(object):
         self.build_savefile(savefile)
 
     def __repr__(self):
-        return ("OBSolve(ob_atom={0}, " +
+        return ("OBSolve(atom={0}, " +
                 "t_min={1}, " +
                 "t_max={2}, " +
                 "t_steps={3}, " +
                 "method={4}, " +
-                "opts={5})").format(self.ob_atom,
+                "opts={5})").format(self.atom,
                                     self.t_min,
                                     self.t_max,
                                     self.t_steps,
                                     self.method,
                                     self.opts)
 
-    def build_ob_atom(self, ob_atom_dict):
+    def build_atom(self, atom_dict):
 
-        self.ob_atom = ob_atom.OBAtom(**ob_atom_dict)
-        return self.ob_atom
+        self.atom = ob_atom.OBAtom(**atom_dict)
+        return self.atom
 
     def build_tlist(self, t_min, t_max, t_steps):
 
@@ -72,8 +72,8 @@ class OBSolve(object):
             t_func: Rabi frequency as a function of time, f(t, args)
         """
 
-        self.ob_atom.fields[field_idx].rabi_freq_t_func = t_func
-        self.ob_atom.build_operators() # Rebuild so H_Omega is updated
+        self.atom.fields[field_idx].rabi_freq_t_func = t_func
+        self.atom.build_operators() # Rebuild so H_Omega is updated
 
     def set_field_rabi_freq_t_args(self, field_idx, t_args):
         """ Set the Rabi frequency time function arguments. To be used with
@@ -84,7 +84,7 @@ class OBSolve(object):
             t_args: A dict representing the args to go with the t_func.
         """
 
-        self.ob_atom.fields[field_idx].rabi_freq_t_args = t_args
+        self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
     # TODO: Rename to obsolve for clarity when calling from derived class
     def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True,
@@ -98,15 +98,15 @@ class OBSolve(object):
             savefile = None
 
         if self.method == 'mesolve':
-            self.ob_atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
+            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
                                  opts=opts, recalc=recalc,
                                  savefile=savefile, show_pbar=show_pbar)
 
-        return self.ob_atom.states_t()  # self.ob_atom.result
+        return self.atom.states_t()  # self.atom.result
 
     def states_t(self):
 
-        return self.ob_atom.states_t()
+        return self.atom.states_t()
 
     def t_step(self):
 
@@ -125,7 +125,7 @@ class OBSolve(object):
 
     def get_json_dict(self):
 
-        json_dict = {"ob_atom": self.ob_atom.get_json_dict(),
+        json_dict = {"atom": self.atom.get_json_dict(),
                      "t_min": self.t_min,
                      "t_max": self.t_max,
                      "t_steps": self.t_steps,
