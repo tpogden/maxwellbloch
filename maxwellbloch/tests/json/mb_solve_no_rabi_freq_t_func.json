@@ -27,11 +27,11 @@
   "z_max": 1.2,
   "z_steps": 14,
   "z_steps_inner": 1,
-  "num_density_z_func": "square_1",
+  "num_density_z_func": "square",
   "num_density_z_args": {
-    "on_1": 0.0,
-    "off_1": 1.0,
-    "ampl_1": 0.0
+    "on": 0.0,
+    "off": 1.0,
+    "ampl": 0.0
   },
   "interaction_strengths": [
     1.0

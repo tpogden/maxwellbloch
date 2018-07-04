@@ -143,14 +143,16 @@ class MBSolve(ob_solve.OBSolve):
             self.g[i] = 2*np.pi*g
 
         if num_density_z_func:
-            self.num_density_z_func = getattr(t_funcs, num_density_z_func)
+            self.num_density_z_func = getattr(t_funcs, num_density_z_func)(0)
         else:
-            self.num_density_z_func = t_funcs.square_1
+            self.num_density_z_func = t_funcs.square(0)
 
         if num_density_z_args:
-            self.num_density_z_args = num_density_z_args
+            self.num_density_z_args = {}
+            for key, value in num_density_z_args.items():
+                self.num_density_z_args[key + '_0'] = value
         else:
-            self.num_density_z_args = {'on_1': 0.0, 'off_1': 1.0, 'ampl_1':1.0}
+            self.num_density_z_args = {'on_0': 0.0, 'off_0': 1.0, 'ampl_0':1.0}
 
     def init_Omegas_zt(self):
 
@@ -411,20 +413,20 @@ class MBSolve(ob_solve.OBSolve):
             use the MB solver, which needs a function representing the field
             at a z step to perform the next master equation solver.
 
-            Returns: A list of strings ['intp_1', 'intp_2', …]
+            Returns: A list of strings ['intp', 'intp', …]
         """
 
         rabi_freq_t_funcs = []
-        for f_i, f in enumerate(self.atom.fields, start=1):
-            rabi_freq_t_funcs.append('intp_{0}'.format(f_i))
+        for f in self.ob_atom.fields:
+            rabi_freq_t_funcs.append('intp')
         return rabi_freq_t_funcs
 
     def get_Omegas_intp_t_args(self, Omegas_z):
         """ Return the values of Omegas at a given point as a list of
             args for interpolation
 
-            e.g. [{'tlist_1': [], 'ylist_1': []},
-                  {'tlist_2': [], 'ylist_2': []}]
+            e.g. [{'tlist': [], 'ylist': []},
+                  {'tlist': [], 'ylist': []}]
 
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
@@ -435,9 +437,8 @@ class MBSolve(ob_solve.OBSolve):
         fields_args = [{}] * len(self.atom.fields)
 
         for f_i, f in enumerate(Omegas_z):
-            fields_args[f_i] = {'tlist_{0}'.format(f_i + 1): self.tlist,
-                                'ylist_{0}'.format(f_i + 1):
-                                Omegas_z[f_i] / (2.0 * np.pi)}
+            fields_args[f_i] = {'tlist': self.tlist,
+                                'ylist': Omegas_z[f_i] / (2.0 * np.pi)}
 
         return fields_args
 

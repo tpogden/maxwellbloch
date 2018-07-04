@@ -53,8 +53,11 @@ class OBAtom(ob_base.OBBase):
         """ Build the field list given a list of dicts representing fields. """
 
         self.fields = []
+        
         for f in field_dicts:
+
             self.add_field(f)
+        
         return self.fields
 
     def build_operators(self):
@@ -184,8 +187,13 @@ class OBAtom(ob_base.OBBase):
 
         for f_i, f in enumerate(self.fields):
             f.rabi_freq = rabi_freqs[f_i]
-            f.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_funcs[f_i])
-            f.rabi_freq_t_args = rabi_freq_t_args[f_i]
+
+            f.build_rabi_freq_t_func(rabi_freq_t_funcs[f_i], f_i)
+
+            # f.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_funcs[f_i])
+            f.build_rabi_freq_t_args(rabi_freq_t_args[f_i], f_i)
+
+            # f.rabi_freq_t_args = rabi_freq_t_args[f_i]
 
         return self.build_H_Omega()
 
