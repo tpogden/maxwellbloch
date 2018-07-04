@@ -46,8 +46,12 @@ class TestInit(unittest.TestCase):
         self.assertEqual(field_00.rabi_freq, 0.0)
         self.assertEqual(field_00.rabi_freq_t_args, {'ampl_0': 1.0,
             'on_0': 0.0, 'off_0': 1.0})
+        self.assertEqual(field_00.rabi_freq_t_func.__name__, 'square_0')
         t_func = t_funcs.square(0)
-        self.assertEqual(field_00.rabi_freq_t_func, t_func)
+        args = field_00.rabi_freq_t_args
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
+            self.assertEqual(field_00.rabi_freq_t_func(t, args), 
+                             t_func(t, args))
 
     def test_to_from_json_str(self):
 
@@ -65,10 +69,13 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.label, 'coupling')
         self.assertEqual(self.field_02.rabi_freq, 10.0)
         self.assertEqual(self.field_02.rabi_freq_t_args, {"ampl_0": 1.0,
-                                                     "off_0": 0.7,
-                                                     "on_0": 0.3})
+                                                          "off_0": 0.7,
+                                                          "on_0": 0.3})
         t_func = t_funcs.square(0)
-        self.assertEqual(self.field_02.rabi_freq_t_func, t_func)
+        args = self.field_02.rabi_freq_t_args
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
+            self.assertEqual(self.field_02.rabi_freq_t_func(t, args),
+                             t_func(t, args))
 
     def test_to_from_json(self):
 
@@ -91,29 +98,52 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
     def test_null(self):
 
         self.field_00.build_rabi_freq_t_func(None)
-        t_func = t_funcs.square(0)
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
+        self.field_00.build_rabi_freq_t_args(None)
+        
+        self.assertEqual(self.field_00.rabi_freq_t_func.__name__, 'square_0')
+        args = self.field_00.rabi_freq_t_args
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
+            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+                              t_funcs.square(0)(t, args))
+
         self.assertEqual(self.field_00.rabi_freq_t_args, {'ampl_0': 1.0,
             'on_0': 0.0, 'off_0': 1.0})
 
     def test_square(self):
 
         self.field_00.build_rabi_freq_t_func('square')
-        t_func = t_funcs.square(0)
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
+        self.field_00.build_rabi_freq_t_args({'on': 0.3, 'off': 0.7,
+                                              'ampl': 1.0})
+
+        self.assertEqual(self.field_00.rabi_freq_t_func.__name__, 'square_0')
+        args = self.field_00.rabi_freq_t_args
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
+            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+                              t_funcs.square(0)(t, args))
 
     def test_ramp_onoff(self):
 
-        self.field_00.build_rabi_freq_t_func('ramp_onoff')
-        t_func = t_funcs.ramp_onoff(0)
-        self.assertEqual(self.field_00.rabi_freq_t_func, t_func)
+        self.field_00.build_rabi_freq_t_func('ramp_onoff', 12)
+        self.field_00.build_rabi_freq_t_args({'on': 0.3, 'off': 0.7, 
+            'ampl': 1.0, 'fwhm': 0.1}, 12)
+
+        self.assertEqual(self.field_00.rabi_freq_t_func.__name__, 
+                         'ramp_onoff_12')
+        args = self.field_00.rabi_freq_t_args
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
+            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+                              t_funcs.ramp_onoff(12)(t, args))
 
     def test_undefined_t_func(self):
 
-        with self.assertRaises(AttributeError) as context:
-            self.field_00.build_rabi_freq_t_func('f_1')
+        field_00 = field.Field()
 
-        self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f_1'"
+        with self.assertRaises(AttributeError) as context:
+            self.field_00.build_rabi_freq_t_func('f')
+
+            print(str(context.exception))
+
+            self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f'"
                         in str(context.exception))
 
 def main():

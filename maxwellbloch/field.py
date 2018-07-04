@@ -75,11 +75,8 @@ class Field(object):
         self.rabi_freq_t_args = {}
 
         if rabi_freq_t_args:
-            
-
-            # for i, args_i in enumerate(rabi_freq_t_args):
             for key, value in rabi_freq_t_args.items():
-                self.rabi_freq_t_args[key + '_' + str(i)] = value
+                self.rabi_freq_t_args[key + '_' + str(index)] = value
         
         else:
             self.rabi_freq_t_args = {'on_' + str(index): 0.0, 
@@ -91,6 +88,14 @@ class Field(object):
 
 
     def get_json_dict(self):
+        """ Return a dict representation of the Field object to be dumped to
+            JSON.
+
+            Note:
+                For the rabi_freq_t_func attribute generated with 
+                build_rabi_freq_t_func, a suffix for the index will have been 
+                added. We remove that. e.g. e.g. ramp_onoff_0 -> ramp_onoff
+        """
 
         json_dict = {"label": self.label,
                      "index": self.index,
@@ -101,10 +106,20 @@ class Field(object):
                      "rabi_freq_t_args": self.rabi_freq_t_args}
 
         if self.rabi_freq_t_func:
-            json_dict.update({"rabi_freq_t_func":
-                              self.rabi_freq_t_func.__name__})
+            t_func_name = self.rabi_freq_t_func.__name__
+            t_func_name = '_'.join(t_func_name.split('_')[:-1])  # remove index
+            json_dict.update({"rabi_freq_t_func": t_func_name})
         else:
             json_dict.update({"rabi_freq_t_func": None})
+
+        if self.rabi_freq_t_args:
+            rabi_freq_t_args = {}
+            for key, value in self.rabi_freq_t_args.items():
+                k = '_'.join(key.split('_')[:-1])  # remove index
+                rabi_freq_t_args[k] = value
+            json_dict.update({"rabi_freq_t_args": rabi_freq_t_args})
+        else:
+            json_dict.update({"rabi_freq_t_args": {}})
 
         return json_dict
 
