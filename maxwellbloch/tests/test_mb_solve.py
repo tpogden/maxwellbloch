@@ -105,7 +105,7 @@ class TestMBSolve(unittest.TestCase):
 
         # self.assertEqual(mbs.ob_atom.fields[0].rabi_freq_t_func,
             # t_funcs.square_1)
-        self.assertDictEqual(mbs.ob_atom.fields[0].rabi_freq_t_args,
+        self.assertDictEqual(mbs.atom.fields[0].rabi_freq_t_args,
                              {"ampl_0": 1.0, "on_0": 0.0, "off_0": 1.0})
 
     def test_no_vel_classes(self):
@@ -220,7 +220,7 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
         mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
 
         self.assertEqual(mb_solve_00.get_Omegas_intp_t_funcs(),
-                         ['intp_0'])
+                         ['intp'])
 
     def test_two_fields(self):
         """ For the case of two fields """
@@ -229,7 +229,7 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
         mb_solve_lamda = mb_solve.MBSolve().from_json(json_path)
 
         self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(),
-                         ['intp_0', 'intp_1'])
+                         ['intp', 'intp'])
 
 class TestGetOmegasIntpTArgs(unittest.TestCase):
     """ Unit tests of the get_Omegas_intp_t_args method """
@@ -246,8 +246,8 @@ class TestGetOmegasIntpTArgs(unittest.TestCase):
 
         self.assertEqual(len(t_args), 1)
 
-        self.assertTrue(np.all(t_args[0]['tlist_0'] == mb_solve_00.tlist))
-        self.assertTrue(np.all(t_args[0]['ylist_0'] == Omegas_z/(2.0*np.pi)))
+        self.assertTrue(np.all(t_args[0]['tlist'] == mb_solve_00.tlist))
+        self.assertTrue(np.all(t_args[0]['ylist'] == Omegas_z/(2.0*np.pi)))
 
 
 def main():

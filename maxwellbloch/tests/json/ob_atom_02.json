@@ -56,11 +56,11 @@
       "label": "coupling",
       "rabi_freq": 10.0,
       "rabi_freq_t_args": {
-        "ampl_1": 1.0,
-        "off_1": 0.7,
-        "on_1": 0.3
+        "ampl": 1.0,
+        "off": 0.7,
+        "on": 0.3
       },
-      "rabi_freq_t_func": "square_1"
+      "rabi_freq_t_func": "square"
     }
   ],
   "num_states": 3

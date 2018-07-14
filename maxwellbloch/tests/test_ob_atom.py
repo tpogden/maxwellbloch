@@ -12,7 +12,11 @@ import unittest
 
 from maxwellbloch import ob_atom
 
-json_str_02 = ('{'
+# Absolute path of tests/json directory, so that tests can be called from
+# different directories.
+JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
+
+JSON_STR_02 = ('{'
                '  "decays": ['
                '    {'
                '      "channels": ['
@@ -116,7 +120,7 @@ class TestJSON(unittest.TestCase):
 
     def test_to_from_json(self):
 
-        filepath = "test_ob_atom_02.json"
+        filepath = os.path.join(JSON_DIR, "test_ob_atom_02.json")
 
         self.ob_atom_02.to_json(filepath)
 
