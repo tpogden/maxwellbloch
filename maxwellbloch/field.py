@@ -83,7 +83,6 @@ class Field(object):
                                      'off_' + str(index): 1.0,
                                      'ampl_' + str(index): 1.0}
 
-        print(self.rabi_freq_t_args)
         return self.rabi_freq_t_args
 
 
