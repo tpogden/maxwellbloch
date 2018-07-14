@@ -417,7 +417,7 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         rabi_freq_t_funcs = []
-        for f in self.ob_atom.fields:
+        for f in self.atom.fields:
             rabi_freq_t_funcs.append('intp')
         return rabi_freq_t_funcs
 
@@ -425,8 +425,8 @@ class MBSolve(ob_solve.OBSolve):
         """ Return the values of Omegas at a given point as a list of
             args for interpolation
 
-            e.g. [{'tlist': [], 'ylist': []},
-                  {'tlist': [], 'ylist': []}]
+            e.g. [{'tlist_0': [], 'ylist_0': []},
+                  {'tlist_1': [], 'ylist_1': []}]
 
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
@@ -437,8 +437,10 @@ class MBSolve(ob_solve.OBSolve):
         fields_args = [{}] * len(self.atom.fields)
 
         for f_i, f in enumerate(Omegas_z):
+            # fields_args[f_i] = {'tlist_'+str(f_i): self.tlist,
+                                # 'ylist_'+str(f_i): Omegas_z[f_i] / (2.0*np.pi)}
             fields_args[f_i] = {'tlist': self.tlist,
-                                'ylist': Omegas_z[f_i] / (2.0 * np.pi)}
+                                'ylist': Omegas_z[f_i] / (2.0*np.pi)}
 
         return fields_args
 
