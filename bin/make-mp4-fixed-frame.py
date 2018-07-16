@@ -75,7 +75,9 @@ field_fixed_frame = zoom(field_fixed_frame, z)
 tlist_fixed_frame = zoom(tlist_fixed_frame, z)
 zlist = zoom(zlist, z)
 
+sns.set_style("darkgrid")
 pal = sns.color_palette("deep", 10)
+
 
 fig = plt.figure(2, figsize=(12, 4))
 ax = fig.add_subplot(111)
@@ -114,6 +116,7 @@ def init():
     return line, t_text, peak_line
 
 def animate(i):
+    
     x = zlist
     y = field_fixed_frame[:, i]/(2.0*np.pi)
 
@@ -157,6 +160,7 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
+print('Saving MP4')
 anim.save(json_file + '.mp4', writer=writer)
 
 plt.show()
