@@ -356,19 +356,13 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         h = z_next - z_this
-
         N = self.num_density_z_func(z_next, self.num_density_z_args)
-
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
                                  dtype=np.complex)
-
-
         sum_coh = self.atom.get_fields_sum_coherence()
 
         for f_i, f in enumerate(self.atom.fields):
-
             dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh[f_i]
-
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
 
         return Omegas_z_next
@@ -416,17 +410,14 @@ class MBSolve(ob_solve.OBSolve):
             Returns: A list of strings ['intp', 'intp', …]
         """
 
-        rabi_freq_t_funcs = []
-        for f in self.atom.fields:
-            rabi_freq_t_funcs.append('intp')
-        return rabi_freq_t_funcs
+        return ['intp' for f in self.atom.fields]
 
     def get_Omegas_intp_t_args(self, Omegas_z):
         """ Return the values of Omegas at a given point as a list of
             args for interpolation
 
-            e.g. [{'tlist_0': [], 'ylist_0': []},
-                  {'tlist_1': [], 'ylist_1': []}]
+            e.g. [{'tlist': [], 'ylist': []},
+                  {'tlist': [], 'ylist': []}]
 
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
@@ -435,13 +426,9 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         fields_args = [{}] * len(self.atom.fields)
-
         for f_i, f in enumerate(Omegas_z):
-            # fields_args[f_i] = {'tlist_'+str(f_i): self.tlist,
-                                # 'ylist_'+str(f_i): Omegas_z[f_i] / (2.0*np.pi)}
             fields_args[f_i] = {'tlist': self.tlist,
                                 'ylist': Omegas_z[f_i] / (2.0*np.pi)}
-
         return fields_args
 
     def solve_and_average_over_thermal_detunings(self):
@@ -469,7 +456,7 @@ class MBSolve(ob_solve.OBSolve):
 
         # Only save the file if we have a place to save it.
         if self.savefile:
-            print('Saving MBSolve to', self.savefile, '.qu')
+            print('Saving MBSolve to', self.savefile+'.qu')
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
     def load_results(self):
