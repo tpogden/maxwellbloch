@@ -29,11 +29,11 @@
         "label": "probe",
         "rabi_freq": 0.1,
         "rabi_freq_t_args": {
-          "ampl_1": 1.0,
-          "centre_1": 0.0,
-          "fwhm_1": 0.1
+          "ampl": 1.0,
+          "centre": 0.0,
+          "fwhm": 0.1
         },
-        "rabi_freq_t_func": "gaussian_1"
+        "rabi_freq_t_func": "gaussian"
       },
       {
         "coupled_levels": [
@@ -47,11 +47,11 @@
         "label": "coupling",
         "rabi_freq": 10.0,
         "rabi_freq_t_args": {
-          "ampl_2": 1.0,
-          "on_2": 0.0,
-          "off_2": 1.0
+          "ampl": 1.0,
+          "on": 0.0,
+          "off": 1.0
         },
-        "rabi_freq_t_func": "square_2"
+        "rabi_freq_t_func": "square"
       }
     ],
     "num_states": 3
@@ -63,11 +63,11 @@
   "z_max": 1.2,
   "z_steps": 20,
   "z_steps_inner": 2,
-  "num_density_z_func": "square_1",
+  "num_density_z_func": "square",
   "num_density_z_args": {
-    "on_1": 0.0,
-    "off_1": 1.0,
-    "ampl_1": "1.0e3"
+    "on": 0.0,
+    "off": 1.0,
+    "ampl": "1.0e3"
   },
   "interaction_strengths": [
     1.0

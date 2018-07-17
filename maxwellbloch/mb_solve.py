@@ -143,14 +143,16 @@ class MBSolve(ob_solve.OBSolve):
             self.g[i] = 2*np.pi*g
 
         if num_density_z_func:
-            self.num_density_z_func = getattr(t_funcs, num_density_z_func)
+            self.num_density_z_func = getattr(t_funcs, num_density_z_func)(0)
         else:
-            self.num_density_z_func = t_funcs.square_1
+            self.num_density_z_func = t_funcs.square(0)
 
         if num_density_z_args:
-            self.num_density_z_args = num_density_z_args
+            self.num_density_z_args = {}
+            for key, value in num_density_z_args.items():
+                self.num_density_z_args[key + '_0'] = value
         else:
-            self.num_density_z_args = {'on_1': 0.0, 'off_1': 1.0, 'ampl_1':1.0}
+            self.num_density_z_args = {'on_0': 0.0, 'off_0': 1.0, 'ampl_0':1.0}
 
     def init_Omegas_zt(self):
 
@@ -354,19 +356,13 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         h = z_next - z_this
-
         N = self.num_density_z_func(z_next, self.num_density_z_args)
-
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
                                  dtype=np.complex)
-
-
         sum_coh = self.atom.get_fields_sum_coherence()
 
         for f_i, f in enumerate(self.atom.fields):
-
             dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh[f_i]
-
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
 
         return Omegas_z_next
@@ -411,20 +407,17 @@ class MBSolve(ob_solve.OBSolve):
             use the MB solver, which needs a function representing the field
             at a z step to perform the next master equation solver.
 
-            Returns: A list of strings ['intp_1', 'intp_2', …]
+            Returns: A list of strings ['intp', 'intp', …]
         """
 
-        rabi_freq_t_funcs = []
-        for f_i, f in enumerate(self.atom.fields, start=1):
-            rabi_freq_t_funcs.append('intp_{0}'.format(f_i))
-        return rabi_freq_t_funcs
+        return ['intp' for f in self.atom.fields]
 
     def get_Omegas_intp_t_args(self, Omegas_z):
         """ Return the values of Omegas at a given point as a list of
             args for interpolation
 
-            e.g. [{'tlist_1': [], 'ylist_1': []},
-                  {'tlist_2': [], 'ylist_2': []}]
+            e.g. [{'tlist': [], 'ylist': []},
+                  {'tlist': [], 'ylist': []}]
 
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
@@ -433,12 +426,9 @@ class MBSolve(ob_solve.OBSolve):
         """
 
         fields_args = [{}] * len(self.atom.fields)
-
         for f_i, f in enumerate(Omegas_z):
-            fields_args[f_i] = {'tlist_{0}'.format(f_i + 1): self.tlist,
-                                'ylist_{0}'.format(f_i + 1):
-                                Omegas_z[f_i] / (2.0 * np.pi)}
-
+            fields_args[f_i] = {'tlist': self.tlist,
+                                'ylist': Omegas_z[f_i] / (2.0*np.pi)}
         return fields_args
 
     def solve_and_average_over_thermal_detunings(self):
@@ -466,7 +456,7 @@ class MBSolve(ob_solve.OBSolve):
 
         # Only save the file if we have a place to save it.
         if self.savefile:
-            print('Saving MBSolve to', self.savefile, '.qu')
+            print('Saving MBSolve to', self.savefile+'.qu')
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
     def load_results(self):

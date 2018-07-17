@@ -15,11 +15,11 @@
         "label": "probe",
         "rabi_freq": 1.0e-3,
         "rabi_freq_t_args": {
-          "centre_1": 0.0,
-          "fwhm_1": 0.1,
-          "ampl_1": 1.0
+          "centre": 0.0,
+          "fwhm": 0.1,
+          "ampl": 1.0
         },
-        "rabi_freq_t_func": "gaussian_1"
+        "rabi_freq_t_func": "gaussian"
       }
     ],
     "num_states": 2
@@ -31,11 +31,11 @@
   "z_max": 1.2,
   "z_steps": 14,
   "z_steps_inner": 1,
-  "num_density_z_func": "square_1",
+  "num_density_z_func": "square",
   "num_density_z_args": {
-    "on_1": 0.0,
-    "off_1": 1.0,
-    "ampl_1": 0.0
+    "on": 0.0,
+    "off": 1.0,
+    "ampl": 0.0
   },
   "interaction_strengths": [
     1.0

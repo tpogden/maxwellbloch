@@ -9,6 +9,7 @@ class Field(object):
 
     Attributes:
         label (string): a name for the field e.g. "probe"
+        TODO: index
         coupled_levels (list): pairs of levels coupled by the field.
             e.g. [[0,1], [0,2]]
         detuning (float): detuning of the fields from resonance with the
@@ -20,11 +21,12 @@ class Field(object):
         rabi_freq_t_args (dict): arguments to be passed to rabi_freq_t_func.
     """
 
-    def __init__(self, label="", coupled_levels=[], detuning=0.0,
+    def __init__(self, label="", index=0, coupled_levels=[], detuning=0.0,
                  detuning_positive=True, rabi_freq=0.0,
                  rabi_freq_t_func=None, rabi_freq_t_args={}):
 
         self.label = label
+        self.index = index
 
         self.coupled_levels = coupled_levels
 
@@ -34,17 +36,20 @@ class Field(object):
         self.rabi_freq = rabi_freq
         self.rabi_freq_t_args = rabi_freq_t_args
 
-        self.build_rabi_freq_t_func(rabi_freq_t_func)
+        self.build_rabi_freq_t_func(rabi_freq_t_func, index)
+        self.build_rabi_freq_t_args(rabi_freq_t_args, index)
 
     def __repr__(self):
 
         return ("Field(label={0}, " +
-                "coupled_levels={1}, " +
-                "detuning={2}, " +
-                "detuning_positive={3}, "
-                "rabi_freq={4}, " +
-                "rabi_freq_t_func={5}, " +
-                "rabi_freq_t_args={6})").format(self.label,
+                "index={1}, " +
+                "coupled_levels={2}, " +
+                "detuning={3}, " +
+                "detuning_positive={4}, "
+                "rabi_freq={5}, " +
+                "rabi_freq_t_func={6}, " +
+                "rabi_freq_t_args={7})").format(self.label,
+                                                self.index,
                                                 self.coupled_levels,
                                                 self.detuning,
                                                 self.detuning_positive,
@@ -52,19 +57,47 @@ class Field(object):
                                                 self.rabi_freq_t_func,
                                                 self.rabi_freq_t_args)
 
-    def build_rabi_freq_t_func(self, rabi_freq_t_func):
+    def build_rabi_freq_t_func(self, rabi_freq_t_func, index=0):
 
         if rabi_freq_t_func:
-            self.rabi_freq_t_func = getattr(t_funcs, rabi_freq_t_func)
+
+            t_func = getattr(t_funcs, rabi_freq_t_func)
+            self.rabi_freq_t_func = t_func(index)
+
         else:
-            self.rabi_freq_t_func = t_funcs.square_1
-            self.rabi_freq_t_args = {'on_1': 0.0, 'off_1': 1.0, 'ampl_1': 1.0}
+            t_func = t_funcs.square
+            self.rabi_freq_t_func = t_func(index)
 
         return self.rabi_freq_t_func
 
+    def build_rabi_freq_t_args(self, rabi_freq_t_args, index=0):
+
+        self.rabi_freq_t_args = {}
+
+        if rabi_freq_t_args:
+            for key, value in rabi_freq_t_args.items():
+                self.rabi_freq_t_args[key + '_' + str(index)] = value
+        
+        else:
+            self.rabi_freq_t_args = {'on_' + str(index): 0.0, 
+                                     'off_' + str(index): 1.0,
+                                     'ampl_' + str(index): 1.0}
+
+        return self.rabi_freq_t_args
+
+
     def get_json_dict(self):
+        """ Return a dict representation of the Field object to be dumped to
+            JSON.
+
+            Note:
+                For the rabi_freq_t_func attribute generated with 
+                build_rabi_freq_t_func, a suffix for the index will have been 
+                added. We remove that. e.g. e.g. ramp_onoff_0 -> ramp_onoff
+        """
 
         json_dict = {"label": self.label,
+                     "index": self.index,
                      "coupled_levels": self.coupled_levels,
                      "detuning": self.detuning,
                      "detuning_positive": self.detuning_positive,
@@ -72,10 +105,20 @@ class Field(object):
                      "rabi_freq_t_args": self.rabi_freq_t_args}
 
         if self.rabi_freq_t_func:
-            json_dict.update({"rabi_freq_t_func":
-                              self.rabi_freq_t_func.__name__})
+            t_func_name = self.rabi_freq_t_func.__name__
+            t_func_name = '_'.join(t_func_name.split('_')[:-1])  # remove index
+            json_dict.update({"rabi_freq_t_func": t_func_name})
         else:
             json_dict.update({"rabi_freq_t_func": None})
+
+        if self.rabi_freq_t_args:
+            rabi_freq_t_args = {}
+            for key, value in self.rabi_freq_t_args.items():
+                k = '_'.join(key.split('_')[:-1])  # remove index
+                rabi_freq_t_args[k] = value
+            json_dict.update({"rabi_freq_t_args": rabi_freq_t_args})
+        else:
+            json_dict.update({"rabi_freq_t_args": {}})
 
         return json_dict
 

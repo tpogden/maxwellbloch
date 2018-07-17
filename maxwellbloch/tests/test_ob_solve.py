@@ -71,11 +71,11 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
 
         ob_solve_02 = ob_solve.OBSolve().from_json_str(JSON_STR_02)
 
-        two_pulse_t_func = lambda t, args: (t_funcs.gaussian_1(t, args) +
-            t_funcs.gaussian_2(t, args))
+        two_pulse_t_func = lambda t, args: (t_funcs.gaussian(0)(t, args) +
+            t_funcs.gaussian(1)(t, args))
 
-        two_pulse_t_args = {"ampl_1": 1.0, "centre_1": 0.0, "fwhm_1": 0.1,
-            "ampl_2": 2.0, "centre_2": 0.5, "fwhm_2": 0.1, }
+        two_pulse_t_args = {"ampl_0": 1.0, "centre_0": 0.0, "fwhm_0": 0.1,
+            "ampl_1": 2.0, "centre_1": 0.5, "fwhm_1": 0.1, }
 
         ob_solve_02.set_field_rabi_freq_t_func(0, two_pulse_t_func)
         ob_solve_02.set_field_rabi_freq_t_args(0, two_pulse_t_args)
@@ -116,8 +116,8 @@ class TestJSON(unittest.TestCase):
         obs_test = ob_solve.OBSolve.from_json_str(obs.to_json_str())
 
         self.maxDiff = None
-        self.assertEqual(obs.to_json_str.__repr__(),
-                         obs_test.to_json_str.__repr__())
+        self.assertEqual(obs.to_json_str().__repr__(),
+                         obs_test.to_json_str().__repr__())
 
     def test_to_from_json(self):
 
