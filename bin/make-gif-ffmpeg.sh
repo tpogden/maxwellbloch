@@ -56,10 +56,11 @@ echo "Input FPS: $INFPS"
 echo "Output Scale: $SCALE"
 echo "Output FPS: $FPS"
 
-GIF="$FILENAME.gif"
+Y = ${FILENAME%.mp4}
+GIF="$Y.gif" # Assumes file extension is .mp4
 
-ffmpeg -y -i $FILENAME -vf fps=$INFPS,scale=$INSCALE:-1:flags=lanczos,palettegen \
-    palette.png
+ffmpeg -y -i $FILENAME -vf \
+    fps=$INFPS,scale=$INSCALE:-1:flags=lanczos,palettegen palette.png
 
 echo "Outputting to $GIF"
 
