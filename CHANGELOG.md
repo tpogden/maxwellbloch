@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] 2018-08-28
 
 - Fixed the mp4 and gif filenames so they don't need to be .json.mp4.gif
 - Changed t_funcs so that the _1, _2, … suffix is no longer required
@@ -19,7 +19,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Changed to allow empty velocity class to be set
 - Changed the time function for fields to be constant if none is given.
 
-## [0.3.0] 2017-01-08
+## [0.3.0] 2018-01-08
 
 - Added Travis CI build
 - Fixed bug that tests submodule not in package

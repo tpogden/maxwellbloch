@@ -1,15 +1,28 @@
-import os
-import textwrap
-from setuptools import setup, find_packages
+"""MaxwellBloch
+
+MaxwellBloch is a Python package for solving the coupled Maxwell-Bloch equations
+describing the nonlinear propagation of near-resonant light through thermal
+atomic vapours.
+"""
+
+import os 
+import textwrap 
+from setuptools import setup, find_packages 
 import subprocess
 
 # Semantic versioning
 MAJOR = 0
-MINOR = 4
-PATCH = 0
-IS_RELEASED = False
+MINOR = 4 
+PATCH = 0 
+IS_RELEASED = True
 
 VERSION = '{0}.{1}.{2}'.format(MAJOR, MINOR, PATCH)
+
+DESCRIPTION = "A Python package for solving the Maxwell-Bloch equations."
+
+LONG_DESCRIPTION = ("MaxwellBloch is a Python package for solving the coupled "
+    "Maxwell-Bloch equations describing the nonlinear propagation of "
+    "near-resonant light through thermal atomic vapours.")
 
 def git_short_hash():
     """ Returns the short hash of the latest git commit as a string. """
@@ -46,7 +59,8 @@ write_version_module()
 
 setup(name='MaxwellBloch',
       version=FULL_VERSION,
-      description='A Python package for solving the Maxwell-Bloch equations.',
+      description=DESCRIPTION,
+      long_description=LONG_DESCRIPTION,
       url='http://github.com/tommyogden/maxwellbloch',
       author='Thomas P Ogden',
       author_email='t@ogden.eu',
