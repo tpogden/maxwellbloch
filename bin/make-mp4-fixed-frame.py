@@ -7,6 +7,7 @@
 """
 
 import argparse
+import os
 
 # Plot
 import matplotlib.pyplot as plt
@@ -22,6 +23,8 @@ from maxwellbloch import mb_solve, fixed
 parser = argparse.ArgumentParser(description="Takes an MBSolve problem \
     defined in a JSON file and outputs an MP4 video showing the propagation.")
 parser.add_argument('-f', '--file', help='Path of input file.', required=True)
+parser.add_argument('-s', '--save-path', help='Path to save output MP4.', 
+    required=False, default='./')
 parser.add_argument('-c', '--speed-of-light',
     help='Speed of Light in the system units.', default=0.1, required=False)
 parser.add_argument('-m', '--y-min', help='Minimum of the y-axis.',
@@ -45,6 +48,10 @@ opts = parser.parse_args()
 print(opts)
 
 json_file = opts.file
+save_path = opts.save_path
+# TODO: CHECK FILE EXISTS
+# TODO: CHECK SAVE PATH EXISTS
+
 speed_of_light = float(opts.speed_of_light)
 y_min = float(opts.y_min)
 y_max = float(opts.y_max)
@@ -53,6 +60,8 @@ fps = float(opts.fps)
 atoms_alpha = float(opts.atoms_alpha)
 show_c_line = opts.c_line
 show_peak_line = opts.peak_line
+
+
 
 mb_solve_00 = mb_solve.MBSolve().\
                 from_json(json_file)
@@ -87,14 +96,14 @@ t_text = ax.text(0.90, 0.90, '', transform=ax.transAxes)
 
 c_line, = ax.plot([], [], lw=2, color=pal[1])
 c_y = [y_min, y_max]
-# Speed of light indicator line
-if show_c_line == False:
+
+if show_c_line == False:  #  Hide speed of light indicator line
     c_line.set_visible(False)
 
 peak_line, = ax.plot([], [], lw=2, color=pal[2])
 peak_y = [y_min, y_max]
-# Pulse peak indicator line
-if show_peak_line == False:
+
+if show_peak_line == False:  # Hide pulse peak indicator line
     peak_line.set_visible(False)
 
 # Atom number density indicator area
@@ -138,7 +147,7 @@ def animate(i):
 
     return line, t_text, c_line, peak_line
 
-### USE THESE FOR SIMPLER PLOT
+### Simple plot for debugging
 
 # def init():
 #     line.set_data([], [])
@@ -161,6 +170,10 @@ Writer = animation.writers['ffmpeg']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
 print('Saving MP4')
-anim.save(json_file + '.mp4', writer=writer)
+file_stub = os.path.splitext(json_file)[0]
+
+save_path = os.path.join(save_path, file_stub + '.mp4')
+print(save_path)
+anim.save(save_path, writer=writer)
 
 plt.show()

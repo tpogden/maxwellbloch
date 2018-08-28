@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Fixed the mp4 and gif filenames so they don't need to be .json.mp4.gif
+- Changed t_funcs so that the _1, _2, … suffix is no longer required
 - Changed ob_atom to atom
 - Added label to atom
 - Fixed interpolation on mp4 script
