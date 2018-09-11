@@ -12,9 +12,9 @@ import subprocess
 
 # Semantic versioning
 MAJOR = 0
-MINOR = 4 
+MINOR = 5 
 PATCH = 0 
-IS_RELEASED = True
+IS_RELEASED = False
 
 VERSION = '{0}.{1}.{2}'.format(MAJOR, MINOR, PATCH)
 
