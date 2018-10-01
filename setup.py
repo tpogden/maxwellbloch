@@ -69,5 +69,6 @@ setup(name='MaxwellBloch',
       package_data={'maxwellbloch.tests': ['json/*.json']},
       install_requires=['qutip'],
       scripts=['bin/make-mp4-fixed-frame.py',
+               'bin/make-mp4-fixed-frame-2-fields.py',
                'bin/make-gif-ffmpeg.sh'],
       zip_safe=False)
