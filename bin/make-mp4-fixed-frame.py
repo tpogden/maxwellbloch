@@ -80,9 +80,9 @@ t_max = np.max(tlist_fixed_frame)
 zlist = mb_solve_00.zlist
 
 # Zoom
-field_fixed_frame = zoom(field_fixed_frame, z)
-tlist_fixed_frame = zoom(tlist_fixed_frame, z)
-zlist = zoom(zlist, z)
+field_fixed_frame = zoom(field_fixed_frame, z, order=1)
+tlist_fixed_frame = zoom(tlist_fixed_frame, z, order=1)
+zlist = zoom(zlist, z, order=1)
 
 sns.set_style("darkgrid")
 pal = sns.color_palette("deep", 10)
