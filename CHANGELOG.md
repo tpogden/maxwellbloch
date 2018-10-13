@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added function to calculate hyperfine Clebsch-Gordan coefficients
+- Added Wigner 3j and Wigner 6j functions
 - Added script to make MP4s of systems with two fields
 
 ## [0.4.0] 2018-08-28
