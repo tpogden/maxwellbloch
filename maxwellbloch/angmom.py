@@ -121,6 +121,9 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
         <          >
         \ J1 J2 J3 /
 
+    Note:
+        https://en.wikipedia.org/wiki/Racah_W-coefficient
+
     """
 
     # Check that the js and Js are only integer or half integer
