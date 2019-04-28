@@ -11,9 +11,51 @@ import numpy as np
 
 from maxwellbloch import hyperfine
 
+class TestLevelNLInit(unittest.TestCase):
+    """ Unit tests of the LevelNL.__init__ method. """
+
+    def test_Rb_87_5s(self):
+        """ Test the structure built for the Rubidium 87 5s level. """
+
+        Rb_87_5s = hyperfine.LevelNL(n=5, I=1.5, L=1, S=0.5)
+        self.assertEqual(len(Rb_87_5s.J_levels), 2)
+
+        # Fine structure
+        self.assertEqual(len(Rb_87_5s.J_levels[0].F_levels), 2)
+        self.assertEqual(len(Rb_87_5s.J_levels[1].F_levels), 4)
+
+        # Hyperfine structure
+        self.assertEqual(len(Rb_87_5s.J_levels[0].F_levels[0].mF_levels), 3)
+        self.assertEqual(len(Rb_87_5s.J_levels[0].F_levels[1].mF_levels), 5)
+
+        self.assertEqual(len(Rb_87_5s.J_levels[1].F_levels[0].mF_levels), 1)
+        self.assertEqual(len(Rb_87_5s.J_levels[1].F_levels[1].mF_levels), 3)
+        self.assertEqual(len(Rb_87_5s.J_levels[1].F_levels[2].mF_levels), 5)
+        self.assertEqual(len(Rb_87_5s.J_levels[1].F_levels[3].mF_levels), 7)
 
 class TestLevelJInit(unittest.TestCase):
     """ Unit tests of the LevelJ.__init__ method. """
+
+    def test_not_half_ints(self):
+        """ Test that a ValueError is raised if I and J are not both half 
+            integer. """
+
+        with self.assertRaises(ValueError):
+            hyperfine.LevelJ(I=1.6, J=0.5, energy=0.0)
+        with self.assertRaises(ValueError):
+            hyperfine.LevelJ(I=1.5, J=0.6, energy=0.0)
+         
+    def test_no_F_energies(self):
+        """ Test with no setting of F_energies or mF_energies (so should all be 
+            zero) """
+
+        I = 1.5 # Rb87 nuclear spin
+        J = 0.5 # 5p_{1/2}
+        Rb_87_5p12 = hyperfine.LevelJ(I=I, J=J, energy=0.0, 
+            F_energies=None, mF_energies=None)
+        self.assertEqual(len(Rb_87_5p12.F_levels), 2)
+        self.assertEqual(len(Rb_87_5p12.F_levels[0].mF_levels), 2*1+1)
+        self.assertEqual(len(Rb_87_5p12.F_levels[1].mF_levels), 2*2+1)
 
     def test_Rb_87_5p12(self):
         """ Test building the 5p_{1/2} level of Rubidium 87. """
