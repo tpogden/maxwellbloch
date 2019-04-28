@@ -11,6 +11,26 @@ import numpy as np
 
 from maxwellbloch import hyperfine
 
+
+class TestLevelJInit(unittest.TestCase):
+    """ Unit tests of the LevelJ.__init__ method. """
+
+    def test_Rb_87_5p12(self):
+        """ Test building the 5p_{1/2} level of Rubidium 87. """
+
+        I = 1.5 # Rb87 nuclear spin
+        J = 0.5 # 5p_{1/2}
+        Rb_87_5p12 = hyperfine.LevelJ(I=I, J=J, energy=0.0, 
+            F_energies=[10.0, 20.0])
+
+        # F numbers are in the range |J - I| <= F <= J + I, so in this case
+        # F=1 and F=2
+        self.assertEqual(len(Rb_87_5p12.F_levels), 2)
+
+        # Each F level should have 2*F+1 sublevels.
+        self.assertEqual(len(Rb_87_5p12.F_levels[0].mF_levels), 2*1+1)
+        self.assertEqual(len(Rb_87_5p12.F_levels[1].mF_levels), 2*2+1)
+
 class TestLevelFInit(unittest.TestCase):
     """ Unit tests of the LevelF.__init__ method. """
 
