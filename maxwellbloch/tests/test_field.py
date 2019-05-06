@@ -103,7 +103,7 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
         self.assertEqual(self.field_00.rabi_freq_t_func.__name__, 'square_0')
         args = self.field_00.rabi_freq_t_args
         for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
-            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+            self.assertEqual(self.field_00.rabi_freq_t_func(t, args),
                               t_funcs.square(0)(t, args))
 
         self.assertEqual(self.field_00.rabi_freq_t_args, {'ampl_0': 1.0,
@@ -118,7 +118,7 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
         self.assertEqual(self.field_00.rabi_freq_t_func.__name__, 'square_0')
         args = self.field_00.rabi_freq_t_args
         for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
-            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+            self.assertEqual(self.field_00.rabi_freq_t_func(t, args),
                               t_funcs.square(0)(t, args))
 
     def test_ramp_onoff(self):
@@ -131,7 +131,7 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
                          'ramp_onoff_12')
         args = self.field_00.rabi_freq_t_args
         for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
-            self.assertEquals(self.field_00.rabi_freq_t_func(t, args),
+            self.assertEqual(self.field_00.rabi_freq_t_func(t, args),
                               t_funcs.ramp_onoff(12)(t, args))
 
     def test_undefined_t_func(self):
