@@ -2,7 +2,7 @@
 
 from __future__ import division
 from scipy import floor, sqrt
-from scipy.misc import factorial
+from scipy.special import factorial
 from numpy import arange
 
 def calc_clebsch_hf(J_a, I_a, F_a, mF_a, J_b, I_b, F_b, mF_b, q):
