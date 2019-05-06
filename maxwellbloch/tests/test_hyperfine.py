@@ -4,7 +4,6 @@ Unit tests for the hyperfine module.
 Thomas Ogden <t@ogden.eu>
 """
 
-import sys
 import unittest
 
 import numpy as np
@@ -96,11 +95,3 @@ class TestLevelFInit(unittest.TestCase):
         self.assertEqual(len(lf.mF_levels), 2*F+1)
         for i, e in enumerate(mF_energies):
             self.assertEqual(e, lf.mF_levels[i].energy)
-
-def main():
-
-    unittest.main(verbosity=3) # Run all
-
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)

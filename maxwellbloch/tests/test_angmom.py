@@ -4,7 +4,6 @@ Unit tests for the angmom module.
 Thomas Ogden <t@ogden.eu>
 """
 
-import sys
 import unittest
 
 import numpy as np
@@ -110,14 +109,3 @@ class TestCalcClebschHF(unittest.TestCase):
         self.assertAlmostEqual(chf_20(F_b=2, mF_a=-1), -np.sqrt(1 / 2))
         self.assertAlmostEqual(chf_20(F_b=2, mF_a=0), -np.sqrt(1 / 4))
         self.assertAlmostEqual(chf_20(F_b=2, mF_a=1), -np.sqrt(1 / 12))
-
-def main():
-
-    unittest.main(verbosity=3)  # Run all
-
-    return 0
-
-
-if __name__ == "__main__":
-    STATUS = main()
-    sys.exit(STATUS)

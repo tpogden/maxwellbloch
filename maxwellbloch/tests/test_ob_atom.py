@@ -5,7 +5,6 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
-import sys
 import os
 
 import unittest
@@ -157,10 +156,3 @@ class TestGetFieldSumCoherence(unittest.TestCase):
         self.assertEqual(ob_atom_02.get_field_sum_coherence(0)[0], 0j)
 
         self.assertEqual(ob_atom_02.get_field_sum_coherence(1)[0], 0j)
-
-def main():
-    unittest.main(verbosity=3)
-
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)

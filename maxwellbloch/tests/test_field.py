@@ -5,7 +5,6 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
-import sys
 import unittest
 
 from maxwellbloch import field, t_funcs
@@ -145,11 +144,3 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
 
             self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f'"
                         in str(context.exception))
-
-def main():
-    unittest.main(verbosity=3)
-    return 0
-
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)
