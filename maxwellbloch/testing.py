@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import nose
+import pytest
 
 def run():
     """
-    Run all tests with nose.
+    Run all tests with pytest.
     """
 
-    # runs tests in maxwellbloch.tests module
-    nose.run(defaultTest="maxwellbloch.tests", argv=['nosetests', '-v'])
+    pytest.main()
