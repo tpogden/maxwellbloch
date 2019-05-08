@@ -106,7 +106,32 @@ class Atom1e(object):
 
     # TODO: iso_factors (mix of all 3 polarisations)
 
-    # TODO: collapse operator factors (sum of all 3 polarisations?)
+    def get_decay_factors(self, J_level_idx_a, J_level_idx_b):
+        """ Returns a list of factors for the collapse operators for each 
+            hyperfine coupled level pair.
+
+            Args: 
+                J_level_idx_a(int): J level the transition is from (lower level)
+                J_level_idx_b(int): J level the transition is to(upper level)
+                q(int): The field polarisation. Choose from [-1, 0, 1].
+
+            Returns: (list): factors, length of mF_list
+        """
+
+        decay_factors = []
+        mF_list = self.get_mF_list()
+        coupled_levels = self.get_coupled_levels(J_level_idx_a, J_level_idx_b)
+        for cl in coupled_levels:
+            a = mF_list[cl[0]]
+            b = mF_list[cl[1]]
+            clebsch_hf = 0.0
+            # Only one of these should be nonzero so OK to sum them
+            for q in [-1, 0, 1]:
+                clebsch_hf += calc_clebsch_hf(J_a=a['J'], I_a=a['I'], 
+                    F_a=a['F'], mF_a=a['mF'], J_b=b['J'], I_b=b['I'], 
+                    F_b=b['F'], mF_b=b['mF'], q=q)
+            decay_factors.append(clebsch_hf)
+        return decay_factors
 
     def to_json_str(self):
         """ Return a JSON string representation of the LevelJ object.
@@ -436,7 +461,7 @@ def main():
 
     Rb87_5s_5p.add_J_level(Rb87_5s12)
     Rb87_5s_5p.add_J_level(Rb87_5p12)
-    Rb87_5s_5p.add_J_level(Rb87_5p32)
+    # Rb87_5s_5p.add_J_level(Rb87_5p32)
 
     print(Rb87_5s_5p)
 
@@ -448,7 +473,13 @@ def main():
 
     print(Rb87_5s_5p.get_energies())
 
+    print('Transition factors:')
+
     print(Rb87_5s_5p.get_clebsch_hf_factors(0, 1, q=-0))
+
+    print('Decay factors:')
+
+    print(Rb87_5s_5p.get_decay_factors(0, 1))
 
     return 0
 
