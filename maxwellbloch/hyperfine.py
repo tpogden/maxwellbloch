@@ -442,47 +442,10 @@ class LevelMF(object):
             sort_keys=True)
 
 
-def main():
+# def main():
 
-    # Rb_87_5s = LevelNL(n=5, I=1.5, L=0, S=0.5)
+#     pass
 
-    # Rb_87_5p = LevelNL(n=5, I=1.5, L=1, S=0.5)
-
-    # print(Rb_87_5s)
-
-    Rb87_5s12 = LevelJ(I=1.5, J=0.5)
-
-    Rb87_5p12 = LevelJ(I=1.5, J=0.5)
-    Rb87_5p32 = LevelJ(I=1.5, J=1.5)
-
-    Rb87_5s_5p = Atom1e(element='Rb', isotope='87')
-    # atom.add_nL_level(Rb_87_5s)
-    # atom.add_nL_level(Rb_87_5p)
-
-    Rb87_5s_5p.add_J_level(Rb87_5s12)
-    Rb87_5s_5p.add_J_level(Rb87_5p12)
-    # Rb87_5s_5p.add_J_level(Rb87_5p32)
-
-    print(Rb87_5s_5p)
-
-    print(Rb87_5s_5p.get_mF_list())
-
-    print(Rb87_5s_5p.get_J_level_idx_map())
-
-    print(Rb87_5s_5p.get_coupled_levels(0,1))
-
-    print(Rb87_5s_5p.get_energies())
-
-    print('Transition factors:')
-
-    print(Rb87_5s_5p.get_clebsch_hf_factors(0, 1, q=-0))
-
-    print('Decay factors:')
-
-    print(Rb87_5s_5p.get_decay_factors(0, 1))
-
-    return 0
-
-if __name__ == '__main__':
-    STATUS = main()
-    sys.exit(STATUS)
+# if __name__ == '__main__':
+#     STATUS = main()
+#     sys.exit(STATUS)
