@@ -7,7 +7,6 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
-import sys
 import os
 
 import unittest
@@ -153,12 +152,3 @@ class TestSaveLoad(unittest.TestCase):
         states_t_loaded = ob_solve_02.solve(recalc=False)
 
         self.assertTrue((states_t == states_t_loaded).all())
-
-def main():
-
-    unittest.main(verbosity=3)
-
-if __name__ == "__main__":
-
-    status = main()
-    sys.exit(status)

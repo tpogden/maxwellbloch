@@ -3,7 +3,6 @@
 Thomas Ogden <t@ogden.eu>
 """
 
-import sys
 import unittest
 import numpy as np
 import qutip as qu
@@ -42,10 +41,3 @@ class TestSigmaN(unittest.TestCase):
         sigma_N_2_0_1_1_2 = qu.tensor(qu.identity(2), sigma_2_0_1)
 
         self.assertEqual(sigma.sigma_N(2,0,1,1,2),sigma_N_2_0_1_1_2)
-
-def main():
-    unittest.main(verbosity=3)
-
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)

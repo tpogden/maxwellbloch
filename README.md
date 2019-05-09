@@ -1,6 +1,7 @@
 # MaxwellBloch
 
-[![](https://travis-ci.org/tommyogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tommyogden/maxwellbloch)
+[![Build Status](https://travis-ci.org/tommyogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tommyogden/maxwellbloch)
+[![Coverage Status](https://coveralls.io/repos/github/tommyogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tommyogden/maxwellbloch?branch=master)
 
 MaxwellBloch is a Python package for solving the coupled Maxwell-Bloch
 equations describing the nonlinear propagation of near-resonant light through

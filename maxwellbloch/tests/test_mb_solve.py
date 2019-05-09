@@ -5,7 +5,6 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
-import sys
 import os
 
 import unittest
@@ -248,18 +247,3 @@ class TestGetOmegasIntpTArgs(unittest.TestCase):
 
         self.assertTrue(np.all(t_args[0]['tlist'] == mb_solve_00.tlist))
         self.assertTrue(np.all(t_args[0]['ylist'] == Omegas_z/(2.0*np.pi)))
-
-
-def main():
-
-    # suite = unittest.TestSuite()
-    # suite.addTest(TestMBSolve("test_no_atoms"))
-    # runner = unittest.TextTestRunner()
-    # runner.run(suite) # Run suite
-
-    unittest.main(verbosity=3) # Run all
-
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)
-
