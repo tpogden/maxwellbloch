@@ -8,10 +8,12 @@ class Field(object):
     coupled, detuning and Rabi frequency function.
 
     Attributes:
-        label (string): a name for the field e.g. "probe"
-        TODO: index
+        label (string): a name for the field e.g. "probe".
+        index (int): index of the field, to reference within an OBAtom.
         coupled_levels (list): pairs of levels coupled by the field.
             e.g. [[0,1], [0,2]]
+        factors (list): List of strength factors for each pair in coupled 
+            levels. 
         detuning (float): detuning of the fields from resonance with the
             coupled_levels transitions.
         detuning_positive (bool): is the detuning positive?
@@ -21,14 +23,16 @@ class Field(object):
         rabi_freq_t_args (dict): arguments to be passed to rabi_freq_t_func.
     """
 
-    def __init__(self, label="", index=0, coupled_levels=[], detuning=0.0,
-                 detuning_positive=True, rabi_freq=0.0,
-                 rabi_freq_t_func=None, rabi_freq_t_args={}):
+    def __init__(self, label="", index=0, coupled_levels=[], factors=[], 
+        detuning=0.0, detuning_positive=True, rabi_freq=0.0, 
+        rabi_freq_t_func=None, rabi_freq_t_args={}):
 
         self.label = label
         self.index = index
 
-        self.coupled_levels = coupled_levels
+        self.coupled_levels = coupled_levels # TODO should I convert to array?
+
+        self.build_factors(factors)
 
         self.detuning = detuning
         self.detuning_positive = detuning_positive
@@ -44,18 +48,41 @@ class Field(object):
         return ("Field(label={0}, " +
                 "index={1}, " +
                 "coupled_levels={2}, " +
-                "detuning={3}, " +
-                "detuning_positive={4}, "
-                "rabi_freq={5}, " +
-                "rabi_freq_t_func={6}, " +
-                "rabi_freq_t_args={7})").format(self.label,
+                "factors={3}, " +
+                "detuning={4}, " +
+                "detuning_positive={5}, "
+                "rabi_freq={6}, " +
+                "rabi_freq_t_func={7}, " +
+                "rabi_freq_t_args={8})").format(self.label,
                                                 self.index,
                                                 self.coupled_levels,
+                                                self.factors,
                                                 self.detuning,
                                                 self.detuning_positive,
                                                 self.rabi_freq,
                                                 self.rabi_freq_t_func,
                                                 self.rabi_freq_t_args)
+
+    def build_factors(self, factors):
+        """ Builds the factors list.
+
+            Args:
+                factors (list). List of strength factors for each pair in
+                coupled levels. 
+            Returns:
+                self.factors (list)
+            Notes:
+                - There are no checks on what these factors are, or if they 
+                    make any sense.
+        """
+        if not factors:
+            factors = [1.0]*len(self.coupled_levels)
+        if (len(factors) != len(self.coupled_levels)):
+            raise ValueError('The length of factors must be the same as the ' 
+                             'length of coupled_levels.')
+        else:
+            self.factors = factors
+        return self.factors
 
     def build_rabi_freq_t_func(self, rabi_freq_t_func, index=0):
 
@@ -99,6 +126,7 @@ class Field(object):
         json_dict = {"label": self.label,
                      "index": self.index,
                      "coupled_levels": self.coupled_levels,
+                     "factors": self.factors,
                      "detuning": self.detuning,
                      "detuning_positive": self.detuning_positive,
                      "rabi_freq": self.rabi_freq,
