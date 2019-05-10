@@ -39,6 +39,7 @@ class TestInit(unittest.TestCase):
         field_00 = field.Field()
 
         self.assertEqual(field_00.coupled_levels, [])
+        self.assertEqual(field_00.factors, [])
         self.assertEqual(field_00.detuning, 0.0)
         self.assertEqual(field_00.detuning_positive, True)
         self.assertEqual(field_00.label, '')
@@ -52,6 +53,22 @@ class TestInit(unittest.TestCase):
             self.assertEqual(field_00.rabi_freq_t_func(t, args), 
                              t_func(t, args))
 
+    def test_multiple_factors(self):
+
+        field_00 = field.Field(coupled_levels=[[0, 1], [0, 2]], factors=[])
+        self.assertEqual(field_00.factors, [1.0, 1.0])
+
+    def test_incorrect_num_factors(self):
+
+        with self.assertRaises(ValueError) as context:
+            field_00 = field.Field(coupled_levels=[[0, 1], [0, 2]], 
+                factors=[1.0])
+
+        self.assertTrue('The length of factors must be the same as the length ' 
+            'of coupled_levels.' in str(context.exception))
+
+        pass
+
     def test_to_from_json_str(self):
 
         field_00 = field.Field()
@@ -63,6 +80,7 @@ class TestInit(unittest.TestCase):
     def test_from_json_str(self):
 
         self.assertEqual(self.field_02.coupled_levels, [[1,2]])
+        self.assertEqual(self.field_02.factors, [1.0])
         self.assertEqual(self.field_02.detuning, 0.0)
         self.assertEqual(self.field_02.detuning_positive, True)
         self.assertEqual(self.field_02.label, 'coupling')
@@ -135,7 +153,7 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
 
     def test_undefined_t_func(self):
 
-        field_00 = field.Field()
+        self.field_00 = field.Field()
 
         with self.assertRaises(AttributeError) as context:
             self.field_00.build_rabi_freq_t_func('f')
