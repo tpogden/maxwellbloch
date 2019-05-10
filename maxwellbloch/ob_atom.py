@@ -148,26 +148,20 @@ class OBAtom(ob_base.OBBase):
         return self.build_H_Delta()
 
     def build_H_Omega(self):
-
+        """ Builds the Rabi frequency (off-diagonals) part of the interaction 
+            Hamiltonian. 
+        """
         self.H_Omega_list = []
-
         H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-
         for f in self.fields:
-
             H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-
             for c in f.coupled_levels:
                 H_Omega += self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])
-
             H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
-
             if self.is_field_td():  # time-dependent interaction
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
-
             else:  # time-independent
                 self.H_Omega_list.append(H_Omega)
-
         return self.H_Omega_list
 
     def set_H_Omega(self, rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args):
@@ -209,17 +203,18 @@ class OBAtom(ob_base.OBBase):
 
     def get_fields_sum_coherence(self):
         """ Returns the sum coherences of the atom density matrix for each
-            field
+            field.
 
         Returns:
-
+            (np.array)
         """
 
         sum_coh = np.zeros((len(self.fields), len(self.states_t())),
                            dtype=np.complex)
         for f_i, f in enumerate(self.fields):
-            for cl in f.coupled_levels:
-                sum_coh[f_i, :] += self.states_t()[:, cl[0], cl[1]]
+            for cl_i, cl in enumerate(f.coupled_levels):
+                sum_coh[f_i, :] += (f.factors[cl_i]**2*
+                    self.states_t()[:, cl[0], cl[1]])
         return sum_coh
 
     def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(),
