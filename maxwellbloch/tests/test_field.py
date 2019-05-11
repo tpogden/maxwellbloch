@@ -158,7 +158,5 @@ class TestBuildRabiFreqTFunc(unittest.TestCase):
         with self.assertRaises(AttributeError) as context:
             self.field_00.build_rabi_freq_t_func('f')
 
-            print(str(context.exception))
-
-            self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f'"
-                        in str(context.exception))
+        self.assertTrue("module 'maxwellbloch.t_funcs' has no attribute 'f'"
+            in str(context.exception))
