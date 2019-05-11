@@ -268,12 +268,3 @@ class OBAtom(ob_base.OBBase):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
         return cls(**json_dict)
-
-
-def main():
-
-    print(OBAtom())
-    return 0
-
-if __name__ == '__main__':
-    status = main()

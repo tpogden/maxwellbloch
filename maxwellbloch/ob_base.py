@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
 from maxwellbloch import sigma
 
@@ -268,15 +267,3 @@ class OBBase(object):
         self.rho = qu.steadystate(H, self.c_ops, **kwargs)
 
         return self.rho
-
-# Main
-
-
-def main():
-
-    print(OBBase())
-
-
-if __name__ == '__main__':
-    status = main()
-    sys.exit(status)
