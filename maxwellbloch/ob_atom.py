@@ -81,7 +81,7 @@ class OBAtom(ob_base.OBBase):
         """
 
         if self.energies:
-            H_0 = np.diag(np.array(self.energies))
+            H_0 = np.diag(2*pi*np.array(self.energies))
         else:
             H_0 = np.zeros([self.num_states, self.num_states])
 
@@ -122,7 +122,7 @@ class OBAtom(ob_base.OBBase):
             else:
                 sgn = -1.
             for c in f.coupled_levels:
-                self.H_Delta -= sgn * f.detuning * self.sigma(c[1], c[1])
+                self.H_Delta -= sgn * 2*pi*f.detuning * self.sigma(c[1], c[1])
 
         return self.H_Delta
 
