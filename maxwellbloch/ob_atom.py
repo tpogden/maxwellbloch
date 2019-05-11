@@ -155,8 +155,11 @@ class OBAtom(ob_base.OBBase):
         H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
         for f in self.fields:
             H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-            for c in f.coupled_levels:
-                H_Omega += self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])
+            # TODO: I think this will be better if the sigmas and factors
+            # are turned into Qu objects first, and avoid the loop(s).
+            for c_i, c in enumerate(f.coupled_levels):
+                H_Omega += ((self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])) *
+                    f.factors[c_i])
             H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
             if self.is_field_td():  # time-dependent interaction
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])
@@ -203,7 +206,7 @@ class OBAtom(ob_base.OBBase):
 
     def get_fields_sum_coherence(self):
         """ Returns the sum coherences of the atom density matrix for each
-            field.
+            field, including the relative strength factors.
 
         Returns:
             (np.array)
