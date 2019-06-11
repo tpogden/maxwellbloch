@@ -21,8 +21,9 @@ class OBAtom(ob_base.OBBase):
             energies: absolute or relative energy levels of the states.
             decays: list of dicts representing decays.
             e.g.
-            [ { "rate": 1.0, "channels": [[0,1]] }
-              { "rate": 2.0, "channels": [[2,1], [3,1]] } ]
+            [ { "rate": 1.0, "channels": [[0,1]], "factors": [1.0] }
+              { "rate": 2.0, "channels": [[2,1], [3,1]], 
+                "factors": [0.707, 0.707] } ]
             fields: list of Field objects that couple atom states.
         """
 
@@ -80,7 +81,7 @@ class OBAtom(ob_base.OBBase):
         """
 
         if self.energies:
-            H_0 = np.diag(np.array(self.energies))
+            H_0 = np.diag(2*pi*np.array(self.energies))
         else:
             H_0 = np.zeros([self.num_states, self.num_states])
 
@@ -96,18 +97,19 @@ class OBAtom(ob_base.OBBase):
             solver to produce density matrices, not state vectors. In the case
             that self.decays is empty, we'll add a zero collapse operator.
         """
-
         self.c_ops = []
-
         if not self.decays:
             self.c_ops.append(qu.Qobj(np.zeros([self.num_states,
                 self.num_states])))
         else:
             for d in self.decays:
-                r = d["rate"]
-                for c in d["channels"]:
-                    self.c_ops.append(np.sqrt(2*pi*r)*self.sigma(c[0], c[1]))
-
+                # NOTE: This means if there are no decays factors in the JSON 
+                # input, factors will be added to any JSON output.
+                if 'factors' not in d:
+                    d['factors'] = [1.0] * len(d['channels'])
+                for c_i, c in enumerate(d['channels']):
+                    self.c_ops.append(d['factors'][c_i]*
+                        np.sqrt(2*pi*d["rate"])*self.sigma(c[0], c[1]))
         return self.c_ops
 
     def build_H_Delta(self):
@@ -120,7 +122,7 @@ class OBAtom(ob_base.OBBase):
             else:
                 sgn = -1.
             for c in f.coupled_levels:
-                self.H_Delta -= sgn * f.detuning * self.sigma(c[1], c[1])
+                self.H_Delta -= sgn * 2*pi*f.detuning * self.sigma(c[1], c[1])
 
         return self.H_Delta
 
@@ -268,12 +270,3 @@ class OBAtom(ob_base.OBBase):
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
         return cls(**json_dict)
-
-
-def main():
-
-    print(OBAtom())
-    return 0
-
-if __name__ == '__main__':
-    status = main()
