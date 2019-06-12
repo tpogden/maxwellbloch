@@ -54,12 +54,44 @@ class OBSolve(object):
         self.tlist = linspace(t_min, t_max, t_steps + 1)
         return self.tlist
 
-    def build_opts(self, opts):
+    def build_opts(self, opts={}):
         """ This currently just sets the options to default.
             Issue #96.
-        """
 
-        self.opts = qu.Options()
+            See [0] for details of the options.
+
+            Notes:
+                Use bdf if stiff problem.
+                If the solver times-out, try more nsteps
+                To speed up the time, reduce atol and rtol
+            
+            [0]: http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html
+        """
+        
+        if not opts:
+            opts = {
+                'atol': 1e-8,
+                'rtol': 1e-6, 
+                'method': 'adams',
+                'order': 12,
+                'nsteps': 1000, 
+                'first_step': 0, 
+                'max_step': 0,  # we want max_step=self.t_step()
+                'min_step': 0,
+                'average_expect': True, # TODO: what is this
+                'average_states': False, 
+                'tidy': True,
+                'rhs_reuse': False,
+                'rhs_filename': None,
+                'rhs_with_state': False,
+                'store_final_state': False,
+                'store_states': False,
+                'steady_state_average': False, 
+                # 'normalize_output':True, 
+                # 'use_openmp': None
+                # 'openmp_threads': None
+            }
+        self.opts = opts
         return self.opts
 
     def set_field_rabi_freq_t_func(self, field_idx, t_func):
@@ -87,7 +119,7 @@ class OBSolve(object):
         self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
     # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True,
+    def solve(self, rho0=None, e_ops=[], opts=None, recalc=True,
               show_pbar=False, save=True):
 
         # When we're calling from MBSolve, we don't want to save each step.
@@ -97,10 +129,15 @@ class OBSolve(object):
         else:
             savefile = None
 
+        # Choosing to overwrite opts at the solve stage.
+        if opts:
+            self.build_opts(opts)
+        options = qu.Options(**self.opts)
+
         if self.method == 'mesolve':
-            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
-                                 opts=opts, recalc=recalc,
-                                 savefile=savefile, show_pbar=show_pbar)
+            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
+                options=options, recalc=recalc, savefile=savefile, 
+                show_pbar=show_pbar)
 
         return self.atom.states_t()  # self.atom.result
 
