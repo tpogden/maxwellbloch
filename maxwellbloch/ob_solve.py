@@ -26,17 +26,19 @@ class OBSolve(object):
         self.build_savefile(savefile)
 
     def __repr__(self):
-        return ("OBSolve(atom={0}, " +
-                "t_min={1}, " +
-                "t_max={2}, " +
-                "t_steps={3}, " +
-                "method={4}, " +
-                "opts={5})").format(self.atom,
-                                    self.t_min,
-                                    self.t_max,
-                                    self.t_steps,
-                                    self.method,
-                                    self.opts)
+        return (
+            "OBSolve(atom={0}, " +
+            "t_min={1}, " +
+            "t_max={2}, " +
+            "t_steps={3}, " +
+            "method={4}, " +
+            "opts={5})").format(
+                self.atom,
+                self.t_min,
+                self.t_max,
+                self.t_steps,
+                self.method,
+                self.opts)
 
     def build_atom(self, atom_dict):
 
@@ -55,14 +57,23 @@ class OBSolve(object):
         return self.tlist
 
     def build_opts(self, opts={}):
-        """ TODO(#96)
+        """ Build the options dict to be passed into the QuTiP solver.
 
-            See [0] for details of the options.
+            Any option available to the QuTiP solver is available here, we 
+            provide defaults for solving the optical Bloch equations. See [0] 
+            for details of all the available options.
 
             Notes:
-                Use bdf if stiff problem.
-                If the solver times-out, try more nsteps
-                To speed up the time, reduce atol and rtol
+                - For a stiff problem, it may help to set 'method' to 
+                    'bdf' instead of 'adams'.
+                - If the solver times out, try more 'nsteps', though
+                    this will take longer. 
+                - To speed up the solver, reduce atol and rtol, though this 
+                    will reduce accuracy.
+
+            Warning:
+                There is no validation checking here. If you pass in an option
+                which is not known to QuTiP it will throw an exception.
             
             [0]: http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html
         """
@@ -75,15 +86,17 @@ class OBSolve(object):
                 'first_step': 0, 
                 'max_step': self.t_step(),
                 'min_step': 0,
-                'average_expect': True, # TODO: what is this
-                'average_states': False, 
-                'tidy': True,
-                'rhs_reuse': False,
-                'rhs_filename': None,
-                'rhs_with_state': False,
-                'store_final_state': False,
-                'store_states': False,
-                'steady_state_average': False, 
+                # Options below here I do not think will be useful, they are
+                # mostly for the MC solver. But they may be set.
+                # 'average_expect': True, # TODO: what is this
+                # 'average_states': False, 
+                # 'tidy': True,
+                # 'rhs_reuse': False,
+                # 'rhs_filename': None,
+                # 'rhs_with_state': False,
+                # 'store_final_state': False,
+                # 'store_states': False,
+                # 'steady_state_average': False, 
                 # 'normalize_output':True, 
                 # 'use_openmp': None
                 # 'openmp_threads': None
