@@ -95,8 +95,7 @@ class TestJSON(unittest.TestCase):
         ob_solve_00 = ob_solve.OBSolve()
         ob_solve_01 = ob_solve.OBSolve.from_json_str(ob_solve_00.to_json_str())
 
-        self.assertEqual(ob_solve_00.to_json_str.__repr__(),
-                         ob_solve_01.to_json_str.__repr__())
+        self.assertEqual(ob_solve_00.to_json_str(), ob_solve_01.to_json_str())
 
     def test_from_json_str(self):
 
@@ -114,9 +113,7 @@ class TestJSON(unittest.TestCase):
         obs = ob_solve.OBSolve().from_json(json_path)
         obs_test = ob_solve.OBSolve.from_json_str(obs.to_json_str())
 
-        self.maxDiff = None
-        self.assertEqual(obs.to_json_str().__repr__(),
-                         obs_test.to_json_str().__repr__())
+        self.assertEqual(obs.to_json_str(), obs_test.to_json_str())
 
     def test_to_from_json(self):
 
@@ -131,7 +128,6 @@ class TestJSON(unittest.TestCase):
         ob_solve_03 = ob_solve.OBSolve().from_json(filepath)
         os.remove(filepath)
 
-        self.maxDiff = None
         self.assertEqual(ob_solve_02.to_json_str(),
                          ob_solve_03.to_json_str())
 

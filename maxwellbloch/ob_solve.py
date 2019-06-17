@@ -55,8 +55,7 @@ class OBSolve(object):
         return self.tlist
 
     def build_opts(self, opts={}):
-        """ This currently just sets the options to default.
-            Issue #96.
+        """ TODO(#96)
 
             See [0] for details of the options.
 
@@ -67,16 +66,14 @@ class OBSolve(object):
             
             [0]: http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html
         """
-        
-        if not opts:
-            opts = {
+        self.opts = {
                 'atol': 1e-8,
                 'rtol': 1e-6, 
                 'method': 'adams',
                 'order': 12,
-                'nsteps': 1000, 
+                'nsteps': 1000,
                 'first_step': 0, 
-                'max_step': 0,  # we want max_step=self.t_step()
+                'max_step': self.t_step(),
                 'min_step': 0,
                 'average_expect': True, # TODO: what is this
                 'average_states': False, 
@@ -90,8 +87,9 @@ class OBSolve(object):
                 # 'normalize_output':True, 
                 # 'use_openmp': None
                 # 'openmp_threads': None
-            }
-        self.opts = opts
+        }
+        if opts:
+            self.opts.update(opts) # Update any specified in the parameter
         return self.opts
 
     def set_field_rabi_freq_t_func(self, field_idx, t_func):
@@ -167,7 +165,7 @@ class OBSolve(object):
                      "t_max": self.t_max,
                      "t_steps": self.t_steps,
                      "method": self.method,
-                     "opts": '{}'  #  TODO fix when opts fixed.
+                     "opts": self.opts
                     }
         return json_dict
 
