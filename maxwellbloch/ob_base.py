@@ -150,8 +150,7 @@ class OBBase(object):
         return states_t
 
     def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={},
-                opts=qu.Options(), recalc=True, savefile=None,
-                show_pbar=False):
+        options=qu.Options(), recalc=True, savefile=None, show_pbar=False):
 
         if not rho0:
             rho0 = self.ground_state()
@@ -176,7 +175,7 @@ class OBBase(object):
 
             self.result = qu.mesolve(H, rho0, tlist,
                                      self.c_ops, e_ops,
-                                     args=args, options=opts,
+                                     args=args, options=options,
                                      progress_bar=pbar)
 
             self.rho = self.result.states[-1]  #  Set rho to the final state.

@@ -8,8 +8,9 @@ Thomas Ogden <t@ogden.eu>
 """
 
 import os
-
 import unittest
+
+import numpy as np
 
 from maxwellbloch import ob_solve, t_funcs
 
@@ -88,6 +89,75 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
         self.assertAlmostEqual(field_0.rabi_freq_t_func(1.0,
             field_0.rabi_freq_t_args), 0.0)
 
+class TestSolve(unittest.TestCase):
+
+    def test_two_level_rabi_oscillations(self):
+        """ Solve the optical Bloch equations for the two-level atom. 
+        
+            Notes:
+                See https://en.wikipedia.org/wiki/Rabi_cycle
+        """
+
+        RABI_FREQ = 5.0
+        atom_dict = {"fields": [{"coupled_levels": [[0, 1]], 
+            "rabi_freq": RABI_FREQ}], "num_states": 2}
+        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, 
+            t_steps=100)
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # The solution is known, we should have Rabi cycling at the frequency.
+        known_0 = np.cos(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+        known_1 = np.sin(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+
+        self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-5, atol=1.e-5))
+        self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-5, atol=1.e-5))
+
+        # If you want to take a look
+        # import matplotlib.pyplot as plt
+        # plt.plot(obs.tlist, pop_0)
+        # plt.plot(obs.tlist, known_0, ls='dashed')
+        # plt.plot(obs.tlist, pop_1)
+        # plt.plot(obs.tlist, known_1, ls='dashed')
+        # plt.show()
+    
+    def test_two_level_with_opts(self):
+        """ Same as test_two_level_rabi_oscillations() but with opts set such
+            that the tolerances are lower. The results will be less 
+            accurate.
+        """
+
+        RABI_FREQ = 5.0
+        atom_dict = {"fields": [{"coupled_levels": [[0, 1]],
+                                 "rabi_freq": RABI_FREQ}], "num_states": 2}
+        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0,
+                               t_steps=100, opts={'atol': 1e-6, 'rtol': 1e-4})
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # The solution is known, we should have Rabi cycling at the frequency.
+        known_0 = np.cos(2.0 * np.pi * RABI_FREQ * obs.tlist / 2.0)**2
+        known_1 = np.sin(2.0 * np.pi * RABI_FREQ * obs.tlist / 2.0)**2
+
+        # Compared with test_two_level_rabi_oscillations() we can only assert 
+        # a lower tolerance to the known solution.
+        self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-3, atol=1.e-3))
+        self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-3, atol=1.e-3))
+
+        # If you want to take a look
+        # import matplotlib.pyplot as plt
+        # plt.plot(obs.tlist, pop_0)
+        # plt.plot(obs.tlist, known_0, ls='dashed')
+        # plt.plot(obs.tlist, pop_1)
+        # plt.plot(obs.tlist, known_1, ls='dashed')
+        # plt.show()
+
 class TestJSON(unittest.TestCase):
 
     def test_to_from_json_str_00(self):
@@ -95,8 +165,7 @@ class TestJSON(unittest.TestCase):
         ob_solve_00 = ob_solve.OBSolve()
         ob_solve_01 = ob_solve.OBSolve.from_json_str(ob_solve_00.to_json_str())
 
-        self.assertEqual(ob_solve_00.to_json_str.__repr__(),
-                         ob_solve_01.to_json_str.__repr__())
+        self.assertEqual(ob_solve_00.to_json_str(), ob_solve_01.to_json_str())
 
     def test_from_json_str(self):
 
@@ -114,9 +183,7 @@ class TestJSON(unittest.TestCase):
         obs = ob_solve.OBSolve().from_json(json_path)
         obs_test = ob_solve.OBSolve.from_json_str(obs.to_json_str())
 
-        self.maxDiff = None
-        self.assertEqual(obs.to_json_str().__repr__(),
-                         obs_test.to_json_str().__repr__())
+        self.assertEqual(obs.to_json_str(), obs_test.to_json_str())
 
     def test_to_from_json(self):
 
@@ -131,7 +198,6 @@ class TestJSON(unittest.TestCase):
         ob_solve_03 = ob_solve.OBSolve().from_json(filepath)
         os.remove(filepath)
 
-        self.maxDiff = None
         self.assertEqual(ob_solve_02.to_json_str(),
                          ob_solve_03.to_json_str())
 

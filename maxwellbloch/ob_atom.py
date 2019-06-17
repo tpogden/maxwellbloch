@@ -222,17 +222,16 @@ class OBAtom(ob_base.OBBase):
                     self.states_t()[:, cl[0], cl[1]])
         return sum_coh
 
-    def mesolve(self, tlist, rho0=None, e_ops=[], opts=qu.Options(),
-                recalc=True, savefile=None, show_pbar=False):
+    def mesolve(self, tlist, rho0=None, e_ops=[], options=qu.Options(),
+        recalc=True, savefile=None, show_pbar=False):
 
         args = self.get_field_args()
 
         td = self.is_field_td()
 
         self.result = super().mesolve(tlist=tlist, rho0=rho0, td=td,
-                                      e_ops=e_ops, args=args, opts=opts,
-                                      recalc=recalc, savefile=savefile,
-                                      show_pbar=show_pbar)
+            e_ops=e_ops, args=args, options=options, recalc=recalc, 
+            savefile=savefile, show_pbar=show_pbar)
 
         return self.result
 

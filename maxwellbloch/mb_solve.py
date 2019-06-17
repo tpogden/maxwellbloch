@@ -178,6 +178,7 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.states_zt
 
+    # TODO(#96) Should we be able to pass in opts here?
     def mbsolve(self, step='ab', rho0=None, recalc=True, pbar_chunk_size=10):
 
         self.init_Omegas_zt()
@@ -442,8 +443,9 @@ class MBSolve(ob_solve.OBSolve):
             # Shift each detuning by Delta
             self.atom.shift_H_Delta([Delta] * len(self.atom.fields))
 
-            # We don't want the obsolve to save.
-            self.solve(opts=qu.Options(max_step=self.t_step()), save=False)
+            # We don't want the obsolve to save. 
+            # TODO(#96) If we decide to pass down opts from mbsolve, they'll go here.
+            self.solve(opts=None, save=False)
 
             states_t_Delta[Delta_i] = self.states_t()
 

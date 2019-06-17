@@ -26,17 +26,19 @@ class OBSolve(object):
         self.build_savefile(savefile)
 
     def __repr__(self):
-        return ("OBSolve(atom={0}, " +
-                "t_min={1}, " +
-                "t_max={2}, " +
-                "t_steps={3}, " +
-                "method={4}, " +
-                "opts={5})").format(self.atom,
-                                    self.t_min,
-                                    self.t_max,
-                                    self.t_steps,
-                                    self.method,
-                                    self.opts)
+        return (
+            "OBSolve(atom={0}, " +
+            "t_min={1}, " +
+            "t_max={2}, " +
+            "t_steps={3}, " +
+            "method={4}, " +
+            "opts={5})").format(
+                self.atom,
+                self.t_min,
+                self.t_max,
+                self.t_steps,
+                self.method,
+                self.opts)
 
     def build_atom(self, atom_dict):
 
@@ -54,12 +56,53 @@ class OBSolve(object):
         self.tlist = linspace(t_min, t_max, t_steps + 1)
         return self.tlist
 
-    def build_opts(self, opts):
-        """ This currently just sets the options to default.
-            Issue #96.
-        """
+    def build_opts(self, opts={}):
+        """ Build the options dict to be passed into the QuTiP solver.
 
-        self.opts = qu.Options()
+            Any option available to the QuTiP solver is available here, we 
+            provide defaults for solving the optical Bloch equations. See [0] 
+            for details of all the available options.
+
+            Notes:
+                - For a stiff problem, it may help to set 'method' to 
+                    'bdf' instead of 'adams'.
+                - If the solver times out, try more 'nsteps', though
+                    this will take longer. 
+                - To speed up the solver, reduce atol and rtol, though this 
+                    will reduce accuracy.
+
+            Warning:
+                There is no validation checking here. If you pass in an option
+                which is not known to QuTiP it will throw an exception.
+            
+            [0]: http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html
+        """
+        self.opts = {
+                'atol': 1e-8,
+                'rtol': 1e-6, 
+                'method': 'adams',
+                'order': 12,
+                'nsteps': 1000,
+                'first_step': 0, 
+                'max_step': self.t_step(),
+                'min_step': 0,
+                # Options below here I do not think will be useful, they are
+                # mostly for the MC solver. But they may be set.
+                # 'average_expect': True, # TODO: what is this
+                # 'average_states': False, 
+                # 'tidy': True,
+                # 'rhs_reuse': False,
+                # 'rhs_filename': None,
+                # 'rhs_with_state': False,
+                # 'store_final_state': False,
+                # 'store_states': False,
+                # 'steady_state_average': False, 
+                # 'normalize_output':True, 
+                # 'use_openmp': None
+                # 'openmp_threads': None
+        }
+        if opts:
+            self.opts.update(opts) # Update any specified in the parameter
         return self.opts
 
     def set_field_rabi_freq_t_func(self, field_idx, t_func):
@@ -87,7 +130,7 @@ class OBSolve(object):
         self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
     # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(self, rho0=None, e_ops=[], opts=qu.Options(), recalc=True,
+    def solve(self, rho0=None, e_ops=[], opts=None, recalc=True,
               show_pbar=False, save=True):
 
         # When we're calling from MBSolve, we don't want to save each step.
@@ -97,10 +140,15 @@ class OBSolve(object):
         else:
             savefile = None
 
+        # Choosing to overwrite opts at the solve stage.
+        if opts:
+            self.build_opts(opts)
+        options = qu.Options(**self.opts)
+
         if self.method == 'mesolve':
-            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops,
-                                 opts=opts, recalc=recalc,
-                                 savefile=savefile, show_pbar=show_pbar)
+            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
+                options=options, recalc=recalc, savefile=savefile, 
+                show_pbar=show_pbar)
 
         return self.atom.states_t()  # self.atom.result
 
@@ -130,7 +178,7 @@ class OBSolve(object):
                      "t_max": self.t_max,
                      "t_steps": self.t_steps,
                      "method": self.method,
-                     "opts": '{}'  #  TODO fix when opts fixed.
+                     "opts": self.opts
                     }
         return json_dict
 
