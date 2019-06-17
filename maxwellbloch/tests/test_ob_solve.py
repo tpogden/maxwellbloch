@@ -8,8 +8,9 @@ Thomas Ogden <t@ogden.eu>
 """
 
 import os
-
 import unittest
+
+import numpy as np
 
 from maxwellbloch import ob_solve, t_funcs
 
@@ -87,6 +88,75 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
             field_0.rabi_freq_t_args), 2.0)
         self.assertAlmostEqual(field_0.rabi_freq_t_func(1.0,
             field_0.rabi_freq_t_args), 0.0)
+
+class TestSolve(unittest.TestCase):
+
+    def test_two_level_rabi_oscillations(self):
+        """ Solve the optical Bloch equations for the two-level atom. 
+        
+            Notes:
+                See https://en.wikipedia.org/wiki/Rabi_cycle
+        """
+
+        RABI_FREQ = 5.0
+        atom_dict = {"fields": [{"coupled_levels": [[0, 1]], 
+            "rabi_freq": RABI_FREQ}], "num_states": 2}
+        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, 
+            t_steps=100)
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # The solution is known, we should have Rabi cycling at the frequency.
+        known_0 = np.cos(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+        known_1 = np.sin(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+
+        self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-5, atol=1.e-5))
+        self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-5, atol=1.e-5))
+
+        # If you want to take a look
+        # import matplotlib.pyplot as plt
+        # plt.plot(obs.tlist, pop_0)
+        # plt.plot(obs.tlist, known_0, ls='dashed')
+        # plt.plot(obs.tlist, pop_1)
+        # plt.plot(obs.tlist, known_1, ls='dashed')
+        # plt.show()
+    
+    def test_two_level_with_opts(self):
+        """ Same as test_two_level_rabi_oscillations() but with opts set such
+            that the tolerances are lower. The results will be less 
+            accurate.
+        """
+
+        RABI_FREQ = 5.0
+        atom_dict = {"fields": [{"coupled_levels": [[0, 1]],
+                                 "rabi_freq": RABI_FREQ}], "num_states": 2}
+        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0,
+                               t_steps=100, opts={'atol': 1e-6, 'rtol': 1e-4})
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # The solution is known, we should have Rabi cycling at the frequency.
+        known_0 = np.cos(2.0 * np.pi * RABI_FREQ * obs.tlist / 2.0)**2
+        known_1 = np.sin(2.0 * np.pi * RABI_FREQ * obs.tlist / 2.0)**2
+
+        # Compared with test_two_level_rabi_oscillations() we can only assert 
+        # a lower tolerance to the known solution.
+        self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-3, atol=1.e-3))
+        self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-3, atol=1.e-3))
+
+        # If you want to take a look
+        # import matplotlib.pyplot as plt
+        # plt.plot(obs.tlist, pop_0)
+        # plt.plot(obs.tlist, known_0, ls='dashed')
+        # plt.plot(obs.tlist, pop_1)
+        # plt.plot(obs.tlist, known_1, ls='dashed')
+        # plt.show()
 
 class TestJSON(unittest.TestCase):
 
