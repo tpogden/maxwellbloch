@@ -189,69 +189,69 @@ class OBBase(object):
 
         return self.result
 
-    def essolve(self, tlist, rho0=None, recalc=True, savefile=None):
-        """
-        Evolution of the density matrix by
-        expressing the ODE as an exponential series.
+    # def essolve(self, tlist, rho0=None, recalc=True, savefile=None):
+    #     """
+    #     Evolution of the density matrix by
+    #     expressing the ODE as an exponential series.
 
-        Args:
-            tlist: The list of times for which to find the density matrix.
-            rho0: Define an initial density matrix. Default is ground state.
-            recalc: Rerun the calculation if a saved file exists?
-            savefile: (string) Save the data to savefile.qu
+    #     Args:
+    #         tlist: The list of times for which to find the density matrix.
+    #         rho0: Define an initial density matrix. Default is ground state.
+    #         recalc: Rerun the calculation if a saved file exists?
+    #         savefile: (string) Save the data to savefile.qu
 
-        Returns:
-            result: qutip result object containing the solved data.
+    #     Returns:
+    #         result: qutip result object containing the solved data.
 
-        Notes:
-            QuTiP essolve method doesn't return the states properly so I use
-            the underlying ode2es method.
+    #     Notes:
+    #         QuTiP essolve method doesn't return the states properly so I use
+    #         the underlying ode2es method.
 
-            Unlike the mesolve method, the tlist here doesn't have any need
-            for high resolution to solve. So better when the density matrix
-            is only needed at a few points.
+    #         Unlike the mesolve method, the tlist here doesn't have any need
+    #         for high resolution to solve. So better when the density matrix
+    #         is only needed at a few points.
 
-        """
+    #     """
 
-        savefile_exists = os.path.isfile(str(savefile) + '.qu')
+    #     savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
-        # Solve if 1) we ask for it to be recalculated or 2) it *must* be
-        # calculated because no savefile exists.
-        if recalc or not savefile_exists:
+    #     # Solve if 1) we ask for it to be recalculated or 2) it *must* be
+    #     # calculated because no savefile exists.
+    #     if recalc or not savefile_exists:
 
-            H = self.H_0 + self.H_Delta + self.H_I_sum()
-            L = qu.liouvillian(H, self.c_ops)
+    #         H = self.H_0 + self.H_Delta + self.H_I_sum()
+    #         L = qu.liouvillian(H, self.c_ops)
 
-            es = qu.ode2es(L, rho0)
-            states = es.value(tlist)
+    #         es = qu.ode2es(L, rho0)
+    #         states = es.value(tlist)
 
-            self.result = qu.solver.Result()
-            self.result.states = states
-            self.result.solver = "essolve"
-            self.result.times = tlist
+    #         self.result = qu.solver.Result()
+    #         self.result.states = states
+    #         self.result.solver = "essolve"
+    #         self.result.times = tlist
 
-            self.rho = self.result.states[-1]  #  Set rho to the final state.
+    #         self.rho = self.result.states[-1]  #  Set rho to the final state.
 
-            # Only save the file if we have a place to save it.
-            if savefile:
-                qu.qsave(self.result, savefile)
+    #         # Only save the file if we have a place to save it.
+    #         if savefile:
+    #             qu.qsave(self.result, savefile)
 
-        # Otherwise load the steady state rho_v_delta from file
-        else:
-            self.result = qu.qload(savefile)
-            self.rho = self.result.states[-1]
+    #     # Otherwise load the steady state rho_v_delta from file
+    #     else:
+    #         self.result = qu.qload(savefile)
+    #         self.rho = self.result.states[-1]
 
-        return self.result
+    #     return self.result
 
-    def steadystate(self, **kwargs):
-        """ Calculates the steady state of the system in the case of a
-        time-independent interaction, i.e. if we let time go to infinity.
+    # def steadystate(self, **kwargs):
+    #     """ Calculates the steady state of the system in the case of a
+    #     time-independent interaction, i.e. if we let time go to infinity.
 
-        Returns:
-            rho: The density matrix in the steady state.
-        """
+    #     Returns:
+    #         rho: The density matrix in the steady state.
+    #     """
 
-        H = self.H_0 + self.H_Delta + self.H_I_sum()
-        self.rho = qu.steadystate(H, self.c_ops, **kwargs)
+    #     H = self.H_0 + self.H_Delta + self.H_I_sum()
+    #     self.rho = qu.steadystate(H, self.c_ops, **kwargs)
 
-        return self.rho
+    #     return self.rho
