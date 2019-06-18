@@ -8,6 +8,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added ability to set initial state of atom
 - Added function to calculate hyperfine Clebsch-Gordan coefficients
 - Added Wigner 3j and Wigner 6j functions
 - Added script to make MP4s of systems with two fields

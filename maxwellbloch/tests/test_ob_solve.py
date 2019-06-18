@@ -132,7 +132,8 @@ class TestSolve(unittest.TestCase):
 
         RABI_FREQ = 5.0
         atom_dict = {"fields": [{"coupled_levels": [[0, 1]],
-                                 "rabi_freq": RABI_FREQ}], "num_states": 2}
+                                 "rabi_freq": RABI_FREQ}], "num_states": 2,
+                                 "initial_state": [1., 0.]}
         obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0,
                                t_steps=100, opts={'atol': 1e-6, 'rtol': 1e-4})
         obs.solve()
@@ -157,6 +158,30 @@ class TestSolve(unittest.TestCase):
         # plt.plot(obs.tlist, pop_1)
         # plt.plot(obs.tlist, known_1, ls='dashed')
         # plt.show()
+
+    def test_two_level_with_inital_state(self):
+        """ Same as test_two_level_rabi_oscillations() but with the initial
+            state set so that the population starts in the upper level.
+        """
+
+        RABI_FREQ = 5.0
+        atom_dict = {"fields": [{"coupled_levels": [[0, 1]], 
+            "rabi_freq": RABI_FREQ}], "num_states": 2, 
+            "initial_state": [0., 1.]}
+        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, 
+            t_steps=100)
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # The solution is as test_two_level_rabi_oscillations() but swapped
+        known_0 = np.sin(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+        known_1 = np.cos(2.0*np.pi*RABI_FREQ*obs.tlist/2.0)**2
+
+        self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-5, atol=1.e-5))
+        self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-5, atol=1.e-5))
 
 class TestJSON(unittest.TestCase):
 
