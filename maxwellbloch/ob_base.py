@@ -56,11 +56,6 @@ class OBBase(object):
 
         return sigma.sigma(self.num_states, a, b)
 
-    def ground_state(self):
-        """ Returns a state vector for the ground state. [1, 0, 0, …] """
-
-        return qu.basis(self.num_states, 0)
-
     def set_H_0(self, energies=[]):
         """ Takes a list of energies and makes a Bare Hamiltonian with the
         energies as diagonals. This function can be overridden in a child class
@@ -152,9 +147,6 @@ class OBBase(object):
     def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={},
         options=qu.Options(), recalc=True, savefile=None, show_pbar=False):
 
-        if not rho0:
-            rho0 = self.ground_state()
-
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
         # Solve if 1) we ask for it to be recalculated or 2) it *must* be
@@ -220,9 +212,6 @@ class OBBase(object):
             is only needed at a few points.
 
         """
-
-        if not rho0:
-            rho0 = self.ground_state() * self.ground_state().dag()
 
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 

@@ -88,7 +88,7 @@ class OBSolve(object):
                 'min_step': 0,
                 # Options below here I do not think will be useful, they are
                 # mostly for the MC solver. But they may be set.
-                # 'average_expect': True, # TODO: what is this
+                # 'average_expect': True, # What is this
                 # 'average_states': False, 
                 # 'tidy': True,
                 # 'rhs_reuse': False,
@@ -130,7 +130,7 @@ class OBSolve(object):
         self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
     # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(self, rho0=None, e_ops=[], opts=None, recalc=True,
+    def solve(self, e_ops=[], opts=None, recalc=True,
               show_pbar=False, save=True):
 
         # When we're calling from MBSolve, we don't want to save each step.
@@ -146,9 +146,8 @@ class OBSolve(object):
         options = qu.Options(**self.opts)
 
         if self.method == 'mesolve':
-            self.atom.mesolve(self.tlist, rho0=rho0, e_ops=e_ops, 
-                options=options, recalc=recalc, savefile=savefile, 
-                show_pbar=show_pbar)
+            self.atom.mesolve(self.tlist, e_ops=e_ops, options=options, 
+                recalc=recalc, savefile=savefile, show_pbar=show_pbar)
 
         return self.atom.states_t()  # self.atom.result
 

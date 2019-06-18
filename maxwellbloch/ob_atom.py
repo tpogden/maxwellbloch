@@ -6,13 +6,13 @@ import numpy as np
 from numpy import pi
 import qutip as qu
 
-from maxwellbloch import ob_base, field, t_funcs
+from maxwellbloch import ob_base, field, t_funcs, sigma
 
 
 class OBAtom(ob_base.OBBase):
 
     def __init__(self, label=None, num_states=1, energies=[], decays=[], 
-        fields=[]):
+        initial_state=[], fields=[]):
         """ Initialise OBAtom. 
 
         Args:
@@ -24,6 +24,7 @@ class OBAtom(ob_base.OBBase):
             [ { "rate": 1.0, "channels": [[0,1]], "factors": [1.0] }
               { "rate": 2.0, "channels": [[2,1], [3,1]], 
                 "factors": [0.707, 0.707] } ]
+            rho0: initial state, as a list or array
             fields: list of Field objects that couple atom states.
         """
 
@@ -34,15 +35,56 @@ class OBAtom(ob_base.OBBase):
         self.energies = energies
         self.decays = decays
 
+        self.build_initial_state(initial_state)
+
         self.build_fields(fields)
         self.build_operators()
         
-        self.init_rho()
 
     def __repr__(self):
         return ("Atom(label={0}, " + "num_states={1}, " + "energies={2}, " +
             "decays={3}, " + "fields={4})").format(self.label, self.num_states,
             self.energies, self.decays, self.fields)
+
+    def build_initial_state(self, initial_state=[]):
+        """ Build the initial density matrix for the atom.
+
+            The default is for all of the population to be in |0> <0|.
+
+            Args:
+                rho0: a list or array of populations, length num_states.
+
+            Returns:
+                Qu.Qobj: A density matrix representing the initial
+
+            Notes: 
+                - The elements must sum to 1 (as this will be the trace of the 
+                    density matrix).
+
+        """
+
+        if initial_state:
+            if len(initial_state) != self.num_states:
+                raise ValueError(
+                    'initial_state must have num_states elements.')
+            self.initial_state = qu.zero_oper(self.num_states)
+            for i, g in enumerate(initial_state):
+                self.initial_state += g * self.sigma(i, i)
+        else:
+            self.initial_state = self.sigma(0, 0)
+        if self.initial_state.tr() != 1.0:
+            raise ValueError(
+                'initial_state must have diagonal elements sum to 1.')
+
+        # Initialise rho
+        self.rho = self.initial_state
+
+        return self.initial_state
+
+    # def init_rho(self):
+
+    #     self.rho = self.rho_0
+    #     return self.rho
 
     def add_field(self, field_dict):
         """ Add a Field to the list given a dict representing the field. """ 
@@ -188,12 +230,6 @@ class OBAtom(ob_base.OBBase):
 
         return self.build_H_Omega()
 
-    def init_rho(self):
-
-        self.rho = self.ground_state() * self.ground_state().dag()
-
-        return self.rho
-
     def get_field_args(self):
 
         args = {}
@@ -222,15 +258,15 @@ class OBAtom(ob_base.OBBase):
                     self.states_t()[:, cl[0], cl[1]])
         return sum_coh
 
-    def mesolve(self, tlist, rho0=None, e_ops=[], options=qu.Options(),
-        recalc=True, savefile=None, show_pbar=False):
+    def mesolve(self, tlist, e_ops=[], options=qu.Options(), recalc=True, 
+        savefile=None, show_pbar=False):
 
         args = self.get_field_args()
 
         td = self.is_field_td()
 
-        self.result = super().mesolve(tlist=tlist, rho0=rho0, td=td,
-            e_ops=e_ops, args=args, options=options, recalc=recalc, 
+        self.result = super().mesolve(tlist=tlist, rho0=self.initial_state,
+            td=td, e_ops=e_ops, args=args, options=options, recalc=recalc,
             savefile=savefile, show_pbar=show_pbar)
 
         return self.result
