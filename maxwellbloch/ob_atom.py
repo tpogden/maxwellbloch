@@ -24,7 +24,7 @@ class OBAtom(ob_base.OBBase):
             [ { "rate": 1.0, "channels": [[0,1]], "factors": [1.0] }
               { "rate": 2.0, "channels": [[2,1], [3,1]], 
                 "factors": [0.707, 0.707] } ]
-            rho0: initial state, as a list or array
+            initial_state: initial state, as a list or array
             fields: list of Field objects that couple atom states.
         """
 

@@ -96,6 +96,30 @@ class TestInit(unittest.TestCase):
         self.assertEqual(ob_atom_00.fields, [])
 
 
+class TestBuildInitialState(unittest.TestCase):
+
+    def test_default_initial_state(self):
+        oba = ob_atom.OBAtom(num_states=2)
+        self.assertEqual(oba.initial_state, oba.sigma(0,0))
+
+    def test_set_initial_state(self):
+        oba = ob_atom.OBAtom(num_states=2, initial_state=[1., 0.])
+        self.assertEqual(oba.initial_state, oba.sigma(0, 0))
+        oba = ob_atom.OBAtom(num_states=2, initial_state=[0., 1.])
+        self.assertEqual(oba.initial_state, oba.sigma(1, 1))
+
+    def test_wrong_length(self):
+        with self.assertRaises(ValueError):
+            ob_atom.OBAtom(num_states=2, initial_state=[1.])
+        with self.assertRaises(ValueError):
+            ob_atom.OBAtom(num_states=2, initial_state=[1.,0.,0.])
+
+    def test_trace_not_unity(self):
+        with self.assertRaises(ValueError):
+            ob_atom.OBAtom(num_states=2, initial_state=[2., 0.])
+        with self.assertRaises(ValueError):
+            ob_atom.OBAtom(num_states=2, initial_state=[2., 2.])
+
 class TestJSON(unittest.TestCase):
 
     ob_atom_02 = ob_atom.OBAtom.from_json_str(JSON_STR_02)
