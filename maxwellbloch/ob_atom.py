@@ -67,7 +67,7 @@ class OBAtom(ob_base.OBBase):
             if len(initial_state) != self.num_states:
                 raise ValueError(
                     'initial_state must have num_states elements.')
-            self.initial_state = qu.zero_oper(self.num_states)
+            self.initial_state = qu.qzero(self.num_states)
             for i, g in enumerate(initial_state):
                 self.initial_state += g * self.sigma(i, i)
         else:
