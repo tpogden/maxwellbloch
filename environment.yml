@@ -11,3 +11,8 @@ dependencies:
   - pytest-cov=2.6
   - pytest-xdist=1.26
   - coveralls=1.7
+  - sphinx=2
+  - nbsphinx-0.4
+  - pip:
+    - recommonmark
+    - sphinx_rtd_theme

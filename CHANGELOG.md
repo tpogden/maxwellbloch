@@ -18,6 +18,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Added ability to set QuTiP options
 - Added factors to fields and atom decays for atomic structure
 - Added ability to set initial state of atom
+- Added solver options to OBSolve
+- Added decay factors representing structure in coupled levels
+- Added factors list to Field object for strength factors on coupled levels
 - Added function to calculate hyperfine Clebsch-Gordan coefficients
 - Added Wigner 3j and Wigner 6j functions
 - Added script to make MP4s of systems with two fields
@@ -33,7 +36,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Fixed mp4 script to use real part of rabi freq
 - Added automatic update of version number from setup.py
 - Changed to allow empty velocity class to be set
-- Changed the time function for fields to be constant if none is given.
+- Changed the time function for fields to be constant if none is given
 
 ## [0.3.0] 2018-01-08
 
