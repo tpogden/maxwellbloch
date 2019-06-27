@@ -58,22 +58,22 @@ class Atom1e(object):
 
         return [mF_level['energy'] for mF_level in self.get_mF_list()]
 
-    def get_coupled_levels(self, F_level_idx_a, F_level_idx_b):
+    def get_coupled_levels(self, F_level_idxs_a, F_level_idxs_b):
         """ Returns a list of pairs of mF level indexes, representing all
             pairs of mF levels between two F levels. """
-
+        # TODO: docstring
         # TODO: Maybe make the F_level inputs lists now?
         # TODO: Need to check Not trying to couple J=J', i.e. selection rules
 
         F_level_idx_map = self.get_F_level_idx_map()
         a_levels = [i for i, idx in enumerate(F_level_idx_map) 
-            if idx == F_level_idx_a]
+            if idx in F_level_idxs_a]
         b_levels = [i for i, idx in enumerate(F_level_idx_map)
-            if idx == F_level_idx_b]
+            if idx in F_level_idxs_b]
         # product returns iterator of tuples, convert to list of lists
         return [list(i) for i in product(a_levels, b_levels)]
 
-    def get_clebsch_hf_factors(self, F_level_idx_a, F_level_idx_b, q):
+    def get_clebsch_hf_factors(self, F_level_idxs_a, F_level_idxs_b, q):
         """ Returns a list of Clebsch-Gordan coefficients for the hyperfine 
             transition dipole matrix elements for each coupled level pair.
         
@@ -87,21 +87,20 @@ class Atom1e(object):
 
         """
 
-        factors = []
         mF_list = self.get_mF_list()
-        coupled_levels = self.get_coupled_levels(F_level_idx_a, F_level_idx_b)
-        for cl in coupled_levels:
+        coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
+        factors = np.empty(len(coupled_levels))
+        for i, cl in enumerate(coupled_levels):
             a = mF_list[cl[0]]
             b = mF_list[cl[1]]
-            clebsch_hf = calc_clebsch_hf(J_a=a['J'], I_a=a['I'], F_a=a['F'],
+            factors[i] = calc_clebsch_hf(J_a=a['J'], I_a=a['I'], F_a=a['F'],
                 mF_a=a['mF'], J_b=b['J'], I_b=b['I'], F_b=b['F'], mF_b=b['mF'], 
                 q=q)
-            factors.append(clebsch_hf)
         return factors
 
     # TODO: iso_factors (mix of all 3 polarisations)
 
-    def get_decay_factors(self, F_level_idx_a, F_level_idx_b):
+    def get_decay_factors(self, F_level_idxs_a, F_level_idxs_b):
         """ Returns a list of factors for the collapse operators for each 
             hyperfine coupled level pair.
 
@@ -115,7 +114,7 @@ class Atom1e(object):
 
         decay_factors = []
         mF_list = self.get_mF_list()
-        coupled_levels = self.get_coupled_levels(F_level_idx_a, F_level_idx_b)
+        coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
         for cl in coupled_levels:
             a = mF_list[cl[0]]
             b = mF_list[cl[1]]

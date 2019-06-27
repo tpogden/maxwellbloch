@@ -10,32 +10,6 @@ import numpy as np
 
 from maxwellbloch import hyperfine
 
-# class TestAtom1eAddJLevel(unittest.TestCase):
-#     """ Unit tests of the Atom1e.add_J_level method. """
-
-#     def test_Rb87_5s_5p(self):
-
-#         Rb87_5s12 = hyperfine.LevelJ(I=1.5, J=0.5)
-
-#         Rb87_5p12 = hyperfine.LevelJ(I=1.5, J=0.5)
-#         Rb87_5p32 = hyperfine.LevelJ(I=1.5, J=1.5)
-
-#         Rb87_5s_5p = hyperfine.Atom1e(element='Rb', isotope='87')
-
-#         Rb87_5s_5p.add_J_level(Rb87_5s12)
-#         Rb87_5s_5p.add_J_level(Rb87_5p12)
-#         Rb87_5s_5p.add_J_level(Rb87_5p32)
-
-#         self.assertEqual(Rb87_5s_5p.get_num_mF_levels(), 32)
-
-#         map = [0]*8
-#         map.extend([1]*8)
-#         map.extend([2] * 16)
-
-#         self.assertEqual(Rb87_5s_5p.get_J_level_idx_map(), map)
-
-#         self.assertEqual(len(Rb87_5s_5p.get_coupled_levels(0, 1)), 8*8)
-#         self.assertEqual(len(Rb87_5s_5p.get_coupled_levels(0, 2)), 8*16)
         
 class TestAtom1eAddFLevel(unittest.TestCase):
     """ Unit tests of the Atom1e.add_F_level method. """
@@ -59,8 +33,13 @@ class TestAtom1eAddFLevel(unittest.TestCase):
         map = [0]*3 + [1]*5 + [2]*3 + [3]*5
         self.assertEqual(Rb87_5s12_5p12.get_F_level_idx_map(), map)
 
-        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels(0, 2)), 3*3)
-        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels(0, 3)), 3*5)
+        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels([0], [2])), 3*3)
+        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels([0], [3])), 3*5)
+
+        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels([0], [2, 3])), 
+            3*8)
+        self.assertEqual(len(Rb87_5s12_5p12.get_coupled_levels([0, 1], [2])), 
+            8*3)
 
 class TestAtom1eGetClebschHFFactors(unittest.TestCase):
 
@@ -80,8 +59,22 @@ class TestAtom1eGetClebschHFFactors(unittest.TestCase):
 
         # self.assertEqual(self.Rb87_5s12_5p12.get_num_mF_levels(), 16)
 
-        print(self.Rb87_5s12_5p12.get_clebsch_hf_factors(0, 3, q=0))
-        print([i**2 for i in self.Rb87_5s12_5p12.get_clebsch_hf_factors(0, 3, q=0)])
+        cl = self.Rb87_5s12_5p12.get_coupled_levels([0, 1], [2])
+
+        factors = self.Rb87_5s12_5p12.get_clebsch_hf_factors([0, 1], [2], q=0)
+
+        F1_m1_cl = [8 in i for i in cl]
+
+        # print([8 in i for i in cl])
+
+        print(factors[F1_m1_cl]**2)
+
+        print(np.sum(factors[F1_m1_cl]**2))
+        # START HERE: THIS SUM DOESN'T LOOK RIGHT 
+
+        # print(self.Rb87_5s12_5p12.get_clebsch_hf_factors([0], [3], q=0))
+        # print([i**2 for i in self.Rb87_5s12_5p12.get_clebsch_hf_factors([0], 
+            # [3], q=0)])
 
 # class TestLevelNLInit(unittest.TestCase):
 #     """ Unit tests of the LevelNL.__init__ method. """
