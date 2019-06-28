@@ -72,7 +72,7 @@ class OBAtom(ob_base.OBBase):
                 self.initial_state += g * self.sigma(i, i)
         else:
             self.initial_state = self.sigma(0, 0)
-        if self.initial_state.tr() != 1.0:
+        if not np.isclose(self.initial_state.tr(), 1.0):
             raise ValueError(
                 'initial_state must have diagonal elements sum to 1.')
 
