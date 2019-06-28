@@ -62,7 +62,6 @@ class Atom1e(object):
         """ Returns a list of pairs of mF level indexes, representing all
             pairs of mF levels between two F levels. """
         # TODO: docstring
-        # TODO: Maybe make the F_level inputs lists now?
         # TODO: Need to check Not trying to couple J=J', i.e. selection rules
 
         F_level_idx_map = self.get_F_level_idx_map()
@@ -86,6 +85,8 @@ class Atom1e(object):
             (list): factors, length of mF_list
 
         """
+
+        # TODO: Selection rules? Either needs to be here or in get_coupled_levels
 
         mF_list = self.get_mF_list()
         coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
@@ -160,6 +161,7 @@ class LevelF(object):
     Notes:
         - The magnitude of F can take values in the range 
             `|J - I| <= F <= J + I`.
+        TODO: Now we have I, J in this class, throw if this is not met.
         - The mF_energies are set _relative_ to the F level energy.
     """
 

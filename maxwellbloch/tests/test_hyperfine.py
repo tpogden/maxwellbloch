@@ -45,36 +45,91 @@ class TestAtom1eGetClebschHFFactors(unittest.TestCase):
 
     def setup_method(self, method):
 
-        self.Rb87_5s12_5p12 = hyperfine.Atom1e(element='Rb', isotope='87')
         Rb87_5s12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
         Rb87_5s12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
-        Rb87_5p12_F1 = hyperfine.LevelF(I=1.5, J=1.5, F=1)
-        Rb87_5p12_F2 = hyperfine.LevelF(I=1.5, J=1.5, F=2)
+        Rb87_5p12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        Rb87_5p12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+
+        self.Rb87_5s12_5p12 = hyperfine.Atom1e(element='Rb', isotope='87')
         self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F1)
         self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F2)
         self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F1)
         self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F2)
+        Rb87_5p32_F0 = hyperfine.LevelF(I=1.5, J=1.5, F=0)
+        Rb87_5p32_F1 = hyperfine.LevelF(I=1.5, J=1.5, F=1)
+        Rb87_5p32_F2 = hyperfine.LevelF(I=1.5, J=1.5, F=2)        
+        Rb87_5p32_F3 = hyperfine.LevelF(I=1.5, J=1.5, F=3)
+
+        self.Rb87_5s12_5p32 = hyperfine.Atom1e(element='Rb', isotope='87')
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F0)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F3)
 
     def test_Rb87_5s12_5p12(self):
-
+        """
+        References:
+            [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
+        """
         # self.assertEqual(self.Rb87_5s12_5p12.get_num_mF_levels(), 16)
 
-        cl = self.Rb87_5s12_5p12.get_coupled_levels([0, 1], [2])
+        Rb87_5s12_F_level_idxs = (0, 1)
+        Rb87_5p12_F_level_idxs = (2, 3)
 
-        factors = self.Rb87_5s12_5p12.get_clebsch_hf_factors([0, 1], [2], q=0)
+        cl = self.Rb87_5s12_5p12.get_coupled_levels(Rb87_5s12_F_level_idxs, 
+            Rb87_5p12_F_level_idxs)
 
-        F1_m1_cl = [8 in i for i in cl]
+        facts_qm1 = self.Rb87_5s12_5p12.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p12_F_level_idxs, q=-1)
+        facts_q0 = self.Rb87_5s12_5p12.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p12_F_level_idxs, q=0)
+        facts_qp1 = self.Rb87_5s12_5p12.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p12_F_level_idxs, q=1)
 
-        # print([8 in i for i in cl])
+        # For each upper mF level, get the sum of all couplings mF' 
+        # Eqn (40) in Ref [0]. These should sum to (2J + 1)/(2J' + 1) = 1
+        # "The interpretation of this symmetry is simply that all the excited 
+        # state sublevels decay at the same rate \Gamma, and the decaying 
+        # population “branches” into various ground state sublevels."
+        for upper_mF_level in range(8, 16):
+            coupled = [upper_mF_level in i for i in cl]
 
-        print(factors[F1_m1_cl]**2)
+            factor_sq_sum = (np.sum(facts_qm1[coupled]**2) + 
+                np.sum(facts_q0[coupled]**2) + np.sum(facts_qp1[coupled]**2))
 
-        print(np.sum(factors[F1_m1_cl]**2))
-        # START HERE: THIS SUM DOESN'T LOOK RIGHT 
+            self.assertAlmostEqual(factor_sq_sum, 1.0) # (2J+1)/(2J'+1) = 1
 
-        # print(self.Rb87_5s12_5p12.get_clebsch_hf_factors([0], [3], q=0))
-        # print([i**2 for i in self.Rb87_5s12_5p12.get_clebsch_hf_factors([0], 
-            # [3], q=0)])
+    def test_Rb87_5s12_5p32(self):
+
+        Rb87_5s12_F_level_idxs = (0, 1)
+        Rb87_5p32_F_level_idxs = (2, 3, 4, 5)
+
+        cl = self.Rb87_5s12_5p32.get_coupled_levels(Rb87_5s12_F_level_idxs, 
+            Rb87_5p32_F_level_idxs)
+
+        print(cl)
+
+        facts_qm1 = self.Rb87_5s12_5p32.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p32_F_level_idxs, q=-1)
+        facts_q0 = self.Rb87_5s12_5p32.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p32_F_level_idxs, q=0)
+        facts_qp1 = self.Rb87_5s12_5p32.get_clebsch_hf_factors(
+            Rb87_5s12_F_level_idxs, Rb87_5p32_F_level_idxs, q=1)
+
+        # For each upper mF level, get the sum of all couplings mF' 
+        # Eqn (40) in Ref [0]. These should sum to (2J + 1)/(2J' + 1) = 0.5
+        # "The interpretation of this symmetry is simply that all the excited 
+        # state sublevels decay at the same rate \Gamma, and the decaying 
+        # population “branches” into various ground state sublevels."
+        for upper_mF_level in range(8, 24):
+            coupled = [upper_mF_level in i for i in cl]
+
+            factor_sq_sum = (np.sum(facts_qm1[coupled]**2) + 
+                np.sum(facts_q0[coupled]**2) + np.sum(facts_qp1[coupled]**2))
+
+            self.assertAlmostEqual(factor_sq_sum, 0.5) # (2J+1)/(2J'+1) = 0.5
 
 # class TestLevelNLInit(unittest.TestCase):
 #     """ Unit tests of the LevelNL.__init__ method. """
