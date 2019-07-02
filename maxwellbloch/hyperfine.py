@@ -86,7 +86,7 @@ class Atom1e(object):
 
         """
 
-        # TODO: Selection rules? Either needs to be here or in get_coupled_levels
+        # TODO: Selection rules? Either needs to be here or get_coupled_levels
 
         mF_list = self.get_mF_list()
         coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
@@ -108,25 +108,23 @@ class Atom1e(object):
             Args: 
                 F_level_idx_a(int): F level the transition is from (lower level)
                 F_level_idx_b(int): F level the transition is to(upper level)
-                q(int): The field polarisation. Choose from [-1, 0, 1].
+
+            Notes:
+                This is equivalent to the clebsch_hf_factors for all 
+                polarisations as decay photons are of all polarisations. Note 
+                that for any coupled levels pair there will be only one n
+                on-zero factor to sum.  
 
             Returns: (list): factors, length of mF_list
         """
 
-        decay_factors = []
-        mF_list = self.get_mF_list()
-        coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
-        for cl in coupled_levels:
-            a = mF_list[cl[0]]
-            b = mF_list[cl[1]]
-            clebsch_hf = 0.0
-            # Only one of these should be nonzero so OK to sum them
-            for q in [-1, 0, 1]:
-                clebsch_hf += calc_clebsch_hf(J_a=a['J'], I_a=a['I'], 
-                    F_a=a['F'], mF_a=a['mF'], J_b=b['J'], I_b=b['I'], 
-                    F_b=b['F'], mF_b=b['mF'], q=q)
-            decay_factors.append(clebsch_hf)
-        return decay_factors
+        return (
+            self.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, 
+                q=-1) + 
+            self.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, 
+                q=0) + 
+            self.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, 
+                q=1))
 
     def to_json_str(self):
         """ Return a JSON string representation of the LevelJ object.
@@ -441,11 +439,3 @@ class LevelMF(object):
 
 #         return json.dumps(self.get_json_dict(), indent=2, separators=None, 
 #             sort_keys=True)
-
-# def main():
-
-#     pass
-
-# if __name__ == '__main__':
-#     STATUS = main()
-#     sys.exit(STATUS)
