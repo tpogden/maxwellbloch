@@ -8,6 +8,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Fixed the detuning term of the interaction Hamiltonian for fields coupling
+    multiple upper levels
+- Added functionality to build structure for single valence electron atoms
+- Added ability to set QuTiP options
+- Added factors to fields and atom decays for atomic structure
 - Added ability to set initial state of atom
 - Added function to calculate hyperfine Clebsch-Gordan coefficients
 - Added Wigner 3j and Wigner 6j functions
