@@ -155,20 +155,19 @@ class OBAtom(ob_base.OBBase):
         return self.c_ops
 
     def build_H_Delta(self):
-        # TODO: Docstring.
+        """ Builds the detuning part of the interaction Hamiltonian. """
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-
-        # BUG TODO: If the field has multiple channels coupling the same upper
-        # level, the detuning will be added multiple times.
         for f in self.fields:
             if f.detuning_positive:
                 sgn = 1.
             else:
                 sgn = -1.
-            for c in f.coupled_levels:
-                self.H_Delta -= sgn * 2*pi*f.detuning * self.sigma(c[1], c[1])
-
+            # Only want the unique upper levels if the field has multiple 
+            # channels.
+            upper_levels = set(c[1] for c in f.coupled_levels)
+            for i in upper_levels:
+                self.H_Delta -= sgn * 2*pi*f.detuning * self.sigma(i, i)
         return self.H_Delta
 
     def set_H_Delta(self, detunings):

@@ -210,11 +210,6 @@ class TestBuildHDelta(unittest.TestCase):
         np.testing.assert_array_almost_equal(oba.H_Delta.data.toarray(), 
             H_Delta_test.data.toarray())        
 
-        # H_Delta_array = np.zeros(oba.num_states, oba.num_states)
-        # H_Delta_array[2, 2] = -2*np.pi*DETUNING
-
-        # H_Delta_test = qu.Qobj([[0., 0.], [0., 2*np.pi*DETUNING]])
-
     # TODO Tests:
     # three-level (different configurations)
 
