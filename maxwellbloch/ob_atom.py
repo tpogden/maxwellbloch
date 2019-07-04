@@ -155,9 +155,12 @@ class OBAtom(ob_base.OBBase):
         return self.c_ops
 
     def build_H_Delta(self):
+        # TODO: Docstring.
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
+        # BUG TODO: If the field has multiple channels coupling the same upper
+        # level, the detuning will be added multiple times.
         for f in self.fields:
             if f.detuning_positive:
                 sgn = 1.
