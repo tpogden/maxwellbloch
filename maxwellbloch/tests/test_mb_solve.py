@@ -247,3 +247,55 @@ class TestGetOmegasIntpTArgs(unittest.TestCase):
 
         self.assertTrue(np.all(t_args[0]['tlist'] == mb_solve_00.tlist))
         self.assertTrue(np.all(t_args[0]['ylist'] == Omegas_z/(2.0*np.pi)))
+
+class TestPopulations(unittest.TestCase):
+
+    def test_twolevel_shape(self):
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        pop_lower = mbs.populations([0])
+        pop_upper = mbs.populations([1])
+
+        np.testing.assert_allclose(pop_lower, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
+        np.testing.assert_allclose(pop_upper, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
+
+class TestPopulationsField(unittest.TestCase):
+
+    def test_twolevel_shape(self):
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+
+        pop_upper = mbs.populations_field(field_idx=0, upper=True)
+        pop_lower = mbs.populations_field(field_idx=0, upper=False)
+
+        np.testing.assert_allclose(pop_lower, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
+        np.testing.assert_allclose(pop_upper, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
+
+class TestCoherences(unittest.TestCase):
+
+    def test_twolevel_shape(self):
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        coh = mbs.coherences([[0, 1]])
+
+        np.testing.assert_allclose(coh, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
+
+class TestCoherencesField(unittest.TestCase):
+
+    def test_twolevel_shape(self):
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        coh = mbs.coherences_field(field_idx=0)
+        
+        np.testing.assert_allclose(coh, np.zeros((mbs.z_steps+1, 
+            mbs.t_steps+1)))
