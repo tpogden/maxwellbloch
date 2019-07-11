@@ -475,6 +475,62 @@ class MBSolve(ob_solve.OBSolve):
 
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
 
+    def populations(self, levels):
+        """ Get the sum of populations in a list of levels. 
+            
+            Args:
+                levels: a list of level indexes
+            Returns:
+                np.array, shape (z_steps+1, t_steps+1), dtype=np.real
+        """
+
+        return np.abs(np.sum(self.states_zt[:, :, levels, levels], axis=2))
+
+    def populations_field(self, field_idx, upper=True):
+        """ Get the sum of populations for the upper (excited) level coupled by
+            a field.
+
+            Args:
+                field_idx: index in the list of fields
+            Returns:
+                np.array, shape (z_steps+1, t_steps+1), dtype=np.real 
+            Note: 
+                - Casting upper to int so upper is 1, lower is 0.
+        """
+
+        # TODO: This is also used in H_Delta. Really, lower_levels and 
+        # upper_levels could be methods of Field.
+        upper_levels = list(set(c[int(upper)] for c in 
+            self.atom.fields[field_idx].coupled_levels))
+        return self.populations(upper_levels)
+        
+    def coherences(self, coupled_levels):
+        """ Get the sum of coherences (off-diagonals) in a list of coupled 
+            level pairs. 
+
+            Args:
+                coupled_levels: a list of pairs of level indexes
+            Returns:
+                np.array, shape (z_steps+1, t_steps+1), dtype=np.complex    
+        """
+
+        sum_coh = np.zeros(self.states_zt.shape[:2], dtype=np.complex)
+        for cl in coupled_levels:
+            sum_coh += self.states_zt[:,:,cl[0], cl[1]]
+        return sum_coh
+
+    def coherences_field(self, field_idx):
+        """ Get the sum of coherences (off-diagonals) for the levels coupled by 
+            a field.
+
+            Args:
+                field_idx: index in the list of fields
+            Returns:
+                np.array, shape (z_steps+1, t_steps+1), dtype=np.complex 
+        """ 
+
+        return self.coherences(self.atom.fields[field_idx].coupled_levels)
+
 ### Helper Functions
 
 def maxwell_boltzmann(v, fwhm):
