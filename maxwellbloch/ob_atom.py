@@ -190,8 +190,11 @@ class OBAtom(ob_base.OBBase):
         """ Builds the Rabi frequency (off-diagonals) part of the interaction 
             Hamiltonian. 
         """
+
+        # TODO(#159): Need to build_rabi_freq_t_func and build_rabi_freq_t_args
+        # here somehow to add the field_idxs?
+
         self.H_Omega_list = []
-        H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
         for f in self.fields:
             H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
             # TODO: I think this will be better if the sigmas and factors
@@ -247,6 +250,9 @@ class OBAtom(ob_base.OBBase):
         Args:
             states_t: (optional) a states_t object. If not provided, use
                 self.states_t()
+
+        TODO: What I'm doing here is Tr(rho * d) (thesis Eqn 2.41), so why not
+            just use QuTiP trace for each field.
 
         Returns:
             (np.array)
