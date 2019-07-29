@@ -8,6 +8,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added hyperfine level strength factor method
+- Added hyperfine factors method for isotropic field (equal components in all 
+    three polarisations)
+- Added methods for summing populations and coherences coupled by a field
 - Fixed the detuning term of the interaction Hamiltonian for fields coupling
     multiple upper levels
 - Added functionality to build structure for single valence electron atoms

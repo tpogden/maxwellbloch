@@ -99,7 +99,30 @@ class Atom1e(object):
                 q=q)
         return factors
 
-    # TODO: iso_factors (mix of all 3 polarisations)
+    def get_clebsch_hf_factors_iso(self, F_level_idxs_a, F_level_idxs_b):
+        """ Returns a list of Clebsch-Gordan coefficients for the hyperfine 
+            transition dipole matrix elements for each coupled level pair. for
+            an isotropic field.
+
+            Args: 
+                F_level_idx_a (int): F level the transition is from (lower
+                    level) 
+                F_level_idx_b (int): F level the transition is to (upper
+                    level)
+
+            Returns: 
+                (list): factors, length of mF_list
+
+            Notes:
+            - An isotropic field is a field with equal components in all three
+                possible polarizations.
+            - Any given polarisation of the field only interacts with one of the
+                three components of the dipole moment, so it is appropriate to
+                average over the couplings (i.e. factor 1/3) rather than sum.
+        """
+
+        return self.get_decay_factors(F_level_idxs_a, 
+            F_level_idxs_b)/np.sqrt(3.0)
 
     def get_decay_factors(self, F_level_idxs_a, F_level_idxs_b):
         """ Returns a list of factors for the collapse operators for each 
@@ -125,6 +148,45 @@ class Atom1e(object):
                 q=0) + 
             self.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, 
                 q=1))
+
+    def get_strength_factor(self, F_level_idx_lower, 
+        F_level_idx_upper, mF_level_lower_idx=0): 
+        """ Relative hyperfine transition strength factors.
+            Equal for each ground state (mF_level_lower_idx), so this parameter
+            never needs to be set, just used for testing that claim.
+
+        Notes:
+        - Sum of the matrix elements from a single ground-state sublevel to the 
+            levels in a particular F' energy level.
+        - The sum S_{FF'} is independent of the ground state sublevel chosen.
+        - The sum of S_{FF'} over upper F levels should be 1.
+
+        Refs:
+            [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
+
+         """
+
+        facts_qm1 = self.get_clebsch_hf_factors(
+            [F_level_idx_lower], [F_level_idx_upper], q=-1)
+        facts_q0 = self.get_clebsch_hf_factors(
+            [F_level_idx_lower], [F_level_idx_upper], q=0)
+        facts_qp1 = self.get_clebsch_hf_factors(
+            [F_level_idx_lower], [F_level_idx_upper], q=1) 
+
+        cl = self.get_coupled_levels([F_level_idx_lower], 
+            [F_level_idx_upper])
+
+        idx_map = self.get_F_level_idx_map()
+        lower_mF_levels = [i for i, idx in enumerate(idx_map) if 
+            idx == F_level_idx_lower]
+        lower_mF_level = lower_mF_levels[mF_level_lower_idx]
+        coupled = [lower_mF_level in i for i in cl]
+
+        factor_sq_sum = (np.sum(facts_qm1[coupled]**2) + 
+            np.sum(facts_q0[coupled]**2) + 
+            np.sum(facts_qp1[coupled]**2))
+
+        return factor_sq_sum
 
     def to_json_str(self):
         """ Return a JSON string representation of the LevelJ object.

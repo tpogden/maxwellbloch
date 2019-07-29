@@ -97,7 +97,7 @@ class TestMBSolve(unittest.TestCase):
         mb_solve_nd.mbsolve()
 
     def test_no_rabi_freq_t_func(self):
-        """ Empty decay list. """
+        """ Empty decay list. TODO: No mbsolve, should be in init"""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_rabi_freq_t_func.json")
         mbs = mb_solve.MBSolve().from_json(json_path)
@@ -119,7 +119,7 @@ class TestMBSolve(unittest.TestCase):
         mbs.mbsolve()
 
     def test_no_vel_classes_inner(self):
-        """ No inner delta values in dict. """
+        """ No inner delta values in dict. TODO: No mbsolve, should be init"""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mbs = mb_solve.MBSolve().from_json(json_path)
@@ -135,7 +135,7 @@ class TestMBSolve(unittest.TestCase):
         mbs.mbsolve()
 
     def test_zero_thermal_width(self):
-
+        """TODO: No mbsolve, should be in init"""
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mbs = mb_solve.MBSolve().from_json(json_path)
 
@@ -150,8 +150,6 @@ class TestMBSolve(unittest.TestCase):
         }
 
         self.assertRaises(ValueError, mbs.build_velocity_classes, vc)
-
-        mbs.mbsolve()
 
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """
