@@ -102,6 +102,103 @@ class TestAtom1eGetClebschHFFactors(unittest.TestCase):
 
             self.assertAlmostEqual(factor_sq_sum, 1.0) # (2J+1)/(2J'+1) = 1
 
+class TestAtom1eGetStrengthFactor(unittest.TestCase):
+
+    def setup_method(self, method):
+
+        Rb87_5s12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        Rb87_5s12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+        Rb87_5p12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        Rb87_5p12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+
+        self.Rb87_5s12_5p12 = hyperfine.Atom1e(element='Rb', isotope='87')
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F1)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F2)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F1)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F2)
+
+        Rb87_5p32_F0 = hyperfine.LevelF(I=1.5, J=1.5, F=0)
+        Rb87_5p32_F1 = hyperfine.LevelF(I=1.5, J=1.5, F=1)
+        Rb87_5p32_F2 = hyperfine.LevelF(I=1.5, J=1.5, F=2)        
+        Rb87_5p32_F3 = hyperfine.LevelF(I=1.5, J=1.5, F=3)
+
+        self.Rb87_5s12_5p32 = hyperfine.Atom1e(element='Rb', isotope='87')
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F0)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F3)
+
+    def test_Rb87_5s12_5p12_strength_factors(self):
+        """ Test strength factors against known values from Steck [0] Table 8.
+    
+        Refs:
+            [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
+        """
+
+        # The loops are to check each lower state, should be the same for each
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p12.get_strength_factor(0, 2, i), 1.0/6) # F1 -> F1
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p12.get_strength_factor(0, 3, i), 5.0/6) # F1 -> F2
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p12.get_strength_factor(1, 2, i), 1.0/2) # F2 -> F1
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p12.get_strength_factor(1, 3, i), 1.0/2) # F2 -> F2
+
+        # The sum of S_{FF'} over upper F levels should be 1.
+        for j in range(2):
+            self.assertAlmostEqual(
+                self.Rb87_5s12_5p12.get_strength_factor(j, 2) + 
+                self.Rb87_5s12_5p12.get_strength_factor(j, 3), 1.0)
+
+    def test_Rb87_5s12_5p32_strength_factors(self):
+        """ Test strength factors against known values from Steck [0] Table 8.
+    
+        Refs:
+            [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
+        """
+
+        # The loops are to check each lower state, should be the same for each
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(0, 2, i), 1./6) # F1 -> F0
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(0, 3, i), 5./12) # F1 -> F1
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(0, 4, i), 5./12) # F1 -> F2
+        for i in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(0, 5, i), 0.0) # F1 -> F3
+
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(1, 2, i), 0.0) # F1 -> F0
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(1, 3, i), 1./20) # F1 -> F1
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(1, 4, i), 1./4) # F1 -> F2
+        for i in range(4):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p32.get_strength_factor(1, 5, i), 7./10) # F1 -> F3
+
+        # The sum of S_{FF'} over upper F levels should be 1.
+        for j in range(2):
+            self.assertAlmostEqual(
+            self.Rb87_5s12_5p12.get_strength_factor(j, 2) + 
+            self.Rb87_5s12_5p12.get_strength_factor(j, 3) +
+            self.Rb87_5s12_5p12.get_strength_factor(j, 4) +
+            self.Rb87_5s12_5p12.get_strength_factor(j, 5), 1.0)
+
     def test_Rb87_5s12_5p32(self):
 
         Rb87_5s12_F_level_idxs = (0, 1)
@@ -189,6 +286,64 @@ class TestAtom1eGetDecayFactors(unittest.TestCase):
             coupled = [upper_mF_level in i for i in cl]
             factor_sq_sum = np.sum(df[coupled]**2)
             self.assertAlmostEqual(factor_sq_sum, 0.5) # (2J+1)/(2J'+1) = 1/2
+
+class GetClebschHFFactorsIso(unittest.TestCase):
+
+    def setup_method(self, method):
+
+        Rb87_5s12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        Rb87_5s12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+        Rb87_5p12_F1 = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        Rb87_5p12_F2 = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+        
+        self.Rb87_5s12_5p12 = hyperfine.Atom1e(element='Rb', isotope='87')
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F1)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5s12_F2)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F1)
+        self.Rb87_5s12_5p12.add_F_level(Rb87_5p12_F2)
+
+        Rb87_5p32_F0 = hyperfine.LevelF(I=1.5, J=1.5, F=0)
+        Rb87_5p32_F1 = hyperfine.LevelF(I=1.5, J=1.5, F=1)
+        Rb87_5p32_F2 = hyperfine.LevelF(I=1.5, J=1.5, F=2)        
+        Rb87_5p32_F3 = hyperfine.LevelF(I=1.5, J=1.5, F=3)
+
+        self.Rb87_5s12_5p32 = hyperfine.Atom1e(element='Rb', isotope='87')
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5s12_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F0)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F1)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F2)
+        self.Rb87_5s12_5p32.add_F_level(Rb87_5p32_F3)
+
+    def test_Rb87_5s12_5p12(self):
+
+        Rb87_5s12_F_level_idxs = (0, 1)
+        Rb87_5p12_F_level_idxs = (2, 3)
+
+        cl = self.Rb87_5s12_5p12.get_coupled_levels(
+            Rb87_5s12_F_level_idxs, Rb87_5p12_F_level_idxs)
+        cf = self.Rb87_5s12_5p12.get_clebsch_hf_factors_iso(
+            Rb87_5s12_F_level_idxs, Rb87_5p12_F_level_idxs)
+
+        for upper_mF_level in range(8, 16):
+            coupled = [upper_mF_level in i for i in cl]
+            factor_sq_sum = np.sum(cf[coupled]**2)
+            self.assertAlmostEqual(factor_sq_sum, 1.0/3)
+
+    def test_Rb87_5s12_5p32(self):
+
+        Rb87_5s12_F_level_idxs = (0, 1)
+        Rb87_5p32_F_level_idxs = (2, 3, 4, 5)
+
+        cl = self.Rb87_5s12_5p32.get_coupled_levels(
+            Rb87_5s12_F_level_idxs, Rb87_5p32_F_level_idxs)
+        cf = self.Rb87_5s12_5p32.get_clebsch_hf_factors_iso(
+            Rb87_5s12_F_level_idxs, Rb87_5p32_F_level_idxs)
+
+        for upper_mF_level in range(8, 24):
+            coupled = [upper_mF_level in i for i in cl]
+            factor_sq_sum = np.sum(cf[coupled]**2)
+            self.assertAlmostEqual(factor_sq_sum, 0.5/3) # (2J+1)/(2J'+1) = 1/2
 
 # class TestLevelNLInit(unittest.TestCase):
 #     """ Unit tests of the LevelNL.__init__ method. """

@@ -512,6 +512,10 @@ class MBSolve(ob_solve.OBSolve):
                 coupled_levels: a list of pairs of level indexes
             Returns:
                 np.array, shape (z_steps+1, t_steps+1), dtype=np.complex    
+        
+            #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
+            #   what to do about this!
+        
         """
 
         sum_coh = np.zeros(self.states_zt.shape[:2], dtype=np.complex)
