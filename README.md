@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/tommyogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tommyogden/maxwellbloch)
 [![Coverage Status](https://coveralls.io/repos/github/tommyogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tommyogden/maxwellbloch?branch=master)
+[![PyPI](https://img.shields.io/pypi/v/maxwellbloch)](https://pypi.org/project/MaxwellBloch/)
 
 MaxwellBloch is a Python package for solving the coupled Maxwell-Bloch
 equations describing the nonlinear propagation of near-resonant light through
@@ -18,26 +19,22 @@ area of 2π.
 
 ## Install
 
-I recommend using Conda environments. MaxwellBloch requires NumPy and SciPy,
-which can be installed via
+I recommend using Conda environments. 
 
-    conda install numpy scipy
+You can create and activate an environment with all the required dependencies
+via
 
-and QuTiP, which can be installed via
+    conda env create -f environment.yml
+    conda activate mb
 
-    conda install -c jrjohansson qutip=3.1.0
-
-The MaxwellBloch package can then be installed using `pip`
+using the [`environment.yml`](environment.yml) file in this repo. The
+MaxwellBloch package can then be installed from
+[PyPI](https://pypi.org/project/MaxwellBloch/) using
 
     pip install maxwellbloch
 
- or manually download and install the [latest release](https://github.com/tommyogden/maxwellbloch/releases).
-
-## Tutorial
-
-A series of tutorial notebooks is in development here:
-
-https://github.com/tommyogden/notebooks-maxwellbloch#tutorial
+ or you can manually download and install the [latest
+ release](https://github.com/tommyogden/maxwellbloch/releases).
 
 ## Examples
 
@@ -46,12 +43,10 @@ notebooks available here:
 
 https://github.com/tommyogden/notebooks-maxwellbloch#examples
 
-Tools for making videos and gifs (like the one above) of the solved field
-propagation are available here:
-
-https://github.com/tommyogden/notebooks-maxwellbloch#tools
-
 ## Scripts
+
+Scripts are provided for producing MP4 and GIF movies showing propagation like
+the one above. 
 
 ### `bin/make-fixed-frame-mp4.py`
 
