@@ -1,1 +1,1 @@
-from maxwellbloch.version import FULL_VERSION as __version__
+from maxwellbloch.version import VERSION as __version__
