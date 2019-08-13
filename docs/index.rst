@@ -12,7 +12,8 @@ MaxwellBloch Documentation
    
    install
    usage/two-level
-
+   usage/three-level
+   
 Getting Started
 ---------------
 
