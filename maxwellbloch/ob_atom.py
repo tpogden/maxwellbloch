@@ -149,6 +149,10 @@ class OBAtom(ob_base.OBBase):
                 # input, factors will be added to any JSON output.
                 if 'factors' not in d:
                     d['factors'] = [1.0] * len(d['channels'])
+                if len(d['factors']) != len(d['channels']):
+                    raise ValueError('Length of factors list ({}) is not the '
+                        'same as length of channels list ({})'.format(
+                            len(d['factors']), len(d['channels'])))
                 for c_i, c in enumerate(d['channels']):
                     self.c_ops.append(d['factors'][c_i]*
                         np.sqrt(2*pi*d["rate"])*self.sigma(c[0], c[1]))

@@ -7,6 +7,7 @@ Thomas Ogden <t@ogden.eu>
 
 import os
 import unittest
+from textwrap import dedent
 
 import numpy as np
 import qutip as qu
@@ -18,72 +19,74 @@ from maxwellbloch import ob_atom, field
 # different directories.
 JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
 
-JSON_STR_02 = ('{'
-    '  "decays": ['
-    '    {'
-    '      "channels": ['
-    '        ['
-    '          0,'
-    '          1'
-    '        ],'
-    '        ['
-    '          2,'
-    '          1'
-    '        ]'
-    '      ],'
-    '      "rate": 1.0'
-    '    },'
-    '    {'
-    '      "channels": ['
-    '        ['
-    '          2,'
-    '          1'
-    '        ]'
-    '      ],'
-    '      "rate": 2.0'
-    '    }'
-    '  ],'
-    '  "energies": ['
-    '    1.0,'
-    '    2.0,'
-    '    3.0'
-    '  ],'
-    '  "fields": ['
-    '    {'
-    '      "coupled_levels": ['
-    '        ['
-    '         0,'
-    '          1'
-    '        ]'
-    '      ],'
-    '      "detuning": 1.0,'
-    '      "detuning_positive": true,'
-    '      "label": "probe",'
-    '      "rabi_freq": 0.001,'
-    '      "rabi_freq_t_args": {},'
-    '      "rabi_freq_t_func": null'
-    '    },'
-    '    {'
-    '      "coupled_levels": ['
-    '        ['
-    '          1,'
-    '          2'
-    '        ]'
-    '      ],'
-    '      "detuning": 2.0,'
-    '      "detuning_positive": false,'
-    '      "label": "coupling",'
-    '      "rabi_freq": 10.0,'
-    '      "rabi_freq_t_args": {'
-    '        "ampl": 1.0,'
-    '        "off": 0.7,'
-    '        "on": 0.3'
-    '      },'
-    '      "rabi_freq_t_func": "square"'
-    '    }'
-    '  ],'
-    '  "num_states": 3'
-    '}')
+JSON_STR_02 = dedent("""\
+    {
+   "decays": [
+     {
+       "channels": [
+         [
+           0,
+           1
+         ],
+         [
+           2,
+           1
+         ]
+       ],
+       "rate": 1.0
+     },
+     {
+       "channels": [
+         [
+           2,
+           1
+         ]
+       ],
+       "rate": 2.0
+     }
+   ],
+   "energies": [
+     1.0,
+     2.0,
+     3.0
+   ],
+   "fields": [
+     {
+       "coupled_levels": [
+         [
+          0,
+           1
+         ]
+       ],
+       "detuning": 1.0,
+       "detuning_positive": true,
+       "label": "probe",
+       "rabi_freq": 0.001,
+       "rabi_freq_t_args": {},
+       "rabi_freq_t_func": null
+     },
+     {
+       "coupled_levels": [
+         [
+           1,
+           2
+         ]
+       ],
+       "detuning": 2.0,
+       "detuning_positive": false,
+       "label": "coupling",
+       "rabi_freq": 10.0,
+       "rabi_freq_t_args": {
+         "ampl": 1.0,
+         "off": 0.7,
+         "on": 0.3
+       },
+       "rabi_freq_t_func": "square"
+     }
+   ],
+   "num_states": 3
+    }
+    """)
 
 
 class TestInit(unittest.TestCase):
@@ -191,7 +194,7 @@ class TestBuildHDelta(unittest.TestCase):
 
         DETUNING = 10
         f_dict = {'coupled_levels': [[0, 1]], 'detuning': DETUNING, 
-            'detuning_positive': False}
+          'detuning_positive': False}
         oba = ob_atom.OBAtom(num_states=2, fields=[f_dict])
 
         H_Delta_test = qu.Qobj([[0., 0.], [0., 2*np.pi*DETUNING]])
@@ -213,6 +216,38 @@ class TestBuildHDelta(unittest.TestCase):
     # TODO Tests:
     # three-level (different configurations)
 
+class TestBuildCOps(unittest.TestCase):
+
+    def test_channels_factors_wrong_length(self):
+        """ Set the decay factors to a different length from the channels
+            and assert a ValueError is raised.
+        """
+        OBA_JSON = dedent("""\
+            {
+                "decays": [
+                {
+                    "channels": [
+                        [0, 1]
+                    ],
+                    "rate": 1.0,
+                    "factors": [1.0, 2.0]
+                }
+                ],
+                "fields": [
+                {
+                    "coupled_levels": [
+                        [0, 1]
+                    ],
+                    "label": "probe",
+                    "rabi_freq": 0.001
+                }
+                ],
+                "num_states": 2
+            }
+        """)
+
+        with self.assertRaises(ValueError):
+            oba = ob_atom.OBAtom.from_json_str(OBA_JSON)
 
 # class TestGetFieldSumCoherence(unittest.TestCase):
 
