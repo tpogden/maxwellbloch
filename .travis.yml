@@ -26,5 +26,6 @@ install:
 
 script:
   - pytest --cov
+  - sphinx-build docs docs/_build -b html
 after_success:
   - coveralls
