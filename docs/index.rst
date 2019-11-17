@@ -13,7 +13,8 @@ MaxwellBloch Documentation
    install
    usage/two-level
    usage/three-level
-   
+   usage/built-in-time-functions
+
 Getting Started
 ---------------
 
