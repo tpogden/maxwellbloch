@@ -1,7 +1,7 @@
 # MaxwellBloch
 
-[![Build Status](https://travis-ci.org/tommyogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tommyogden/maxwellbloch)
-[![Coverage Status](https://coveralls.io/repos/github/tommyogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tommyogden/maxwellbloch?branch=master)
+[![Build Status](https://travis-ci.org/tpogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tpogden/maxwellbloch)
+[![Coverage Status](https://coveralls.io/repos/github/tpogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tpogden/maxwellbloch?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/maxwellbloch)](https://pypi.org/project/MaxwellBloch/)
 
 MaxwellBloch is a Python package for solving the coupled Maxwell-Bloch
@@ -15,7 +15,7 @@ dense atomic vapour. The pulse immediately breaks up on entering the medium and
 the resultant pulses form two optical solitons each with a pulse
 area of 2π.
 
-[4pi]: https://github.com/tommyogden/notebooks-maxwellbloch/blob/master/examples/mb-solve-two-sech-4pi.ipynb
+[4pi]: https://github.com/tpogden/notebooks-maxwellbloch/blob/master/examples/mb-solve-two-sech-4pi.ipynb
 
 ## Install
 
@@ -34,14 +34,14 @@ MaxwellBloch package can then be installed from
     pip install maxwellbloch
 
  or you can manually download and install the [latest
- release](https://github.com/tommyogden/maxwellbloch/releases).
+ release](https://github.com/tpogden/maxwellbloch/releases).
 
 ## Examples
 
 If you prefer to learn by example, there are a large number of example
 notebooks available here:
 
-https://github.com/tommyogden/notebooks-maxwellbloch#examples
+https://github.com/tpogden/notebooks-maxwellbloch#examples
 
 ## Scripts
 
