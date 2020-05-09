@@ -20,6 +20,17 @@ MaxwellBloch Documentation
    usage/three-level
    usage/built-in-time-functions
    usage/spectral-analysis
+   usage/scripts
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Support
+
+   support/troubleshooting
 
 Getting Started
 ---------------
