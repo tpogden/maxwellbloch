@@ -8,12 +8,18 @@ MaxwellBloch Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
-   
+   :caption: Installation
+
    install
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Usage
+   
    usage/two-level
    usage/three-level
    usage/built-in-time-functions
+   usage/spectral-analysis
 
 Getting Started
 ---------------
