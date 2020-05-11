@@ -47,3 +47,5 @@ Solitons
    mbs-two-sech-2pi
    mbs-two-sech-4pi
    mbs-two-sech-6pi
+   mbs-two-sech-2pi-collision
+   
