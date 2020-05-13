@@ -110,3 +110,23 @@ def dispersion_two_linear_known(freq_list, interaction_strength, decay_rate):
 
     return susceptibility_two_linear_known(freq_list, interaction_strength,
         decay_rate).real/2.0
+
+def voigt_two_linear_known(freq_list, decay_rate, thermal_width):
+    """ Returns the Voigt profile for a two-level system in the linear regime.
+
+    The Voigt profile is the convolution of a Lorentzian with a Gaussian, and 
+    describes the absorption lineshape for a thermal two-level system.
+
+    Args:
+        freq_list: List of frequency detunings from resonance.
+        decay_rate: Spontaneous decay rate of the transition.
+        thermal_width: Width of the lineshape in the same units as decay rate.
+
+    Notes:
+        See my thesis section 2.5.6 for more information.
+    """
+    from scipy.special import wofz
+    a = decay_rate/thermal_width
+    b = freq_list/thermal_width
+    s = 1.0j*(0.5*np.sqrt(np.pi)/width)*wofz(b + 0.5j*a)
+    return s

@@ -6,10 +6,11 @@ Thomas Ogden <t@ogden.eu>
 """
 
 import os
-
 import unittest
 
-from maxwellbloch import mb_solve, spectral
+import numpy as np
+
+from maxwellbloch import mb_solve, spectral, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -17,26 +18,33 @@ JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
 
 class TestSpectral(unittest.TestCase):
     """ Unit tests of the spectral methods.
-
-        Note: The real test of the spectral methods is comparison with a
-        two-level linear system, as we know the analytic lineshapes. A good
-        test might be to compare these lineshapes, however to get good
-        agreement a lot of timesteps are needed which makes the test too slow.
-
-        See Appendix C in the notebooks-maxwellbloch repo.
     """
 
-    def test_spectral_twolevel(self):
-        """ Check the spectral methods for exceptions. """
+    def test_two_spectral(self):
 
-        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
+        json_path = os.path.join(JSON_DIR, "mbs-two-spectral.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
 
-        mb_solve_00.mbsolve()
+        # We're not asserting anything about these calls, apart from that they
+        # run without exception. 
+        freq_list = spectral.freq_list(mbs)
+        rabi_freq_fft = spectral.rabi_freq(mbs, 0)
+        dis = spectral.dispersion(mbs, 0, -1)
 
-        freq_list = spectral.freq_list(mb_solve_00)
+        abs = spectral.absorption(mbs, 0, -1)
+        hm, r1, r2 = utility.half_max_roots(freq_list, abs)
 
-        rabi_freq_fft = spectral.rabi_freq(mb_solve_00, 0)
+        # The absorption profile should have a peak at 1.0 and have a FWHM of
+        # 1.0 centred at 0.0.
+        self.assertAlmostEqual(hm, 0.5, places=1)
+        self.assertAlmostEqual(r1, -0.5, places=3)
+        self.assertAlmostEqual(r2, 0.5, places=3)
 
-        abs = spectral.absorption(mb_solve_00, 0, -1)
-        dis = spectral.dispersion(mb_solve_00, 0, -1)
+        abs_linear_known = spectral.absorption_two_linear_known(
+            freq_list, mbs.interaction_strengths[0], mbs.atom.decays[0]['rate'])
+
+        # Assert that the max of the abs residuals between the absorption
+        # profile and the known absorption profile for linear two-level systems
+        # is below a tolerance
+        self.assertTrue(np.max(np.abs(abs - abs_linear_known)) < 0.05)
