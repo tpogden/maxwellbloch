@@ -11,7 +11,7 @@ import unittest
 
 import numpy as np
 
-from maxwellbloch import mb_solve, t_funcs
+from maxwellbloch import mb_solve, t_funcs, spectral, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -150,6 +150,20 @@ class TestMBSolve(unittest.TestCase):
         }
 
         self.assertRaises(ValueError, mbs.build_velocity_classes, vc)
+
+    def test_vel_classes(self):
+
+        json_path = os.path.join(JSON_DIR, "velocity-classes.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        freq_list = spectral.freq_list(mbs)
+        abs = spectral.absorption(mbs, 0, -1)
+        hm, r1, r2 = utility.half_max_roots(freq_list, abs)
+        print(hm, r1, r2)
+        fwhm = utility.full_width_at_half_max(freq_list, abs)
+
+        self.assertAlmostEqual(fwhm, 1.5, places=1)
 
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """

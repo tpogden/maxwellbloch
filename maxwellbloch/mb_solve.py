@@ -360,6 +360,7 @@ class MBSolve(ob_solve.OBSolve):
         N = self.num_density_z_func(z_next, self.num_density_z_args)
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
                                  dtype=np.complex)
+        # TODO: move this out to be consistent with z_step_fields_ab
         sum_coh = self.atom.get_fields_sum_coherence()
 
         for f_i, f in enumerate(self.atom.fields):
@@ -541,6 +542,7 @@ def maxwell_boltzmann(v, fwhm):
     """ Maxwell Boltzmann probability distribution function. """
 
     # TODO: Allow offset, v_0.
+    # TODO: move this to utility.py
 
     return 1./(fwhm*np.sqrt(np.pi))*np.exp(-(v/fwhm)**2)
 
