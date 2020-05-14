@@ -27,10 +27,10 @@
   "z_max": 1.2,
   "z_steps": 50,
   "velocity_classes": {
-    "thermal_delta_min": -0.5,
-    "thermal_delta_max": 0.5,
-    "thermal_delta_steps": 3,
-    "thermal_width": 0.5
+    "thermal_delta_min": -0.1,
+    "thermal_delta_max": 0.1,
+    "thermal_delta_steps": 4,
+    "thermal_width": 0.05
   },
   "interaction_strengths": [
     1.0
