@@ -225,6 +225,10 @@ class OBAtom(ob_base.OBBase):
 
         return self.build_H_Omega()
 
+    def get_detunings(self):
+        """Returns a list of detunings, one for each field in fields."""
+        return [f.detuning for f in self.fields]
+
     def get_field_args(self):
 
         args = {}
