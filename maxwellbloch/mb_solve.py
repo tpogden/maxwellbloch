@@ -130,7 +130,7 @@ class MBSolve(ob_solve.OBSolve):
                                                               Delta2_range)))
 
         self.thermal_weights = maxwell_boltzmann(self.thermal_delta_list,
-                                        self.velocity_classes['thermal_width'])
+            2*np.pi*self.velocity_classes['thermal_width'])
 
         return self.thermal_delta_list, self.thermal_weights
 
