@@ -185,172 +185,162 @@ class MBSolve(ob_solve.OBSolve):
 
     # TODO(#96) Should we be able to pass in opts here?
     def mbsolve(self, step='ab', rho0=None, recalc=True, pbar_chunk_size=10):
+        """Solves the Maxwell-Bloch equations for the system.
 
+        Args:
+            step: 'euler (for Euler method) or 'ab' (for Adams-Bashforth)
+            rho0 (Qobj): the initial density matrix state
+            recalc (bool): Recalculate the solution even if a savefile exists?
+            pbar_chunk_size: Every how many % should we log progress to stdout.
+
+        Returns:
+            self.Omegas_zt: The solved field complex Rabi frequency at each 
+                point in space z and time t.
+            self.states_zt: The solved density matrix at each point in space z
+                and time t.
+        """
         self.init_Omegas_zt()
         self.init_states_zt()
-
+        # Should we recalculate or load a savefile?
         if recalc or not self.savefile_exists():
-
             if step == 'euler':
-                self.mbsolve_euler(rho0, recalc, pbar_chunk_size)
-
+                self.mbsolve_euler(rho0=rho0, recalc=recalc, 
+                    pbar_chunk_size=pbar_chunk_size)
             elif step == 'ab':
-                self.mbsolve_ab(rho0, recalc, pbar_chunk_size)
-
+                self.mbsolve_ab(rho0=rho0, recalc=recalc, 
+                    pbar_chunk_size=pbar_chunk_size)
             self.save_results()
-
         else:
             self.load_results()
-
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_euler(self, rho0=None, recalc=True, pbar_chunk_size=0):
+        """Solves the Maxwell-Bloch equations using a Euler step.
 
-        len_z = len(self.zlist)-1 # only for printing progress
+        Args:
+            rho0 (Qobj): the initial density matrix state
+            recalc (bool): Recalculate the solution even if a savefile exists?
+            pbar_chunk_size: Every how many % should we log progress to stdout.
 
+        Returns:
+            self.Omegas_zt: The solved field complex Rabi frequency at each 
+                point in space z and time t.
+            self.states_zt: The solved density matrix at each point in space z
+                and time t.
+        """
         # For the interpolation
         rabi_freq_ones = np.ones(len(self.atom.fields))
-
-        ### Set initial states at z=0
+        # Set initial states at z=0
         self.states_zt[0, :] = \
             self.solve_and_average_over_thermal_detunings()
             # NOTE: This means the first z gets ob solved twice.
             # Can I avoid?
-
     ### All Steps:
-
         pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
                                      chunk_size=pbar_chunk_size)
-
         for j, z in enumerate(self.zlist[:-1]):
-
             pbar.update(j)
-
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
-
             z_this = z
-
         ### Inner z loop
-
             for jj in range(self.z_steps_inner):
-
                 z_next = z_this + self.z_step_inner()
-
-                self.solve_and_average_over_thermal_detunings()
-
-                Omegas_z_next = self.z_step_fields_euler(z_this, z_next,
-                                                         Omegas_z_this)
-
+                thermal_states_t = \
+                    self.solve_and_average_over_thermal_detunings()
+                sum_coh_this = self.atom.get_fields_sum_coherence(
+                    states_t=thermal_states_t)
+                Omegas_z_next = self.z_step_fields_euler(z_this=z_this, 
+                    z_next=z_next, Omegas_z_this=Omegas_z_this, 
+                    sum_coh_this=sum_coh_this)
                 Omegas_z_next_args = \
-                    self.get_Omegas_intp_t_args(Omegas_z_next)
-
-                self.atom.set_H_Omega(rabi_freq_ones,
-                                         self.get_Omegas_intp_t_funcs(),
-                                         Omegas_z_next_args)
-
+                    self.get_Omegas_intp_t_args(Omegas_z=Omegas_z_next)
+                self.atom.set_H_Omega(rabi_freqs=rabi_freq_ones,
+                     rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(), 
+                     rabi_freq_t_args=Omegas_z_next_args)
                 # Set up for next inner step
                 Omegas_z_this = Omegas_z_next
                 z_this = z_next
-
             # Once we've been through the inner loops we can set the field
             # and states at the next outer space step and continue.
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
-
         pbar.finished()
-
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
+        """Solves the Maxwell-Bloch equations using an Adams-Bashforth step.
 
+        Args:
+            rho0 (Qobj): the initial density matrix state
+            recalc (bool): Recalculate the solution even if a savefile exists?
+            pbar_chunk_size: Every how many % should we log progress to stdout.
+
+        Returns:
+            self.Omegas_zt: The solved field complex Rabi frequency at each 
+                point in space z and time t.
+            self.states_zt: The solved density matrix at each point in space z
+                and time t.
+        """
         # For use in the loop
         rabi_freq_ones = np.ones(len(self.atom.fields))
-
-        ### Set initial states at z=0
-        self.states_zt[0, :] = \
+        # Set initial states at z=0
+        thermal_states_t = \
             self.solve_and_average_over_thermal_detunings()
-
+        self.states_zt[0, :] = thermal_states_t
         # We won't need these until the first AB step
-        sum_coh_prev = self.atom.get_fields_sum_coherence()
+        sum_coh_prev = self.atom.get_fields_sum_coherence(
+            states_t=thermal_states_t)
         z_prev = self.z_min
-
     ### First z step, Euler
-
         j = 0
         z = self.z_min
-
         # Set initial fields and state
         Omegas_z_this = self.Omegas_zt[:, j, :]
-
         z_this = z
         z_next = z_this + self.z_step_inner()
-
-        Omegas_z_next = self.z_step_fields_euler(z_this, z_next,
-                                                 Omegas_z_this)
-
-        Omegas_z_next_args = \
-            self.get_Omegas_intp_t_args(Omegas_z_next)
-
-        self.atom.set_H_Omega(rabi_freq_ones,
-                                 self.get_Omegas_intp_t_funcs(),
-                                 Omegas_z_next_args)
-
+        Omegas_z_next = self.z_step_fields_euler(z_this=z_this, z_next=z_next,
+            Omegas_z_this=Omegas_z_this, sum_coh_this=sum_coh_prev)
+        Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z_next)
+        self.atom.set_H_Omega(rabi_freq_ones, self.get_Omegas_intp_t_funcs(),
+             Omegas_z_next_args)
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = Omegas_z_next
-
     ### Remaining steps, Adams-Bashforth
-
         pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
-                                     chunk_size=pbar_chunk_size)
-
+            chunk_size=pbar_chunk_size)
         for j, z in enumerate(self.zlist[1:-1], start=1):
-
             pbar.update(j)
-
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
-
             z_this = z
-
         ### Inner z loop
-
             for jj in range(self.z_steps_inner):
-
                 z_next = z_this + self.z_step_inner()
-
-                self.solve_and_average_over_thermal_detunings()
-
-                sum_coh_this = self.atom.get_fields_sum_coherence()
-
-                Omegas_z_next = self.z_step_fields_ab(z_prev, z_this,
-                                                      z_next, sum_coh_prev,
-                                                      sum_coh_this,
-                                                      Omegas_z_this)
-
-                Omegas_z_next_args = \
-                    self.get_Omegas_intp_t_args(Omegas_z_next)
-
-                self.atom.set_H_Omega(rabi_freq_ones,
-                                         self.get_Omegas_intp_t_funcs(),
-                                         Omegas_z_next_args)
-
+                thermal_states_t = \
+                    self.solve_and_average_over_thermal_detunings()
+                sum_coh_this = self.atom.get_fields_sum_coherence(
+                    states_t=thermal_states_t)
+                Omegas_z_next = self.z_step_fields_ab(z_prev=z_prev, 
+                    z_this=z_this, z_next=z_next, sum_coh_prev=sum_coh_prev,
+                    sum_coh_this=sum_coh_this, Omegas_z_this=Omegas_z_this)
+                Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z_next)
+                self.atom.set_H_Omega(rabi_freqs=rabi_freq_ones,
+                    rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(),
+                    rabi_freq_t_args=Omegas_z_next_args)
                 # Set up for next inner step
                 Omegas_z_this = Omegas_z_next
                 z_this = z_next
                 z_prev = z_this
                 sum_coh_prev = sum_coh_this
-
             # Once we've been through the inner loops we can set the field
             # and states at the next outer space step and continue.
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
-
         pbar.finished()
-
         return self.Omegas_zt, self.states_zt
 
-    def z_step_fields_euler(self, z_this, z_next, Omegas_z_this):
+    def z_step_fields_euler(self, z_this, z_next, Omegas_z_this, sum_coh_this):
         """ For the current state of the atom, given fields Omegas_z_this,
             make an Euler step to determine the field at the next space step.
 
@@ -360,18 +350,13 @@ class MBSolve(ob_solve.OBSolve):
                 Omegas_z_this: np.complex[num_t_steps]
                     The field rabi frequencies at z_step.
         """
-
         h = z_next - z_this
         N = self.num_density_z_func(z_next, self.num_density_z_args)
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
-                                 dtype=np.complex)
-        # TODO: move this out to be consistent with z_step_fields_ab
-        sum_coh = self.atom.get_fields_sum_coherence()
-
+            dtype=np.complex)
         for f_i, f in enumerate(self.atom.fields):
-            dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh[f_i]
+            dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh_this[f_i]
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
-
         return Omegas_z_next
 
     def z_step_fields_ab(self, z_prev, z_this, z_next, sum_coh_prev,
@@ -386,27 +371,18 @@ class MBSolve(ob_solve.OBSolve):
                 Omegas_z_this: np.complex[num_t_steps]
                     The field rabi frequencies at z_step.
         """
-
-        # Assumes same step size
-        h = z_next - z_this
-
+        h = z_next - z_this # Assumes same step size
         N = self.num_density_z_func(z_next, self.num_density_z_args)
-
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
-                                 dtype=np.complex)
-
+            dtype=np.complex)
         for f_i, f in enumerate(self.atom.fields):
-
             sum_coh_this_f = sum_coh_this[f_i]
             sum_coh_prev_f = sum_coh_prev[f_i]
-
             dOmega_f_dz_this = 1.0j * N * self.g[f_i] * sum_coh_this_f
             dOmega_f_dz_prev = 1.0j * N * self.g[f_i] * sum_coh_prev_f
-
             Omegas_z_next[f_i, :] = (Omegas_z_this[f_i, :] +
                                      1.5 * h * dOmega_f_dz_this -
                                      0.5 * h * dOmega_f_dz_prev)
-
         return Omegas_z_next
 
     def get_Omegas_intp_t_funcs(self):
