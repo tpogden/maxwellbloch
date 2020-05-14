@@ -181,20 +181,9 @@ class OBAtom(ob_base.OBBase):
         Args: 
             detunings: list of floats: detunings of each field in the list
         """
-
         assert(len(detunings) == len(self.fields))
-
         for i, f in enumerate(self.fields):
             f.detuning = detunings[i]
-
-        return self.build_H_Delta()
-
-    def shift_H_Delta(self, detuning_shifts):
-        """ TODO: Could make use of set_H_Delta """
-
-        for i, f in enumerate(self.fields):
-            f.detuning = f.detuning + detuning_shifts[i]
-
         return self.build_H_Delta()
 
     def build_H_Omega(self):
