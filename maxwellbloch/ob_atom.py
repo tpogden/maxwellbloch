@@ -241,20 +241,23 @@ class OBAtom(ob_base.OBBase):
         # Time-dependent if there are any t_funcs specified
         return any(f.rabi_freq_t_func is not None for f in self.fields)
 
-    def get_fields_sum_coherence(self):
+    def get_fields_sum_coherence(self, states_t=None):
         """ Returns the sum coherences of the atom density matrix for each
             field, including the relative strength factors.
+        Args:
+            states_t: (optional) a states_t object. If not provided, use
+                self.states_t()
 
         Returns:
             (np.array)
         """
-
-        sum_coh = np.zeros((len(self.fields), len(self.states_t())),
-                           dtype=np.complex)
+        if states_t is None:
+            states_t = self.states_t()
+        sum_coh = np.zeros((len(self.fields), len(states_t)), dtype=np.complex)
         for f_i, f in enumerate(self.fields):
             for cl_i, cl in enumerate(f.coupled_levels):
                 sum_coh[f_i, :] += (f.factors[cl_i]**2*
-                    self.states_t()[:, cl[0], cl[1]])
+                    states_t[:, cl[0], cl[1]])
         return sum_coh
 
     def mesolve(self, tlist, e_ops=[], options=qu.Options(), recalc=True, 
