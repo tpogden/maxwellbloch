@@ -81,6 +81,11 @@ class MBSolve(ob_solve.OBSolve):
 
     def build_velocity_classes(self, velocity_classes={}):
         """ Build the velocity class structure from dict. """
+        # TODO: break this up, too big 
+        # TODO: If there are no vel classes, the weight for thermal width of 1
+        # is ~ 0.57, should be a single weight of 1. Actually should not matter
+        # as for a single value, np.average weights will be ignored
+        # *weight/sum(weights) => *weight/weight
 
         self.velocity_classes = {}
 
@@ -434,25 +439,30 @@ class MBSolve(ob_solve.OBSolve):
         return fields_args
 
     def solve_and_average_over_thermal_detunings(self):
+        """Solves the Lindblad equation for the OBAtom over a range of 
+            detuning shifts for velocity classes.
 
+        Returns:
+            A states_t object that is the Maxwell-Boltzmann weighted average
+            over the velocity classes.    
+        """ 
         states_t_Delta = np.zeros((len(self.thermal_delta_list),
                                    len(self.tlist), self.atom.num_states,
                                    self.atom.num_states), dtype=np.complex)
-
+        # The set detunings, without any thermal shifting
+        fixed_detunings = self.atom.get_detunings()
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
-
-            # Shift each detuning by Delta
-            self.atom.shift_H_Delta([Delta] * len(self.atom.fields))
-
+            # print('Delta_i: {0}, Delta: {1:.2f}'.format(Delta_i, Delta))
+            # Shift each detuning by Delta.
+            self.atom.set_H_Delta([fd + Delta for fd in fixed_detunings])
             # We don't want the obsolve to save. 
-            # TODO(#96) If we decide to pass down opts from mbsolve, they'll go here.
+            # TODO(#96) If we decide to pass down opts from mbsolve, put here.
             self.solve(opts=None, save=False)
-
             states_t_Delta[Delta_i] = self.states_t()
-
+        # Restore fixed detunings
+        self.atom.set_H_Delta(fixed_detunings)
         thermal_states_t = np.average(states_t_Delta, axis=0,
                                       weights=self.thermal_weights)
-
         return thermal_states_t
 
     def save_results(self):
