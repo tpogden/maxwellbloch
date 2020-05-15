@@ -40,14 +40,7 @@ The MaxwellBloch package can then be installed from
 pip install maxwellbloch
 ```
 
-More detailed installation instructions can be found in the [docs][docs].
-
-## Examples
-
-If you prefer to learn by example, there are a large number of example
-notebooks available here:
-
-https://github.com/tpogden/notebooks-maxwellbloch#examples
+More detailed installation instructions can be found in the [docs][docs] along with many example problems.
 
 ## Changelog
 
@@ -55,6 +48,6 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-MIT License. See [License.txt](LICENSE.txt).
+MIT License. See [LICENSE.txt](LICENSE.txt).
 
-[docs]: (https://maxwellbloch.readthedocs.io/)
+[docs]: https://maxwellbloch.readthedocs.io/
