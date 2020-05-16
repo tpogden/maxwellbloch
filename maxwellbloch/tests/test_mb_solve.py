@@ -11,7 +11,7 @@ import unittest
 
 import numpy as np
 
-from maxwellbloch import mb_solve, t_funcs
+from maxwellbloch import mb_solve, t_funcs, spectral, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -150,6 +150,21 @@ class TestMBSolve(unittest.TestCase):
         }
 
         self.assertRaises(ValueError, mbs.build_velocity_classes, vc)
+
+    def test_vel_classes(self):
+        """Tests that for a linear two-level system with velocity classes, the
+        absorption matches the known Voigt profile.
+        """
+        json_path = os.path.join(JSON_DIR, "velocity-classes.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+        freq_list = spectral.freq_list(mbs)
+        abs = spectral.absorption(mbs, 0, -1)
+        voigt = spectral.voigt_two_linear_known(freq_list, 1.0, 0.05).imag
+        # Assert that the max of the abs residuals between the absorption
+        # profile and the known broadened Voigt absorption profile for linear 
+        # two-level systems is below a tolerance
+        self.assertTrue(np.max(np.abs(abs - voigt)) < 0.05)
 
 class TestSaveLoad(unittest.TestCase):
     """ Tests for the MBSolve save and load methods. """

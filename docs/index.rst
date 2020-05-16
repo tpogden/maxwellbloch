@@ -18,8 +18,9 @@ MaxwellBloch Documentation
    
    usage/two-level
    usage/three-level
-   usage/built-in-time-functions
    usage/spectral-analysis
+   usage/velocity-classes
+   usage/built-in-time-functions
    usage/scripts
 
 .. toctree::
