@@ -18,16 +18,18 @@ MaxwellBloch Documentation
    
    usage/two-level
    usage/three-level
+   usage/structure
    usage/spectral-analysis
    usage/velocity-classes
    usage/built-in-time-functions
    usage/scripts
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Examples
 
    examples/two-level
+   examples/structure
 
 .. toctree::
    :maxdepth: 2
