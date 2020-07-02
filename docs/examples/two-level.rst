@@ -19,7 +19,6 @@ Weak Gaussian Pulses
 Weak Continuous (CW)
 ********************
 
-
 .. toctree::
    :maxdepth: 1
 

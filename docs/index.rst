@@ -29,8 +29,9 @@ MaxwellBloch Documentation
    :caption: Examples
 
    examples/two-level
+   examples/three-level
    examples/structure
-
+   
 .. toctree::
    :maxdepth: 2
    :caption: Support
