@@ -58,6 +58,6 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = []
 
 # -- Options for Jupyter Notebooks -------------------------------------------
-nbsphinx_timeout = 600
+nbsphinx_timeout = 3600
 nbsphinx_allow_errors = False
 nbsphinx_execute = 'always'
