@@ -26,12 +26,13 @@
    mbs-vee-sech-sqrt2pi-sqrt2pi
    mbs-vee-sech-sqrt8pi-sqrt8pi
    mbs-vee-sech-sqrt18pi-sqrt18pi
+   mbs-vee-sech-sqrt8pi-sqrt8pi-collision 
    mbs-vee-weak-cw-sech-2pi
    mbs-vee-weak-cw-sech-4pi
    
-********************
+**************************
   Ladder (Ξ) Configuration
-********************
+**************************
 
 .. toctree::
    :maxdepth: 1
