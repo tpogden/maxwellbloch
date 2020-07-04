@@ -107,6 +107,18 @@ class TestMBSolve(unittest.TestCase):
         self.assertDictEqual(mbs.atom.fields[0].rabi_freq_t_args,
                              {"ampl_0": 1.0, "on_0": 0.0, "off_0": 1.0})
 
+
+    def test_two_sech_2pi(self):
+        """ Test of a 2pi soliton propagating through a two-level system.
+        """
+        json_path = os.path.join(JSON_DIR, "mbs_two_sech_2pi.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+        # Input pulse is 2pi
+        self.assertAlmostEqual(mbs.fields_area()[0][0]/(np.pi), 2.0, places=1)
+        # Output pulse is 2pi
+        self.assertAlmostEqual(mbs.fields_area()[0][-1]/(np.pi), 2.0, places=1)
+
     def test_no_vel_classes(self):
         """ Empty velocity class dict. """
 
