@@ -38,15 +38,28 @@ class TestGaussian(unittest.TestCase):
 class TestSech(unittest.TestCase):
     
     def test_areas_pi(self):
-        """Test Gaussian areas as multiples of pi.
+        """Test sech areas as multiples of pi.
         """
         SECH_FWHM_CONV = 1./2.6339157938
         FWHM = 0.1
         width = FWHM*SECH_FWHM_CONV # [τ]
+        tlist = np.linspace(0., 1., 201)
+        t_func = t_funcs.sech(1)
         for n in np.linspace(0.0, 10.0, 11):
             ampl = n/width/(2*np.pi) # nπ area
-            tlist = np.linspace(0., 1., 201)
-            t_func = t_funcs.sech(1)
             t_args = {'ampl_1': ampl*2*np.pi, 'width_1': width, 'centre_1': 0.5}
+            area = np.trapz(t_func(tlist, t_args), tlist)
+            self.assertAlmostEqual(area, n*np.pi, places=3)
+
+    def test_n_pi_areas_pi(self):
+        """Test sech areas as multiples of pi given n_pi arg.
+        """
+        SECH_FWHM_CONV = 1./2.6339157938
+        FWHM = 0.1
+        width = FWHM*SECH_FWHM_CONV # [τ]
+        tlist = np.linspace(0., 1., 201)
+        t_func = t_funcs.sech(1)
+        for n in np.linspace(0.0, 10.0, 11):
+            t_args = {'n_pi_1': n, 'width_1': width, 'centre_1': 0.5}
             area = np.trapz(t_func(tlist, t_args), tlist)
             self.assertAlmostEqual(area, n*np.pi, places=3)
