@@ -32,8 +32,21 @@ class TestGaussian(unittest.TestCase):
             area = np.trapz(t_func(tlist, t_args), tlist)
             self.assertAlmostEqual(area, n_pi*np.pi, places=3)
 
-        # TODO: Check error if ampl and n_pi passed
-        # TODO: Check error if neither passed.
+    def test_ampl_and_n_pi(self):
+        """Test that KeyError is raised if both ampl and n_pi args set.
+        """
+        tlist = np.linspace(0., 1., 201)
+        t_args = {'n_pi_1': 2.0, 'ampl_1': 1.0, 'fwhm_1': 0.1, 'centre_1': 0.5}
+        t_func = t_funcs.gaussian(1)
+        with self.assertRaises(KeyError):
+            t_func(tlist, t_args)
+
+    def test_no_ampl_nor_n_pi(self):
+        tlist = np.linspace(0., 1., 201)
+        t_args = {'fwhm_1': 0.1, 'centre_1': 0.5}
+        t_func = t_funcs.gaussian(1)
+        with self.assertRaises(KeyError):
+            t_func(tlist, t_args)
 
 class TestSech(unittest.TestCase):
     
@@ -63,3 +76,20 @@ class TestSech(unittest.TestCase):
             t_args = {'n_pi_1': n, 'width_1': width, 'centre_1': 0.5}
             area = np.trapz(t_func(tlist, t_args), tlist)
             self.assertAlmostEqual(area, n*np.pi, places=3)
+
+
+    def test_ampl_and_n_pi(self):
+        """Test that KeyError is raised if both ampl and n_pi args set.
+        """
+        tlist = np.linspace(0., 1., 201)
+        t_args = {'n_pi_1': 2.0, 'ampl_1': 1.0, 'width_1': 0.1, 'centre_1': 0.5}
+        t_func = t_funcs.sech(1)
+        with self.assertRaises(KeyError):
+            t_func(tlist, t_args)
+
+    def test_no_ampl_nor_n_pi(self):
+        tlist = np.linspace(0., 1., 201)
+        t_args = {'width_1': 0.1, 'centre_1': 0.5}
+        t_func = t_funcs.sech(1)
+        with self.assertRaises(KeyError):
+            t_func(tlist, t_args)
