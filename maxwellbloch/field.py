@@ -24,7 +24,7 @@ class Field(object):
     """
 
     def __init__(self, label="", index=0, coupled_levels=[], factors=[], 
-        detuning=0.0, detuning_positive=True, rabi_freq=0.0, 
+        detuning=0.0, detuning_positive=True, rabi_freq=1.0, 
         rabi_freq_t_func=None, rabi_freq_t_args={}):
 
         self.label = label
