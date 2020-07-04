@@ -27,14 +27,38 @@ def square(index):
     return func
 
 def gaussian(index):
-
+    """ Return a Gaussian pulse time function.
+    
+    Notes:
+        The amplitude of the Guassian pulse can be defined directly via the 
+        ampl_{index} argument or indirectly via n_pi_{index}, the desired pulse
+        area in multiples of pi. A ValueError will be raised if both are set.   
+    """
     def func(t, args):
-        ampl = args['ampl_' + str(index)]
-        fwhm = args['fwhm_' + str(index)]
-        centre = args['centre_' + str(index)]
-        return ampl * exp(-4 * log(2) * ((t - centre) / fwhm)**2)
+        """
+        Args:
+            t:      time
+            args:   A dict containing fwhm_{index}, centre_{index}, 
+                and either ampl_{index} OR n_pi_{index}.
+        """
+        fwhm = args['fwhm_{}'.format(index)]
+        centre = args['centre_{}'.format(index)]
+        ampl_idx = 'ampl_{}'.format(index)
+        n_pi_idx = 'n_pi_{}'.format(index)
+        if ampl_idx in args:
+            if n_pi_idx in args:
+                raise KeyError('t_args can contain ampl or n_pi, not both.')
+            else:
+                ampl = args[ampl_idx]
+        else:
+            if n_pi_idx in args:
+                n_pi = args[n_pi_idx]
+                ampl = n_pi*sqrt(4.*pi*log(2)/fwhm**2)            
+            else:
+                raise KeyError('t_args must contain ampl or n_pi.')
+        return ampl*exp(-4*log(2)*((t - centre)/fwhm)**2)
 
-    func.__name__ = 'gaussian_' + str(index)
+    func.__name__ = 'gaussian_{}'.format(index)
     return func
 
 def ramp_on(index):
