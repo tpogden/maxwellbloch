@@ -43,7 +43,7 @@ class TestInit(unittest.TestCase):
         self.assertEqual(field_00.detuning, 0.0)
         self.assertEqual(field_00.detuning_positive, True)
         self.assertEqual(field_00.label, '')
-        self.assertEqual(field_00.rabi_freq, 0.0)
+        self.assertEqual(field_00.rabi_freq, 1.0)
         self.assertEqual(field_00.rabi_freq_t_args, {'ampl_0': 1.0,
             'on_0': 0.0, 'off_0': 1.0})
         self.assertEqual(field_00.rabi_freq_t_func.__name__, 'square_0')
