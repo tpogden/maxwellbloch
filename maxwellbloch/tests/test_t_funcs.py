@@ -17,11 +17,11 @@ class TestGaussian(unittest.TestCase):
         t_func = t_funcs.gaussian(1)
         for n in np.linspace(0.0, 10.0, 11):
             ampl = n*np.sqrt(4.*np.pi*np.log(2)/FWHM**2)/(2*np.pi)  # nπ area
-            t_args = {'ampl_1': ampl*2*np.pi, 'fwhm_1': FWHM, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)
+            t_args = {'ampl_1': ampl, 'fwhm_1': FWHM, 'centre_1': 0.5}
+            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
             self.assertAlmostEqual(area, n*np.pi, places=3)
 
-    def test_n_pi_areas_pi(self):
+    def test_areas_pi_n_pi(self):
         """Test Gaussian areas as multiples of pi given n_pi arg.
         """
         FWHM = 0.1
@@ -29,7 +29,7 @@ class TestGaussian(unittest.TestCase):
         t_func = t_funcs.gaussian(1)
         for n_pi in np.linspace(0.0, 10.0, 11):
             t_args = {'n_pi_1': n_pi, 'fwhm_1': FWHM, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)
+            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
             self.assertAlmostEqual(area, n_pi*np.pi, places=3)
 
     def test_ampl_and_n_pi(self):
@@ -60,11 +60,11 @@ class TestSech(unittest.TestCase):
         t_func = t_funcs.sech(1)
         for n in np.linspace(0.0, 10.0, 11):
             ampl = n/width/(2*np.pi) # nπ area
-            t_args = {'ampl_1': ampl*2*np.pi, 'width_1': width, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)
+            t_args = {'ampl_1': ampl, 'width_1': width, 'centre_1': 0.5}
+            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
             self.assertAlmostEqual(area, n*np.pi, places=3)
 
-    def test_n_pi_areas_pi(self):
+    def test_areas_pi_n_pi(self):
         """Test sech areas as multiples of pi given n_pi arg.
         """
         SECH_FWHM_CONV = 1./2.6339157938
@@ -74,9 +74,8 @@ class TestSech(unittest.TestCase):
         t_func = t_funcs.sech(1)
         for n in np.linspace(0.0, 10.0, 11):
             t_args = {'n_pi_1': n, 'width_1': width, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)
+            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
             self.assertAlmostEqual(area, n*np.pi, places=3)
-
 
     def test_ampl_and_n_pi(self):
         """Test that KeyError is raised if both ampl and n_pi args set.
