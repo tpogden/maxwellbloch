@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-""" These closures provide indexed time functions provided for using the 
+""" These closures provide indexed time functions provided for using the
     time-dependent solver.
 
-    e.g. square(1) will return a function that takes a time t and args 
+    e.g. square(1) will return a function that takes a time t and args
         {'on_1', 'off_1', 'ampl_1'}
 
 Thomas Ogden <t@ogden.eu>
@@ -28,17 +28,17 @@ def square(index):
 
 def gaussian(index):
     """ Return a Gaussian pulse time function.
-    
+
     Notes:
-        The amplitude of the Guassian pulse can be defined directly via the 
+        The amplitude of the Guassian pulse can be defined directly via the
         ampl_{index} argument or indirectly via n_pi_{index}, the desired pulse
-        area in multiples of pi. A ValueError will be raised if both are set.   
+        area in multiples of pi. A ValueError will be raised if both are set.
     """
     def func(t, args):
         """
         Args:
             t:      time
-            args:   A dict containing fwhm_{index}, centre_{index}, 
+            args:   A dict containing fwhm_{index}, centre_{index},
                     and either ampl_{index} OR n_pi_{index}.
         """
         fwhm = args['fwhm_{}'.format(index)]
@@ -53,7 +53,7 @@ def gaussian(index):
         else:
             if n_pi_idx in args:
                 n_pi = args[n_pi_idx]
-                ampl = n_pi*sqrt(4.*pi*log(2)/fwhm**2)            
+                ampl = n_pi*sqrt(4.*pi*log(2)/fwhm**2)/(2*pi)
             else:
                 raise KeyError('t_args must contain ampl or n_pi.')
         return ampl*exp(-4*log(2)*((t - centre)/fwhm)**2)
@@ -63,11 +63,11 @@ def gaussian(index):
 
 def sech(index):
     """ Return a sech pulse time function.
-    
+
     Notes:
-        The amplitude of the sech pulse can be defined directly via the 
+        The amplitude of the sech pulse can be defined directly via the
         ampl_{index} argument or indirectly via n_pi_{index}, the desired pulse
-        area in multiples of pi. A ValueError will be raised if both are set.   
+        area in multiples of pi. A ValueError will be raised if both are set.
     """
     def sech_(t): return 2/(exp(t) + exp(-t))
 
@@ -75,7 +75,7 @@ def sech(index):
         """
         Args:
             t:      time
-            args:   A dict containing fwhm_{index}, centre_{index}, 
+            args:   A dict containing fwhm_{index}, centre_{index},
                     and either ampl_{index} OR n_pi_{index}.
         """
         width = args['width_{}'.format(index)]
@@ -90,14 +90,13 @@ def sech(index):
         else:
             if n_pi_idx in args:
                 n_pi = args[n_pi_idx]
-                ampl = n_pi/width#/(2*pi)       
+                ampl = n_pi/width/(2*pi)
             else:
                 raise KeyError('t_args must contain ampl or n_pi.')
         return ampl*sech_((t - centre)/width)
 
     func.__name__ = 'sech_' + str(index)
     return func
-
 
 def ramp_on(index):
 
