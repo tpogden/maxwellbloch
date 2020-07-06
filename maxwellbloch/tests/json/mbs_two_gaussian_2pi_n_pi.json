@@ -4,11 +4,11 @@
       {
         "coupled_levels": [[0, 1]],
         "rabi_freq_t_args": {
-          "ampl": 0.8384014365421667,
+          "n_pi": 2.0,
           "centre": 0.0,
-          "width": 0.3796628587572578
+          "fwhm": 1.0
         },
-        "rabi_freq_t_func": "sech"
+        "rabi_freq_t_func": "gaussian"
       }
     ],
     "num_states": 2
