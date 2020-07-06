@@ -1,10 +1,10 @@
 test_cov:
-	pytest --cov -n 4
+	pytest --cov -n auto
 
-QU_FILES = $(shell find . -type f -name '*.qu')
+QU_FILES = $(shell find . -type f -name '**.qu')
 
 clean_qu:
-	@echo 'Deleting all *.qu files...'
+	@echo 'Deleting all **.qu files...'
 	@echo $(QU_FILES)
 	rm $(QU_FILES)
 
