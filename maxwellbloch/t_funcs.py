@@ -65,23 +65,39 @@ def sech(index):
     """ Return a sech pulse time function.
 
     Notes:
-        The amplitude of the sech pulse can be defined directly via the
-        ampl_{index} argument or indirectly via n_pi_{index}, the desired pulse
-        area in multiples of pi. A ValueError will be raised if both are set.
+        - The amplitude of the sech pulse can be defined directly via the
+          ampl_{index} argument or indirectly via n_pi_{index}, the desired 
+          pulse area in multiples of pi. A ValueError will be raised if both are 
+          set.
+        - The width of the pulse can be defined directly via the width_{index}
+          argument or indirectly via the fwhm_{index}, the full-width at half
+          max. A ValueError will be raised if both are set.
     """
     def sech_(t): return 2/(exp(t) + exp(-t))
+    SECH_FWHM_CONV = 1./2.6339157938
 
     def func(t, args):
         """
         Args:
-            t:      time
-            args:   A dict containing fwhm_{index}, centre_{index},
-                    and either ampl_{index} OR n_pi_{index}.
+            t:      time 
+            args:   A dict containing centre_{index}, EITHER ampl_{index} OR 
+                n_pi_{index} and EITHER width_{index} OR fwhm_{index}.
         """
-        width = args['width_{}'.format(index)]
-        centre = args['centre_{}'.format(index)]
-        ampl_idx = 'ampl_{}'.format(index)
-        n_pi_idx = 'n_pi_{}'.format(index)
+        centre = args[f'centre_{index}']
+        width_idx = f'width_{index}'
+        fwhm_idx = f'fwhm_{index}'
+        ampl_idx = f'ampl_{index}'
+        n_pi_idx = f'n_pi_{index}'
+        if width_idx in args:
+            if fwhm_idx in args: 
+                raise KeyError('t_args can contain width or fwhm, not both.')
+            else:
+                width = args[width_idx]
+        else:
+            if fwhm_idx in args:
+               width = args[fwhm_idx]*SECH_FWHM_CONV 
+            else:
+                raise KeyError('t_args must contain width or fwhm.')
         if ampl_idx in args:
             if n_pi_idx in args:
                 raise KeyError('t_args can contain ampl or n_pi, not both.')
