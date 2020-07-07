@@ -1,3 +1,6 @@
+test:
+	pytest -n auto
+
 test_cov:
 	pytest --cov -n auto
 
