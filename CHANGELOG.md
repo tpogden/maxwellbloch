@@ -8,6 +8,15 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added ability to set sech pulse width by defining the full-width at half max
+- Added ability to set sech and gaussian pulse amplitudes by defining the area
+    as multiples of pi
+- Changed the default Rabi frequency of a field from 0.0 to 1.0
+- Added docs on Structure and Angular Momentum
+- Added Examples docs
+
+## [0.6.0] 2020-05-17
+
 - Fixed Doppler broadening
 - Added docs on Usage, Examples
 
