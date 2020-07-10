@@ -1,3 +1,6 @@
+test:
+	pytest -n auto
+
 test_cov:
 	pytest --cov -n auto
 
@@ -10,3 +13,8 @@ clean_qu:
 
 docs_html:
 	sphinx-build docs docs/_build -b html
+
+dist:
+	python setup.py sdist --formats=gztar,zip
+
+.PHONY: dist
