@@ -16,3 +16,5 @@ docs_html:
 
 dist:
 	python setup.py sdist --formats=gztar,zip
+
+.PHONY: dist
