@@ -37,6 +37,11 @@ def git_tag():
         return None
 
 def version():
+    """ Get version from tag or commit short hash. 
+    
+    Use annotated tag if that exists. If not, use short hash.
+    """
+
     if git_tag():
         version = git_tag()
     elif git_short_hash():
@@ -74,7 +79,10 @@ setup(name='MaxwellBloch',
       packages=find_packages(),
       package_data={'maxwellbloch.tests': ['json/*.json']},
       install_requires=['qutip'],
-      scripts=['bin/make-mp4-fixed-frame.py',
-               'bin/make-mp4-fixed-frame-2-fields.py',
-               'bin/make-gif-ffmpeg.sh'],
+      scripts=[
+        'bin/mbsolve',
+        'bin/obsolve',
+        'bin/make-mp4-fixed-frame.py',
+        'bin/make-mp4-fixed-frame-2-fields.py',
+        'bin/make-gif-ffmpeg.sh'],
       zip_safe=False)

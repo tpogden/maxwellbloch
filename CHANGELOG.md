@@ -8,6 +8,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Added `mbsolve` and `obsolve` scripts
 - Added ability to set sech pulse width by defining the full-width at half max
 - Added ability to set sech and gaussian pulse amplitudes by defining the area
     as multiples of pi
