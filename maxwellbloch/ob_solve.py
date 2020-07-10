@@ -216,33 +216,3 @@ class OBSolve(object):
                 logging.debug('The savefile JSON element is null.')
 
         return cls(**json_dict)
-
-
-def parse_args():
-
-    import argparse
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-f', '--file',
-                        help='path of a JSON file containing an ob_solve \
-                              problem definition', required=False)
-
-    args = vars(parser.parse_args())
-
-    if args['file']:
-
-        print('Loading problem definition from file {0}'.format(args['file']))
-
-        ob_solve_obj = OBSolve().from_json(args['file'])
-        ob_solve_obj.solve()
-
-def main():
-
-    parse_args()
-
-    return 0
-
-if __name__ == '__main__':
-
-    STATUS = main()
-    sys.exit(STATUS)
