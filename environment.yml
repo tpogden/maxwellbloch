@@ -1,4 +1,4 @@
-name: mb
+name: mb-dev
 channels:
   - default
   - conda-forge
