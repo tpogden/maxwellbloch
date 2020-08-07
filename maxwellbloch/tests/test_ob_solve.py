@@ -220,6 +220,22 @@ class TestSolve(unittest.TestCase):
         # plt.plot(obs.tlist, pop_1)
         # plt.show()
 
+    def test_vee_cw_weak_sech_2pi(self):
+        """ Test a three-level vee config atom where the probe transition is 
+            addressed by a weak cw and the drive is a sech pulse.
+
+        Notes:
+            - Test for bug in #222, where the `t_args can contain ampl or n_pi, 
+                not both` exception is raised even though those args are in 
+                different fields.
+            - Bug is due to field_idxs not being set correctly, see also #159.
+        """
+
+        json_path = os.path.join(JSON_DIR, "obs-vee-cw-weak-sech-2pi.json")
+        obs = ob_solve.OBSolve().from_json(json_path)
+        # Test that solve does not throw any exceptions.
+        obs.solve()
+
 class TestJSON(unittest.TestCase):
 
     def test_to_from_json_str_00(self):
