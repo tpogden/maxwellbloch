@@ -1,8 +1,30 @@
+.DEFAULT_GOAL := all
+
+# Tests -----------------------------------------------------------------------
+
 test:
 	pytest -n auto
 
 test_cov:
 	pytest --cov -n auto
+
+# Docs ------------------------------------------------------------------------
+
+docs_html:
+	sphinx-build docs docs/_build -b html
+
+# Dist ------------------------------------------------------------------------
+
+dist:
+	python setup.py sdist --formats=gztar,zip
+
+.PHONY: dist
+
+# All -------------------------------------------------------------------------
+
+all: test_cov docs_html dist
+
+# Clean -----------------------------------------------------------------------
 
 QU_FILES = $(shell find . -type f -name '**.qu')
 
@@ -11,10 +33,5 @@ clean_qu:
 	@echo $(QU_FILES)
 	rm $(QU_FILES)
 
-docs_html:
-	sphinx-build docs docs/_build -b html
-
-dist:
-	python setup.py sdist --formats=gztar,zip
-
-.PHONY: dist
+clean_docs:
+	rm -rf docs/_build
