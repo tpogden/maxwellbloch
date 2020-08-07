@@ -141,7 +141,9 @@ class MBSolve(ob_solve.OBSolve):
 
     def build_number_density(self, num_density_z_func, num_density_z_args,
                              interaction_strengths):
-
+        if len(interaction_strengths) != len(self.atom.fields):
+            raise ValueError('The number of interaction_strengths must match '
+                'the number of fields.')
         self.interaction_strengths = interaction_strengths
         self.g = np.zeros(len(interaction_strengths))
         for i, g in enumerate(interaction_strengths):
