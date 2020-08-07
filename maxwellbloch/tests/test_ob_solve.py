@@ -183,6 +183,43 @@ class TestSolve(unittest.TestCase):
         self.assertTrue(np.allclose(pop_0, known_0, rtol=1.e-5, atol=1.e-5))
         self.assertTrue(np.allclose(pop_1, known_1, rtol=1.e-5, atol=1.e-5))
 
+    def test_two_two_fields(self):
+        """ Test a two-level atom addressed by multiple fields.
+
+        Notes: 
+            - Test for bug in #159, where multiple fields coupling the same
+                levels isn't working.
+            - The first square pi-pulse drives all the population to the excited
+                state, the second square pi-pulse drives all pop back to ground.
+            - Before fix, only the second field is driving the atoms.
+        """
+
+        json_path = os.path.join(JSON_DIR, "obs-two-two-fields.json")
+        obs = ob_solve.OBSolve().from_json(json_path)
+        obs.solve()
+
+        # Get the populations
+        pop_0 = np.absolute(obs.states_t()[:, 0, 0])
+        pop_1 = np.absolute(obs.states_t()[:, 1, 1])
+
+        # All population should start in the ground state
+        self.assertAlmostEqual(pop_0[0], 1.0)
+        self.assertAlmostEqual(pop_1[0], 0.0)
+        # The first pi-pulse between t = 0.2 and t = 0.3 should drive all the
+        # population to the exited state  
+        self.assertAlmostEqual(pop_0[len(pop_0)//2], 0.0)
+        self.assertAlmostEqual(pop_1[len(pop_0)//2], 1.0)
+        # The second pi-pulse between t = 0.6 and t = 0.7 should drive all the
+        # population back to the ground state  
+        self.assertAlmostEqual(pop_0[-1], 1.0)
+        self.assertAlmostEqual(pop_1[-1], 0.0)
+
+        # If you want to take a look
+        # import matplotlib.pyplot as plt
+        # plt.plot(obs.tlist, pop_0)
+        # plt.plot(obs.tlist, pop_1)
+        # plt.show()
+
 class TestJSON(unittest.TestCase):
 
     def test_to_from_json_str_00(self):
