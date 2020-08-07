@@ -4,7 +4,7 @@
       {
         "coupled_levels": [[0, 1]],
         "rabi_freq_t_args": {
-          "ampl": 2.5,
+          "ampl": 5.0,
           "on": 0.2,
           "off": 0.3
         },
@@ -13,7 +13,7 @@
       {
         "coupled_levels": [[0, 1]],
         "rabi_freq_t_args": {
-          "ampl": 2.5,
+          "ampl": 5.0,
           "on": 0.6,
           "off": 0.7
         },

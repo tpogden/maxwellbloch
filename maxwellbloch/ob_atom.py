@@ -95,7 +95,8 @@ class OBAtom(ob_base.OBBase):
         """ Build the field list given a list of dicts representing fields. """
 
         self.fields = []
-        for f in field_dicts:
+        for f_idx, f in enumerate(field_dicts):
+            f['index'] = f_idx
             self.add_field(f)
         return self.fields
 
@@ -192,7 +193,8 @@ class OBAtom(ob_base.OBBase):
         """
 
         # TODO(#159): Need to build_rabi_freq_t_func and build_rabi_freq_t_args
-        # here somehow to add the field_idxs?
+        # here somehow to add the field_idxs? NO, I think just pass in the 
+        # indexes in add_field and build_fields.
 
         self.H_Omega_list = []
         for f in self.fields:

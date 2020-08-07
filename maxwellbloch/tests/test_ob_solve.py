@@ -203,16 +203,16 @@ class TestSolve(unittest.TestCase):
         pop_1 = np.absolute(obs.states_t()[:, 1, 1])
 
         # All population should start in the ground state
-        self.assertAlmostEqual(pop_0[0], 1.0)
-        self.assertAlmostEqual(pop_1[0], 0.0)
+        self.assertAlmostEqual(pop_0[0], 1.0, places=5)
+        self.assertAlmostEqual(pop_1[0], 0.0, places=5)
         # The first pi-pulse between t = 0.2 and t = 0.3 should drive all the
         # population to the exited state  
-        self.assertAlmostEqual(pop_0[len(pop_0)//2], 0.0)
-        self.assertAlmostEqual(pop_1[len(pop_0)//2], 1.0)
+        self.assertAlmostEqual(pop_0[len(pop_0)//2], 0.0, places=5)
+        self.assertAlmostEqual(pop_1[len(pop_0)//2], 1.0, places=5)
         # The second pi-pulse between t = 0.6 and t = 0.7 should drive all the
         # population back to the ground state  
-        self.assertAlmostEqual(pop_0[-1], 1.0)
-        self.assertAlmostEqual(pop_1[-1], 0.0)
+        self.assertAlmostEqual(pop_0[-1], 1.0, places=5)
+        self.assertAlmostEqual(pop_1[-1], 0.0, places=5)
 
         # If you want to take a look
         # import matplotlib.pyplot as plt
