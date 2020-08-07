@@ -16,15 +16,17 @@ class MBSolve(ob_solve.OBSolve):
                  num_density_z_func=None, num_density_z_args={},
                  interaction_strengths=[], velocity_classes={}):
 
-        super().__init__(atom, t_min, t_max, t_steps,
-                         method, opts, savefile)
+        super().__init__(atom=atom, t_min=t_min, t_max=t_max, t_steps=t_steps,
+                         method=method, opts=opts, savefile=savefile)
 
-        self.build_zlist(z_min, z_max, z_steps, z_steps_inner)
+        self.build_zlist(z_min=z_min, z_max=z_max, z_steps=z_steps, 
+            z_steps_inner=z_steps_inner)
 
-        self.build_number_density(num_density_z_func, num_density_z_args,
-                                  interaction_strengths)
+        self.build_number_density(interaction_strengths=interaction_strengths,
+            num_density_z_func=num_density_z_func, 
+            num_density_z_args=num_density_z_args)
 
-        self.build_velocity_classes(velocity_classes)
+        self.build_velocity_classes(velocity_classes=velocity_classes)
 
         self.init_Omegas_zt()
         self.init_states_zt()
@@ -139,8 +141,24 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.thermal_delta_list, self.thermal_weights
 
-    def build_number_density(self, num_density_z_func, num_density_z_args,
-                             interaction_strengths):
+    def build_number_density(self, interaction_strengths, 
+        num_density_z_func=None, num_density_z_args=None):
+        """ Build the number density function and interaction strengths.
+
+        Args:
+            interaction_strengths: A list of interaction strengths, `g`. These
+                map 1-to-1 to the fields, and so must have the same number of
+                values as there are fields.
+            num_density_z_func: An optioanl function provided just like the time 
+                funcs (from t_funcs.py). 
+            num_density_z_args: A dict providing the args to be passed to 
+                num_density_z_func.
+
+        Notes:
+            - A factor of 2pi is applied to the interaction_strengths. 
+            - By default the num_density function will be square, with density
+                1.0, starting at z=0.0 and ending at z=1.0. 
+        """
         if len(interaction_strengths) != len(self.atom.fields):
             raise ValueError('The number of interaction_strengths must match '
                 'the number of fields.')
@@ -148,12 +166,12 @@ class MBSolve(ob_solve.OBSolve):
         self.g = np.zeros(len(interaction_strengths))
         for i, g in enumerate(interaction_strengths):
             self.g[i] = 2*np.pi*g
-
+        # Set the num_density function
         if num_density_z_func:
             self.num_density_z_func = getattr(t_funcs, num_density_z_func)(0)
         else:
             self.num_density_z_func = t_funcs.square(0)
-
+        # Set the num_density args
         if num_density_z_args:
             self.num_density_z_args = {}
             for key, value in num_density_z_args.items():
