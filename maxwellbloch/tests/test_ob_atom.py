@@ -126,6 +126,47 @@ class TestBuildInitialState(unittest.TestCase):
         with self.assertRaises(ValueError):
             ob_atom.OBAtom(num_states=2, initial_state=[2., 2.])
 
+class TestBuildFields(unittest.TestCase):
+
+    def test_one_field(self):
+        json_path = os.path.join(JSON_DIR, "field-square-0.json")
+        f = field.Field.from_json(json_path)
+        f_dict = f.get_json_dict()
+
+        oba = ob_atom.OBAtom(num_states=2)
+        oba.build_fields(field_dicts=[f_dict])
+
+        self.assertEqual(oba.fields[0].rabi_freq_t_func.__name__, 'square_0')
+        self.assertDictEqual(oba.get_field_args(), 
+            {"ampl_0": 2.5, "on_0": 0.2, "off_0": 0.3})
+
+    def test_two_fields(self):
+        """ Test building multiple fields.
+
+        Notes:
+            - Test for bug in #159, where multiple fields coupling the same
+                levels isn't working.
+        """
+
+        json_path_0 = os.path.join(JSON_DIR, "field-square-0.json")
+        json_path_1 = os.path.join(JSON_DIR, "field-square-1.json")
+        f_0 = field.Field.from_json(json_path_0)
+        f_1 = field.Field.from_json(json_path_1)
+        f_dict_0 = f_0.get_json_dict()
+        f_dict_1 = f_1.get_json_dict()
+
+        oba = ob_atom.OBAtom(num_states=2)
+        oba.build_fields(field_dicts=[f_dict_0, f_dict_1])
+        print(oba.fields[0])
+        print(oba.fields[1])
+
+        self.assertEqual(oba.fields[0].rabi_freq_t_func.__name__, 'square_0')
+        self.assertEqual(oba.fields[1].rabi_freq_t_func.__name__, 'square_1')
+        self.assertDictEqual(oba.get_field_args(), 
+            {"ampl_0": 2.5, "on_0": 0.2, "off_0": 0.3, "ampl_1": 2.5, 
+                "on_1": 0.6, "off_1": 0.7})
+
+
 class TestJSON(unittest.TestCase):
 
     ob_atom_02 = ob_atom.OBAtom.from_json_str(JSON_STR_02)

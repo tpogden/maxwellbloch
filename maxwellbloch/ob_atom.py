@@ -95,7 +95,8 @@ class OBAtom(ob_base.OBBase):
         """ Build the field list given a list of dicts representing fields. """
 
         self.fields = []
-        for f in field_dicts:
+        for f_idx, f in enumerate(field_dicts):
+            f['index'] = f_idx
             self.add_field(f)
         return self.fields
 
@@ -190,8 +191,12 @@ class OBAtom(ob_base.OBBase):
         """ Builds the Rabi frequency (off-diagonals) part of the interaction 
             Hamiltonian. 
         """
+
+        # TODO(#159): Need to build_rabi_freq_t_func and build_rabi_freq_t_args
+        # here somehow to add the field_idxs? NO, I think just pass in the 
+        # indexes in add_field and build_fields.
+
         self.H_Omega_list = []
-        H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
         for f in self.fields:
             H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
             # TODO: I think this will be better if the sigmas and factors
@@ -247,6 +252,9 @@ class OBAtom(ob_base.OBBase):
         Args:
             states_t: (optional) a states_t object. If not provided, use
                 self.states_t()
+
+        TODO: What I'm doing here is Tr(rho * d) (thesis Eqn 2.41), so why not
+            just use QuTiP trace for each field.
 
         Returns:
             (np.array)

@@ -16,15 +16,17 @@ class MBSolve(ob_solve.OBSolve):
                  num_density_z_func=None, num_density_z_args={},
                  interaction_strengths=[], velocity_classes={}):
 
-        super().__init__(atom, t_min, t_max, t_steps,
-                         method, opts, savefile)
+        super().__init__(atom=atom, t_min=t_min, t_max=t_max, t_steps=t_steps,
+                         method=method, opts=opts, savefile=savefile)
 
-        self.build_zlist(z_min, z_max, z_steps, z_steps_inner)
+        self.build_zlist(z_min=z_min, z_max=z_max, z_steps=z_steps, 
+            z_steps_inner=z_steps_inner)
 
-        self.build_number_density(num_density_z_func, num_density_z_args,
-                                  interaction_strengths)
+        self.build_number_density(interaction_strengths=interaction_strengths,
+            num_density_z_func=num_density_z_func, 
+            num_density_z_args=num_density_z_args)
 
-        self.build_velocity_classes(velocity_classes)
+        self.build_velocity_classes(velocity_classes=velocity_classes)
 
         self.init_Omegas_zt()
         self.init_states_zt()
@@ -139,25 +141,47 @@ class MBSolve(ob_solve.OBSolve):
 
         return self.thermal_delta_list, self.thermal_weights
 
-    def build_number_density(self, num_density_z_func, num_density_z_args,
-                             interaction_strengths):
+    def build_number_density(self, interaction_strengths, 
+        num_density_z_func=None, num_density_z_args=None):
+        """ Build the number density function and interaction strengths.
 
+        Args:
+            interaction_strengths: A list of interaction strengths, `g`. These
+                map 1-to-1 to the fields, and so must have the same number of
+                values as there are fields.
+            num_density_z_func: An optioanl function provided just like the time 
+                funcs (from t_funcs.py). 
+            num_density_z_args: A dict providing the args to be passed to 
+                num_density_z_func.
+
+        Notes:
+            - A factor of 2pi is applied to the interaction_strengths. 
+            - By default the num_density function will be square, with density
+                1.0, starting at z=0.0 and ending at z=1.0. 
+        """
         self.interaction_strengths = interaction_strengths
         self.g = np.zeros(len(interaction_strengths))
         for i, g in enumerate(interaction_strengths):
             self.g[i] = 2*np.pi*g
-
+        # Set the num_density function
         if num_density_z_func:
             self.num_density_z_func = getattr(t_funcs, num_density_z_func)(0)
         else:
             self.num_density_z_func = t_funcs.square(0)
-
+        # Set the num_density args
         if num_density_z_args:
             self.num_density_z_args = {}
             for key, value in num_density_z_args.items():
                 self.num_density_z_args[key + '_0'] = value
         else:
             self.num_density_z_args = {'on_0': 0.0, 'off_0': 1.0, 'ampl_0':1.0}
+
+    def check(self):
+        """Validates the MBSolve object."""
+        if len(self.interaction_strengths) != len(self.atom.fields):
+            raise ValueError('The number of interaction_strengths must match '
+                'the number of fields.')
+        return True
 
     def init_Omegas_zt(self):
 
@@ -199,6 +223,7 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
+        self.check()
         self.init_Omegas_zt()
         self.init_states_zt()
         # Should we recalculate or load a savefile?
@@ -392,7 +417,6 @@ class MBSolve(ob_solve.OBSolve):
 
             Returns: A list of strings ['intp', 'intp', …]
         """
-
         return ['intp' for f in self.atom.fields]
 
     def get_Omegas_intp_t_args(self, Omegas_z):
@@ -405,9 +429,7 @@ class MBSolve(ob_solve.OBSolve):
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
                 in without the factor of 2pi.
-
         """
-
         fields_args = [{}] * len(self.atom.fields)
         for f_i, f in enumerate(Omegas_z):
             fields_args[f_i] = {'tlist': self.tlist,
