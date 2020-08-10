@@ -20,5 +20,6 @@ dependencies:
   - seaborn=0.9
   - pip
   - pip:
+    - twine
     - recommonmark
     - sphinx_rtd_theme
