@@ -159,9 +159,6 @@ class MBSolve(ob_solve.OBSolve):
             - By default the num_density function will be square, with density
                 1.0, starting at z=0.0 and ending at z=1.0. 
         """
-        if len(interaction_strengths) != len(self.atom.fields):
-            raise ValueError('The number of interaction_strengths must match '
-                'the number of fields.')
         self.interaction_strengths = interaction_strengths
         self.g = np.zeros(len(interaction_strengths))
         for i, g in enumerate(interaction_strengths):
@@ -178,6 +175,13 @@ class MBSolve(ob_solve.OBSolve):
                 self.num_density_z_args[key + '_0'] = value
         else:
             self.num_density_z_args = {'on_0': 0.0, 'off_0': 1.0, 'ampl_0':1.0}
+
+    def check(self):
+        """Validates the MBSolve object."""
+        if len(self.interaction_strengths) != len(self.atom.fields):
+            raise ValueError('The number of interaction_strengths must match '
+                'the number of fields.')
+        return True
 
     def init_Omegas_zt(self):
 
@@ -219,6 +223,7 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
+        self.check()
         self.init_Omegas_zt()
         self.init_states_zt()
         # Should we recalculate or load a savefile?
@@ -412,7 +417,6 @@ class MBSolve(ob_solve.OBSolve):
 
             Returns: A list of strings ['intp', 'intp', …]
         """
-
         return ['intp' for f in self.atom.fields]
 
     def get_Omegas_intp_t_args(self, Omegas_z):
@@ -425,9 +429,7 @@ class MBSolve(ob_solve.OBSolve):
             Note:
                 The factor of 1/2pi is needed as we pass Rabi freq functions
                 in without the factor of 2pi.
-
         """
-
         fields_args = [{}] * len(self.atom.fields)
         for f_i, f in enumerate(Omegas_z):
             fields_args[f_i] = {'tlist': self.tlist,
