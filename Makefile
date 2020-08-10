@@ -16,7 +16,7 @@ docs_html:
 # Dist ------------------------------------------------------------------------
 
 dist:
-	python setup.py sdist --formats=gztar,zip
+	python setup.py sdist --formats=gztar bdist_wheel
 
 .PHONY: dist
 
