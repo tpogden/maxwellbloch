@@ -1,0 +1,35 @@
+{
+  "atom": {
+    "fields": [
+      {
+        "coupled_levels": [[0, 1]],
+        "label": "A",
+        "rabi_freq_t_args": {
+          "n_pi": 1.0,
+          "centre": 0.0,
+          "fwhm": 1.0
+        },
+        "rabi_freq_t_func": "sech"
+      },
+      {
+        "coupled_levels": [[0, 2]],
+        "label": "B",
+        "rabi_freq_t_args": {
+          "n_pi": 1.7320508,
+          "centre": 0.0,
+          "fwhm": 1.0
+        },
+        "rabi_freq_t_func": "sech"
+      }
+    ],
+    "num_states": 3
+  },
+  "t_min": -5.0,
+  "t_max": 20.0,
+  "t_steps": 250,
+  "z_min": -0.5,
+  "z_max": 1.5,
+  "z_steps": 400,
+  "z_steps_inner": 1,
+  "interaction_strengths": [10.0, 10.0]
+}
