@@ -1,7 +1,8 @@
 """ Angular momentum module. """
 
 from __future__ import division
-from scipy import floor, sqrt
+from scipy import sqrt
+from numpy import floor
 from scipy.special import factorial
 from numpy import arange
 
