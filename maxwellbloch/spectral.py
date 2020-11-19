@@ -118,10 +118,10 @@ def voigt_two_linear_known(freq_list, decay_rate, thermal_width):
     describes the absorption lineshape for a thermal two-level system.
 
     Args:
-        freq_list: List of frequency detunings from resonance (in 2pi \Gamma).
-        decay_rate: Spontaneous decay rate of the transition (in 2pi \Gamma).
+        freq_list: List of frequency detunings from resonance (in 2pi Gamma).
+        decay_rate: Spontaneous decay rate of the transition (in 2pi Gamma).
         thermal_width: Width of the lineshape in the same units as decay rate 
-            (in 2pi \Gamma).
+            (in 2pi Gamma).
 
     Notes:
         See my thesis section 2.5.6 for more information.
