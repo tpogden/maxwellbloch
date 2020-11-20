@@ -32,58 +32,56 @@ class MBSolve(ob_solve.OBSolve):
         self.init_states_zt()
 
     def __repr__(self):
-        """ TODO: needs interaction strengths """
-
-        return ("MBSolve(atom={0}, " +
-                "t_min={1}, " +
-                "t_max={2}, " +
-                "t_steps={3}, " +
-                "method={4}, " +
-                "z_min={5}, " +
-                "z_max={6}, " +
-                "z_steps={7}, " +
-                "z_steps_inner={8}, " +
-                "num_density_z_func={9}, " +
-                "num_density_z_args={10}, " +
-                "velocity_classes={11}, " +
-                "opts={12}, " +
-                "savefile={13})").format(self.atom,
-                                         self.t_min,
-                                         self.t_max,
-                                         self.t_steps,
-                                         self.method,
-                                         self.z_min,
-                                         self.z_max,
-                                         self.z_steps,
-                                         self.z_steps_inner,
-                                         self.num_density_z_func,
-                                         self.num_density_z_args,
-                                         self.velocity_classes,
-                                         self.opts,
-                                         self.savefile)
+        return (f"MBSolve(atom={self.atom}, " +
+                f"t_min={self.t_min}, " +
+                f"t_max={self.t_max}, " +
+                f"t_steps={self.t_steps}, " +
+                f"method={self.method}, " +
+                f"z_min={self.z_min}, " +
+                f"z_max={self.z_max}, " +
+                f"z_steps={self.z_steps}, " +
+                f"z_steps_inner={self.z_steps_inner}, " +
+                f"num_density_z_func={self.num_density_z_func}, " +
+                f"num_density_z_args={self.num_density_z_args}, " +
+                f"interaction_strengths={self.interaction_strengths}, " +
+                f"velocity_classes={self.velocity_classes}, " +
+                f"opts={self.opts}, " +
+                f"savefile={self.savefile})")
 
     def build_zlist(self, z_min, z_max, z_steps, z_steps_inner):
+        """ Builds the space grid.
 
+        Args:
+            z_min: The front of the medium, in your chosen length unit.
+            z_max: The back of the medium.
+            z_steps: The number of even-spaced steps on which to solve and 
+                record the solution.
+            z_steps_inner: Between each z_step, make this many inner steps of
+                the finite-difference solver (for numerical stability).
+
+        Notes:
+            - If the problem requires a lot of space steps for stability, but 
+                you don't need to record the solution at such a high-level of 
+                resolution, increase z_steps_inner.
+        """
         self.z_min = z_min
         self.z_max = z_max
         self.z_steps = z_steps
         self.z_steps_inner = z_steps_inner
-
         self.zlist = np.linspace(z_min, z_max, z_steps+1)
-
         return self.zlist
 
     def z_step(self):
-
+        """ Returns the distance from one space point to the next. """
         return (self.z_max - self.z_min)/self.z_steps
 
     def z_step_inner(self):
-
+        """ Returns the distance from one inner space point to the next. """
         return self.z_step()/self.z_steps_inner
 
     def build_velocity_classes(self, velocity_classes={}):
-        """ Build the velocity class structure from dict. """
-        # TODO: break this up, too big 
+        """ Builds the velocity class structure from a dict. """
+        # TODO: break this up, too big.
         # TODO: If there are no vel classes, the weight for thermal width of 1
         # is ~ 0.57, should be a single weight of 1. Actually should not matter
         # as for a single value, np.average weights will be ignored
@@ -143,7 +141,7 @@ class MBSolve(ob_solve.OBSolve):
 
     def build_number_density(self, interaction_strengths, 
         num_density_z_func=None, num_density_z_args=None):
-        """ Build the number density function and interaction strengths.
+        """ Builds the number density function and interaction strengths.
 
         Args:
             interaction_strengths: A list of interaction strengths, `g`. These
@@ -177,34 +175,30 @@ class MBSolve(ob_solve.OBSolve):
             self.num_density_z_args = {'on_0': 0.0, 'off_0': 1.0, 'ampl_0':1.0}
 
     def check(self):
-        """Validates the MBSolve object."""
+        """ Validates the MBSolve object."""
         if len(self.interaction_strengths) != len(self.atom.fields):
             raise ValueError('The number of interaction_strengths must match '
                 'the number of fields.')
         return True
 
     def init_Omegas_zt(self):
-
+        """ Inits the Rabi frequency array. """
         self.Omegas_zt = np.zeros((len(self.atom.fields), len(self.zlist),
                                    len(self.tlist)), dtype=np.complex)
-
         ### Set the initial Omegas to the field time func values
         for f_i, f in enumerate(self.atom.fields):
             self.Omegas_zt[f_i][0] = 2.0*np.pi*f.rabi_freq* \
                 f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
-
         return self.Omegas_zt
 
     def init_states_zt(self):
-
+        """ Inits the system density matrices. """
         # TODO: Change states_zt to state_zt. Omegas refers to the fact that
         # there are multiple fields.
-
         self.states_zt = np.zeros((len(self.zlist), len(self.tlist),
                                    self.atom.num_states,
                                    self.atom.num_states),
                                   dtype=np.complex)
-
         return self.states_zt
 
     # TODO(#96) Should we be able to pass in opts here?
@@ -464,49 +458,59 @@ class MBSolve(ob_solve.OBSolve):
         return thermal_states_t
 
     def save_results(self):
-
+        """ Saves the solution to a QuTiP pickle file.
+        
+        Notes:
+            - The path to which the results will be saved is taken from
+                self.savefile.
+        """
         # Only save the file if we have a place to save it.
         if self.savefile:
             print('Saving MBSolve to', self.savefile+'.qu')
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
     def load_results(self):
-
+        """ Loads the solution from a QuTiP pickle file. 
+        
+        Notes:
+            - The path from which the results will be loaded is taken from
+                self.savefile.
+        """
         self.Omegas_zt, self.states_zt = qu.qload(self.savefile)
 
     def fields_area(self):
-        """ Get the integrated pulse area of each field.
+        """ Gets the integrated pulse area of each field.
 
         Returns:
             np.array [num_fields, num_z_steps]: Integrated area of each field
             over time
         """
-
         return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
 
     def populations(self, levels):
-        """ Get the sum of populations in a list of levels. 
+        """ Gets the sum of populations in a list of levels. 
             
-            Args:
-                levels: a list of level indexes
-            Returns:
-                np.array, shape (z_steps+1, t_steps+1), dtype=np.real
-        """
+        Args:
+            levels: a list of level indexes]
 
+        Returns:
+            np.array, shape (z_steps+1, t_steps+1), dtype=np.real
+        """
         return np.abs(np.sum(self.states_zt[:, :, levels, levels], axis=2))
 
     def populations_field(self, field_idx, upper=True):
-        """ Get the sum of populations for the upper (excited) level coupled by
+        """ Gets the sum of populations for the upper (excited) level coupled by
             a field.
 
-            Args:
-                field_idx: index in the list of fields
-            Returns:
-                np.array, shape (z_steps+1, t_steps+1), dtype=np.real 
-            Note: 
-                - Casting upper to int so upper is 1, lower is 0.
+        Args:
+            field_idx: index in the list of fields
+        
+        Returns:
+            np.array, shape (z_steps+1, t_steps+1), dtype=np.real 
+        
+        Note: 
+            - Casting upper to int so upper is 1, lower is 0.
         """
-
         # TODO: This is also used in H_Delta. Really, lower_levels and 
         # upper_levels could be methods of Field.
         upper_levels = list(set(c[int(upper)] for c in 
@@ -514,17 +518,16 @@ class MBSolve(ob_solve.OBSolve):
         return self.populations(upper_levels)
         
     def coherences(self, coupled_levels):
-        """ Get the sum of coherences (off-diagonals) in a list of coupled 
+        """ Gets the sum of coherences (off-diagonals) in a list of coupled 
             level pairs. 
 
-            Args:
-                coupled_levels: a list of pairs of level indexes
-            Returns:
-                np.array, shape (z_steps+1, t_steps+1), dtype=np.complex    
+        Args:
+            coupled_levels: a list of pairs of level indexes
+        Returns:
+            np.array, shape (z_steps+1, t_steps+1), dtype=np.complex    
         
-            #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
-            #   what to do about this!
-        
+        #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
+        #   what to do about this!
         """
 
         sum_coh = np.zeros(self.states_zt.shape[:2], dtype=np.complex)
@@ -541,7 +544,6 @@ class MBSolve(ob_solve.OBSolve):
             Returns:
                 np.array, shape (z_steps+1, t_steps+1), dtype=np.complex 
         """ 
-
         return self.coherences(self.atom.fields[field_idx].coupled_levels)
 
 ### Helper Functions
