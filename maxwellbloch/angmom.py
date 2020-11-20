@@ -1,7 +1,8 @@
 """ Angular momentum module. """
 
 from __future__ import division
-from scipy import floor, sqrt
+from scipy import sqrt
+from numpy import floor
 from scipy.special import factorial
 from numpy import arange
 
@@ -39,9 +40,9 @@ def wigner_3j(j1, j2, j3, m1, m2, m3):
     """ Compute the Wigner 3j factor using the Racah formula.
 
     Args:
-        / j1 j2 j3 \
-        |          |
-        \ m1 m2 m3 /
+        ( j1 j2 j3 )
+        (          )
+        ( m1 m2 m3 )
 
     """
 
@@ -117,9 +118,9 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
     """ Compute the Wigner 6j factor using the Racah formula.
 
     Args:
-        / j1 j2 j3 \
+        ( j1 j2 j3 )
         <          >
-        \ J1 J2 J3 /
+        ( J1 J2 J3 )
 
     Note:
         https://en.wikipedia.org/wiki/Racah_W-coefficient
