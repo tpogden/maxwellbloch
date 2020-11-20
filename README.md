@@ -30,7 +30,7 @@ I recommend using Conda environments.
 You can create and activate an environment named `mb` with all the required
 dependencies for MaxwellBloch with
 ```sh
-conda create --name mb python=3 numpy=1 scipy=1 qutip=4
+conda create --name mb -c conda-forge python=3 numpy=1 scipy=1 qutip=4
 conda activate mb
 ```
 The MaxwellBloch package can then be installed from
