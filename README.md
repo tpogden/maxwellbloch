@@ -1,6 +1,6 @@
 # MaxwellBloch
 
-[![Build Status](https://travis-ci.org/tpogden/maxwellbloch.svg?branch=master)](https://travis-ci.org/tpogden/maxwellbloch)
+[![Build Status](https://github.com/tpogden/maxwellbloch/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/tpogden/maxwellbloch/actions/workflows/python-package-conda.yml)
 [![Documentation Status](https://readthedocs.org/projects/maxwellbloch/badge/?version=latest)](https://maxwellbloch.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/tpogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tpogden/maxwellbloch?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/maxwellbloch)](https://pypi.org/project/MaxwellBloch/)
@@ -41,6 +41,23 @@ pip install maxwellbloch
 ```
 
 More detailed installation instructions can be found in the [docs][docs] along with many example problems.
+
+## Attribution
+
+If you use MaxwellBloch for research, please use the following citation:
+```
+@misc{ogden2020maxwellbloch,
+  author = {Ogden, Thomas P.},
+  title = {{MaxwellBloch}: a Python package for solving the coupled 
+    Maxwell-Bloch equations describing the nonlinear propagation of 
+    near-resonant light through thermal quantised systems such as atomic 
+    vapors.},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/tpogden/maxwellbloch}}
+}
+```
 
 ## Changelog
 
