@@ -35,9 +35,15 @@ uv run sphinx-build docs docs/_build -b html
 
 # Build distribution
 uv build
+
+# Release — bump version, commit, tag, then push to trigger CI publish
+uv run bump-my-version bump patch   # bug fixes
+uv run bump-my-version bump minor   # new features, backwards-compatible
+uv run bump-my-version bump major   # breaking changes
+git push && git push --tags
 ```
 
-Make targets: `test`, `test_cov`, `lint`, `format`, `format_check`, `docs_html`, `dist`, `clean_qu` (removes cached `.qu` files).
+Make targets: `test`, `test_cov`, `lint`, `format`, `format_check`, `docs_html`, `dist`, `bump_patch`, `bump_minor`, `bump_major`, `clean_qu` (removes cached `.qu` files).
 
 ## Architecture
 

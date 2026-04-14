@@ -31,13 +31,17 @@ dist:
 
 .PHONY: dist
 
-# Deploy ----------------------------------------------------------------------
+# Release (bump version, commit, tag — then push to trigger CI publish) ------
+# Usage: make bump_patch / bump_minor / bump_major
 
-deploy_pypi_test: clean_dist dist
-	uv run twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+bump_patch:
+	uv run bump-my-version bump patch
 
-deploy_pypi_prod: clean_dist dist
-	uv run twine upload dist/*
+bump_minor:
+	uv run bump-my-version bump minor
+
+bump_major:
+	uv run bump-my-version bump major
 
 # All -------------------------------------------------------------------------
 

@@ -26,9 +26,21 @@ docs = [
     "sphinx_rtd_theme",
     "recommonmark",
 ]
-dev = ["maxwellbloch[test,docs]", "ruff", "twine"]
+dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
 
 [tool.setuptools-scm]
+
+[tool.bumpversion]
+current_version = "0.7.1"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+commit_args = "--no-verify"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'current_version = "{current_version}"'
+replace = 'current_version = "{new_version}"'
 
 [tool.setuptools.packages.find]
 where = ["."]
