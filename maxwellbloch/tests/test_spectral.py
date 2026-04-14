@@ -14,11 +14,11 @@ from maxwellbloch import mb_solve, spectral, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
-JSON_DIR = os.path.abspath(os.path.join(__file__, '../', 'json'))
+JSON_DIR = os.path.abspath(os.path.join(__file__, "../", "json"))
+
 
 class TestSpectral(unittest.TestCase):
-    """ Unit tests of the spectral methods.
-    """
+    """Unit tests of the spectral methods."""
 
     def test_two_spectral(self):
 
@@ -27,10 +27,10 @@ class TestSpectral(unittest.TestCase):
         mbs.mbsolve()
 
         # We're not asserting anything about these calls, apart from that they
-        # run without exception. 
+        # run without exception.
         freq_list = spectral.freq_list(mbs)
-        rabi_freq_fft = spectral.rabi_freq(mbs, 0)
-        dis = spectral.dispersion(mbs, 0, -1)
+        spectral.rabi_freq(mbs, 0)
+        spectral.dispersion(mbs, 0, -1)
 
         abs = spectral.absorption(mbs, 0, -1)
         hm, r1, r2 = utility.half_max_roots(freq_list, abs)
@@ -42,7 +42,8 @@ class TestSpectral(unittest.TestCase):
         self.assertAlmostEqual(r2, 0.5, places=3)
 
         abs_linear_known = spectral.absorption_two_linear_known(
-            freq_list, mbs.interaction_strengths[0], mbs.atom.decays[0]['rate'])
+            freq_list, mbs.interaction_strengths[0], mbs.atom.decays[0]["rate"]
+        )
 
         # Assert that the max of the abs residuals between the absorption
         # profile and the known absorption profile for linear two-level systems

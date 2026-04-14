@@ -2,6 +2,7 @@
 
 import pytest
 
+
 def run():
     """
     Run all tests with pytest.

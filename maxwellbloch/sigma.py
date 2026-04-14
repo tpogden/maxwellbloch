@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Transition or 'flip' operators for quantum systems.
+"""Transition or 'flip' operators for quantum systems.
 
 Thomas Ogden <t@ogden.eu>
 """
@@ -8,8 +8,9 @@ Thomas Ogden <t@ogden.eu>
 import numpy as np
 import qutip as qu
 
+
 def sigma(n, a, b):
-    """ Returns a transition or 'flip' operator.
+    """Returns a transition or 'flip' operator.
 
     Returns the flip operator between states |a> and |b>, given by |a><b|, for
     a system with n states.
@@ -33,7 +34,7 @@ def sigma(n, a, b):
 
 
 def sigma_N(n, a, b, i, N):
-    """ Returns the transition or 'flip' operator for a product system.
+    """Returns the transition or 'flip' operator for a product system.
 
     Returns the flip operator between states |a> and |b> on the ith substate,
     given by |a><b|_i, for a system with n states and N subsystems. This

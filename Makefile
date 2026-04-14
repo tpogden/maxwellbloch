@@ -3,30 +3,41 @@
 # Tests -----------------------------------------------------------------------
 
 test:
-	pytest -n auto
+	uv run pytest -n auto
 
 test_cov:
-	pytest --cov -n auto
+	uv run pytest --cov -n auto
+
+# Lint / Format ---------------------------------------------------------------
+
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff format .
+
+format_check:
+	uv run ruff format --check .
 
 # Docs ------------------------------------------------------------------------
 
 docs_html:
-	sphinx-build docs docs/_build -b html
+	uv run sphinx-build docs docs/_build -b html
 
 # Dist ------------------------------------------------------------------------
 
 dist:
-	python setup.py sdist --formats=gztar bdist_wheel
+	uv build
 
 .PHONY: dist
 
 # Deploy ----------------------------------------------------------------------
 
 deploy_pypi_test: clean_dist dist
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	uv run twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 deploy_pypi_prod: clean_dist dist
-	twine upload dist/*
+	uv run twine upload dist/*
 
 # All -------------------------------------------------------------------------
 

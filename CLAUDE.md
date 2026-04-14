@@ -9,26 +9,35 @@ MaxwellBloch is a Python package for numerically solving the coupled Maxwell-Blo
 ## Commands
 
 ```bash
+# Create/sync environment (first time or after dependency changes)
+uv sync --extra dev
+
 # Run all tests in parallel
-pytest -n auto
+uv run pytest -n auto
 
 # Run a single test file
-pytest maxwellbloch/tests/test_mb_solve.py
+uv run pytest maxwellbloch/tests/test_mb_solve.py
 
 # Run a single test
-pytest maxwellbloch/tests/test_mb_solve.py::TestClassName::test_method_name
+uv run pytest maxwellbloch/tests/test_mb_solve.py::TestClassName::test_method_name
 
 # Run with coverage
-pytest --cov -n auto
+uv run pytest --cov -n auto
+
+# Lint
+uv run ruff check .
+
+# Format
+uv run ruff format .
 
 # Build docs
-sphinx-build docs docs/_build -b html
+uv run sphinx-build docs docs/_build -b html
 
 # Build distribution
-python setup.py sdist --formats=gztar bdist_wheel
+uv build
 ```
 
-Make targets: `test`, `test_cov`, `docs_html`, `dist`, `clean_qu` (removes cached `.qu` files).
+Make targets: `test`, `test_cov`, `lint`, `format`, `format_check`, `docs_html`, `dist`, `clean_qu` (removes cached `.qu` files).
 
 ## Architecture
 
@@ -65,4 +74,6 @@ Solved results are pickled by QuTiP into `.qu` files next to the script. Use `ma
 
 ## Environment
 
-Use the conda environment defined in `environment.yml`. Core runtime dependencies are QuTiP, NumPy, and SciPy. The package installs CLI entry points: `mbsolve` and `obsolve`.
+The primary workflow uses **uv** (see `pyproject.toml`). Run `uv sync --extra dev` to create the virtual environment and install all dependencies. Core runtime dependencies are QuTiP, NumPy, and SciPy. The package installs CLI entry points: `mbsolve` and `obsolve`.
+
+An `environment.yml` is also kept as a conda fallback.
