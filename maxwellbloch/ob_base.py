@@ -7,6 +7,10 @@ from maxwellbloch import sigma
 import numpy as np
 import qutip as qu
 
+# QuTiP 5 changed the default coefficient function style to 'pythonic'
+# (f(t, **kwargs)). This codebase uses the QuTiP 4 'dict' style (f(t, args)).
+qu.settings.core['function_coefficient_style'] = 'dict'
+
 
 class OBBase(object):
     """ TODO: Desc here. Parent class.
@@ -40,7 +44,7 @@ class OBBase(object):
         self.H_Delta = qu.Qobj()
         self.H_Omega_list = [qu.Qobj()]
 
-        self.result = qu.solver.Result()
+        self.result = None
 
     def sigma(self, a, b):
         """ The transition or 'flip' operator between states |a> and |b>, given
@@ -131,13 +135,13 @@ class OBBase(object):
         # No collapse operators, so states is a list of state vectors
         if len(self.c_ops) == 0:
             states_t = np.zeros((len(self.result.times), self.num_states, 1),
-                                dtype=np.complex)
+                                dtype=complex)
 
         # Collapse operators, so states is a list of density matrices
         else:
             states_t = np.zeros((len(self.result.times),
                                  self.num_states, self.num_states),
-                                dtype=np.complex)
+                                dtype=complex)
 
         for t, state_t in enumerate(self.result.states):
             states_t[t] = state_t.full()
@@ -145,7 +149,10 @@ class OBBase(object):
         return states_t
 
     def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={},
-        options=qu.Options(), recalc=True, savefile=None, show_pbar=False):
+        options=None, recalc=True, savefile=None, show_pbar=False):
+
+        if options is None:
+            options = {}
 
         savefile_exists = os.path.isfile(str(savefile) + '.qu')
 
@@ -161,14 +168,12 @@ class OBBase(object):
                 H = self.H_0 + self.H_Delta + self.H_I_sum()
 
             if show_pbar:
-                pbar = qu.ui.progressbar.TextProgressBar()
-            else:
-                pbar = qu.ui.progressbar.BaseProgressBar()
+                options = dict(options)  # don't mutate caller's dict
+                options['progress_bar'] = 'text'
 
             self.result = qu.mesolve(H, rho0, tlist,
                                      self.c_ops, e_ops,
-                                     args=args, options=options,
-                                     progress_bar=pbar)
+                                     args=args, options=options)
 
             self.rho = self.result.states[-1]  #  Set rho to the final state.
 

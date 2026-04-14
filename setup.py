@@ -45,7 +45,7 @@ def version():
     if git_tag():
         version = git_tag()
     elif git_short_hash():
-        version = git_short_hash()
+        version = "0.0.0" #git_short_hash()
     else:
         version = "no_version"
     return version

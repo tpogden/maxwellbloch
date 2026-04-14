@@ -11,6 +11,7 @@ Thomas Ogden <t@ogden.eu>
 
 import sys
 
+import numpy as np
 from numpy import exp, log, sqrt, pi
 from numpy import sinc as npsinc
 from scipy.interpolate import interp1d
@@ -187,7 +188,11 @@ def intp(index):
         tlist = args['tlist_' + str(index)]
         ylist = args['ylist_' + str(index)]
         yintp = interp1d(tlist, ylist, bounds_error=False, fill_value=0.0)
-        return yintp(t)
+        result = yintp(t)
+        # QuTiP 5 requires a Python scalar (not a 0-d ndarray) when called
+        # with scalar t. When called with array t (e.g. init_Omegas_zt),
+        # return the array as-is.
+        return complex(result) if np.ndim(result) == 0 else result
 
     func.__name__ = 'intp_' + str(index)
     return func

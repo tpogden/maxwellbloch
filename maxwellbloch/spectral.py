@@ -34,7 +34,7 @@ def rabi_freq(mb_solve, field_idx):
 
     rabi_freq_zt = mb_solve.Omegas_zt[field_idx]
 
-    rabi_freq_fft = np.zeros(rabi_freq_zt.shape, dtype=np.complex)
+    rabi_freq_fft = np.zeros(rabi_freq_zt.shape, dtype=complex)
 
     # TODO: I should be able to do this without the loop by specifying
     # axis?

@@ -79,27 +79,10 @@ class OBSolve(object):
         """
         self.opts = {
                 'atol': 1e-8,
-                'rtol': 1e-6, 
+                'rtol': 1e-6,
                 'method': 'adams',
-                'order': 12,
                 'nsteps': 1000,
-                'first_step': 0, 
                 'max_step': self.t_step(),
-                'min_step': 0,
-                # Options below here I do not think will be useful, they are
-                # mostly for the MC solver. But they may be set.
-                # 'average_expect': True, # What is this
-                # 'average_states': False, 
-                # 'tidy': True,
-                # 'rhs_reuse': False,
-                # 'rhs_filename': None,
-                # 'rhs_with_state': False,
-                # 'store_final_state': False,
-                # 'store_states': False,
-                # 'steady_state_average': False, 
-                # 'normalize_output':True, 
-                # 'use_openmp': None
-                # 'openmp_threads': None
         }
         if opts:
             self.opts.update(opts) # Update any specified in the parameter
@@ -143,7 +126,7 @@ class OBSolve(object):
         # Choosing to overwrite opts at the solve stage.
         if opts:
             self.build_opts(opts)
-        options = qu.Options(**self.opts)
+        options = self.opts
 
         if self.method == 'mesolve':
             self.atom.mesolve(self.tlist, e_ops=e_ops, options=options, 

@@ -217,8 +217,8 @@ class TestBuildHDelta(unittest.TestCase):
 
         H_Delta_test = qu.Qobj(np.zeros([oba.num_states, oba.num_states]))
 
-        np.testing.assert_array_almost_equal(oba.H_Delta.data.toarray(), 
-            H_Delta_test.data.toarray())
+        np.testing.assert_array_almost_equal(oba.H_Delta.full(), 
+            H_Delta_test.full())
 
     def test_two_level_detuning(self):
 
@@ -228,8 +228,8 @@ class TestBuildHDelta(unittest.TestCase):
 
         H_Delta_test = qu.Qobj([[0., 0.], [0., -2*np.pi*DETUNING]])
 
-        np.testing.assert_array_almost_equal(oba.H_Delta.data.toarray(), 
-            H_Delta_test.data.toarray())
+        np.testing.assert_array_almost_equal(oba.H_Delta.full(), 
+            H_Delta_test.full())
 
     def test_two_level_detuning_positive(self):
 
@@ -240,8 +240,8 @@ class TestBuildHDelta(unittest.TestCase):
 
         H_Delta_test = qu.Qobj([[0., 0.], [0., 2*np.pi*DETUNING]])
 
-        np.testing.assert_array_almost_equal(oba.H_Delta.data.toarray(), 
-            H_Delta_test.data.toarray())
+        np.testing.assert_array_almost_equal(oba.H_Delta.full(), 
+            H_Delta_test.full())
 
     def test_single_field_multiple_upper_levels(self):
 
@@ -251,8 +251,8 @@ class TestBuildHDelta(unittest.TestCase):
 
         H_Delta_test = -2*np.pi*DETUNING*oba.sigma(2, 2)
 
-        np.testing.assert_array_almost_equal(oba.H_Delta.data.toarray(), 
-            H_Delta_test.data.toarray())        
+        np.testing.assert_array_almost_equal(oba.H_Delta.full(), 
+            H_Delta_test.full())        
 
     # TODO Tests:
     # three-level (different configurations)

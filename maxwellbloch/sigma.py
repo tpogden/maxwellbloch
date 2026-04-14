@@ -5,6 +5,7 @@
 Thomas Ogden <t@ogden.eu>
 """
 
+import numpy as np
 import qutip as qu
 
 def sigma(n, a, b):
@@ -26,7 +27,9 @@ def sigma(n, a, b):
         |a><b|
     """
 
-    return qu.basis(n, a) * qu.basis(n, b).dag()
+    m = np.zeros((n, n), dtype=complex)
+    m[a, b] = 1.0
+    return qu.Qobj(m)
 
 
 def sigma_N(n, a, b, i, N):

@@ -8,6 +8,15 @@ import qutip as qu
 
 from maxwellbloch import ob_solve, t_funcs
 
+
+def _print_progress(j, total, chunk_size):
+    """Print a progress update every chunk_size percent of total steps."""
+    if chunk_size > 0 and total > 0:
+        interval = max(1, total * chunk_size // 100)
+        if j % interval == 0:
+            pct = 100 * j // total
+            print(f'  z-step {j}/{total} ({pct}%)', flush=True)
+
 class MBSolve(ob_solve.OBSolve):
 
     def __init__(self, atom={}, t_min=0.0, t_max=1.0, t_steps=100,
@@ -184,7 +193,7 @@ class MBSolve(ob_solve.OBSolve):
     def init_Omegas_zt(self):
         """ Inits the Rabi frequency array. """
         self.Omegas_zt = np.zeros((len(self.atom.fields), len(self.zlist),
-                                   len(self.tlist)), dtype=np.complex)
+                                   len(self.tlist)), dtype=complex)
         ### Set the initial Omegas to the field time func values
         for f_i, f in enumerate(self.atom.fields):
             self.Omegas_zt[f_i][0] = 2.0*np.pi*f.rabi_freq* \
@@ -198,7 +207,7 @@ class MBSolve(ob_solve.OBSolve):
         self.states_zt = np.zeros((len(self.zlist), len(self.tlist),
                                    self.atom.num_states,
                                    self.atom.num_states),
-                                  dtype=np.complex)
+                                  dtype=complex)
         return self.states_zt
 
     # TODO(#96) Should we be able to pass in opts here?
@@ -255,10 +264,8 @@ class MBSolve(ob_solve.OBSolve):
             # NOTE: This means the first z gets ob solved twice.
             # Can I avoid?
     ### All Steps:
-        pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
-                                     chunk_size=pbar_chunk_size)
         for j, z in enumerate(self.zlist[:-1]):
-            pbar.update(j)
+            _print_progress(j, self.z_steps, pbar_chunk_size)
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z
@@ -284,7 +291,6 @@ class MBSolve(ob_solve.OBSolve):
             # and states at the next outer space step and continue.
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
-        pbar.finished()
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
@@ -326,10 +332,8 @@ class MBSolve(ob_solve.OBSolve):
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = Omegas_z_next
     ### Remaining steps, Adams-Bashforth
-        pbar = qu.ui.TextProgressBar(iterations=self.z_steps,
-            chunk_size=pbar_chunk_size)
         for j, z in enumerate(self.zlist[1:-1], start=1):
-            pbar.update(j)
+            _print_progress(j, self.z_steps, pbar_chunk_size)
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z
@@ -356,7 +360,6 @@ class MBSolve(ob_solve.OBSolve):
             # and states at the next outer space step and continue.
             self.states_zt[j+1, :] = self.states_t()
             self.Omegas_zt[:, j+1, :] = Omegas_z_next
-        pbar.finished()
         return self.Omegas_zt, self.states_zt
 
     def z_step_fields_euler(self, z_this, z_next, Omegas_z_this, sum_coh_this):
@@ -366,13 +369,13 @@ class MBSolve(ob_solve.OBSolve):
             Args:
                 z_this: The current space point
                 z_next: the next space point
-                Omegas_z_this: np.complex[num_t_steps]
+                Omegas_z_this: complex[num_t_steps]
                     The field rabi frequencies at z_step.
         """
         h = z_next - z_this
         N = self.num_density_z_func(z_next, self.num_density_z_args)
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
-            dtype=np.complex)
+            dtype=complex)
         for f_i, f in enumerate(self.atom.fields):
             dOmega_f_dz = 1.0j*N*self.g[f_i]*sum_coh_this[f_i]
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h*dOmega_f_dz
@@ -387,13 +390,13 @@ class MBSolve(ob_solve.OBSolve):
                 z_prev: The previous space point
                 z_this: The current space point
                 z_next: the next space point
-                Omegas_z_this: np.complex[num_t_steps]
+                Omegas_z_this: complex[num_t_steps]
                     The field rabi frequencies at z_step.
         """
         h = z_next - z_this # Assumes same step size
         N = self.num_density_z_func(z_next, self.num_density_z_args)
         Omegas_z_next = np.zeros((len(self.atom.fields), len(self.tlist)),
-            dtype=np.complex)
+            dtype=complex)
         for f_i, f in enumerate(self.atom.fields):
             sum_coh_this_f = sum_coh_this[f_i]
             sum_coh_prev_f = sum_coh_prev[f_i]
@@ -440,7 +443,7 @@ class MBSolve(ob_solve.OBSolve):
         """ 
         states_t_Delta = np.zeros((len(self.thermal_delta_list),
                                    len(self.tlist), self.atom.num_states,
-                                   self.atom.num_states), dtype=np.complex)
+                                   self.atom.num_states), dtype=complex)
         # The set detunings, without any thermal shifting
         fixed_detunings = self.atom.get_detunings()
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
@@ -485,7 +488,7 @@ class MBSolve(ob_solve.OBSolve):
             np.array [num_fields, num_z_steps]: Integrated area of each field
             over time
         """
-        return np.trapz(np.real(self.Omegas_zt), self.tlist, axis=2)
+        return np.trapezoid(np.real(self.Omegas_zt), self.tlist, axis=2)
 
     def populations(self, levels):
         """ Gets the sum of populations in a list of levels. 
@@ -524,13 +527,13 @@ class MBSolve(ob_solve.OBSolve):
         Args:
             coupled_levels: a list of pairs of level indexes
         Returns:
-            np.array, shape (z_steps+1, t_steps+1), dtype=np.complex    
+            np.array, shape (z_steps+1, t_steps+1), dtype=complex    
         
         #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
         #   what to do about this!
         """
 
-        sum_coh = np.zeros(self.states_zt.shape[:2], dtype=np.complex)
+        sum_coh = np.zeros(self.states_zt.shape[:2], dtype=complex)
         for cl in coupled_levels:
             sum_coh += self.states_zt[:,:,cl[0], cl[1]]
         return sum_coh
@@ -542,7 +545,7 @@ class MBSolve(ob_solve.OBSolve):
             Args:
                 field_idx: index in the list of fields
             Returns:
-                np.array, shape (z_steps+1, t_steps+1), dtype=np.complex 
+                np.array, shape (z_steps+1, t_steps+1), dtype=complex 
         """ 
         return self.coherences(self.atom.fields[field_idx].coupled_levels)
 

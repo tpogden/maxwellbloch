@@ -5,7 +5,7 @@
 """
 
 import numpy as np
-from scipy import interpolate
+from scipy.interpolate import RegularGridInterpolator
 
 def t_list(mb_solve, speed_of_light):
     """ Return the time points shifted to the fixed (lab) frame of
@@ -48,15 +48,17 @@ def rabi_freq(mb_solve, field_idx, speed_of_light, part='real',
     else:
         raise ValueError('Invalid part. Try "abs" or "real"')
 
-    rabi_freq_intp = interpolate.interp2d(mb_solve.tlist, mb_solve.zlist,
-        rabi_freq_zt, bounds_error=False, fill_value=0., kind=interp_kind)
+    rabi_freq_intp = RegularGridInterpolator(
+        (mb_solve.zlist, mb_solve.tlist), rabi_freq_zt,
+        method=interp_kind, bounds_error=False, fill_value=0.)
 
     rabi_freq_fixed = np.zeros(mb_solve.Omegas_zt[field_idx].shape,
-        dtype=np.float)
+        dtype=float)
 
     for i, z_i in enumerate(mb_solve.zlist):
-        rabi_freq_fixed[i] = rabi_freq_intp(t_list(mb_solve, speed_of_light) -
-            z_i / speed_of_light, z_i)
+        t_shifted = t_list(mb_solve, speed_of_light) - z_i / speed_of_light
+        pts = np.column_stack([np.full(len(t_shifted), z_i), t_shifted])
+        rabi_freq_fixed[i] = rabi_freq_intp(pts)
 
     return rabi_freq_fixed
 

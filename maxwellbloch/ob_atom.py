@@ -261,15 +261,18 @@ class OBAtom(ob_base.OBBase):
         """
         if states_t is None:
             states_t = self.states_t()
-        sum_coh = np.zeros((len(self.fields), len(states_t)), dtype=np.complex)
+        sum_coh = np.zeros((len(self.fields), len(states_t)), dtype=complex)
         for f_i, f in enumerate(self.fields):
             for cl_i, cl in enumerate(f.coupled_levels):
                 sum_coh[f_i, :] += (f.factors[cl_i]**2*
                     states_t[:, cl[0], cl[1]])
         return sum_coh
 
-    def mesolve(self, tlist, e_ops=[], options=qu.Options(), recalc=True, 
+    def mesolve(self, tlist, e_ops=[], options=None, recalc=True,
         savefile=None, show_pbar=False):
+
+        if options is None:
+            options = {}
 
         args = self.get_field_args()
 

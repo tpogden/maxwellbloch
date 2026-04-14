@@ -18,7 +18,7 @@ class TestGaussian(unittest.TestCase):
         for n in np.linspace(1.0, 10.0, 10):
             ampl = n*np.sqrt(4.*np.pi*np.log(2)/FWHM**2)/(2*np.pi)  # nπ area
             t_args = {'ampl_1': ampl, 'fwhm_1': FWHM, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
+            area = np.trapezoid(t_func(tlist, t_args), tlist)*2*np.pi
             fwhm_test = utility.full_width_at_half_max(tlist, 
                 t_func(tlist, t_args))
             self.assertAlmostEqual(area, n*np.pi, places=3)
@@ -32,7 +32,7 @@ class TestGaussian(unittest.TestCase):
         t_func = t_funcs.gaussian(1)
         for n_pi in np.linspace(1.0, 10.0, 10):
             t_args = {'n_pi_1': n_pi, 'fwhm_1': FWHM, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
+            area = np.trapezoid(t_func(tlist, t_args), tlist)*2*np.pi
             fwhm_test = utility.full_width_at_half_max(tlist, 
                 t_func(tlist, t_args))
             self.assertAlmostEqual(area, n_pi*np.pi, places=3)
@@ -67,7 +67,7 @@ class TestSech(unittest.TestCase):
         for n in np.linspace(1.0, 10.0, 10):
             ampl = n/width/(2*np.pi) # nπ area
             t_args = {'ampl_1': ampl, 'width_1': width, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
+            area = np.trapezoid(t_func(tlist, t_args), tlist)*2*np.pi
             fwhm_test = utility.full_width_at_half_max(tlist, 
                 t_func(tlist, t_args))
             self.assertAlmostEqual(area, n*np.pi, places=3)
@@ -83,7 +83,7 @@ class TestSech(unittest.TestCase):
         t_func = t_funcs.sech(1)
         for n in np.linspace(1.0, 10.0, 10):
             t_args = {'n_pi_1': n, 'width_1': width, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
+            area = np.trapezoid(t_func(tlist, t_args), tlist)*2*np.pi
             fwhm_test = utility.full_width_at_half_max(tlist, 
                 t_func(tlist, t_args))
             self.assertAlmostEqual(area, n*np.pi, places=3)
@@ -97,7 +97,7 @@ class TestSech(unittest.TestCase):
         FWHM = 0.1
         for n in np.linspace(1.0, 10.0, 10):
             t_args = {'n_pi_1': n, 'fwhm_1': FWHM, 'centre_1': 0.5}
-            area = np.trapz(t_func(tlist, t_args), tlist)*2*np.pi
+            area = np.trapezoid(t_func(tlist, t_args), tlist)*2*np.pi
             fwhm_test = utility.full_width_at_half_max(tlist, 
                 t_func(tlist, t_args))
             self.assertAlmostEqual(area, n*np.pi, places=3)
