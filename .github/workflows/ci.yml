@@ -14,7 +14,7 @@ jobs:
         run: uv sync --extra test
       - name: Lint with ruff
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
+          uvx ruff check .
+          uvx ruff format --check .
       - name: Test with pytest
         run: uv run pytest -n auto
