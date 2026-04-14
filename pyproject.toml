@@ -31,7 +31,7 @@ dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
 [tool.setuptools-scm]
 
 [tool.bumpversion]
-current_version = "0.7.1"
+current_version = "0.8.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
