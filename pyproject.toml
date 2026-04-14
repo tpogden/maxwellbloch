@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools-scm"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "MaxwellBloch"
-dynamic = ["version"]
+version = "0.8.0"
 description = "A Python package for solving the Maxwell-Bloch equations."
 readme = "README.md"
 license = { text = "MIT" }
@@ -28,8 +28,6 @@ docs = [
 ]
 dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
 
-[tool.setuptools-scm]
-
 [tool.bumpversion]
 current_version = "0.8.0"
 commit = true
@@ -41,6 +39,11 @@ commit_args = "--no-verify"
 filename = "pyproject.toml"
 search = 'current_version = "{current_version}"'
 replace = 'current_version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
 
 [tool.setuptools.packages.find]
 where = ["."]

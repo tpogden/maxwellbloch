@@ -1878,6 +1878,7 @@ wheels = [
 
 [[package]]
 name = "maxwellbloch"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "qutip" },
@@ -1923,7 +1924,7 @@ requires-dist = [
     { name = "bump-my-version", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'docs'" },
     { name = "matplotlib", marker = "extra == 'docs'" },
-    { name = "maxwellbloch", extras = ["docs", "test"], marker = "extra == 'dev'" },
+    { name = "maxwellbloch", extras = ["test", "docs"], marker = "extra == 'dev'" },
     { name = "nbsphinx", marker = "extra == 'docs'" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
     { name = "pytest-cov", marker = "extra == 'test'" },
