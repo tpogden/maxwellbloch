@@ -3,30 +3,45 @@
 # Tests -----------------------------------------------------------------------
 
 test:
-	pytest -n auto
+	uv run pytest -n auto
 
 test_cov:
-	pytest --cov -n auto
+	uv run pytest --cov -n auto
+
+# Lint / Format ---------------------------------------------------------------
+
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff format .
+
+format_check:
+	uv run ruff format --check .
 
 # Docs ------------------------------------------------------------------------
 
 docs_html:
-	sphinx-build docs docs/_build -b html
+	uv run sphinx-build docs docs/_build -b html
 
 # Dist ------------------------------------------------------------------------
 
 dist:
-	python setup.py sdist --formats=gztar bdist_wheel
+	uv build
 
 .PHONY: dist
 
-# Deploy ----------------------------------------------------------------------
+# Release (bump version, commit, tag — then push to trigger CI publish) ------
+# Usage: make bump_patch / bump_minor / bump_major
 
-deploy_pypi_test: clean_dist dist
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+bump_patch:
+	uv run bump-my-version bump patch
 
-deploy_pypi_prod: clean_dist dist
-	twine upload dist/*
+bump_minor:
+	uv run bump-my-version bump minor
+
+bump_major:
+	uv run bump-my-version bump major
 
 # All -------------------------------------------------------------------------
 

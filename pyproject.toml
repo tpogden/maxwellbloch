@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "MaxwellBloch"
+dynamic = ["version"]
+description = "A Python package for solving the Maxwell-Bloch equations."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Thomas P Ogden", email = "t@ogden.eu" }]
+requires-python = ">=3.10"
+dependencies = ["qutip>=5"]
+
+[project.urls]
+Homepage = "https://github.com/tpogden/maxwellbloch"
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-cov", "pytest-xdist"]
+docs = [
+    "sphinx",
+    "nbsphinx",
+    "jupyter",
+    "matplotlib",
+    "seaborn",
+    "sphinx_rtd_theme",
+    "recommonmark",
+]
+dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
+
+[tool.setuptools-scm]
+
+[tool.bumpversion]
+current_version = "0.7.1"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+commit_args = "--no-verify"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'current_version = "{current_version}"'
+replace = 'current_version = "{new_version}"'
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+"maxwellbloch.tests" = ["json/*.json"]
+
+# bin/ scripts are standalone files rather than entry-point callables.
+[tool.setuptools]
+script-files = [
+    "bin/mbsolve",
+    "bin/obsolve",
+    "bin/make-mp4-fixed-frame.py",
+    "bin/make-mp4-fixed-frame-2-fields.py",
+    "bin/make-gif-ffmpeg.sh",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["maxwellbloch/tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = ["docs/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501", # line-too-long — many long docstrings/comments; revisit separately
+]
+
+[tool.ruff.lint.per-file-ignores]
+"maxwellbloch/tests/*" = ["F401"] # unused imports OK in test packages
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

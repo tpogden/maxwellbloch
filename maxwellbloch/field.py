@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import json
+
 from maxwellbloch import t_funcs
 
+
 class Field(object):
-    """ Field object to address the OBAtom object, describing the atomic levels
+    """Field object to address the OBAtom object, describing the atomic levels
     coupled, detuning and Rabi frequency function.
 
     Attributes:
@@ -12,8 +14,8 @@ class Field(object):
         index (int): index of the field, to reference within an OBAtom.
         coupled_levels (list): pairs of levels coupled by the field.
             e.g. [[0,1], [0,2]]
-        factors (list): List of strength factors for each pair in coupled 
-            levels. 
+        factors (list): List of strength factors for each pair in coupled
+            levels.
         detuning (float): detuning of the fields from resonance with the
             coupled_levels transitions.
         detuning_positive (bool): is the detuning positive?
@@ -23,14 +25,23 @@ class Field(object):
         rabi_freq_t_args (dict): arguments to be passed to rabi_freq_t_func.
     """
 
-    def __init__(self, label="", index=0, coupled_levels=[], factors=[], 
-        detuning=0.0, detuning_positive=True, rabi_freq=1.0, 
-        rabi_freq_t_func=None, rabi_freq_t_args={}):
+    def __init__(
+        self,
+        label="",
+        index=0,
+        coupled_levels=[],
+        factors=[],
+        detuning=0.0,
+        detuning_positive=True,
+        rabi_freq=1.0,
+        rabi_freq_t_func=None,
+        rabi_freq_t_args={},
+    ):
 
         self.label = label
         self.index = index
 
-        self.coupled_levels = coupled_levels # TODO should I convert to array?
+        self.coupled_levels = coupled_levels  # TODO should I convert to array?
 
         self.build_factors(factors)
 
@@ -45,41 +56,45 @@ class Field(object):
 
     def __repr__(self):
 
-        return ("Field(label={0}, " +
-                "index={1}, " +
-                "coupled_levels={2}, " +
-                "factors={3}, " +
-                "detuning={4}, " +
-                "detuning_positive={5}, "
-                "rabi_freq={6}, " +
-                "rabi_freq_t_func={7}, " +
-                "rabi_freq_t_args={8})").format(self.label,
-                                                self.index,
-                                                self.coupled_levels,
-                                                self.factors,
-                                                self.detuning,
-                                                self.detuning_positive,
-                                                self.rabi_freq,
-                                                self.rabi_freq_t_func,
-                                                self.rabi_freq_t_args)
+        return (
+            "Field(label={0}, "
+            + "index={1}, "
+            + "coupled_levels={2}, "
+            + "factors={3}, "
+            + "detuning={4}, "
+            + "detuning_positive={5}, "
+            "rabi_freq={6}, " + "rabi_freq_t_func={7}, " + "rabi_freq_t_args={8})"
+        ).format(
+            self.label,
+            self.index,
+            self.coupled_levels,
+            self.factors,
+            self.detuning,
+            self.detuning_positive,
+            self.rabi_freq,
+            self.rabi_freq_t_func,
+            self.rabi_freq_t_args,
+        )
 
     def build_factors(self, factors):
-        """ Builds the factors list.
+        """Builds the factors list.
 
-            Args:
-                factors (list). List of strength factors for each pair in
-                coupled levels. 
-            Returns:
-                self.factors (list)
-            Notes:
-                - There are no checks on what these factors are, or if they 
-                    make any sense.
+        Args:
+            factors (list). List of strength factors for each pair in
+            coupled levels.
+        Returns:
+            self.factors (list)
+        Notes:
+            - There are no checks on what these factors are, or if they
+                make any sense.
         """
         if not factors:
-            factors = [1.0]*len(self.coupled_levels)
-        if (len(factors) != len(self.coupled_levels)):
-            raise ValueError('The length of factors must be the same as the ' 
-                             'length of coupled_levels.')
+            factors = [1.0] * len(self.coupled_levels)
+        if len(factors) != len(self.coupled_levels):
+            raise ValueError(
+                "The length of factors must be the same as the "
+                "length of coupled_levels."
+            )
         else:
             self.factors = factors
         return self.factors
@@ -87,7 +102,6 @@ class Field(object):
     def build_rabi_freq_t_func(self, rabi_freq_t_func, index=0):
 
         if rabi_freq_t_func:
-
             t_func = getattr(t_funcs, rabi_freq_t_func)
             self.rabi_freq_t_func = t_func(index)
 
@@ -103,38 +117,41 @@ class Field(object):
 
         if rabi_freq_t_args:
             for key, value in rabi_freq_t_args.items():
-                self.rabi_freq_t_args[key + '_' + str(index)] = value
-        
+                self.rabi_freq_t_args[key + "_" + str(index)] = value
+
         else:
-            self.rabi_freq_t_args = {'on_' + str(index): 0.0, 
-                                     'off_' + str(index): 1.0,
-                                     'ampl_' + str(index): 1.0}
+            self.rabi_freq_t_args = {
+                "on_" + str(index): 0.0,
+                "off_" + str(index): 1.0,
+                "ampl_" + str(index): 1.0,
+            }
 
         return self.rabi_freq_t_args
 
-
     def get_json_dict(self):
-        """ Return a dict representation of the Field object to be dumped to
-            JSON.
+        """Return a dict representation of the Field object to be dumped to
+        JSON.
 
-            Note:
-                For the rabi_freq_t_func attribute generated with 
-                build_rabi_freq_t_func, a suffix for the index will have been 
-                added. We remove that. e.g. e.g. ramp_onoff_0 -> ramp_onoff
+        Note:
+            For the rabi_freq_t_func attribute generated with
+            build_rabi_freq_t_func, a suffix for the index will have been
+            added. We remove that. e.g. e.g. ramp_onoff_0 -> ramp_onoff
         """
 
-        json_dict = {"label": self.label,
-                     "index": self.index,
-                     "coupled_levels": self.coupled_levels,
-                     "factors": self.factors,
-                     "detuning": self.detuning,
-                     "detuning_positive": self.detuning_positive,
-                     "rabi_freq": self.rabi_freq,
-                     "rabi_freq_t_args": self.rabi_freq_t_args}
+        json_dict = {
+            "label": self.label,
+            "index": self.index,
+            "coupled_levels": self.coupled_levels,
+            "factors": self.factors,
+            "detuning": self.detuning,
+            "detuning_positive": self.detuning_positive,
+            "rabi_freq": self.rabi_freq,
+            "rabi_freq_t_args": self.rabi_freq_t_args,
+        }
 
         if self.rabi_freq_t_func:
             t_func_name = self.rabi_freq_t_func.__name__
-            t_func_name = '_'.join(t_func_name.split('_')[:-1])  # remove index
+            t_func_name = "_".join(t_func_name.split("_")[:-1])  # remove index
             json_dict.update({"rabi_freq_t_func": t_func_name})
         else:
             json_dict.update({"rabi_freq_t_func": None})
@@ -142,7 +159,7 @@ class Field(object):
         if self.rabi_freq_t_args:
             rabi_freq_t_args = {}
             for key, value in self.rabi_freq_t_args.items():
-                k = '_'.join(key.split('_')[:-1])  # remove index
+                k = "_".join(key.split("_")[:-1])  # remove index
                 rabi_freq_t_args[k] = value
             json_dict.update({"rabi_freq_t_args": rabi_freq_t_args})
         else:
@@ -151,20 +168,22 @@ class Field(object):
         return json_dict
 
     def to_json_str(self):
-        """ Return a JSON string representation of the Field object.
+        """Return a JSON string representation of the Field object.
 
         Returns:
             (string) JSON representation of the Field object.
         """
 
-        return json.dumps(self.get_json_dict(), indent=2, separators=None,
-                          sort_keys=True)
+        return json.dumps(
+            self.get_json_dict(), indent=2, separators=None, sort_keys=True
+        )
 
     def to_json(self, file_path):
 
-        with open(file_path, 'w') as fp:
-            json.dump(self.get_json_dict(), fp=fp, indent=2, separators=None,
-                      sort_keys=True)
+        with open(file_path, "w") as fp:
+            json.dump(
+                self.get_json_dict(), fp=fp, indent=2, separators=None, sort_keys=True
+            )
 
     @classmethod
     def from_json_str(cls, json_str):

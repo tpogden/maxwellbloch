@@ -16,9 +16,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'MaxwellBloch'
-copyright = '2019, Thomas P. Ogden'
-author = 'Thomas P. Ogden'
+project = "MaxwellBloch"
+copyright = "2019, Thomas P. Ogden"
+author = "Thomas P. Ogden"
 
 # The full version, including alpha/beta/rc tags
 # release = 'v0.5.0'
@@ -28,20 +28,15 @@ author = 'Thomas P. Ogden'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'recommonmark',
-    'sphinx_rtd_theme',
-    'nbsphinx',
-    'sphinx.ext.mathjax'
-]
+extensions = ["recommonmark", "sphinx_rtd_theme", "nbsphinx", "sphinx.ext.mathjax"]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -60,4 +55,4 @@ html_static_path = []
 # -- Options for Jupyter Notebooks -------------------------------------------
 nbsphinx_timeout = 3600
 nbsphinx_allow_errors = False
-nbsphinx_execute = 'always'
+nbsphinx_execute = "always"

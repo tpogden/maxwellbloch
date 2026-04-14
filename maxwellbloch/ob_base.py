@@ -2,14 +2,18 @@
 
 import os
 
-from maxwellbloch import sigma
-
 import numpy as np
 import qutip as qu
 
+from maxwellbloch import sigma
+
+# QuTiP 5 changed the default coefficient function style to 'pythonic'
+# (f(t, **kwargs)). This codebase uses the QuTiP 4 'dict' style (f(t, args)).
+qu.settings.core["function_coefficient_style"] = "dict"
+
 
 class OBBase(object):
-    """ TODO: Desc here. Parent class.
+    """TODO: Desc here. Parent class.
 
     Attributes:
         num_states: the number of states of the system, in this case: 2.
@@ -24,11 +28,11 @@ class OBBase(object):
         time_range: an array of time points over which to solve the system
         ob_data: states and expectation values as solved at each step in
             time_range (see QuTip's odedata object).
-        """
+    """
 
     def __init__(self):
-        """ Initialise the OB object. This will be overridden in every child
-        class, just here to make it clear what attributes an OB object has. """
+        """Initialise the OB object. This will be overridden in every child
+        class, just here to make it clear what attributes an OB object has."""
 
         self.num_states = 0
         self.rho = qu.Qobj()
@@ -40,10 +44,10 @@ class OBBase(object):
         self.H_Delta = qu.Qobj()
         self.H_Omega_list = [qu.Qobj()]
 
-        self.result = qu.solver.Result()
+        self.result = None
 
     def sigma(self, a, b):
-        """ The transition or 'flip' operator between states |a> and |b>, given
+        """The transition or 'flip' operator between states |a> and |b>, given
         by |a><b|. Uses the sigma_n helper function below this class.
 
         Args:
@@ -57,7 +61,7 @@ class OBBase(object):
         return sigma.sigma(self.num_states, a, b)
 
     def set_H_0(self, energies=[]):
-        """ Takes a list of energies and makes a Bare Hamiltonian with the
+        """Takes a list of energies and makes a Bare Hamiltonian with the
         energies as diagonals. This function can be overridden in a child class
         if you want to make the bare Hamiltonian a different way.
 
@@ -84,7 +88,7 @@ class OBBase(object):
         return self.H_0
 
     def H_I_list(self):
-        """ The interaction terms* are specified as a list. This could be a
+        """The interaction terms* are specified as a list. This could be a
         single item list in the case of one laser, or one item for each laser
         in the case of multiple lasers, or a laser and a dipole-dipole
         interaction in the case of multiple atoms.
@@ -104,11 +108,11 @@ class OBBase(object):
         return self.H_Omega_list
 
     def H_I_sum(self):
-        """ In the case of a time-independent interaction, we don't need the
+        """In the case of a time-independent interaction, we don't need the
         time functions, so just sum the items in H_I_list()
 
         This only works in the case of time-independent interaction,
-        where no time_funcs have been specified. """
+        where no time_funcs have been specified."""
 
         ## TODO: raise an error here if a time-dependent interaction has been
         ## specified, i.e. if H_I is a list of [H_I_term, time_func] pairs.
@@ -121,7 +125,7 @@ class OBBase(object):
         return H_I
 
     def states_t(self):
-        """ Returns:
+        """Returns:
             If c_ops: 3D array, first dim is time, the other two are the
         density matrix at each time slice.
             If no c_ops: 3D array, first dim is time, second is state vector,
@@ -130,29 +134,43 @@ class OBBase(object):
 
         # No collapse operators, so states is a list of state vectors
         if len(self.c_ops) == 0:
-            states_t = np.zeros((len(self.result.times), self.num_states, 1),
-                                dtype=np.complex)
+            states_t = np.zeros(
+                (len(self.result.times), self.num_states, 1), dtype=complex
+            )
 
         # Collapse operators, so states is a list of density matrices
         else:
-            states_t = np.zeros((len(self.result.times),
-                                 self.num_states, self.num_states),
-                                dtype=np.complex)
+            states_t = np.zeros(
+                (len(self.result.times), self.num_states, self.num_states),
+                dtype=complex,
+            )
 
         for t, state_t in enumerate(self.result.states):
             states_t[t] = state_t.full()
 
         return states_t
 
-    def mesolve(self, tlist, rho0=None, td=False, e_ops=[], args={},
-        options=qu.Options(), recalc=True, savefile=None, show_pbar=False):
+    def mesolve(
+        self,
+        tlist,
+        rho0=None,
+        td=False,
+        e_ops=[],
+        args={},
+        options=None,
+        recalc=True,
+        savefile=None,
+        show_pbar=False,
+    ):
 
-        savefile_exists = os.path.isfile(str(savefile) + '.qu')
+        if options is None:
+            options = {}
+
+        savefile_exists = os.path.isfile(str(savefile) + ".qu")
 
         # Solve if 1) we ask for it to be recalculated or 2) it *must* be
         # calculated because no savefile exists.
         if recalc or not savefile_exists:
-
             # Is the Hamiltonian time-dependent?
             if td:  # If so H is a list of [H_i, t_func_i] pairs.
                 H = [self.H_0, self.H_Delta]
@@ -161,28 +179,24 @@ class OBBase(object):
                 H = self.H_0 + self.H_Delta + self.H_I_sum()
 
             if show_pbar:
-                pbar = qu.ui.progressbar.TextProgressBar()
-            else:
-                pbar = qu.ui.progressbar.BaseProgressBar()
+                options = dict(options)  # don't mutate caller's dict
+                options["progress_bar"] = "text"
 
-            self.result = qu.mesolve(H, rho0, tlist,
-                                     self.c_ops, e_ops,
-                                     args=args, options=options,
-                                     progress_bar=pbar)
+            self.result = qu.mesolve(
+                H, rho0, tlist, self.c_ops, e_ops, args=args, options=options
+            )
 
             self.rho = self.result.states[-1]  #  Set rho to the final state.
 
             # Only save the file if we have a place to save it.
             if savefile:
-
-                print('Saving OBBase to {0}.qu'.format(savefile))
+                print("Saving OBBase to {0}.qu".format(savefile))
 
                 qu.qsave(self.result, savefile)
 
         # Otherwise load the steady state rho_v_delta from file
         else:
-
-            print('Loading from {0}.qu'.format(savefile))
+            print("Loading from {0}.qu".format(savefile))
 
             self.result = qu.qload(savefile)
             self.rho = self.result.states[-1]
