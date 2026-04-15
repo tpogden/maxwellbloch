@@ -1,0 +1,95 @@
+# Potential next tasks — MaxwellBloch
+
+A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort and nature.
+
+---
+
+## 🐛 Quick bug fixes
+
+| File | Issue |
+|------|-------|
+| `bin/make-gif-ffmpeg.sh:59` | Bash syntax error: `Y = ${FILENAME%.mp4}` — spaces around `=` break variable assignment; should be `Y=${FILENAME%.mp4}` |
+| `bin/make-mp4-fixed-frame.py:17` | `from scipy.ndimage.interpolation import zoom` — deprecated since SciPy 1.6; should be `from scipy.ndimage import zoom` |
+| `bin/make-mp4-fixed-frame-2-fields.py:17` | Same scipy deprecation |
+| `docs/usage/scripts.md:5,27` | Script name mismatches: docs say `make-fixed-frame-mp4.py` and `make-ffmpeg-gif.sh` but actual files are `make-mp4-fixed-frame.py` and `make-gif-ffmpeg.sh` |
+
+---
+
+## 📄 Documentation updates
+
+| File | Issue |
+|------|-------|
+| `README.md:33` | Still references `qutip=4` in conda install example — should be `qutip>=5` |
+| `docs/install.md:8` | Same stale `qutip=4` reference |
+| `docs/docs-environment.yml` | Completely stale: Python 3.7, qutip 4.3, old Sphinx/nbsphinx — delete it |
+| `.readthedocs.yml` | Specifies Python 3.7 — update to 3.11 and modern config format |
+| `CHANGELOG.md` | Missing 0.8.0 release entry |
+| `docs/conf.py` | Copyright year still 2019 |
+
+---
+
+## 🧪 Test gaps
+
+| Item | Detail |
+|------|--------|
+| ~~`ob_base.py` has no test file~~ | ✅ `test_ob_base.py` added: TestSigma, TestSetH0, TestHIList |
+| ~~`TestSolveOverThermalDetunings` skipped~~ | ✅ Dead skip removed; method doesn't exist |
+| ~~`test_t_funcs.py:97`~~ | ✅ `TestSech.test_fwhm` added — verifies sech FWHM matches argument |
+| ~~GH#198~~ | ✅ `TestVoigtProfile.test_voigt_approaches_lorentzian_for_small_thermal_width` added |
+| `test_mb_solve.py` | Many MBSolve methods untested — `TestBuildZlist`, `TestCheck` added but more needed |
+
+---
+
+## 🔧 Code quality
+
+| Item | Detail |
+|------|--------|
+| ~~Missing docstrings~~ | ✅ `utility.py`, `ob_base.py`, `ob_solve.py` docstrings added; `t_funcs.py` factory functions annotated |
+| ~~GH#106~~ | ✅ `fixed.rabi_freq_abs` removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
+| GH#7 | `ramp_onoff` in `t_funcs.py:150` duplicates `ramp_on`/`ramp_off` logic inline — refactor to reuse the closures |
+| GH#178 | Clarify public API: use underscore convention for private methods throughout |
+| GH#133 | Vectorise `get_fields_sum_coherence` — currently loops per field |
+| GH#24 | Unnest the mbsolve loop (`mb_solve.py:116` — `build_velocity_classes` too large) |
+| 48 TODO/FIXME comments | Notable: `ob_base.py:117`, `mb_solve.py:598` (duplicates OBAtom), `hyperfine.py:242` (validate I,J,F range) |
+| ~~Type annotations~~ | ✅ All 14 source files fully annotated: `sigma.py`, `utility.py`, `t_funcs.py`, `fixed.py`, `spectral.py`, `field.py`, `ob_base.py`, `ob_atom.py`, `ob_solve.py`, `mb_solve.py` |
+| ~~Positional arguments~~ | ✅ Internal call sites updated to use keyword arguments throughout |
+| Mutable default arguments | `B006` (flake8-bugbear) not in ruff `select`; many function signatures use `[]` and `{}` as defaults — enable `B` ruleset and fix violations |
+
+---
+
+## 🏗️ CI / infrastructure
+
+| Item | Detail |
+|------|--------|
+| ~~Docs build not in CI~~ | ✅ Docs job added to `.github/workflows/ci.yml` with `nbsphinx_execute=never` |
+| ~~Pre-commit lint hook~~ | ✅ `.git/hooks/pre-commit` runs ruff check + format check |
+| ~~README badge wrong URL~~ | ✅ Updated from `python-package-conda.yml` to `ci.yml` |
+| ~~NumPy 2 notebook compatibility~~ | ✅ Fixed `.tolist()`/`float()` repr change and `np.trapz` → `np.trapezoid` across 7 notebooks |
+
+---
+
+## 🔬 Features / investigations
+
+| Item | Detail |
+|------|--------|
+| GH#141 | QuTiP 5 has a proper `Coefficient` API — investigate whether the custom `intp()` t_func and time-dep solver wiring can be simplified |
+| GH#166 | Add `macro.py` module for physical unit conversions |
+| GH#157 | Add `Field.upper_levels()` / `lower_levels()` convenience methods |
+| GH#151 | Add selection rule validation to `LevelF.__init__` — enforce `|J - I| <= F <= J + I` (already a TODO at `hyperfine.py:242`) |
+| GH#71/#83 | Omegas refactor — 88 occurrences across 8 files; old 2017 investigation into moving Omegas methods to OBAtom |
+
+---
+
+## ✅ Issues to close (already resolved)
+
+Close these on GitHub with a note explaining what resolved them:
+
+| Issue | Reason |
+|-------|--------|
+| GH#29 — Fix PEP8 problems | Ruff applied across the whole codebase in 0.8.0 |
+| GH#163 — Write a version_info.py | Replaced by `importlib.metadata` + `bump-my-version` in 0.8.0 |
+| GH#215 — Set up Travis deploy | Done — GitHub Actions publish workflow with OIDC in 0.8.0 |
+| GH#237 — Fix nbsphinx docs bug | Resolved in PR #240 (merged) |
+| GH#139 — Add CHANGELOG to manifest | CHANGELOG.md and MANIFEST.in both exist |
+| GH#106 — Remove deprecated `fixed.rabi_freq_abs` | Removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
+| GH#198 — Voigt profile test | `TestVoigtProfile` added in `test_spectral.py` |
