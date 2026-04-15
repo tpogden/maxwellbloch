@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] 2026-04-15
+
+- Updated to support QuTiP 5, NumPy 2, and SciPy 1.14+
+- Migrated packaging from `setup.py` to `pyproject.toml` (PEP 517/518/621)
+- Switched primary environment manager from conda to uv; added `uv.lock`
+- Added ruff for linting and formatting
+- Replaced Travis CI with GitHub Actions; added OIDC trusted publishing to PyPI
+- Added `bump-my-version` for semver release management
+- Dropped Python < 3.10 support
+
 ## [0.7.1] 2020-08-10
 
 - Fixed bug on adding multiple fields

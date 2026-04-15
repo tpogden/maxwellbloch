@@ -17,7 +17,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "MaxwellBloch"
-copyright = "2019, Thomas P. Ogden"
+copyright = "2019–2026, Thomas P. Ogden"
 author = "Thomas P. Ogden"
 
 # The full version, including alpha/beta/rc tags

@@ -1,31 +1,28 @@
 # Installing MaxwellBloch
 
-I recommend using Conda environments. 
+## Using uv (recommended)
 
-You can create and activate an environment named `mb` with all the required
-dependencies for MaxwellBloch with
+[uv](https://docs.astral.sh/uv/) is the recommended way to install MaxwellBloch:
+
 ```sh
-conda create --name mb python=3 numpy=1 scipy=1 qutip=4
-conda activate mb
+uv pip install maxwellbloch
 ```
-The MaxwellBloch package can then be installed from
-[PyPI](https://pypi.org/project/MaxwellBloch/) using
-```
+
+## Using pip
+
+```sh
 pip install maxwellbloch
 ```
 
-Alternatively you can manually download and install any [
-release](https://github.com/tpogden/maxwellbloch/releases).
+## Using Conda
 
-<!-- 
-## Testing your Installation
+You can create and activate a Conda environment with the required dependencies:
 
-To test MaxwellBloch and its dependencies are working correctly, install `pytest`
+```sh
+conda create --name mb -c conda-forge python=3.11 qutip
+conda activate mb
+pip install maxwellbloch
 ```
-conda install pytest=3
-```
-and then call
-```
-python -c 'from maxwellbloch import testing; testing.run()'
-``` -->
 
+Alternatively you can manually download and install any
+[release](https://github.com/tpogden/maxwellbloch/releases).
