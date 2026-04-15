@@ -64,5 +64,3 @@ def rabi_freq(mb_solve, field_idx, speed_of_light, part="real", interp_kind="lin
         rabi_freq_fixed[i] = rabi_freq_intp(pts)
 
     return rabi_freq_fixed
-
-
