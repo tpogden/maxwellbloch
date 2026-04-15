@@ -51,12 +51,15 @@ Make targets: `test`, `test_cov`, `lint`, `format`, `format_check`, `docs_html`,
 
 ```
 OBBase (ob_base.py)          — QuTiP interface, operators, density matrix math
-  └── OBSolve (ob_solve.py)  — time-domain master equation solver (wraps qutip.mesolve)
-        └── MBSolve (mb_solve.py) — spatial propagation through a medium
+  └── OBAtom (ob_atom.py)    — atomic system: energy levels, decay channels, coupled fields
 
-OBAtom (ob_atom.py)          — atomic system: energy levels, decay channels, coupled fields
+OBSolve (ob_solve.py)        — time-domain master equation solver (wraps qutip.mesolve)
+  └── MBSolve (mb_solve.py)  — spatial propagation through a medium
+
 Field (field.py)             — a laser field coupling two atomic levels (Rabi freq, detuning)
 ```
+
+OBSolve holds an `OBAtom` instance as `self.atom` and delegates Hamiltonian construction to it.
 
 Hyperfine structure lives in `hyperfine.py` and `angmom.py` (3j/6j symbols, Clebsch-Gordan coefficients).
 

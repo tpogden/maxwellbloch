@@ -49,3 +49,36 @@ class TestSpectral(unittest.TestCase):
         # profile and the known absorption profile for linear two-level systems
         # is below a tolerance
         self.assertTrue(np.max(np.abs(abs - abs_linear_known)) < 0.05)
+
+
+class TestVoigtProfile(unittest.TestCase):
+    """Unit tests for voigt_two_linear_known (GH#198).
+
+    When thermal_width → 0 the Voigt profile is dominated by the Lorentzian
+    and should approach the known linear-absorption profile.
+    """
+
+    def test_voigt_approaches_lorentzian_for_small_thermal_width(self):
+        """Voigt with very small thermal_width ≈ linear absorption."""
+        decay_rate = 1.0
+        freq_list = np.linspace(-3.0, 3.0, 301)
+
+        lorentzian = spectral.absorption_two_linear_known(
+            freq_list,
+            interaction_strength=1.0,
+            decay_rate=decay_rate,
+        )
+        voigt = (
+            spectral.voigt_two_linear_known(
+                freq_list,
+                decay_rate=decay_rate,
+                thermal_width=1e-4,
+            ).imag
+            / 2.0
+        )
+
+        # Normalise both to their peaks before comparing shape
+        lorentzian_norm = lorentzian / np.max(lorentzian)
+        voigt_norm = voigt / np.max(voigt)
+
+        self.assertTrue(np.max(np.abs(voigt_norm - lorentzian_norm)) < 0.01)

@@ -33,18 +33,6 @@ class TestInit(unittest.TestCase):
         mb_solve.MBSolve().from_json(json_path)
 
 
-@unittest.skip("TODO")
-class TestSolveOverThermalDetunings(unittest.TestCase):
-    def test_00(self):
-
-        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
-
-        result_Delta = mb_solve_00.solve_over_thermal_detunings()
-
-        self.assertEqual(len(result_Delta), len(mb_solve_00.thermal_delta_list))
-
-
 class TestMBSolve(unittest.TestCase):
     def test_mb_solve(self):
         """Basic test of mb_solve method."""

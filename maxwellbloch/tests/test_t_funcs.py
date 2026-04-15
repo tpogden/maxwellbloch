@@ -94,7 +94,14 @@ class TestSech(unittest.TestCase):
             self.assertAlmostEqual(area, n * np.pi, places=3)
             self.assertAlmostEqual(fwhm_test, FWHM)
 
-    # TODO: Test the FWHM is correct
+    def test_fwhm(self):
+        """sech with fwhm arg should have the stated FWHM."""
+        tlist = np.linspace(0.0, 1.0, 401)
+        t_func = t_funcs.sech(1)
+        for fwhm in [0.05, 0.1, 0.2]:
+            t_args = {"n_pi_1": 1.0, "fwhm_1": fwhm, "centre_1": 0.5}
+            fwhm_measured = utility.full_width_at_half_max(tlist, t_func(tlist, t_args))
+            self.assertAlmostEqual(fwhm_measured, fwhm, places=3)
 
     def test_ampl_and_n_pi(self):
         """Test that KeyError is raised if both ampl and n_pi args set."""
