@@ -1,6 +1,6 @@
 # MaxwellBloch
 
-[![Build Status](https://github.com/tpogden/maxwellbloch/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/tpogden/maxwellbloch/actions/workflows/python-package-conda.yml)
+[![Build Status](https://github.com/tpogden/maxwellbloch/actions/workflows/ci.yml/badge.svg)](https://github.com/tpogden/maxwellbloch/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/maxwellbloch/badge/?version=latest)](https://maxwellbloch.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/tpogden/maxwellbloch/badge.svg?branch=master)](https://coveralls.io/github/tpogden/maxwellbloch?branch=master)
 [![PyPI](https://img.shields.io/pypi/v/maxwellbloch)](https://pypi.org/project/MaxwellBloch/)
