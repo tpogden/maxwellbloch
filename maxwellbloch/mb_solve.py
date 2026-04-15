@@ -7,7 +7,7 @@ import qutip as qu
 from maxwellbloch import ob_solve, t_funcs
 
 
-def _print_progress(j, total, chunk_size):
+def _print_progress(j: int, total: int, chunk_size: int) -> None:
     """Print a progress update every chunk_size percent of total steps."""
     if chunk_size > 0 and total > 0:
         interval = max(1, total * chunk_size // 100)
@@ -19,22 +19,22 @@ def _print_progress(j, total, chunk_size):
 class MBSolve(ob_solve.OBSolve):
     def __init__(
         self,
-        atom={},
-        t_min=0.0,
-        t_max=1.0,
-        t_steps=100,
-        method="mesolve",
-        opts={},
-        savefile=None,
-        z_min=0.0,
-        z_max=1.0,
-        z_steps=10,
-        z_steps_inner=2,
-        num_density_z_func=None,
-        num_density_z_args={},
-        interaction_strengths=[],
-        velocity_classes={},
-    ):
+        atom: dict = {},
+        t_min: float = 0.0,
+        t_max: float = 1.0,
+        t_steps: int = 100,
+        method: str = "mesolve",
+        opts: dict = {},
+        savefile: str | None = None,
+        z_min: float = 0.0,
+        z_max: float = 1.0,
+        z_steps: int = 10,
+        z_steps_inner: int = 2,
+        num_density_z_func: str | None = None,
+        num_density_z_args: dict = {},
+        interaction_strengths: list[float] = [],
+        velocity_classes: dict = {},
+    ) -> None:
 
         super().__init__(
             atom=atom,
@@ -80,7 +80,9 @@ class MBSolve(ob_solve.OBSolve):
             + f"savefile={self.savefile})"
         )
 
-    def build_zlist(self, z_min, z_max, z_steps, z_steps_inner):
+    def build_zlist(
+        self, z_min: float, z_max: float, z_steps: int, z_steps_inner: int
+    ) -> np.ndarray:
         """Builds the space grid.
 
         Args:
@@ -103,15 +105,17 @@ class MBSolve(ob_solve.OBSolve):
         self.zlist = np.linspace(z_min, z_max, z_steps + 1)
         return self.zlist
 
-    def z_step(self):
+    def z_step(self) -> float:
         """Returns the distance from one space point to the next."""
         return (self.z_max - self.z_min) / self.z_steps
 
-    def z_step_inner(self):
+    def z_step_inner(self) -> float:
         """Returns the distance from one inner space point to the next."""
         return self.z_step() / self.z_steps_inner
 
-    def build_velocity_classes(self, velocity_classes={}):
+    def build_velocity_classes(
+        self, velocity_classes: dict = {}
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Builds the velocity class structure from a dict."""
         # TODO: break this up, too big.
         # TODO: If there are no vel classes, the weight for thermal width of 1
@@ -173,8 +177,11 @@ class MBSolve(ob_solve.OBSolve):
         return self.thermal_delta_list, self.thermal_weights
 
     def build_number_density(
-        self, interaction_strengths, num_density_z_func=None, num_density_z_args=None
-    ):
+        self,
+        interaction_strengths: list[float],
+        num_density_z_func: str | None = None,
+        num_density_z_args: dict | None = None,
+    ) -> None:
         """Builds the number density function and interaction strengths.
 
         Args:
@@ -208,7 +215,7 @@ class MBSolve(ob_solve.OBSolve):
         else:
             self.num_density_z_args = {"on_0": 0.0, "off_0": 1.0, "ampl_0": 1.0}
 
-    def check(self):
+    def check(self) -> bool:
         """Validates the MBSolve object."""
         if len(self.interaction_strengths) != len(self.atom.fields):
             raise ValueError(
@@ -216,7 +223,7 @@ class MBSolve(ob_solve.OBSolve):
             )
         return True
 
-    def init_Omegas_zt(self):
+    def init_Omegas_zt(self) -> np.ndarray:
         """Inits the Rabi frequency array."""
         self.Omegas_zt = np.zeros(
             (len(self.atom.fields), len(self.zlist), len(self.tlist)), dtype=complex
@@ -231,7 +238,7 @@ class MBSolve(ob_solve.OBSolve):
             )
         return self.Omegas_zt
 
-    def init_states_zt(self):
+    def init_states_zt(self) -> np.ndarray:
         """Inits the system density matrices."""
         # TODO: Change states_zt to state_zt. Omegas refers to the fact that
         # there are multiple fields.
@@ -247,7 +254,13 @@ class MBSolve(ob_solve.OBSolve):
         return self.states_zt
 
     # TODO(#96) Should we be able to pass in opts here?
-    def mbsolve(self, step="ab", rho0=None, recalc=True, pbar_chunk_size=10):
+    def mbsolve(
+        self,
+        step: str = "ab",
+        rho0: qu.Qobj | None = None,
+        recalc: bool = True,
+        pbar_chunk_size: int = 10,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations for the system.
 
         Args:
@@ -280,7 +293,12 @@ class MBSolve(ob_solve.OBSolve):
             self.load_results()
         return self.Omegas_zt, self.states_zt
 
-    def mbsolve_euler(self, rho0=None, recalc=True, pbar_chunk_size=0):
+    def mbsolve_euler(
+        self,
+        rho0: qu.Qobj | None = None,
+        recalc: bool = True,
+        pbar_chunk_size: int = 0,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using a Euler step.
 
         Args:
@@ -334,7 +352,12 @@ class MBSolve(ob_solve.OBSolve):
             self.Omegas_zt[:, j + 1, :] = Omegas_z_next
         return self.Omegas_zt, self.states_zt
 
-    def mbsolve_ab(self, rho0=None, recalc=True, pbar_chunk_size=0):
+    def mbsolve_ab(
+        self,
+        rho0: qu.Qobj | None = None,
+        recalc: bool = True,
+        pbar_chunk_size: int = 0,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using an Adams-Bashforth step.
 
         Args:
@@ -413,7 +436,13 @@ class MBSolve(ob_solve.OBSolve):
             self.Omegas_zt[:, j + 1, :] = Omegas_z_next
         return self.Omegas_zt, self.states_zt
 
-    def z_step_fields_euler(self, z_this, z_next, Omegas_z_this, sum_coh_this):
+    def z_step_fields_euler(
+        self,
+        z_this: float,
+        z_next: float,
+        Omegas_z_this: np.ndarray,
+        sum_coh_this: np.ndarray,
+    ) -> np.ndarray:
         """For the current state of the atom, given fields Omegas_z_this,
         make an Euler step to determine the field at the next space step.
 
@@ -434,8 +463,14 @@ class MBSolve(ob_solve.OBSolve):
         return Omegas_z_next
 
     def z_step_fields_ab(
-        self, z_prev, z_this, z_next, sum_coh_prev, sum_coh_this, Omegas_z_this
-    ):
+        self,
+        z_prev: float,
+        z_this: float,
+        z_next: float,
+        sum_coh_prev: np.ndarray,
+        sum_coh_this: np.ndarray,
+        Omegas_z_this: np.ndarray,
+    ) -> np.ndarray:
         """For the current state of the atom, given fields Omegas_z_this,
         make an Euler step to determine the field at the next space step.
 
@@ -463,7 +498,7 @@ class MBSolve(ob_solve.OBSolve):
             )
         return Omegas_z_next
 
-    def get_Omegas_intp_t_funcs(self):
+    def get_Omegas_intp_t_funcs(self) -> list[str]:
         """Gets a list of strings representing the interpolation t_funcs for
         use the MB solver, which needs a function representing the field
         at a z step to perform the next master equation solver.
@@ -472,7 +507,7 @@ class MBSolve(ob_solve.OBSolve):
         """
         return ["intp" for f in self.atom.fields]
 
-    def get_Omegas_intp_t_args(self, Omegas_z):
+    def get_Omegas_intp_t_args(self, Omegas_z: np.ndarray) -> list[dict]:
         """Return the values of Omegas at a given point as a list of
         args for interpolation
 
@@ -491,7 +526,7 @@ class MBSolve(ob_solve.OBSolve):
             }
         return fields_args
 
-    def solve_and_average_over_thermal_detunings(self):
+    def solve_and_average_over_thermal_detunings(self) -> np.ndarray:
         """Solves the Lindblad equation for the OBAtom over a range of
             detuning shifts for velocity classes.
 
@@ -525,7 +560,7 @@ class MBSolve(ob_solve.OBSolve):
         )
         return thermal_states_t
 
-    def save_results(self):
+    def save_results(self) -> None:
         """Saves the solution to a QuTiP pickle file.
 
         Notes:
@@ -537,7 +572,7 @@ class MBSolve(ob_solve.OBSolve):
             print("Saving MBSolve to", self.savefile + ".qu")
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 
-    def load_results(self):
+    def load_results(self) -> None:
         """Loads the solution from a QuTiP pickle file.
 
         Notes:
@@ -546,7 +581,7 @@ class MBSolve(ob_solve.OBSolve):
         """
         self.Omegas_zt, self.states_zt = qu.qload(self.savefile)
 
-    def fields_area(self):
+    def fields_area(self) -> np.ndarray:
         """Gets the integrated pulse area of each field.
 
         Returns:
@@ -555,7 +590,7 @@ class MBSolve(ob_solve.OBSolve):
         """
         return np.trapezoid(np.real(self.Omegas_zt), self.tlist, axis=2)
 
-    def populations(self, levels):
+    def populations(self, levels: list[int]) -> np.ndarray:
         """Gets the sum of populations in a list of levels.
 
         Args:
@@ -566,7 +601,7 @@ class MBSolve(ob_solve.OBSolve):
         """
         return np.abs(np.sum(self.states_zt[:, :, levels, levels], axis=2))
 
-    def populations_field(self, field_idx, upper=True):
+    def populations_field(self, field_idx: int, upper: bool = True) -> np.ndarray:
         """Gets the sum of populations for the upper (excited) level coupled by
             a field.
 
@@ -586,7 +621,7 @@ class MBSolve(ob_solve.OBSolve):
         )
         return self.populations(upper_levels)
 
-    def coherences(self, coupled_levels):
+    def coherences(self, coupled_levels: list[list[int]]) -> np.ndarray:
         """Gets the sum of coherences (off-diagonals) in a list of coupled
             level pairs.
 
@@ -604,7 +639,7 @@ class MBSolve(ob_solve.OBSolve):
             sum_coh += self.states_zt[:, :, cl[0], cl[1]]
         return sum_coh
 
-    def coherences_field(self, field_idx):
+    def coherences_field(self, field_idx: int) -> np.ndarray:
         """Get the sum of coherences (off-diagonals) for the levels coupled by
         a field.
 
@@ -619,7 +654,7 @@ class MBSolve(ob_solve.OBSolve):
 ### Helper Functions
 
 
-def maxwell_boltzmann(v, fwhm):
+def maxwell_boltzmann(v: np.ndarray, fwhm: float) -> np.ndarray:
     """Maxwell Boltzmann probability distribution function."""
 
     # TODO: Allow offset, v_0.
