@@ -13,21 +13,21 @@ qu.settings.core["function_coefficient_style"] = "dict"
 
 
 class OBBase(object):
-    """TODO: Desc here. Parent class.
+    """Base class providing the QuTiP interface for density-matrix solvers.
+
+    Constructs and stores the Hamiltonian components and collapse operators
+    that are shared by :class:`OBSolve` and :class:`MBSolve`. Not intended
+    to be instantiated directly.
 
     Attributes:
-        num_states: the number of states of the system, in this case: 2.
-        rho: the density matrix
-
-        H_0: the Bare Hamiltonian (see the OBObj method make_H_0())
-        c_ops: a list of collapse operators (here just 1 item, the decay rate)
-
-        H_Delta: the detuning part of the interaction
-        H_Omega: the Rabi frequency part of the interaction
-
-        time_range: an array of time points over which to solve the system
-        ob_data: states and expectation values as solved at each step in
-            time_range (see QuTip's odedata object).
+        num_states: Number of atomic states in the system.
+        rho: Initial density matrix (QuTiP Qobj).
+        H_0: Bare (field-free) Hamiltonian.
+        c_ops: List of collapse operators representing decay channels.
+        H_Delta: Detuning part of the interaction Hamiltonian.
+        H_Omega_list: List of Rabi-frequency interaction Hamiltonians, one
+            per field.
+        result: QuTiP Result object populated after solving.
     """
 
     def __init__(self):

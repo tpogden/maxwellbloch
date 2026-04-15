@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""TODO:"""
+"""Functions for transforming solved results into the fixed (lab) frame of
+reference, accounting for the finite speed of light."""
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -65,22 +66,3 @@ def rabi_freq(mb_solve, field_idx, speed_of_light, part="real", interp_kind="lin
     return rabi_freq_fixed
 
 
-def rabi_freq_abs(mb_solve, field_idx, speed_of_light, interp_kind="linear"):
-    """DEPRECATED. Use rabi_freq with part='abs'. Return the absolute value of
-    the complex solved field results shifted to the fixed (lab) frame of
-    reference given a speed-of-light by interpolation.
-
-    Args:
-        mb_solve: An MBSolve object
-        field_idx: The field to return
-        speed_of_light: The speed of light in the system
-        interp_kind: The kind of spline interpolation to use ('linear',
-            'cubic' or 'quintic')
-
-    Returns:
-        Array[num_fields, num_space_points, num_time_points] of field
-        values in the fixed frame of reference.
-    """
-    return rabi_freq(
-        mb_solve, field_idx, speed_of_light, part="abs", interp_kind=interp_kind
-    )

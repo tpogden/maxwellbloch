@@ -36,7 +36,7 @@ class TestTlist(unittest.TestCase):
 
 
 class TestRabiFreqAbs(unittest.TestCase):
-    """Unite tests of the rabi_freq_abs method."""
+    """Unit tests of the rabi_freq method with part='abs'."""
 
     def test_rabi_freq_abs(self):
 
@@ -48,8 +48,8 @@ class TestRabiFreqAbs(unittest.TestCase):
         speed_of_light = 0.5
 
         fixed.t_list(mb_solve_01, speed_of_light)
-        rabi_freq_abs_fixed = fixed.rabi_freq_abs(
-            mb_solve_01, 0, speed_of_light, interp_kind="linear"
+        rabi_freq_abs_fixed = fixed.rabi_freq(
+            mb_solve_01, 0, speed_of_light, part="abs", interp_kind="linear"
         )
 
         # The max of the the field in both frames should be the same

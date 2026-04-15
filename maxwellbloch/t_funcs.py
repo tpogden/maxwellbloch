@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""These closures provide indexed time functions provided for using the
-    time-dependent solver.
+"""Named time-function factories for use with the time-dependent solver.
 
-    e.g. square(1) will return a function that takes a time t and args
-        {'on_1', 'off_1', 'ampl_1'}
-
-Thomas Ogden <t@ogden.eu>
+Each function takes an integer index and returns a callable with signature
+``f(t, args)`` where ``args`` is a dict of named parameters suffixed by the
+index. For example, ``square(1)`` returns a function that reads
+``{'on_1', 'off_1', 'ampl_1'}`` from ``args``.
 """
 
 import numpy as np
@@ -16,6 +15,16 @@ from scipy.interpolate import interp1d
 
 
 def square(index):
+    """Return a square (top-hat) pulse time function.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}``,
+        ``off_{index}`` from args. Returns ``ampl`` between ``on`` and
+        ``off``, zero outside.
+    """
 
     def func(t, args):
         on = args["on_" + str(index)]
@@ -30,19 +39,20 @@ def square(index):
 def gaussian(index):
     """Return a Gaussian pulse time function.
 
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``fwhm_{index}``, ``centre_{index}``,
+        and either ``ampl_{index}`` or ``n_pi_{index}`` from args. Raises
+        ``KeyError`` if both or neither amplitude parameters are present.
+
     Notes:
-        The amplitude of the Guassian pulse can be defined directly via the
-        ampl_{index} argument or indirectly via n_pi_{index}, the desired pulse
-        area in multiples of pi. A ValueError will be raised if both are set.
+        The amplitude can be set directly via ``ampl_{index}`` or indirectly
+        via ``n_pi_{index}`` (desired pulse area in multiples of π).
     """
 
     def func(t, args):
-        """
-        Args:
-            t:      time
-            args:   A dict containing fwhm_{index}, centre_{index},
-                    and either ampl_{index} OR n_pi_{index}.
-        """
         fwhm = args["fwhm_{}".format(index)]
         centre = args["centre_{}".format(index)]
         ampl_idx = "ampl_{}".format(index)
@@ -67,14 +77,21 @@ def gaussian(index):
 def sech(index):
     """Return a sech pulse time function.
 
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``centre_{index}``, either
+        ``ampl_{index}`` or ``n_pi_{index}``, and either ``width_{index}``
+        or ``fwhm_{index}`` from args. Raises ``KeyError`` if conflicting
+        or missing parameters are found.
+
     Notes:
-        - The amplitude of the sech pulse can be defined directly via the
-          ampl_{index} argument or indirectly via n_pi_{index}, the desired
-          pulse area in multiples of pi. A ValueError will be raised if both are
-          set.
-        - The width of the pulse can be defined directly via the width_{index}
-          argument or indirectly via the fwhm_{index}, the full-width at half
-          max. A ValueError will be raised if both are set.
+        - The amplitude can be set directly via ``ampl_{index}`` or
+          indirectly via ``n_pi_{index}`` (desired pulse area in multiples
+          of π).
+        - The width can be set directly via ``width_{index}`` or indirectly
+          via ``fwhm_{index}`` (full-width at half maximum).
     """
 
     def sech_(t):
@@ -83,12 +100,6 @@ def sech(index):
     SECH_FWHM_CONV = 1.0 / 2.6339157938
 
     def func(t, args):
-        """
-        Args:
-            t:      time
-            args:   A dict containing centre_{index}, EITHER ampl_{index} OR
-                n_pi_{index} and EITHER width_{index} OR fwhm_{index}.
-        """
         centre = args[f"centre_{index}"]
         width_idx = f"width_{index}"
         fwhm_idx = f"fwhm_{index}"
@@ -122,6 +133,18 @@ def sech(index):
 
 
 def ramp_on(index):
+    """Return a ramp-on time function.
+
+    The pulse rises smoothly from zero using a half-Gaussian, then holds at
+    ``ampl`` after the turn-on time ``on``.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``fwhm_{index}``,
+        and ``on_{index}`` from args.
+    """
 
     def func(t, args):
         ampl = args["ampl_" + str(index)]
@@ -134,6 +157,18 @@ def ramp_on(index):
 
 
 def ramp_off(index):
+    """Return a ramp-off time function.
+
+    The pulse holds at ``ampl`` until the turn-off time ``off``, then falls
+    smoothly to zero using a half-Gaussian.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``fwhm_{index}``,
+        and ``off_{index}`` from args.
+    """
 
     def func(t, args):
         ampl = args["ampl_" + str(index)]
@@ -143,43 +178,67 @@ def ramp_off(index):
             exp(-4 * log(2) * ((t - off) / fwhm) ** 2) * (t >= off) + (t < off)
         )
 
-    func.__name__ = "ramp_on_" + str(index)
+    func.__name__ = "ramp_off_" + str(index)
     return func
 
 
 def ramp_onoff(index):
+    """Return a ramp-on / ramp-off time function.
+
+    The pulse rises smoothly, holds at ``ampl``, then falls smoothly. Built
+    by composing :func:`ramp_on` and :func:`ramp_off`.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``fwhm_{index}``,
+        ``on_{index}``, and ``off_{index}`` from args.
+    """
+    _ramp_on = ramp_on(index)
+    _ramp_off = ramp_off(index)
 
     def func(t, args):
         ampl = args["ampl_" + str(index)]
-        fwhm = args["fwhm_" + str(index)]
-        on = args["on_" + str(index)]
-        off = args["off_" + str(index)]
-        ramp_on = exp(-4 * log(2) * ((t - on) / fwhm) ** 2) * (t <= on) + (t > on)
-        ramp_off = exp(-4 * log(2) * ((t - off) / fwhm) ** 2) * (t >= off) + (t < off)
-        ramp_onoff = ramp_on + ramp_off - 1
-        return ampl * ramp_onoff
+        return _ramp_on(t, args) + _ramp_off(t, args) - ampl
 
     func.__name__ = "ramp_onoff_" + str(index)
     return func
 
 
 def ramp_offon(index):
+    """Return a ramp-off / ramp-on time function.
+
+    The pulse starts at ``ampl``, dips smoothly to zero, then rises back to
+    ``ampl``. Built by composing :func:`ramp_on` and :func:`ramp_off`.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``fwhm_{index}``,
+        ``off_{index}``, and ``on_{index}`` from args.
+    """
+    _ramp_on = ramp_on(index)
+    _ramp_off = ramp_off(index)
 
     def func(t, args):
-        ampl = args["ampl_" + str(index)]
-        fwhm = args["fwhm_" + str(index)]
-        off = args["off_" + str(index)]
-        on = args["on_" + str(index)]
-        ramp_on = exp(-4 * log(2) * ((t - on) / fwhm) ** 2) * (t <= on) + (t > on)
-        ramp_off = exp(-4 * log(2) * ((t - off) / fwhm) ** 2) * (t >= off) + (t < off)
-        ramp_offon = ramp_on + ramp_off
-        return ampl * ramp_offon
+        return _ramp_on(t, args) + _ramp_off(t, args)
 
     func.__name__ = "ramp_offon_" + str(index)
     return func
 
 
 def sinc(index):
+    """Return a sinc pulse time function.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}`` and
+        ``width_{index}`` from args.
+    """
 
     def func(t, args):
         ampl = args["ampl_" + str(index)]
@@ -191,6 +250,20 @@ def sinc(index):
 
 
 def intp(index):
+    """Return an interpolated time function.
+
+    Linearly interpolates a user-supplied ``(tlist, ylist)`` pair, returning
+    zero outside the supplied range.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``tlist_{index}`` and
+        ``ylist_{index}`` from args. Returns a Python complex scalar when
+        called with scalar ``t`` (as required by QuTiP 5), or an array when
+        called with array ``t``.
+    """
 
     def func(t, args):
         tlist = args["tlist_" + str(index)]
