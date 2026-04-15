@@ -18,3 +18,20 @@ jobs:
           uvx ruff format --check .
       - name: Test with pytest
         run: uv run pytest -n auto
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+      - name: Install system dependencies
+        run: sudo apt-get install -y pandoc
+      - name: Install dependencies
+        run: uv sync --extra docs
+      - name: Build docs
+        # nbsphinx_execute=never uses stored notebook outputs rather than
+        # re-running simulations, keeping CI fast. Run a full local build
+        # (without this override) after editing notebooks.
+        run: uv run sphinx-build -D nbsphinx_execute=never docs docs/_build -b html -W
