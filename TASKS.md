@@ -8,10 +8,10 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 
 | File | Issue |
 |------|-------|
-| `bin/make-gif-ffmpeg.sh:59` | Bash syntax error: `Y = ${FILENAME%.mp4}` — spaces around `=` break variable assignment; should be `Y=${FILENAME%.mp4}` |
-| `bin/make-mp4-fixed-frame.py:17` | `from scipy.ndimage.interpolation import zoom` — deprecated since SciPy 1.6; should be `from scipy.ndimage import zoom` |
-| `bin/make-mp4-fixed-frame-2-fields.py:17` | Same scipy deprecation |
-| `docs/usage/scripts.md:5,27` | Script name mismatches: docs say `make-fixed-frame-mp4.py` and `make-ffmpeg-gif.sh` but actual files are `make-mp4-fixed-frame.py` and `make-gif-ffmpeg.sh` |
+| ~~`bin/make-gif-ffmpeg.sh:59`~~ | ✅ Fixed |
+| ~~`bin/make-mp4-fixed-frame.py:17`~~ | ✅ Fixed (`scipy.ndimage.interpolation` → `scipy.ndimage`) |
+| ~~`bin/make-mp4-fixed-frame-2-fields.py:17`~~ | ✅ Fixed |
+| ~~`docs/usage/scripts.md:5,27`~~ | ✅ Fixed |
 
 ---
 
@@ -19,12 +19,12 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 
 | File | Issue |
 |------|-------|
-| `README.md:33` | Still references `qutip=4` in conda install example — should be `qutip>=5` |
-| `docs/install.md:8` | Same stale `qutip=4` reference |
-| `docs/docs-environment.yml` | Completely stale: Python 3.7, qutip 4.3, old Sphinx/nbsphinx — delete it |
-| `.readthedocs.yml` | Specifies Python 3.7 — update to 3.11 and modern config format |
-| `CHANGELOG.md` | Missing 0.8.0 release entry |
-| `docs/conf.py` | Copyright year still 2019 |
+| ~~`README.md:33`~~ | ✅ Updated to `qutip>=5` |
+| ~~`docs/install.md:8`~~ | ✅ Updated |
+| ~~`docs/docs-environment.yml`~~ | ✅ Deleted |
+| ~~`.readthedocs.yml`~~ | ✅ Updated to Python 3.11, modern config format |
+| ~~`CHANGELOG.md`~~ | ✅ 0.8.0 entry added |
+| ~~`docs/conf.py`~~ | ✅ Copyright year updated to 2019–2026 |
 
 ---
 
