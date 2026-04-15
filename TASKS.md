@@ -46,7 +46,7 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 |------|--------|
 | ~~Missing docstrings~~ | ✅ `utility.py`, `ob_base.py`, `ob_solve.py` docstrings added; `t_funcs.py` factory functions annotated |
 | ~~GH#106~~ | ✅ `fixed.rabi_freq_abs` removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
-| GH#7 | `ramp_onoff` in `t_funcs.py:150` duplicates `ramp_on`/`ramp_off` logic inline — refactor to reuse the closures |
+| ~~GH#7~~ | ✅ `ramp_onoff` and `ramp_offon` already compose `ramp_on`/`ramp_off` closures |
 | GH#178 | Clarify public API: use underscore convention for private methods throughout |
 | GH#133 | Vectorise `get_fields_sum_coherence` — currently loops per field |
 | GH#24 | Unnest the mbsolve loop (`mb_solve.py:116` — `build_velocity_classes` too large) |
