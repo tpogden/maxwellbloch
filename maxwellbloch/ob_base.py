@@ -59,7 +59,7 @@ class OBBase(object):
             |a><b|
         """
 
-        return sigma.sigma(self.num_states, a, b)
+        return sigma.sigma(n=self.num_states, a=a, b=b)
 
     def set_H_0(self, energies: list[float] = []) -> qu.Qobj:
         """Takes a list of energies and makes a Bare Hamiltonian with the

@@ -78,9 +78,9 @@ class OBAtom(ob_base.OBBase):
                 raise ValueError("initial_state must have num_states elements.")
             self.initial_state = qu.qzero(self.num_states)
             for i, g in enumerate(initial_state):
-                self.initial_state += g * self.sigma(i, i)
+                self.initial_state += g * self.sigma(a=i, b=i)
         else:
-            self.initial_state = self.sigma(0, 0)
+            self.initial_state = self.sigma(a=0, b=0)
         if not np.isclose(self.initial_state.tr(), 1.0):
             raise ValueError("initial_state must have diagonal elements sum to 1.")
 
@@ -168,7 +168,7 @@ class OBAtom(ob_base.OBBase):
                     self.c_ops.append(
                         d["factors"][c_i]
                         * np.sqrt(2 * pi * d["rate"])
-                        * self.sigma(c[0], c[1])
+                        * self.sigma(a=c[0], b=c[1])
                     )
         return self.c_ops
 
@@ -185,7 +185,7 @@ class OBAtom(ob_base.OBBase):
             # channels.
             upper_levels = set(c[1] for c in f.coupled_levels)
             for i in upper_levels:
-                self.H_Delta -= sgn * 2 * pi * f.detuning * self.sigma(i, i)
+                self.H_Delta -= sgn * 2 * pi * f.detuning * self.sigma(a=i, b=i)
         return self.H_Delta
 
     def set_H_Delta(self, detunings: list[float]) -> qu.Qobj:
@@ -216,7 +216,7 @@ class OBAtom(ob_base.OBBase):
             # are turned into Qu objects first, and avoid the loop(s).
             for c_i, c in enumerate(f.coupled_levels):
                 H_Omega += (
-                    self.sigma(c[0], c[1]) + self.sigma(c[1], c[0])
+                    self.sigma(a=c[0], b=c[1]) + self.sigma(a=c[1], b=c[0])
                 ) * f.factors[c_i]
             H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
             if self.is_field_td():  # time-dependent interaction
@@ -244,8 +244,8 @@ class OBAtom(ob_base.OBBase):
         for f_i, f in enumerate(self.fields):
             f.rabi_freq = rabi_freqs[f_i]
 
-            f.build_rabi_freq_t_func(rabi_freq_t_funcs[f_i], f_i)
-            f.build_rabi_freq_t_args(rabi_freq_t_args[f_i], f_i)
+            f.build_rabi_freq_t_func(rabi_freq_t_func=rabi_freq_t_funcs[f_i], index=f_i)
+            f.build_rabi_freq_t_args(rabi_freq_t_args=rabi_freq_t_args[f_i], index=f_i)
 
         return self.build_H_Omega()
 

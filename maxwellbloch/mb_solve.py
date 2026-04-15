@@ -320,7 +320,7 @@ class MBSolve(ob_solve.OBSolve):
         # Can I avoid?
         ### All Steps:
         for j, z in enumerate(self.zlist[:-1]):
-            _print_progress(j, self.z_steps, pbar_chunk_size)
+            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z
@@ -392,15 +392,17 @@ class MBSolve(ob_solve.OBSolve):
             Omegas_z_this=Omegas_z_this,
             sum_coh_this=sum_coh_prev,
         )
-        Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z_next)
+        Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z=Omegas_z_next)
         self.atom.set_H_Omega(
-            rabi_freq_ones, self.get_Omegas_intp_t_funcs(), Omegas_z_next_args
+            rabi_freqs=rabi_freq_ones,
+            rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(),
+            rabi_freq_t_args=Omegas_z_next_args,
         )
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = Omegas_z_next
         ### Remaining steps, Adams-Bashforth
         for j, z in enumerate(self.zlist[1:-1], start=1):
-            _print_progress(j, self.z_steps, pbar_chunk_size)
+            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
             # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z

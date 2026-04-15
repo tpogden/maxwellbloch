@@ -62,6 +62,6 @@ def sigma_N(n: int, a: int, b: int, i: int, N: int) -> qu.Qobj:
     # Make a list of identity matrices. Then we'll change the ith one to be our
     # subsystem flip operator.
     sigma_list = [qu.identity(n) for j in range(N)]
-    sigma_list[i] = sigma(n, a, b)
+    sigma_list[i] = sigma(n=n, a=a, b=b)
 
     return qu.tensor(sigma_list)

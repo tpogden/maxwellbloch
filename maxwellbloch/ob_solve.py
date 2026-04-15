@@ -44,7 +44,7 @@ class OBSolve(object):
 
         self.build_atom(atom)
 
-        self.build_tlist(t_min, t_max, t_steps)
+        self.build_tlist(t_min=t_min, t_max=t_max, t_steps=t_steps)
 
         self.method = method
         self.build_opts(opts)

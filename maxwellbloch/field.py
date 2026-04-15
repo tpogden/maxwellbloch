@@ -53,8 +53,8 @@ class Field(object):
         self.rabi_freq = rabi_freq
         self.rabi_freq_t_args = rabi_freq_t_args
 
-        self.build_rabi_freq_t_func(rabi_freq_t_func, index)
-        self.build_rabi_freq_t_args(rabi_freq_t_args, index)
+        self.build_rabi_freq_t_func(rabi_freq_t_func=rabi_freq_t_func, index=index)
+        self.build_rabi_freq_t_args(rabi_freq_t_args=rabi_freq_t_args, index=index)
 
     def __repr__(self):
 
