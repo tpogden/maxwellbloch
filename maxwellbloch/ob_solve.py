@@ -33,14 +33,17 @@ class OBSolve(object):
 
     def __init__(
         self,
-        atom: dict = {},
+        atom: dict | None = None,
         t_min: float = 0.0,
         t_max: float = 1.0,
         t_steps: int = 100,
         method: str = "mesolve",
-        opts: dict = {},
+        opts: dict | None = None,
         savefile: str | None = None,
     ) -> None:
+
+        if atom is None:
+            atom = {}
 
         self.build_atom(atom)
 
@@ -79,7 +82,7 @@ class OBSolve(object):
         self.tlist = linspace(t_min, t_max, t_steps + 1)
         return self.tlist
 
-    def build_opts(self, opts: dict = {}) -> dict:
+    def build_opts(self, opts: dict | None = None) -> dict:
         """Build the options dict to be passed into the QuTiP solver.
 
         Any option available to the QuTiP solver is available here, we
@@ -138,7 +141,7 @@ class OBSolve(object):
     # TODO: Rename to obsolve for clarity when calling from derived class
     def solve(
         self,
-        e_ops: list = [],
+        e_ops: list | None = None,
         opts: dict | None = None,
         recalc: bool = True,
         show_pbar: bool = False,

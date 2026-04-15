@@ -19,22 +19,25 @@ def _print_progress(j: int, total: int, chunk_size: int) -> None:
 class MBSolve(ob_solve.OBSolve):
     def __init__(
         self,
-        atom: dict = {},
+        atom: dict | None = None,
         t_min: float = 0.0,
         t_max: float = 1.0,
         t_steps: int = 100,
         method: str = "mesolve",
-        opts: dict = {},
+        opts: dict | None = None,
         savefile: str | None = None,
         z_min: float = 0.0,
         z_max: float = 1.0,
         z_steps: int = 10,
         z_steps_inner: int = 2,
         num_density_z_func: str | None = None,
-        num_density_z_args: dict = {},
-        interaction_strengths: list[float] = [],
-        velocity_classes: dict = {},
+        num_density_z_args: dict | None = None,
+        interaction_strengths: list[float] | None = None,
+        velocity_classes: dict | None = None,
     ) -> None:
+
+        if interaction_strengths is None:
+            interaction_strengths = []
 
         super().__init__(
             atom=atom,
@@ -114,7 +117,7 @@ class MBSolve(ob_solve.OBSolve):
         return self.z_step() / self.z_steps_inner
 
     def build_velocity_classes(
-        self, velocity_classes: dict = {}
+        self, velocity_classes: dict | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
         """Builds the velocity class structure from a dict."""
         # TODO: break this up, too big.
@@ -325,7 +328,7 @@ class MBSolve(ob_solve.OBSolve):
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z
             ### Inner z loop
-            for jj in range(self.z_steps_inner):
+            for _jj in range(self.z_steps_inner):
                 z_next = z_this + self.z_step_inner()
                 thermal_states_t = self.solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
@@ -407,7 +410,7 @@ class MBSolve(ob_solve.OBSolve):
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_this = z
             ### Inner z loop
-            for jj in range(self.z_steps_inner):
+            for _jj in range(self.z_steps_inner):
                 z_next = z_this + self.z_step_inner()
                 thermal_states_t = self.solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
@@ -459,7 +462,7 @@ class MBSolve(ob_solve.OBSolve):
         Omegas_z_next = np.zeros(
             (len(self.atom.fields), len(self.tlist)), dtype=complex
         )
-        for f_i, f in enumerate(self.atom.fields):
+        for f_i, _f in enumerate(self.atom.fields):
             dOmega_f_dz = 1.0j * N * self.g[f_i] * sum_coh_this[f_i]
             Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h * dOmega_f_dz
         return Omegas_z_next
@@ -488,7 +491,7 @@ class MBSolve(ob_solve.OBSolve):
         Omegas_z_next = np.zeros(
             (len(self.atom.fields), len(self.tlist)), dtype=complex
         )
-        for f_i, f in enumerate(self.atom.fields):
+        for f_i, _f in enumerate(self.atom.fields):
             sum_coh_this_f = sum_coh_this[f_i]
             sum_coh_prev_f = sum_coh_prev[f_i]
             dOmega_f_dz_this = 1.0j * N * self.g[f_i] * sum_coh_this_f
@@ -521,7 +524,7 @@ class MBSolve(ob_solve.OBSolve):
             in without the factor of 2pi.
         """
         fields_args = [{}] * len(self.atom.fields)
-        for f_i, f in enumerate(Omegas_z):
+        for f_i, _f in enumerate(Omegas_z):
             fields_args[f_i] = {
                 "tlist": self.tlist,
                 "ylist": Omegas_z[f_i] / (2.0 * np.pi),

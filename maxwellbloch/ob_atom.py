@@ -15,10 +15,10 @@ class OBAtom(ob_base.OBBase):
         self,
         label: str | None = None,
         num_states: int = 1,
-        energies: list[float] = [],
-        decays: list[dict] = [],
-        initial_state: list[float] = [],
-        fields: list[dict] = [],
+        energies: list[float] | None = None,
+        decays: list[dict] | None = None,
+        initial_state: list[float] | None = None,
+        fields: list[dict] | None = None,
     ) -> None:
         """Initialise OBAtom.
 
@@ -39,12 +39,12 @@ class OBAtom(ob_base.OBBase):
 
         self.label = label
         self.num_states = num_states
-        self.energies = energies
-        self.decays = decays
+        self.energies = energies if energies is not None else []
+        self.decays = decays if decays is not None else []
 
-        self.build_initial_state(initial_state)
+        self.build_initial_state(initial_state if initial_state is not None else [])
 
-        self.build_fields(fields)
+        self.build_fields(fields if fields is not None else [])
         self.build_operators()
 
     def __repr__(self):
@@ -56,7 +56,7 @@ class OBAtom(ob_base.OBBase):
             + "fields={4})"
         ).format(self.label, self.num_states, self.energies, self.decays, self.fields)
 
-    def build_initial_state(self, initial_state: list[float] = []) -> qu.Qobj:
+    def build_initial_state(self, initial_state: list[float] | None = None) -> qu.Qobj:
         """Build the initial density matrix for the atom.
 
         The default is for all of the population to be in |0> <0|.
@@ -291,13 +291,15 @@ class OBAtom(ob_base.OBBase):
     def mesolve(
         self,
         tlist: np.ndarray,
-        e_ops: list = [],
+        e_ops: list | None = None,
         options: dict | None = None,
         recalc: bool = True,
         savefile: str | None = None,
         show_pbar: bool = False,
     ) -> Any:
 
+        if e_ops is None:
+            e_ops = []
         if options is None:
             options = {}
 

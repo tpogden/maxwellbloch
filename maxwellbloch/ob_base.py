@@ -61,7 +61,7 @@ class OBBase(object):
 
         return sigma.sigma(n=self.num_states, a=a, b=b)
 
-    def set_H_0(self, energies: list[float] = []) -> qu.Qobj:
+    def set_H_0(self, energies: list[float] | None = None) -> qu.Qobj:
         """Takes a list of energies and makes a Bare Hamiltonian with the
         energies as diagonals. This function can be overridden in a child class
         if you want to make the bare Hamiltonian a different way.
@@ -156,14 +156,18 @@ class OBBase(object):
         tlist: np.ndarray,
         rho0: qu.Qobj | None = None,
         td: bool = False,
-        e_ops: list = [],
-        args: dict[str, Any] = {},
+        e_ops: list | None = None,
+        args: dict[str, Any] | None = None,
         options: dict[str, Any] | None = None,
         recalc: bool = True,
         savefile: str | None = None,
         show_pbar: bool = False,
     ) -> Any:
 
+        if e_ops is None:
+            e_ops = []
+        if args is None:
+            args = {}
         if options is None:
             options = {}
 

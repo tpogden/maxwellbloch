@@ -31,14 +31,19 @@ class Field(object):
         self,
         label: str = "",
         index: int = 0,
-        coupled_levels: list[list[int]] = [],
-        factors: list[float] = [],
+        coupled_levels: list[list[int]] | None = None,
+        factors: list[float] | None = None,
         detuning: float = 0.0,
         detuning_positive: bool = True,
         rabi_freq: float = 1.0,
         rabi_freq_t_func: str | None = None,
-        rabi_freq_t_args: dict[str, float] = {},
+        rabi_freq_t_args: dict[str, float] | None = None,
     ) -> None:
+
+        if coupled_levels is None:
+            coupled_levels = []
+        if rabi_freq_t_args is None:
+            rabi_freq_t_args = {}
 
         self.label = label
         self.index = index

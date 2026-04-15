@@ -47,7 +47,7 @@ def rabi_freq(mb_solve: MBSolve, field_idx: int) -> np.ndarray:
 
     # TODO: I should be able to do this without the loop by specifying
     # axis?
-    for i, Omega_z_i in enumerate(rabi_freq_zt):
+    for i, _Omega_z_i in enumerate(rabi_freq_zt):
         rabi_freq_fft[i] = np.fft.fft(rabi_freq_zt[i])
         rabi_freq_fft[i] = np.fft.fftshift(rabi_freq_fft[i])
 
