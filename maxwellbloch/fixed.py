@@ -3,11 +3,18 @@
 """Functions for transforming solved results into the fixed (lab) frame of
 reference, accounting for the finite speed of light."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
+if TYPE_CHECKING:
+    from maxwellbloch.mb_solve import MBSolve
 
-def t_list(mb_solve, speed_of_light):
+
+def t_list(mb_solve: MBSolve, speed_of_light: float) -> np.ndarray:
     """Return the time points shifted to the fixed (lab) frame of
     reference given a speed-of-light.
 
@@ -23,7 +30,13 @@ def t_list(mb_solve, speed_of_light):
     return mb_solve.tlist * t_scale
 
 
-def rabi_freq(mb_solve, field_idx, speed_of_light, part="real", interp_kind="linear"):
+def rabi_freq(
+    mb_solve: MBSolve,
+    field_idx: int,
+    speed_of_light: float,
+    part: str = "real",
+    interp_kind: str = "linear",
+) -> np.ndarray:
     """Return the field results shifted to the fixed (lab) frame of reference
     given a speed-of-light by interpolation. Can return the real part or
     abs value.

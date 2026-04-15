@@ -2,10 +2,17 @@
 
 """Spectral analysis of MBSolve results."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
+if TYPE_CHECKING:
+    from maxwellbloch.mb_solve import MBSolve
 
-def freq_list(mb_solve):
+
+def freq_list(mb_solve: MBSolve) -> np.ndarray:
     """Fourier transform of the tlist into the frequency domain for
         spectral analysis.
 
@@ -22,7 +29,7 @@ def freq_list(mb_solve):
     return np.fft.fftshift(f_list)
 
 
-def rabi_freq(mb_solve, field_idx):
+def rabi_freq(mb_solve: MBSolve, field_idx: int) -> np.ndarray:
     """Fourier transform of the field result of field index.
 
     Args:
@@ -47,7 +54,7 @@ def rabi_freq(mb_solve, field_idx):
     return rabi_freq_fft
 
 
-def absorption(mb_solve, field_idx, z_idx=-1):
+def absorption(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray:
     """Field absorption in the frequency domain.
 
     Args:
@@ -69,7 +76,7 @@ def absorption(mb_solve, field_idx, z_idx=-1):
     return -np.log(rabi_freq_abs[z_idx] / rabi_freq_abs[0])
 
 
-def dispersion(mb_solve, field_idx, z_idx=-1):
+def dispersion(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray:
     """Field dispersion in the frequency domain.
 
     Args:
@@ -89,7 +96,9 @@ def dispersion(mb_solve, field_idx, z_idx=-1):
     return Omega_freq_angle[0] - Omega_freq_angle[z_idx]
 
 
-def susceptibility_two_linear_known(freq_list, interaction_strength, decay_rate):
+def susceptibility_two_linear_known(
+    freq_list: np.ndarray, interaction_strength: float, decay_rate: float
+) -> np.ndarray:
     """In the linear regime for a two-level system, the suecpetibility is
     known analytically. This is here for useful comparison, as good
     agreement between a simulated weak field in a two-level system tells us
@@ -103,7 +112,9 @@ def susceptibility_two_linear_known(freq_list, interaction_strength, decay_rate)
     return 1j * interaction_strength / (decay_rate / 2 - 1j * freq_list)
 
 
-def absorption_two_linear_known(freq_list, interaction_strength, decay_rate):
+def absorption_two_linear_known(
+    freq_list: np.ndarray, interaction_strength: float, decay_rate: float
+) -> np.ndarray:
     """The absorption is half the imaginary part of the susecptibility."""
 
     return (
@@ -114,7 +125,9 @@ def absorption_two_linear_known(freq_list, interaction_strength, decay_rate):
     )
 
 
-def dispersion_two_linear_known(freq_list, interaction_strength, decay_rate):
+def dispersion_two_linear_known(
+    freq_list: np.ndarray, interaction_strength: float, decay_rate: float
+) -> np.ndarray:
     """The dispersion is half the real part of the susecptibility."""
 
     return (
@@ -125,7 +138,9 @@ def dispersion_two_linear_known(freq_list, interaction_strength, decay_rate):
     )
 
 
-def voigt_two_linear_known(freq_list, decay_rate, thermal_width):
+def voigt_two_linear_known(
+    freq_list: np.ndarray, decay_rate: float, thermal_width: float
+) -> np.ndarray:
     """Returns the Voigt profile for a two-level system in the linear regime.
 
     The Voigt profile is the convolution of a Lorentzian with a Gaussian, and

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import json
+from typing import Any
 
 from maxwellbloch import t_funcs
+from maxwellbloch.t_funcs import TFunc
 
 
 class Field(object):
@@ -27,16 +29,16 @@ class Field(object):
 
     def __init__(
         self,
-        label="",
-        index=0,
-        coupled_levels=[],
-        factors=[],
-        detuning=0.0,
-        detuning_positive=True,
-        rabi_freq=1.0,
-        rabi_freq_t_func=None,
-        rabi_freq_t_args={},
-    ):
+        label: str = "",
+        index: int = 0,
+        coupled_levels: list[list[int]] = [],
+        factors: list[float] = [],
+        detuning: float = 0.0,
+        detuning_positive: bool = True,
+        rabi_freq: float = 1.0,
+        rabi_freq_t_func: str | None = None,
+        rabi_freq_t_args: dict[str, float] = {},
+    ) -> None:
 
         self.label = label
         self.index = index
@@ -76,7 +78,7 @@ class Field(object):
             self.rabi_freq_t_args,
         )
 
-    def build_factors(self, factors):
+    def build_factors(self, factors: list[float]) -> list[float]:
         """Builds the factors list.
 
         Args:
@@ -99,7 +101,9 @@ class Field(object):
             self.factors = factors
         return self.factors
 
-    def build_rabi_freq_t_func(self, rabi_freq_t_func, index=0):
+    def build_rabi_freq_t_func(
+        self, rabi_freq_t_func: str | None, index: int = 0
+    ) -> TFunc:
 
         if rabi_freq_t_func:
             t_func = getattr(t_funcs, rabi_freq_t_func)
@@ -111,7 +115,9 @@ class Field(object):
 
         return self.rabi_freq_t_func
 
-    def build_rabi_freq_t_args(self, rabi_freq_t_args, index=0):
+    def build_rabi_freq_t_args(
+        self, rabi_freq_t_args: dict[str, float], index: int = 0
+    ) -> dict[str, float]:
 
         self.rabi_freq_t_args = {}
 
@@ -128,7 +134,7 @@ class Field(object):
 
         return self.rabi_freq_t_args
 
-    def get_json_dict(self):
+    def get_json_dict(self) -> dict[str, Any]:
         """Return a dict representation of the Field object to be dumped to
         JSON.
 
@@ -167,7 +173,7 @@ class Field(object):
 
         return json_dict
 
-    def to_json_str(self):
+    def to_json_str(self) -> str:
         """Return a JSON string representation of the Field object.
 
         Returns:
@@ -178,7 +184,7 @@ class Field(object):
             self.get_json_dict(), indent=2, separators=None, sort_keys=True
         )
 
-    def to_json(self, file_path):
+    def to_json(self, file_path: str) -> None:
 
         with open(file_path, "w") as fp:
             json.dump(
@@ -186,12 +192,12 @@ class Field(object):
             )
 
     @classmethod
-    def from_json_str(cls, json_str):
+    def from_json_str(cls, json_str: str) -> "Field":
         json_dict = json.loads(json_str)
         return cls(**json_dict)
 
     @classmethod
-    def from_json(cls, file_path):
+    def from_json(cls, file_path: str) -> "Field":
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
         return cls(**json_dict)
