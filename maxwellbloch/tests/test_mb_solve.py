@@ -19,16 +19,17 @@ JSON_DIR = os.path.abspath(os.path.join(__file__, "../", "json"))
 
 class TestInit(unittest.TestCase):
     def test_init_default(self):
-        """Test Default Initialise"""
+        """Default MBSolve has a single-state atom, standard time/space grids."""
+        mbs = mb_solve.MBSolve()
+        self.assertEqual(mbs.atom.num_states, 1)
+        self.assertEqual(mbs.t_min, 0.0)
+        self.assertEqual(mbs.t_max, 1.0)
+        self.assertEqual(mbs.t_steps, 100)
+        self.assertEqual(mbs.z_min, 0.0)
+        self.assertEqual(mbs.z_max, 1.0)
+        self.assertEqual(mbs.z_steps, 10)
 
-        mb_solve_00 = mb_solve.MBSolve()
-
-        self.assertEqual(mb_solve_00.atom.num_states, 1)
-
-        # TODO: And the rest!
-
-    def test_init_00(self):
-
+    def test_init_from_json(self):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve.MBSolve().from_json(json_path)
 
@@ -252,13 +253,33 @@ class TestSaveLoad(unittest.TestCase):
 
 
 class TestBuildZlist(unittest.TestCase):
-    def test_00(self):
+    def test_default_zlist(self):
+        mbs = mb_solve.MBSolve()
+        zlist = np.linspace(0.0, 1.0, 11)
+        self.assertTrue(np.allclose(mbs.zlist, zlist, rtol=1.0e-6))
 
-        mb_solve_00 = mb_solve.MBSolve()
+    def test_z_step(self):
+        """z_step returns (z_max - z_min) / z_steps."""
+        mbs = mb_solve.MBSolve()
+        self.assertAlmostEqual(mbs.z_step(), 0.1)
 
-        zlist = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    def test_z_step_inner(self):
+        """z_step_inner divides z_step by z_steps_inner."""
+        mbs = mb_solve.MBSolve()
+        self.assertAlmostEqual(mbs.z_step_inner(), mbs.z_step() / mbs.z_steps_inner)
 
-        self.assertTrue(np.allclose(mb_solve_00.zlist, zlist, rtol=1.0e-6))
+
+class TestCheck(unittest.TestCase):
+    def test_check_passes_when_strengths_match_fields(self):
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        self.assertTrue(mbs.check())
+
+    def test_check_raises_when_strengths_mismatch_fields(self):
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.interaction_strengths = [1.0, 2.0]  # two strengths, one field
+        self.assertRaises(ValueError, mbs.check)
 
 
 class TestGetOmegasIntpTFuncs(unittest.TestCase):
