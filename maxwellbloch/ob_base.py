@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from typing import Any
 
 import numpy as np
 import qutip as qu
@@ -46,7 +47,7 @@ class OBBase(object):
 
         self.result = None
 
-    def sigma(self, a, b):
+    def sigma(self, a: int, b: int) -> qu.Qobj:
         """The transition or 'flip' operator between states |a> and |b>, given
         by |a><b|. Uses the sigma_n helper function below this class.
 
@@ -60,7 +61,7 @@ class OBBase(object):
 
         return sigma.sigma(self.num_states, a, b)
 
-    def set_H_0(self, energies=[]):
+    def set_H_0(self, energies: list[float] = []) -> qu.Qobj:
         """Takes a list of energies and makes a Bare Hamiltonian with the
         energies as diagonals. This function can be overridden in a child class
         if you want to make the bare Hamiltonian a different way.
@@ -87,7 +88,7 @@ class OBBase(object):
         self.H_0 = qu.Qobj(H_0)
         return self.H_0
 
-    def H_I_list(self):
+    def H_I_list(self) -> list:
         """The interaction terms* are specified as a list. This could be a
         single item list in the case of one laser, or one item for each laser
         in the case of multiple lasers, or a laser and a dipole-dipole
@@ -107,7 +108,7 @@ class OBBase(object):
 
         return self.H_Omega_list
 
-    def H_I_sum(self):
+    def H_I_sum(self) -> qu.Qobj:
         """In the case of a time-independent interaction, we don't need the
         time functions, so just sum the items in H_I_list()
 
@@ -124,7 +125,7 @@ class OBBase(object):
 
         return H_I
 
-    def states_t(self):
+    def states_t(self) -> np.ndarray:
         """Returns:
             If c_ops: 3D array, first dim is time, the other two are the
         density matrix at each time slice.
@@ -152,16 +153,16 @@ class OBBase(object):
 
     def mesolve(
         self,
-        tlist,
-        rho0=None,
-        td=False,
-        e_ops=[],
-        args={},
-        options=None,
-        recalc=True,
-        savefile=None,
-        show_pbar=False,
-    ):
+        tlist: np.ndarray,
+        rho0: qu.Qobj | None = None,
+        td: bool = False,
+        e_ops: list = [],
+        args: dict[str, Any] = {},
+        options: dict[str, Any] | None = None,
+        recalc: bool = True,
+        savefile: str | None = None,
+        show_pbar: bool = False,
+    ) -> Any:
 
         if options is None:
             options = {}

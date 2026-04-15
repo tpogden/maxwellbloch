@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from typing import Any
 
 import numpy as np
 import qutip as qu
@@ -12,13 +13,13 @@ from maxwellbloch import field, ob_base
 class OBAtom(ob_base.OBBase):
     def __init__(
         self,
-        label=None,
-        num_states=1,
-        energies=[],
-        decays=[],
-        initial_state=[],
-        fields=[],
-    ):
+        label: str | None = None,
+        num_states: int = 1,
+        energies: list[float] = [],
+        decays: list[dict] = [],
+        initial_state: list[float] = [],
+        fields: list[dict] = [],
+    ) -> None:
         """Initialise OBAtom.
 
         Args:
@@ -55,7 +56,7 @@ class OBAtom(ob_base.OBBase):
             + "fields={4})"
         ).format(self.label, self.num_states, self.energies, self.decays, self.fields)
 
-    def build_initial_state(self, initial_state=[]):
+    def build_initial_state(self, initial_state: list[float] = []) -> qu.Qobj:
         """Build the initial density matrix for the atom.
 
         The default is for all of the population to be in |0> <0|.
@@ -93,12 +94,12 @@ class OBAtom(ob_base.OBBase):
     #     self.rho = self.rho_0
     #     return self.rho
 
-    def add_field(self, field_dict):
+    def add_field(self, field_dict: dict) -> None:
         """Add a Field to the list given a dict representing the field."""
 
         self.fields.append(field.Field(**field_dict))
 
-    def build_fields(self, field_dicts):
+    def build_fields(self, field_dicts: list[dict]) -> list[field.Field]:
         """Build the field list given a list of dicts representing fields."""
 
         self.fields = []
@@ -107,7 +108,7 @@ class OBAtom(ob_base.OBBase):
             self.add_field(f)
         return self.fields
 
-    def build_operators(self):
+    def build_operators(self) -> None:
         """Build the quantum operators representing the bare Hamiltonian,
         collapse operators and interaction Hamiltonian.
         """
@@ -117,7 +118,7 @@ class OBAtom(ob_base.OBBase):
         self.build_H_Delta()
         self.build_H_Omega()
 
-    def build_H_0(self):
+    def build_H_0(self) -> qu.Qobj:
         """Makes a Bare Hamiltonian with the energies as diagonals.
 
         Leave the list empty for all zero energies (i.e. if you don't care
@@ -138,7 +139,7 @@ class OBAtom(ob_base.OBBase):
         self.H_0 = qu.Qobj(H_0)
         return self.H_0
 
-    def build_c_ops(self):
+    def build_c_ops(self) -> list[qu.Qobj]:
         """Takes the list of decays and makes a list of collapse operators to
             be passed to the solver.
 
@@ -171,7 +172,7 @@ class OBAtom(ob_base.OBBase):
                     )
         return self.c_ops
 
-    def build_H_Delta(self):
+    def build_H_Delta(self) -> qu.Qobj:
         """Builds the detuning part of the interaction Hamiltonian."""
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
@@ -187,7 +188,7 @@ class OBAtom(ob_base.OBBase):
                 self.H_Delta -= sgn * 2 * pi * f.detuning * self.sigma(i, i)
         return self.H_Delta
 
-    def set_H_Delta(self, detunings):
+    def set_H_Delta(self, detunings: list[float]) -> qu.Qobj:
         """Set the detuning part of the interaction Hamiltonian, H_Delta,
             given a list of detunings.
 
@@ -199,7 +200,7 @@ class OBAtom(ob_base.OBBase):
             f.detuning = detunings[i]
         return self.build_H_Delta()
 
-    def build_H_Omega(self):
+    def build_H_Omega(self) -> list:
         """Builds the Rabi frequency (off-diagonals) part of the interaction
         Hamiltonian.
         """
@@ -224,7 +225,12 @@ class OBAtom(ob_base.OBBase):
                 self.H_Omega_list.append(H_Omega)
         return self.H_Omega_list
 
-    def set_H_Omega(self, rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args):
+    def set_H_Omega(
+        self,
+        rabi_freqs: list[float],
+        rabi_freq_t_funcs: list,
+        rabi_freq_t_args: list[dict],
+    ) -> list:
         """
         Args:
             rabi_freqs: [floats]
@@ -243,23 +249,25 @@ class OBAtom(ob_base.OBBase):
 
         return self.build_H_Omega()
 
-    def get_detunings(self):
+    def get_detunings(self) -> list[float]:
         """Returns a list of detunings, one for each field in fields."""
         return [f.detuning for f in self.fields]
 
-    def get_field_args(self):
+    def get_field_args(self) -> dict[str, float]:
 
         args = {}
         for f in self.fields:
             args.update(f.rabi_freq_t_args)
         return args
 
-    def is_field_td(self):
+    def is_field_td(self) -> bool:
 
         # Time-dependent if there are any t_funcs specified
         return any(f.rabi_freq_t_func is not None for f in self.fields)
 
-    def get_fields_sum_coherence(self, states_t=None):
+    def get_fields_sum_coherence(
+        self, states_t: np.ndarray | None = None
+    ) -> np.ndarray:
         """Returns the sum coherences of the atom density matrix for each
             field, including the relative strength factors.
         Args:
@@ -281,8 +289,14 @@ class OBAtom(ob_base.OBBase):
         return sum_coh
 
     def mesolve(
-        self, tlist, e_ops=[], options=None, recalc=True, savefile=None, show_pbar=False
-    ):
+        self,
+        tlist: np.ndarray,
+        e_ops: list = [],
+        options: dict | None = None,
+        recalc: bool = True,
+        savefile: str | None = None,
+        show_pbar: bool = False,
+    ) -> Any:
 
         if options is None:
             options = {}
@@ -305,7 +319,7 @@ class OBAtom(ob_base.OBBase):
 
         return self.result
 
-    def get_json_dict(self):
+    def get_json_dict(self) -> dict[str, Any]:
 
         json_dict = {
             "label": self.label,
@@ -316,7 +330,7 @@ class OBAtom(ob_base.OBBase):
         }
         return json_dict
 
-    def to_json_str(self):
+    def to_json_str(self) -> str:
         """Return a JSON string representation of the Atom object.
 
         Returns:
@@ -325,7 +339,7 @@ class OBAtom(ob_base.OBBase):
 
         return json.dumps(self.get_json_dict(), sort_keys=True)
 
-    def to_json(self, file_path):
+    def to_json(self, file_path: str) -> None:
 
         with open(file_path, "w") as fp:
             json.dump(
@@ -333,12 +347,12 @@ class OBAtom(ob_base.OBBase):
             )
 
     @classmethod
-    def from_json_str(cls, json_str):
+    def from_json_str(cls, json_str: str) -> "OBAtom":
         json_dict = json.loads(json_str)
         return cls(**json_dict)
 
     @classmethod
-    def from_json(cls, file_path):
+    def from_json(cls, file_path: str) -> "OBAtom":
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
         return cls(**json_dict)

@@ -3,6 +3,9 @@
 import json
 import logging
 import os
+from typing import Any
+
+import numpy as np
 
 from maxwellbloch import ob_atom
 
@@ -30,14 +33,14 @@ class OBSolve(object):
 
     def __init__(
         self,
-        atom={},
-        t_min=0.0,
-        t_max=1.0,
-        t_steps=100,
-        method="mesolve",
-        opts={},
-        savefile=None,
-    ):
+        atom: dict = {},
+        t_min: float = 0.0,
+        t_max: float = 1.0,
+        t_steps: int = 100,
+        method: str = "mesolve",
+        opts: dict = {},
+        savefile: str | None = None,
+    ) -> None:
 
         self.build_atom(atom)
 
@@ -60,12 +63,12 @@ class OBSolve(object):
             self.atom, self.t_min, self.t_max, self.t_steps, self.method, self.opts
         )
 
-    def build_atom(self, atom_dict):
+    def build_atom(self, atom_dict: dict) -> ob_atom.OBAtom:
 
         self.atom = ob_atom.OBAtom(**atom_dict)
         return self.atom
 
-    def build_tlist(self, t_min, t_max, t_steps):
+    def build_tlist(self, t_min: float, t_max: float, t_steps: int) -> np.ndarray:
 
         from numpy import linspace
 
@@ -76,7 +79,7 @@ class OBSolve(object):
         self.tlist = linspace(t_min, t_max, t_steps + 1)
         return self.tlist
 
-    def build_opts(self, opts={}):
+    def build_opts(self, opts: dict = {}) -> dict:
         """Build the options dict to be passed into the QuTiP solver.
 
         Any option available to the QuTiP solver is available here, we
@@ -108,7 +111,7 @@ class OBSolve(object):
             self.opts.update(opts)  # Update any specified in the parameter
         return self.opts
 
-    def set_field_rabi_freq_t_func(self, field_idx, t_func):
+    def set_field_rabi_freq_t_func(self, field_idx: int, t_func: Any) -> None:
         """Set the Rabi frequency time function of a field to a new time
             function. This is useful when you want to set a custom function,
             not one available in t_funcs.py
@@ -121,7 +124,7 @@ class OBSolve(object):
         self.atom.fields[field_idx].rabi_freq_t_func = t_func
         self.atom.build_operators()  # Rebuild so H_Omega is updated
 
-    def set_field_rabi_freq_t_args(self, field_idx, t_args):
+    def set_field_rabi_freq_t_args(self, field_idx: int, t_args: dict) -> None:
         """Set the Rabi frequency time function arguments. To be used with
             set_field_rabi_freq_t_func
 
@@ -133,7 +136,14 @@ class OBSolve(object):
         self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
     # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(self, e_ops=[], opts=None, recalc=True, show_pbar=False, save=True):
+    def solve(
+        self,
+        e_ops: list = [],
+        opts: dict | None = None,
+        recalc: bool = True,
+        show_pbar: bool = False,
+        save: bool = True,
+    ) -> np.ndarray:
 
         # When we're calling from MBSolve, we don't want to save each step.
         # So we pass in save=False.
@@ -159,26 +169,26 @@ class OBSolve(object):
 
         return self.atom.states_t()  # self.atom.result
 
-    def states_t(self):
+    def states_t(self) -> np.ndarray:
 
         return self.atom.states_t()
 
-    def t_step(self):
+    def t_step(self) -> float:
 
         return (self.t_max - self.t_min) / self.t_steps
 
-    def build_savefile(self, savefile):
+    def build_savefile(self, savefile: str | None) -> None:
 
         self.savefile = savefile
 
-    def savefile_exists(self):
+    def savefile_exists(self) -> bool:
         """Returns true if savefile (with appended extension .qu) exists."""
 
         return os.path.isfile(str(self.savefile) + ".qu")
 
     ### JSON Serialise and Deserialise
 
-    def get_json_dict(self):
+    def get_json_dict(self) -> dict[str, Any]:
 
         json_dict = {
             "atom": self.atom.get_json_dict(),
@@ -190,11 +200,11 @@ class OBSolve(object):
         }
         return json_dict
 
-    def to_json_str(self):
+    def to_json_str(self) -> str:
 
         return json.dumps(self.get_json_dict(), sort_keys=True)
 
-    def to_json(self, file_path):
+    def to_json(self, file_path: str) -> None:
 
         with open(file_path, "w") as fp:
             json.dump(
@@ -202,13 +212,13 @@ class OBSolve(object):
             )
 
     @classmethod
-    def from_json_str(cls, json_str):
+    def from_json_str(cls, json_str: str) -> "OBSolve":
         """Initialise OBSolve from JSON string."""
         json_dict = json.loads(json_str)
         return cls(**json_dict)
 
     @classmethod
-    def from_json(cls, file_path):
+    def from_json(cls, file_path: str) -> "OBSolve":
         """Initialise OBSolve from JSON file."""
         with open(file_path) as json_file:
             json_dict = json.load(json_file)
