@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib import animation
-from scipy.ndimage.interpolation import zoom
+from scipy.ndimage import zoom
 
 from maxwellbloch import fixed, mb_solve
 

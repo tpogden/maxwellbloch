@@ -56,7 +56,7 @@ echo "Input FPS: $INFPS"
 echo "Output Scale: $SCALE"
 echo "Output FPS: $FPS"
 
-Y = ${FILENAME%.mp4}
+Y=${FILENAME%.mp4}
 GIF="$Y.gif" # Assumes file extension is .mp4
 
 ffmpeg -y -i $FILENAME -vf \

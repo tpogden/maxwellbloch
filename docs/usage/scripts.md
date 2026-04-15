@@ -2,7 +2,7 @@
 
 Scripts are provided for producing MP4 and GIF movies showing propagation.
 
-### `make-fixed-frame-mp4.py`
+### `make-mp4-fixed-frame.py`
 
 This Python script takes an MBSolve problem defined in a JSON file and outputs
 an MP4 video showing the propagation.
@@ -24,10 +24,10 @@ optional arguments:
 
 Only the path of the input file is required.
 
-### `make-ffmpeg-gif.sh`
+### `make-gif-ffmpeg.sh`
 
 This bash script takes an MP4 file output from
-make-fixed-frame-mp4.py and converts it to an animated gif file.
+make-mp4-fixed-frame.py and converts it to an animated gif file.
 
 ```sh
 optional arguments:
