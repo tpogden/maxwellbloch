@@ -2,7 +2,7 @@ import numpy as np
 from scipy import interpolate
 
 
-def half_max_roots(x, y):
+def half_max_roots(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float]:
     """Return the half-maximum value and the two roots where ``y`` crosses it.
 
     Args:
@@ -20,7 +20,7 @@ def half_max_roots(x, y):
     return half_max, r1, r2
 
 
-def full_width_at_half_max(x, y):
+def full_width_at_half_max(x: np.ndarray, y: np.ndarray) -> float:
     """Return the full width at half maximum (FWHM) of a peak.
 
     Args:

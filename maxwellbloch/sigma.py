@@ -9,7 +9,7 @@ import numpy as np
 import qutip as qu
 
 
-def sigma(n, a, b):
+def sigma(n: int, a: int, b: int) -> qu.Qobj:
     """Returns a transition or 'flip' operator.
 
     Returns the flip operator between states |a> and |b>, given by |a><b|, for
@@ -33,7 +33,7 @@ def sigma(n, a, b):
     return qu.Qobj(m)
 
 
-def sigma_N(n, a, b, i, N):
+def sigma_N(n: int, a: int, b: int, i: int, N: int) -> qu.Qobj:
     """Returns the transition or 'flip' operator for a product system.
 
     Returns the flip operator between states |a> and |b> on the ith substate,

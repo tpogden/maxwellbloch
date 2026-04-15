@@ -8,13 +8,21 @@ index. For example, ``square(1)`` returns a function that reads
 ``{'on_1', 'off_1', 'ampl_1'}`` from ``args``.
 """
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 from numpy import exp, log, pi, sqrt
 from numpy import sinc as npsinc
 from scipy.interpolate import interp1d
 
+# Type alias for a time function returned by the factories below.
+# The function takes a time value (scalar or array) and a parameter dict,
+# and returns the corresponding amplitude (scalar or array).
+TFunc = Callable[[float | np.ndarray, dict[str, Any]], float | np.ndarray]
 
-def square(index):
+
+def square(index: int) -> TFunc:
     """Return a square (top-hat) pulse time function.
 
     Args:
@@ -36,7 +44,7 @@ def square(index):
     return func
 
 
-def gaussian(index):
+def gaussian(index: int) -> TFunc:
     """Return a Gaussian pulse time function.
 
     Args:
@@ -74,7 +82,7 @@ def gaussian(index):
     return func
 
 
-def sech(index):
+def sech(index: int) -> TFunc:
     """Return a sech pulse time function.
 
     Args:
@@ -132,7 +140,7 @@ def sech(index):
     return func
 
 
-def ramp_on(index):
+def ramp_on(index: int) -> TFunc:
     """Return a ramp-on time function.
 
     The pulse rises smoothly from zero using a half-Gaussian, then holds at
@@ -156,7 +164,7 @@ def ramp_on(index):
     return func
 
 
-def ramp_off(index):
+def ramp_off(index: int) -> TFunc:
     """Return a ramp-off time function.
 
     The pulse holds at ``ampl`` until the turn-off time ``off``, then falls
@@ -182,7 +190,7 @@ def ramp_off(index):
     return func
 
 
-def ramp_onoff(index):
+def ramp_onoff(index: int) -> TFunc:
     """Return a ramp-on / ramp-off time function.
 
     The pulse rises smoothly, holds at ``ampl``, then falls smoothly. Built
@@ -206,7 +214,7 @@ def ramp_onoff(index):
     return func
 
 
-def ramp_offon(index):
+def ramp_offon(index: int) -> TFunc:
     """Return a ramp-off / ramp-on time function.
 
     The pulse starts at ``ampl``, dips smoothly to zero, then rises back to
@@ -229,7 +237,7 @@ def ramp_offon(index):
     return func
 
 
-def sinc(index):
+def sinc(index: int) -> TFunc:
     """Return a sinc pulse time function.
 
     Args:
@@ -249,7 +257,7 @@ def sinc(index):
     return func
 
 
-def intp(index):
+def intp(index: int) -> TFunc:
     """Return an interpolated time function.
 
     Linearly interpolates a user-supplied ``(tlist, ylist)`` pair, returning
