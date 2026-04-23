@@ -49,7 +49,7 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 | ~~GH#7~~ | ✅ `ramp_onoff` and `ramp_offon` already compose `ramp_on`/`ramp_off` closures |
 | GH#178 | Clarify public API: use underscore convention for private methods throughout |
 | ~~GH#133~~ | ✅ Vectorised `get_fields_sum_coherence` — precomputed index arrays, NumPy advanced indexing + matmul |
-| GH#24 | Unnest the mbsolve loop (`mb_solve.py:116` — `build_velocity_classes` too large) |
+| ~~GH#24~~ | ✅ Split `build_velocity_classes` into `_normalise_velocity_classes` + `_build_thermal_delta_list`; vectorised `z_step_fields_euler`/`_ab` with broadcasting |
 | 48 TODO/FIXME comments | Notable: `ob_base.py:117`, `mb_solve.py:598` (duplicates OBAtom), `hyperfine.py:242` (validate I,J,F range) |
 | ~~Type annotations~~ | ✅ All 14 source files fully annotated: `sigma.py`, `utility.py`, `t_funcs.py`, `fixed.py`, `spectral.py`, `field.py`, `ob_base.py`, `ob_atom.py`, `ob_solve.py`, `mb_solve.py` |
 | ~~Positional arguments~~ | ✅ Internal call sites updated to use keyword arguments throughout |
