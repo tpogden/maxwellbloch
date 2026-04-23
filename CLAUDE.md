@@ -16,16 +16,16 @@ uv sync --extra dev
 uv run pytest -n auto
 
 # Run a single test file
-uv run pytest maxwellbloch/tests/test_mb_solve.py
+uv run pytest tests/test_mb_solve.py
 
 # Run a single test
-uv run pytest maxwellbloch/tests/test_mb_solve.py::TestClassName::test_method_name
+uv run pytest tests/test_mb_solve.py::TestClassName::test_method_name
 
 # Run with coverage
 uv run pytest --cov -n auto
 
 # Run performance benchmarks
-uv run pytest maxwellbloch/tests/bench_mb_solve.py --benchmark-only
+uv run pytest tests/bench_mb_solve.py --benchmark-only
 
 # Lint
 uv run ruff check .

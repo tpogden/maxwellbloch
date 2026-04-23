@@ -1,0 +1,28 @@
+{
+  "atom": {
+    "fields": [
+      {
+        "coupled_levels": [[0, 1]],
+        "rabi_freq_t_args": {
+          "ampl": 5.0,
+          "on": 0.2,
+          "off": 0.3
+        },
+        "rabi_freq_t_func": "square"
+      },
+      {
+        "coupled_levels": [[0, 1]],
+        "rabi_freq_t_args": {
+          "ampl": 5.0,
+          "on": 0.6,
+          "off": 0.7
+        },
+        "rabi_freq_t_func": "square"
+      }
+    ],
+    "num_states": 2
+  },
+  "t_min": 0.0,
+  "t_max": 1.0,
+  "t_steps": 100
+}

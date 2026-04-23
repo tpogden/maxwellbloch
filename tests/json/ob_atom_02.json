@@ -1,0 +1,67 @@
+{
+  "label": "vee-weak-cw",
+  "decays": [
+    {
+      "channels": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "rate": 1.0
+    },
+    {
+      "channels": [
+        [
+          2,
+          1
+        ]
+      ],
+      "rate": 2.0
+    }
+  ],
+  "energies": [
+    1.0,
+    2.0,
+    3.0
+  ],
+  "fields": [
+    {
+      "coupled_levels": [
+        [
+          0,
+          1
+        ]
+      ],
+      "detuning": 1.0,
+      "detuning_positive": true,
+      "label": "probe",
+      "rabi_freq": 0.001,
+      "rabi_freq_t_args": {},
+      "rabi_freq_t_func": null
+    },
+    {
+      "coupled_levels": [
+        [
+          1,
+          2
+        ]
+      ],
+      "detuning": 2.0,
+      "detuning_positive": false,
+      "label": "coupling",
+      "rabi_freq": 10.0,
+      "rabi_freq_t_args": {
+        "ampl": 1.0,
+        "off": 0.7,
+        "on": 0.3
+      },
+      "rabi_freq_t_func": "square"
+    }
+  ],
+  "num_states": 3
+}

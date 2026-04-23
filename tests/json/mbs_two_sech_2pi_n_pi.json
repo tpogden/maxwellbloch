@@ -1,0 +1,25 @@
+{
+  "atom": {
+    "fields": [
+      {
+        "coupled_levels": [[0, 1]],
+        "rabi_freq_t_args": {
+          "n_pi": 2.0,
+          "centre": 0.0,
+          "width": 0.3796628587572578
+        },
+        "rabi_freq_t_func": "sech"
+      }
+    ],
+    "num_states": 2
+  },
+  "t_min": -2.0,
+  "t_max": 10.0,
+  "t_steps": 120,
+  "z_min": 0.0,
+  "z_max": 1.0,
+  "z_steps": 30,
+  "interaction_strengths": [
+    10.0
+  ]
+}

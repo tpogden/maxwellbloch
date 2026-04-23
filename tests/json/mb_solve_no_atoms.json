@@ -1,0 +1,55 @@
+{
+  "atom": {
+    "decays": [],
+    "energies": [],
+    "fields": [
+      {
+        "coupled_levels": [
+          [
+            0,
+            1
+          ]
+        ],
+        "detuning": 0.0,
+        "detuning_positive": true,
+        "label": "probe",
+        "rabi_freq": 1.0,
+        "rabi_freq_t_args": {
+          "ampl": 1.0,
+          "centre": 0.0,
+          "fwhm": 0.1
+        },
+        "rabi_freq_t_func": "gaussian"
+      }
+    ],
+    "num_states": 2
+  },
+  "t_min": -0.5,
+  "t_max": 1.0,
+  "t_steps": 100,
+  "z_min": -0.2,
+  "z_max": 1.2,
+  "z_steps": 4,
+  "z_steps_inner": 1,
+  "num_density_z_func": "square",
+  "num_density_z_args": {
+    "on": 0.0,
+    "off": 1.0,
+    "ampl": 0.0
+  },
+  "interaction_strengths": [
+    1.0
+  ],
+  "velocity_classes": {
+    "thermal_delta_min": 0.0,
+    "thermal_delta_max": 0.0,
+    "thermal_delta_steps": 0,
+    "thermal_delta_inner_min": 0.0,
+    "thermal_delta_inner_max": 0.0,
+    "thermal_delta_inner_steps": 0,
+    "thermal_width": 1.0
+  },
+  "method": "mesolve",
+  "opts": {},
+  "savefile": null
+}

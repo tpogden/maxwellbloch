@@ -1,0 +1,38 @@
+{
+  "atom": {
+    "decays": [
+      {
+        "channels": [[0, 1]],
+        "rate": 1.0
+      }
+    ],
+    "fields": [
+      {
+        "coupled_levels": [[0, 1]],
+        "rabi_freq": 1.0e-3,
+        "rabi_freq_t_args": {
+          "ampl": 1.0,
+          "centre": 0.0,
+          "fwhm": 1.0
+        },
+        "rabi_freq_t_func": "gaussian"
+      }
+    ],
+    "num_states": 2
+  },
+  "t_min": -2.0,
+  "t_max": 10.0,
+  "t_steps": 1000,
+  "z_min": -0.2,
+  "z_max": 1.2,
+  "z_steps": 50,
+  "velocity_classes": {
+    "thermal_delta_min": -0.1,
+    "thermal_delta_max": 0.1,
+    "thermal_delta_steps": 4,
+    "thermal_width": 0.05
+  },
+  "interaction_strengths": [
+    1.0
+  ]
+}

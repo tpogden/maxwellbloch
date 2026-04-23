@@ -46,10 +46,7 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [tool.setuptools.packages.find]
-where = ["."]
-
-[tool.setuptools.package-data]
-"maxwellbloch.tests" = ["json/*.json"]
+where = ["src"]
 
 # bin/ scripts are standalone files rather than entry-point callables.
 [tool.setuptools]
@@ -62,7 +59,7 @@ script-files = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["maxwellbloch/tests"]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88
@@ -76,7 +73,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"maxwellbloch/tests/*" = ["F401"] # unused imports OK in test packages
+"tests/*" = ["F401"] # unused imports OK in test packages
 
 [tool.ruff.format]
 quote-style = "double"

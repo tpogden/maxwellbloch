@@ -1,0 +1,10 @@
+{
+  "coupled_levels": [[1, 2]],
+  "rabi_freq_t_args": 
+  {
+    "ampl": 2.5,
+    "on": 0.6,               
+    "off": 0.7
+  },
+  "rabi_freq_t_func": "square"                 
+}

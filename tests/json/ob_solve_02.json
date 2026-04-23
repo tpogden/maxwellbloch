@@ -1,0 +1,56 @@
+{
+  "atom": {
+    "decays": [
+      {
+        "channels": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "rate": 1.0
+      }
+    ],
+    "energies": [],
+    "fields": [
+      {
+        "coupled_levels": [
+          [
+            0,
+            1
+          ]
+        ],
+        "detuning": 0.0,
+        "detuning_positive": true,
+        "label": "probe",
+        "rabi_freq": 5.0,
+        "rabi_freq_t_args": {},
+        "rabi_freq_t_func": null
+      },
+      {
+        "coupled_levels": [
+          [
+            1,
+            2
+          ]
+        ],
+        "detuning": 0.0,
+        "detuning_positive": false,
+        "label": "coupling",
+        "rabi_freq": 10.0,
+        "rabi_freq_t_args": {},
+        "rabi_freq_t_func": null
+      }
+    ],
+    "num_states": 3
+  },
+  "t_min": 0.0,
+  "t_max": 1.0,
+  "t_steps": 100,
+  "method": "mesolve",
+  "opts": {}
+}
