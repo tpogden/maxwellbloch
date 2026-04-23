@@ -74,7 +74,7 @@ Hyperfine structure lives in `hyperfine.py` and `angmom.py` (3j/6j symbols, Cleb
 
 ### Configuration
 
-Problems are defined as JSON (see `fileio.py`). `MBSolve` and `OBSolve` accept a JSON string or a dict. Test fixtures live in `maxwellbloch/tests/json/`.
+Problems are defined as JSON (see `fileio.py`). `MBSolve` and `OBSolve` accept a JSON string or a dict. Test fixtures live in `tests/json/`.
 
 ### Caching
 
@@ -83,6 +83,38 @@ Solved results are pickled by QuTiP into `.qu` files next to the script. Use `ma
 ### Time functions
 
 `t_funcs.py` provides named callables (sech, Gaussian, square) for pulse shapes. These are passed by name in JSON config and resolved at solve time.
+
+## Git workflow
+
+All development uses feature branches and pull requests. The branch structure is:
+
+- **`master`** — stable, released code. Only receives merges from `next` as part of a release.
+- **`next`** — the release branch. All PRs target this branch.
+- **feature branches** — cut from `next`, merged back via PR.
+
+### Typical change
+
+```bash
+git checkout next
+git pull
+git checkout -b my-feature-branch
+# ... make changes, commit ...
+gh pr create --base next --title "..." --body "..."
+```
+
+### Release process
+
+```bash
+# On next: bump version, commit, then merge to master and tag
+uv run bump-my-version bump patch   # or minor / major
+git checkout master
+git merge --no-ff next
+git push
+git push --tags
+git checkout next
+```
+
+The `git push --tags` triggers the CI publish workflow to PyPI.
 
 ## Environment
 
