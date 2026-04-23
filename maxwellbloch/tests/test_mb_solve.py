@@ -144,6 +144,32 @@ class TestMBSolve(unittest.TestCase):
         # Output pulse is 2pi
         self.assertAlmostEqual(mbs.fields_area()[0][-1] / (np.pi), 2.0, places=1)
 
+    def test_lambda_eit_probe_absorbed_without_coupling(self):
+        """Without a coupling field a weak resonant probe is near-completely
+        absorbed by the Λ medium (interaction_strength=10, decay rate=1).
+        """
+        json_path = os.path.join(JSON_DIR, "mbs_lambda_eit_no_coupling.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        probe_area = mbs.fields_area()[0]
+        transmission = probe_area[-1] / probe_area[0]
+
+        self.assertLess(transmission, 0.05)
+
+    def test_lambda_eit_probe_transmitted_with_coupling(self):
+        """With a strong coupling field (Ω_c = 5 >> decay rate = 1) the same
+        probe is substantially transmitted through the EIT window.
+        """
+        json_path = os.path.join(JSON_DIR, "mbs_lambda_eit_with_coupling.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        probe_area = mbs.fields_area()[0]
+        transmission = probe_area[-1] / probe_area[0]
+
+        self.assertGreater(transmission, 0.5)
+
     def test_no_vel_classes(self):
         """Empty velocity class dict."""
 
