@@ -56,9 +56,10 @@ cover/
 # MacOS
 .DS_Store
 
-# Saved Files
+# Saved Files — ignore everywhere except docs cache (needed for fast builds)
 *.qu
 !docs/examples/*.qu
+!docs/usage/*.qu
 
 # Version files (generated at build time)
 maxwellbloch/version.py
