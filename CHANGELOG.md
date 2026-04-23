@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] 2026-04-23
+
+- Added type annotations across all source files
+- Fixed mutable default arguments (replaced `[]`/`{}` defaults with `None`)
+- Enabled flake8-bugbear (`B`) ruleset in ruff; fixed all B006/B007 violations
+- Added docs build job to CI; fixed NumPy 2 compatibility in notebooks
+- Added `test_ob_base.py`; added tests for sech FWHM and Voigt profile
+- Removed deprecated `fixed.rabi_freq_abs`; updated callers to `fixed.rabi_freq(..., part="abs")`
+- Used keyword arguments at all internal call sites
+- Updated `.readthedocs.yml` to Python 3.11 and modern config format
+
 ## [0.8.0] 2026-04-15
 
 - Updated to support QuTiP 5, NumPy 2, and SciPy 1.14+
