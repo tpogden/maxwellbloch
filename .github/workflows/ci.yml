@@ -40,11 +40,18 @@ jobs:
             benchmark-${{ runner.os }}-
       - name: Run benchmark (two-level sech 2π)
         run: |
+          # Only add --benchmark-compare-fail when a baseline exists in the
+          # cache. On the first run the cache is empty so we just save;
+          # subsequent runs compare and fail on >25% mean regression.
+          if find .benchmarks -name "*.json" 2>/dev/null | grep -q .; then
+            COMPARE="--benchmark-compare --benchmark-compare-fail=mean:25%"
+          else
+            COMPARE=""
+          fi
           uv run pytest tests/bench_mb_solve.py::test_bench_two_level_sech_2pi \
             --benchmark-only \
             --benchmark-save=ci \
-            --benchmark-compare \
-            --benchmark-compare-fail=mean:25%
+            $COMPARE
       - name: Save benchmark cache
         # Only update the baseline when the benchmark passes; a regression
         # (failed compare) leaves the previous baseline intact.
