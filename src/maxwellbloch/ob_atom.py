@@ -117,6 +117,7 @@ class OBAtom(ob_base.OBBase):
         self.build_c_ops()
         self.build_H_Delta()
         self.build_H_Omega()
+        self._build_sum_coherence_arrays()
 
     def build_H_0(self) -> qu.Qobj:
         """Makes a Bare Hamiltonian with the energies as diagonals.
@@ -265,27 +266,49 @@ class OBAtom(ob_base.OBBase):
         # Time-dependent if there are any t_funcs specified
         return any(f.rabi_freq_t_func is not None for f in self.fields)
 
+    def _build_sum_coherence_arrays(self) -> None:
+        """Precompute index and weight arrays used by get_fields_sum_coherence.
+
+        Called once during build_operators so that get_fields_sum_coherence
+        can use vectorised NumPy indexing rather than Python loops at every
+        z-step.  For each field we store:
+            _sum_coh_rows[f_i]    – row indices into the density matrix
+            _sum_coh_cols[f_i]    – column indices into the density matrix
+            _sum_coh_weights[f_i] – corresponding factor² weights
+        """
+        self._sum_coh_rows: list[np.ndarray] = []
+        self._sum_coh_cols: list[np.ndarray] = []
+        self._sum_coh_weights: list[np.ndarray] = []
+        for f in self.fields:
+            self._sum_coh_rows.append(np.array([cl[0] for cl in f.coupled_levels]))
+            self._sum_coh_cols.append(np.array([cl[1] for cl in f.coupled_levels]))
+            self._sum_coh_weights.append(
+                np.array([fac**2 for fac in f.factors], dtype=complex)
+            )
+
     def get_fields_sum_coherence(
         self, states_t: np.ndarray | None = None
     ) -> np.ndarray:
         """Returns the sum coherences of the atom density matrix for each
             field, including the relative strength factors.
+
         Args:
             states_t: (optional) a states_t object. If not provided, use
                 self.states_t()
 
-        TODO: What I'm doing here is Tr(rho * d) (thesis Eqn 2.41), so why not
-            just use QuTiP trace for each field.
-
         Returns:
-            (np.array)
+            np.ndarray of shape (num_fields, t_steps+1)
         """
         if states_t is None:
             states_t = self.states_t()
         sum_coh = np.zeros((len(self.fields), len(states_t)), dtype=complex)
-        for f_i, f in enumerate(self.fields):
-            for cl_i, cl in enumerate(f.coupled_levels):
-                sum_coh[f_i, :] += f.factors[cl_i] ** 2 * states_t[:, cl[0], cl[1]]
+        for f_i in range(len(self.fields)):
+            # states_t[:, rows, cols] → (t_steps+1, n_pairs)
+            # @ weights              → (t_steps+1,)
+            sum_coh[f_i] = (
+                states_t[:, self._sum_coh_rows[f_i], self._sum_coh_cols[f_i]]
+                @ self._sum_coh_weights[f_i]
+            )
         return sum_coh
 
     def mesolve(
