@@ -8,6 +8,9 @@ test:
 test_cov:
 	uv run pytest --cov -n auto
 
+bench:
+	uv run pytest maxwellbloch/tests/bench_mb_solve.py --benchmark-only
+
 # Lint / Format ---------------------------------------------------------------
 
 lint:

@@ -24,6 +24,9 @@ uv run pytest maxwellbloch/tests/test_mb_solve.py::TestClassName::test_method_na
 # Run with coverage
 uv run pytest --cov -n auto
 
+# Run performance benchmarks
+uv run pytest maxwellbloch/tests/bench_mb_solve.py --benchmark-only
+
 # Lint
 uv run ruff check .
 
@@ -43,7 +46,7 @@ uv run bump-my-version bump major   # breaking changes
 git push && git push --tags
 ```
 
-Make targets: `test`, `test_cov`, `lint`, `format`, `format_check`, `docs_html`, `dist`, `bump_patch`, `bump_minor`, `bump_major`, `clean_qu` (removes cached `.qu` files).
+Make targets: `test`, `test_cov`, `bench`, `lint`, `format`, `format_check`, `docs_html`, `dist`, `bump_patch`, `bump_minor`, `bump_major`, `clean_qu` (removes cached `.qu` files).
 
 ## Architecture
 
