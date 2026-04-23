@@ -80,16 +80,15 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 
 ---
 
-## ✅ Issues to close (already resolved)
-
-Close these on GitHub with a note explaining what resolved them:
+## ✅ Issues closed
 
 | Issue | Reason |
 |-------|--------|
-| GH#29 — Fix PEP8 problems | Ruff applied across the whole codebase in 0.8.0 |
-| GH#163 — Write a version_info.py | Replaced by `importlib.metadata` + `bump-my-version` in 0.8.0 |
-| GH#215 — Set up Travis deploy | Done — GitHub Actions publish workflow with OIDC in 0.8.0 |
-| GH#237 — Fix nbsphinx docs bug | Resolved in PR #240 (merged) |
-| GH#139 — Add CHANGELOG to manifest | CHANGELOG.md and MANIFEST.in both exist |
-| GH#106 — Remove deprecated `fixed.rabi_freq_abs` | Removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
-| GH#198 — Voigt profile test | `TestVoigtProfile` added in `test_spectral.py` |
+| ~~GH#7 — ramp_onoff refactor~~ | ✅ Closed — closures already compose `ramp_on`/`ramp_off` |
+| ~~GH#29 — Fix PEP8 problems~~ | ✅ Closed — ruff applied across the whole codebase in 0.8.0 |
+| ~~GH#106 — Remove deprecated `fixed.rabi_freq_abs`~~ | ✅ Closed — removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
+| ~~GH#139 — Add CHANGELOG to manifest~~ | ✅ Closed — CHANGELOG.md and MANIFEST.in both exist |
+| ~~GH#163 — Write a version_info.py~~ | ✅ Closed — replaced by `importlib.metadata` + `bump-my-version` in 0.8.0 |
+| ~~GH#198 — Voigt profile test~~ | ✅ Closed — `TestVoigtProfile` added in `test_spectral.py` |
+| ~~GH#215 — Set up Travis deploy~~ | ✅ Closed — GitHub Actions publish workflow with OIDC in 0.8.0 |
+| ~~GH#237 — Fix nbsphinx docs bug~~ | ✅ Closed — resolved in PR #240 (merged) |
