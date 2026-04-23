@@ -50,7 +50,7 @@ class Field(object):
 
         self.coupled_levels = coupled_levels  # TODO should I convert to array?
 
-        self.build_factors(factors)
+        self._build_factors(factors)
 
         self.detuning = detuning
         self.detuning_positive = detuning_positive
@@ -83,7 +83,7 @@ class Field(object):
             self.rabi_freq_t_args,
         )
 
-    def build_factors(self, factors: list[float]) -> list[float]:
+    def _build_factors(self, factors: list[float]) -> list[float]:
         """Builds the factors list.
 
         Args:

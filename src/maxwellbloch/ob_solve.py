@@ -45,14 +45,14 @@ class OBSolve(object):
         if atom is None:
             atom = {}
 
-        self.build_atom(atom)
+        self._build_atom(atom)
 
-        self.build_tlist(t_min=t_min, t_max=t_max, t_steps=t_steps)
+        self._build_tlist(t_min=t_min, t_max=t_max, t_steps=t_steps)
 
         self.method = method
         self.build_opts(opts)
 
-        self.build_savefile(savefile)
+        self._build_savefile(savefile)
 
     def __repr__(self):
         return (
@@ -66,12 +66,12 @@ class OBSolve(object):
             self.atom, self.t_min, self.t_max, self.t_steps, self.method, self.opts
         )
 
-    def build_atom(self, atom_dict: dict) -> ob_atom.OBAtom:
+    def _build_atom(self, atom_dict: dict) -> ob_atom.OBAtom:
 
         self.atom = ob_atom.OBAtom(**atom_dict)
         return self.atom
 
-    def build_tlist(self, t_min: float, t_max: float, t_steps: int) -> np.ndarray:
+    def _build_tlist(self, t_min: float, t_max: float, t_steps: int) -> np.ndarray:
 
         from numpy import linspace
 
@@ -180,7 +180,7 @@ class OBSolve(object):
 
         return (self.t_max - self.t_min) / self.t_steps
 
-    def build_savefile(self, savefile: str | None) -> None:
+    def _build_savefile(self, savefile: str | None) -> None:
 
         self.savefile = savefile
 

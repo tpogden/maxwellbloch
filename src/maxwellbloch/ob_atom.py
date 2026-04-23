@@ -113,13 +113,13 @@ class OBAtom(ob_base.OBBase):
         collapse operators and interaction Hamiltonian.
         """
 
-        self.build_H_0()
-        self.build_c_ops()
-        self.build_H_Delta()
-        self.build_H_Omega()
+        self._build_H_0()
+        self._build_c_ops()
+        self._build_H_Delta()
+        self._build_H_Omega()
         self._build_sum_coherence_arrays()
 
-    def build_H_0(self) -> qu.Qobj:
+    def _build_H_0(self) -> qu.Qobj:
         """Makes a Bare Hamiltonian with the energies as diagonals.
 
         Leave the list empty for all zero energies (i.e. if you don't care
@@ -140,7 +140,7 @@ class OBAtom(ob_base.OBBase):
         self.H_0 = qu.Qobj(H_0)
         return self.H_0
 
-    def build_c_ops(self) -> list[qu.Qobj]:
+    def _build_c_ops(self) -> list[qu.Qobj]:
         """Takes the list of decays and makes a list of collapse operators to
             be passed to the solver.
 
@@ -173,7 +173,7 @@ class OBAtom(ob_base.OBBase):
                     )
         return self.c_ops
 
-    def build_H_Delta(self) -> qu.Qobj:
+    def _build_H_Delta(self) -> qu.Qobj:
         """Builds the detuning part of the interaction Hamiltonian."""
 
         self.H_Delta = qu.Qobj(np.zeros([self.num_states, self.num_states]))
@@ -199,9 +199,9 @@ class OBAtom(ob_base.OBBase):
         assert len(detunings) == len(self.fields)
         for i, f in enumerate(self.fields):
             f.detuning = detunings[i]
-        return self.build_H_Delta()
+        return self._build_H_Delta()
 
-    def build_H_Omega(self) -> list:
+    def _build_H_Omega(self) -> list:
         """Builds the Rabi frequency (off-diagonals) part of the interaction
         Hamiltonian.
         """
@@ -248,7 +248,7 @@ class OBAtom(ob_base.OBBase):
             f.build_rabi_freq_t_func(rabi_freq_t_func=rabi_freq_t_funcs[f_i], index=f_i)
             f.build_rabi_freq_t_args(rabi_freq_t_args=rabi_freq_t_args[f_i], index=f_i)
 
-        return self.build_H_Omega()
+        return self._build_H_Omega()
 
     def get_detunings(self) -> list[float]:
         """Returns a list of detunings, one for each field in fields."""
