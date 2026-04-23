@@ -48,7 +48,7 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 | ~~GH#106~~ | ✅ `fixed.rabi_freq_abs` removed; callers updated to `fixed.rabi_freq(..., part="abs")` |
 | ~~GH#7~~ | ✅ `ramp_onoff` and `ramp_offon` already compose `ramp_on`/`ramp_off` closures |
 | GH#178 | Clarify public API: use underscore convention for private methods throughout |
-| GH#133 | Vectorise `get_fields_sum_coherence` — currently loops per field |
+| ~~GH#133~~ | ✅ Vectorised `get_fields_sum_coherence` — precomputed index arrays, NumPy advanced indexing + matmul |
 | GH#24 | Unnest the mbsolve loop (`mb_solve.py:116` — `build_velocity_classes` too large) |
 | 48 TODO/FIXME comments | Notable: `ob_base.py:117`, `mb_solve.py:598` (duplicates OBAtom), `hyperfine.py:242` (validate I,J,F range) |
 | ~~Type annotations~~ | ✅ All 14 source files fully annotated: `sigma.py`, `utility.py`, `t_funcs.py`, `fixed.py`, `spectral.py`, `field.py`, `ob_base.py`, `ob_atom.py`, `ob_solve.py`, `mb_solve.py` |
@@ -65,6 +65,7 @@ A survey of the codebase after the 0.8.0 release. Tasks are grouped by effort an
 | ~~Pre-commit lint hook~~ | ✅ `.git/hooks/pre-commit` runs ruff check + format check |
 | ~~README badge wrong URL~~ | ✅ Updated from `python-package-conda.yml` to `ci.yml` |
 | ~~NumPy 2 notebook compatibility~~ | ✅ Fixed `.tolist()`/`float()` repr change and `np.trapz` → `np.trapezoid` across 7 notebooks |
+| ~~Benchmark regression check in CI~~ | ✅ `bench` job added to CI: runs `test_bench_two_level_sech_2pi`, caches baseline, fails on >25% mean regression |
 
 ---
 
