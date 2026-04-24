@@ -55,6 +55,7 @@ cover/
 
 # MacOS
 .DS_Store
+.benchmarks/
 
 # Saved Files — ignore everywhere except docs cache (needed for fast builds)
 *.qu
