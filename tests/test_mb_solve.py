@@ -521,3 +521,65 @@ class TestBuildThermalDeltaList(unittest.TestCase):
         )
         deltas = self.mbs._build_thermal_delta_list(vc)
         self.assertTrue(np.all(np.diff(deltas) > 0))
+
+
+class TestZStepFields(unittest.TestCase):
+    """Unit tests for _z_step_fields_euler and _z_step_fields_ab."""
+
+    def setUp(self):
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        self.mbs = mb_solve.MBSolve().from_json(json_path)
+
+    def test_euler_output_shape(self):
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_euler(
+            h=0.1, N=1.0, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        self.assertEqual(result.shape, (n_fields, n_t))
+
+    def test_euler_zero_coherence_is_identity(self):
+        """With zero coherence the field does not change."""
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.ones((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_euler(
+            h=0.1, N=1.0, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        np.testing.assert_array_equal(result, Omegas_z)
+
+    def test_euler_known_value(self):
+        """dΩ/dz = i·N·g·ρ; check against hand-computed value."""
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.ones((n_fields, n_t), dtype=complex)
+        h, N = 0.1, 1.0
+        result = self.mbs._z_step_fields_euler(
+            h=h, N=N, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        expected = h * 1.0j * N * self.mbs.g[0] * np.ones(n_t, dtype=complex)
+        np.testing.assert_allclose(result[0], expected)
+
+    def test_ab_output_shape(self):
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_ab(
+            h=0.1,
+            N=1.0,
+            sum_coh_prev=sum_coh,
+            sum_coh_this=sum_coh,
+            Omegas_z_this=Omegas_z,
+        )
+        self.assertEqual(result.shape, (n_fields, n_t))
+
+    def test_ab_has_no_z_prev(self):
+        import inspect
+
+        sig = inspect.signature(self.mbs._z_step_fields_ab)
+        self.assertNotIn("z_prev", sig.parameters)
