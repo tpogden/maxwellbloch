@@ -195,8 +195,8 @@ class OBBase(object):
 
             # Only save the file if we have a place to save it.
             if savefile:
+                os.makedirs(os.path.dirname(savefile) or ".", exist_ok=True)
                 print("Saving OBBase to {0}.qu".format(savefile))
-
                 qu.qsave(self.result, savefile)
 
         # Otherwise load the steady state rho_v_delta from file
