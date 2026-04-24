@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MaxwellBloch"
-version = "0.8.1"
+version = "0.9.0"
 description = "A Python package for solving the Maxwell-Bloch equations."
 readme = "README.md"
 license = { text = "MIT" }
@@ -29,7 +29,7 @@ docs = [
 dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
 
 [tool.bumpversion]
-current_version = "0.8.1"
+current_version = "0.9.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
