@@ -308,43 +308,48 @@ class TestCheck(unittest.TestCase):
         self.assertRaises(ValueError, mbs.check)
 
 
-class TestGetOmegasIntpTFuncs(unittest.TestCase):
-    """Unit tests of the get_Omegas_intp_t_funcs method"""
+class TestBuildIntpHOmegaList(unittest.TestCase):
+    """Unit tests for MBSolve._build_intp_H_Omega_list."""
 
-    def test_one_field(self):
-        """For the case of a single field"""
+    def test_one_field_structure(self):
+        """Returns a list of [Qobj, Coefficient] pairs, one per field."""
+        import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(mb_solve_00._get_Omegas_intp_t_funcs(), ["intp"])
+        self.assertEqual(len(result), 1)
+        H_op, coeff = result[0]
+        from qutip.core.cy.coefficient import Coefficient
 
-    def test_two_fields(self):
-        """For the case of two fields"""
+        self.assertIsInstance(H_op, qu.Qobj)
+        self.assertIsInstance(coeff, Coefficient)
 
+    def test_two_fields_length(self):
+        """Returns one pair per field."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
-        mb_solve_lamda = mb_solve.MBSolve().from_json(json_path)
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(mb_solve_lamda._get_Omegas_intp_t_funcs(), ["intp", "intp"])
+        self.assertEqual(len(result), 2)
 
-
-class TestGetOmegasIntpTArgs(unittest.TestCase):
-    """Unit tests of the get_Omegas_intp_t_args method"""
-
-    def test_one_field(self):
-        """For the case of a single field"""
-
+    def test_coefficient_evaluates_correctly(self):
+        """Coefficient at tlist[k] equals Omegas_z[0,k].real / (2π)."""
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
-
-        Omegas_z = mb_solve_00.Omegas_zt[:, 0, :]
-
-        t_args = mb_solve_00._get_Omegas_intp_t_args(Omegas_z)
-
-        self.assertEqual(len(t_args), 1)
-
-        self.assertTrue(np.all(t_args[0]["tlist"] == mb_solve_00.tlist))
-        self.assertTrue(np.all(t_args[0]["ylist"] == Omegas_z / (2.0 * np.pi)))
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        # Use a non-trivial field profile
+        mbs.mbsolve()
+        Omegas_z = mbs.Omegas_zt[:, -1, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
+        _H_op, coeff = result[0]
+        # Check a few time points
+        for k in [0, len(mbs.tlist) // 2, -1]:
+            t = mbs.tlist[k]
+            expected = Omegas_z[0, k].real / (2 * np.pi)
+            self.assertAlmostEqual(coeff(t), expected, places=10)
 
 
 class TestPopulations(unittest.TestCase):
