@@ -533,7 +533,7 @@ class MBSolve(ob_solve.OBSolve):
             # Shift each detuning by Delta.
             self.atom.set_H_Delta([fd + Delta for fd in fixed_detunings])
             # We don't want the obsolve to save.
-            self.solve(opts=None, save=False)
+            self.obsolve(opts=None, save=False)
             states_t_Delta[Delta_i] = self.states_t()
         # Restore fixed detunings
         self.atom.set_H_Delta(fixed_detunings)
