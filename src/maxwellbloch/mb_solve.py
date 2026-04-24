@@ -320,8 +320,6 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
-        # For the interpolation
-        rabi_freq_ones = np.ones(len(self.atom.fields))
         # Set initial states at z=0
         self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
         # NOTE: This means the first z gets ob solved twice.
@@ -345,14 +343,7 @@ class MBSolve(ob_solve.OBSolve):
                     Omegas_z_this=Omegas_z_this,
                     sum_coh_this=sum_coh_this,
                 )
-                Omegas_z_next_args = self._get_Omegas_intp_t_args(
-                    Omegas_z=Omegas_z_next
-                )
-                self.atom.set_H_Omega(
-                    rabi_freqs=rabi_freq_ones,
-                    rabi_freq_t_funcs=self._get_Omegas_intp_t_funcs(),
-                    rabi_freq_t_args=Omegas_z_next_args,
-                )
+                self.atom.H_Omega_list = self._build_intp_H_Omega_list(Omegas_z_next)
                 # Set up for next inner step
                 Omegas_z_this = Omegas_z_next
                 z_this = z_next
@@ -381,8 +372,6 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
-        # For use in the loop
-        rabi_freq_ones = np.ones(len(self.atom.fields))
         # Set initial states at z=0
         thermal_states_t = self._solve_and_average_over_thermal_detunings()
         self.states_zt[0, :] = thermal_states_t
@@ -402,12 +391,7 @@ class MBSolve(ob_solve.OBSolve):
             Omegas_z_this=Omegas_z_this,
             sum_coh_this=sum_coh_prev,
         )
-        Omegas_z_next_args = self._get_Omegas_intp_t_args(Omegas_z=Omegas_z_next)
-        self.atom.set_H_Omega(
-            rabi_freqs=rabi_freq_ones,
-            rabi_freq_t_funcs=self._get_Omegas_intp_t_funcs(),
-            rabi_freq_t_args=Omegas_z_next_args,
-        )
+        self.atom.H_Omega_list = self._build_intp_H_Omega_list(Omegas_z_next)
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = Omegas_z_next
         ### Remaining steps, Adams-Bashforth
@@ -431,12 +415,7 @@ class MBSolve(ob_solve.OBSolve):
                     sum_coh_this=sum_coh_this,
                     Omegas_z_this=Omegas_z_this,
                 )
-                Omegas_z_next_args = self._get_Omegas_intp_t_args(Omegas_z_next)
-                self.atom.set_H_Omega(
-                    rabi_freqs=rabi_freq_ones,
-                    rabi_freq_t_funcs=self._get_Omegas_intp_t_funcs(),
-                    rabi_freq_t_args=Omegas_z_next_args,
-                )
+                self.atom.H_Omega_list = self._build_intp_H_Omega_list(Omegas_z_next)
                 # Set up for next inner step
                 Omegas_z_this = Omegas_z_next
                 z_this = z_next
@@ -501,33 +480,36 @@ class MBSolve(ob_solve.OBSolve):
         dOmega_dz_prev = 1.0j * N * self.g[:, None] * sum_coh_prev
         return Omegas_z_this + 1.5 * h * dOmega_dz_this - 0.5 * h * dOmega_dz_prev
 
-    def _get_Omegas_intp_t_funcs(self) -> list[str]:
-        """Gets a list of strings representing the interpolation t_funcs for
-        use the MB solver, which needs a function representing the field
-        at a z step to perform the next master equation solver.
+    def _build_intp_H_Omega_list(self, Omegas_z: np.ndarray) -> list:
+        """Build H_Omega_list for the next z-step using QuTiP InterCoefficient.
 
-        Returns: A list of strings ['intp', 'intp', …]
+        At each spatial step the field Rabi frequency profile is known as an
+        array over time.  Rather than wiring this through the intp() closure
+        (which recreates a scipy interp1d on every ODE function call), we
+        create a QuTiP InterCoefficient once per z-step — a compiled Cython
+        interpolator that evaluates cheaply at each ODE step.
+
+        Args:
+            Omegas_z: shape (num_fields, t_steps+1) — complex Rabi frequency
+                profiles at the next z position, in angular-frequency units.
+
+        Returns:
+            List of [H_Omega (Qobj), InterCoefficient] pairs, one per field.
         """
-        return ["intp" for f in self.atom.fields]
-
-    def _get_Omegas_intp_t_args(self, Omegas_z: np.ndarray) -> list[dict]:
-        """Return the values of Omegas at a given point as a list of
-        args for interpolation
-
-        e.g. [{'tlist': [], 'ylist': []},
-              {'tlist': [], 'ylist': []}]
-
-        Note:
-            The factor of 1/2pi is needed as we pass Rabi freq functions
-            in without the factor of 2pi.
-        """
-        fields_args = [{}] * len(self.atom.fields)
-        for f_i, _f in enumerate(Omegas_z):
-            fields_args[f_i] = {
-                "tlist": self.tlist,
-                "ylist": Omegas_z[f_i] / (2.0 * np.pi),
-            }
-        return fields_args
+        H_Omega_list = []
+        for f_i, f in enumerate(self.atom.fields):
+            # Build the sigma structure with rabi_freq=1 (same as _build_H_Omega)
+            H_Omega = qu.Qobj(np.zeros([self.atom.num_states, self.atom.num_states]))
+            for c_i, c in enumerate(f.coupled_levels):
+                H_Omega += (
+                    self.atom.sigma(a=c[0], b=c[1]) + self.atom.sigma(a=c[1], b=c[0])
+                ) * f.factors[c_i]
+            H_Omega = H_Omega * np.pi  # pi * 1.0 (rabi_freq normalised to 1)
+            # Divide by 2π: H_Omega * coeff(t) = sigma * pi * Omega_z/(2π)
+            #                                   = sigma * Omega_z/2  ✓
+            coeff = qu.coefficient(Omegas_z[f_i].real / (2 * np.pi), tlist=self.tlist)
+            H_Omega_list.append([H_Omega, coeff])
+        return H_Omega_list
 
     def _solve_and_average_over_thermal_detunings(self) -> np.ndarray:
         """Solves the Lindblad equation for the OBAtom over a range of
