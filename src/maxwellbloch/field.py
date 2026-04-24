@@ -83,6 +83,22 @@ class Field(object):
             self.rabi_freq_t_args,
         )
 
+    def lower_levels(self) -> list[int]:
+        """Return the unique lower (ground) level indices coupled by this field.
+
+        Returns:
+            Sorted list of unique indices ``c[0]`` from ``coupled_levels``.
+        """
+        return sorted(set(c[0] for c in self.coupled_levels))
+
+    def upper_levels(self) -> list[int]:
+        """Return the unique upper (excited) level indices coupled by this field.
+
+        Returns:
+            Sorted list of unique indices ``c[1]`` from ``coupled_levels``.
+        """
+        return sorted(set(c[1] for c in self.coupled_levels))
+
     def _build_factors(self, factors: list[float]) -> list[float]:
         """Builds the factors list.
 
