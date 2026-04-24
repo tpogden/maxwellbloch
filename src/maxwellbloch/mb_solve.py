@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+import os
+
 import numpy as np
 import qutip as qu
 
@@ -550,6 +552,7 @@ class MBSolve(ob_solve.OBSolve):
         """
         # Only save the file if we have a place to save it.
         if self.savefile:
+            os.makedirs(os.path.dirname(self.savefile) or ".", exist_ok=True)
             print("Saving MBSolve to", self.savefile + ".qu")
             qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
 

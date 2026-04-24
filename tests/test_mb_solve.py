@@ -277,6 +277,21 @@ class TestSaveLoad(unittest.TestCase):
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
         self.assertTrue((states_zt == states_zt_loaded).all())
 
+    def test_save_creates_missing_directory(self):
+        """GH#195: save_results must not error when the savefile directory
+        does not yet exist."""
+        import tempfile
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "subdir", "nested", "result")
+            mbs.savefile = savefile
+            mbs.save_results()  # must not raise
+            self.assertTrue(os.path.isfile(savefile + ".qu"))
+
 
 class TestBuildZlist(unittest.TestCase):
     def test_default_zlist(self):
