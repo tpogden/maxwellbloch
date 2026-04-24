@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] 2026-04-24
+
+### Added
+- `Field.upper_levels()` and `Field.lower_levels()` — return sorted unique upper/lower level indices for a field (GH#157)
+- `LevelF` now validates that `|J−I| ≤ F ≤ J+I`, raising `ValueError` for invalid hyperfine quantum numbers (GH#151)
+
+### Changed
+- **Performance**: replaced `intp()` closure (which recreated a `scipy.interpolate.interp1d` on every ODE function call) with QuTiP 5 `InterCoefficient` built once per z-step — ~43× speedup on the inner propagation loop (GH#141)
+- Internal methods across `ob_atom.py`, `ob_solve.py`, `mb_solve.py`, and `field.py` renamed with `_` prefix to reflect their private status (GH#178); e.g. `build_H_0` → `_build_H_0`, `build_c_ops` → `_build_c_ops`
+- `_z_step_fields_euler` and `_z_step_fields_ab` now accept pre-computed `h` and `N` scalars instead of z-coordinates; `z_prev` (unused) removed from AB signature (GH#71)
+- `coherences()` in `ob_atom.py` vectorised with precomputed index arrays; stale per-field loop removed
+- `build_velocity_classes` refactored; `_z_step_fields` vectorised across fields (GH#24)
+- Pre-allocate `_Omegas_z_buf` in `init_Omegas_zt`; inner loop reuses buffer via `np.copyto` (GH#71)
+
+### Tests
+- Added unit tests for `_normalise_velocity_classes` and `_build_thermal_delta_list`
+- Added `TestBuildIntpHOmegaList` for `_build_intp_H_Omega_list`
+- Added `TestZStepFields` for `_z_step_fields_euler` and `_z_step_fields_ab`
+- Added tests for `Field.upper_levels()`, `Field.lower_levels()`, and `LevelF` validation
+
 ## [0.8.1] 2026-04-23
 
 - Added type annotations across all source files
