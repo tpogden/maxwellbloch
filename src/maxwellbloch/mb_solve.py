@@ -7,6 +7,7 @@ import numpy as np
 import qutip as qu
 
 from maxwellbloch import ob_solve, t_funcs
+from maxwellbloch.utility import maxwell_boltzmann
 
 
 def _print_progress(j: int, total: int, chunk_size: int) -> None:
@@ -269,7 +270,6 @@ class MBSolve(ob_solve.OBSolve):
         )
         return self.states_zt
 
-    # TODO(#96) Should we be able to pass in opts here?
     def mbsolve(
         self,
         step: str = "ab",
@@ -533,7 +533,6 @@ class MBSolve(ob_solve.OBSolve):
             # Shift each detuning by Delta.
             self.atom.set_H_Delta([fd + Delta for fd in fixed_detunings])
             # We don't want the obsolve to save.
-            # TODO(#96) If we decide to pass down opts from mbsolve, put here.
             self.solve(opts=None, save=False)
             states_t_Delta[Delta_i] = self.states_t()
         # Restore fixed detunings
@@ -631,15 +630,3 @@ class MBSolve(ob_solve.OBSolve):
             np.array, shape (z_steps+1, t_steps+1), dtype=complex
         """
         return self.coherences(self.atom.fields[field_idx].coupled_levels)
-
-
-### Helper Functions
-
-
-def maxwell_boltzmann(v: np.ndarray, fwhm: float) -> np.ndarray:
-    """Maxwell Boltzmann probability distribution function."""
-
-    # TODO: Allow offset, v_0.
-    # TODO: move this to utility.py
-
-    return 1.0 / (fwhm * np.sqrt(np.pi)) * np.exp(-((v / fwhm) ** 2))
