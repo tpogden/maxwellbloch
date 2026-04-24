@@ -399,3 +399,120 @@ class TestCoherencesField(unittest.TestCase):
         coh = mbs.coherences_field(field_idx=0)
 
         np.testing.assert_allclose(coh, np.zeros((mbs.z_steps + 1, mbs.t_steps + 1)))
+
+
+class TestNormaliseVelocityClasses(unittest.TestCase):
+    """Unit tests for MBSolve._normalise_velocity_classes."""
+
+    def setUp(self):
+        self.mbs = mb_solve.MBSolve()
+
+    def test_none_gives_all_defaults(self):
+        """None input returns a dict with all default keys."""
+        vc = self.mbs._normalise_velocity_classes(None)
+        self.assertEqual(vc["thermal_width"], 1.0)
+        self.assertEqual(vc["thermal_delta_min"], 0.0)
+        self.assertEqual(vc["thermal_delta_max"], 0.0)
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+        self.assertEqual(vc["thermal_delta_inner_min"], 0.0)
+        self.assertEqual(vc["thermal_delta_inner_max"], 0.0)
+        self.assertEqual(vc["thermal_delta_inner_steps"], 0)
+
+    def test_empty_dict_gives_all_defaults(self):
+        """Empty dict returns a dict with all default keys."""
+        vc = self.mbs._normalise_velocity_classes({})
+        self.assertEqual(vc["thermal_width"], 1.0)
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+
+    def test_user_values_override_defaults(self):
+        """Supplied values override the defaults; unspecified keys keep defaults."""
+        vc = self.mbs._normalise_velocity_classes(
+            {"thermal_width": 2.5, "thermal_delta_min": -1.0, "thermal_delta_max": 1.0}
+        )
+        self.assertEqual(vc["thermal_width"], 2.5)
+        self.assertEqual(vc["thermal_delta_min"], -1.0)
+        self.assertEqual(vc["thermal_delta_max"], 1.0)
+        # Unspecified keys still present with defaults
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+        self.assertEqual(vc["thermal_delta_inner_steps"], 0)
+
+    def test_zero_thermal_width_raises(self):
+        with self.assertRaises(ValueError):
+            self.mbs._normalise_velocity_classes({"thermal_width": 0.0})
+
+    def test_negative_thermal_width_raises(self):
+        with self.assertRaises(ValueError):
+            self.mbs._normalise_velocity_classes({"thermal_width": -1.0})
+
+    def test_does_not_mutate_input(self):
+        """The original dict must not be modified."""
+        original = {"thermal_width": 0.5}
+        original_copy = dict(original)
+        self.mbs._normalise_velocity_classes(original)
+        self.assertEqual(original, original_copy)
+
+
+class TestBuildThermalDeltaList(unittest.TestCase):
+    """Unit tests for MBSolve._build_thermal_delta_list."""
+
+    def setUp(self):
+        self.mbs = mb_solve.MBSolve()
+
+    def _vc(self, **kwargs):
+        """Helper: build a normalised vc dict from kwargs."""
+        return self.mbs._normalise_velocity_classes(kwargs if kwargs else None)
+
+    def test_single_point_default(self):
+        """Default vc (all zeros) gives a single detuning at 0."""
+        vc = self._vc()
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        np.testing.assert_array_almost_equal(deltas, [0.0])
+
+    def test_outer_range_only(self):
+        """Outer range with 2 steps gives 3 evenly-spaced points."""
+        vc = self._vc(
+            thermal_delta_min=-1.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        expected = 2 * np.pi * np.array([-1.0, 0.0, 1.0])
+        np.testing.assert_array_almost_equal(deltas, expected)
+
+    def test_two_pi_scaling(self):
+        """Detuning values are in angular-frequency units (multiplied by 2π)."""
+        vc = self._vc(
+            thermal_delta_min=0.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=1,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        np.testing.assert_array_almost_equal(deltas, [0.0, 2 * np.pi])
+
+    def test_inner_and_outer_merged_and_deduplicated(self):
+        """Overlapping outer and inner ranges are merged with np.unique."""
+        vc = self._vc(
+            thermal_delta_min=-1.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=2,
+            thermal_delta_inner_min=-0.5,
+            thermal_delta_inner_max=0.5,
+            thermal_delta_inner_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        # Outer: -1, 0, 1  Inner: -0.5, 0, 0.5  — 0 appears in both, deduped
+        expected = 2 * np.pi * np.array([-1.0, -0.5, 0.0, 0.5, 1.0])
+        np.testing.assert_array_almost_equal(deltas, expected)
+
+    def test_output_is_sorted(self):
+        """Output array must be monotonically increasing."""
+        vc = self._vc(
+            thermal_delta_min=-2.0,
+            thermal_delta_max=2.0,
+            thermal_delta_steps=4,
+            thermal_delta_inner_min=-0.5,
+            thermal_delta_inner_max=0.5,
+            thermal_delta_inner_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        self.assertTrue(np.all(np.diff(deltas) > 0))
