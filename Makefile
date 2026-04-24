@@ -27,6 +27,9 @@ format_check:
 docs_html:
 	uv run sphinx-build docs docs/_build -b html
 
+docs_serve: docs_html
+	uv run python -m http.server 8000 --directory docs/_build
+
 # Dist ------------------------------------------------------------------------
 
 dist:

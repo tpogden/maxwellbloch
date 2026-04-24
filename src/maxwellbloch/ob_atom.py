@@ -296,6 +296,8 @@ class OBAtom(ob_base.OBBase):
         Returns:
             np.ndarray of shape (num_fields, t_steps+1)
         """
+        if len(self._sum_coh_rows) != len(self.fields):
+            self._build_sum_coherence_arrays()
         if states_t is None:
             states_t = self.states_t()
         sum_coh = np.zeros((len(self.fields), len(states_t)), dtype=complex)
