@@ -317,7 +317,7 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
 
-        self.assertEqual(mb_solve_00.get_Omegas_intp_t_funcs(), ["intp"])
+        self.assertEqual(mb_solve_00._get_Omegas_intp_t_funcs(), ["intp"])
 
     def test_two_fields(self):
         """For the case of two fields"""
@@ -325,7 +325,7 @@ class TestGetOmegasIntpTFuncs(unittest.TestCase):
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
         mb_solve_lamda = mb_solve.MBSolve().from_json(json_path)
 
-        self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(), ["intp", "intp"])
+        self.assertEqual(mb_solve_lamda._get_Omegas_intp_t_funcs(), ["intp", "intp"])
 
 
 class TestGetOmegasIntpTArgs(unittest.TestCase):
@@ -339,7 +339,7 @@ class TestGetOmegasIntpTArgs(unittest.TestCase):
 
         Omegas_z = mb_solve_00.Omegas_zt[:, 0, :]
 
-        t_args = mb_solve_00.get_Omegas_intp_t_args(Omegas_z)
+        t_args = mb_solve_00._get_Omegas_intp_t_args(Omegas_z)
 
         self.assertEqual(len(t_args), 1)
 
