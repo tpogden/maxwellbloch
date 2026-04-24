@@ -182,10 +182,7 @@ class OBAtom(ob_base.OBBase):
                 sgn = 1.0
             else:
                 sgn = -1.0
-            # Only want the unique upper levels if the field has multiple
-            # channels.
-            upper_levels = set(c[1] for c in f.coupled_levels)
-            for i in upper_levels:
+            for i in f.upper_levels():
                 self.H_Delta -= sgn * 2 * pi * f.detuning * self.sigma(a=i, b=i)
         return self.H_Delta
 

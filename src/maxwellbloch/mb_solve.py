@@ -617,12 +617,9 @@ class MBSolve(ob_solve.OBSolve):
         Note:
             - Casting upper to int so upper is 1, lower is 0.
         """
-        # TODO: This is also used in H_Delta. Really, lower_levels and
-        # upper_levels could be methods of Field.
-        upper_levels = list(
-            set(c[int(upper)] for c in self.atom.fields[field_idx].coupled_levels)
-        )
-        return self.populations(upper_levels)
+        f = self.atom.fields[field_idx]
+        levels = f.upper_levels() if upper else f.lower_levels()
+        return self.populations(levels)
 
     def coherences(self, coupled_levels: list[list[int]]) -> np.ndarray:
         """Gets the sum of coherences (off-diagonals) in a list of coupled
@@ -630,17 +627,18 @@ class MBSolve(ob_solve.OBSolve):
 
         Args:
             coupled_levels: a list of pairs of level indexes
+
         Returns:
             np.array, shape (z_steps+1, t_steps+1), dtype=complex
 
-        #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
-        #   what to do about this!
+        Note:
+            Unlike ``OBAtom.get_fields_sum_coherence``, which operates on a
+            single-z time series with per-field weighting factors, this method
+            sums over the full (z, t) array with unit weights.
         """
-
-        sum_coh = np.zeros(self.states_zt.shape[:2], dtype=complex)
-        for cl in coupled_levels:
-            sum_coh += self.states_zt[:, :, cl[0], cl[1]]
-        return sum_coh
+        rows = [cl[0] for cl in coupled_levels]
+        cols = [cl[1] for cl in coupled_levels]
+        return self.states_zt[:, :, rows, cols].sum(axis=2)
 
     def coherences_field(self, field_idx: int) -> np.ndarray:
         """Get the sum of coherences (off-diagonals) for the levels coupled by

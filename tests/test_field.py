@@ -109,6 +109,38 @@ class TestInit(unittest.TestCase):
         self.assertEqual(self.field_02.to_json_str(), field_03.to_json_str())
 
 
+class TestUpperLowerLevels(unittest.TestCase):
+    """Unit tests for Field.upper_levels() and Field.lower_levels()."""
+
+    def test_single_channel(self):
+        f = field.Field(coupled_levels=[[0, 1]])
+        self.assertEqual(f.lower_levels(), [0])
+        self.assertEqual(f.upper_levels(), [1])
+
+    def test_multi_channel_single_upper(self):
+        """Two lower levels coupling to one upper level."""
+        f = field.Field(coupled_levels=[[0, 2], [1, 2]])
+        self.assertEqual(f.lower_levels(), [0, 1])
+        self.assertEqual(f.upper_levels(), [2])
+
+    def test_multi_channel_single_lower(self):
+        """One lower level coupling to two upper levels."""
+        f = field.Field(coupled_levels=[[0, 1], [0, 2]])
+        self.assertEqual(f.lower_levels(), [0])
+        self.assertEqual(f.upper_levels(), [1, 2])
+
+    def test_output_is_sorted(self):
+        """Results are always in ascending index order."""
+        f = field.Field(coupled_levels=[[2, 4], [0, 3]])
+        self.assertEqual(f.lower_levels(), [0, 2])
+        self.assertEqual(f.upper_levels(), [3, 4])
+
+    def test_empty_coupled_levels(self):
+        f = field.Field(coupled_levels=[])
+        self.assertEqual(f.lower_levels(), [])
+        self.assertEqual(f.upper_levels(), [])
+
+
 class TestBuildRabiFreqTFunc(unittest.TestCase):
     field_00 = field.Field()
 
