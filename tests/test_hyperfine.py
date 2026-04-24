@@ -468,3 +468,40 @@ class TestLevelFInit(unittest.TestCase):
         self.assertEqual(len(lf.mF_levels), 2 * F + 1)
         for i, e in enumerate(mF_energies):
             self.assertEqual(e, lf.mF_levels[i].energy)
+
+
+class TestLevelFValidation(unittest.TestCase):
+    """GH#151: LevelF.__init__ must enforce |J - I| <= F <= J + I."""
+
+    def test_valid_F_at_min(self):
+        """F = |J - I| is the minimum allowed value."""
+        # I=1.5, J=0.5 → F_min=1, F_max=2
+        lf = hyperfine.LevelF(I=1.5, J=0.5, F=1)
+        self.assertEqual(lf.F, 1)
+
+    def test_valid_F_at_max(self):
+        """F = J + I is the maximum allowed value."""
+        lf = hyperfine.LevelF(I=1.5, J=0.5, F=2)
+        self.assertEqual(lf.F, 2)
+
+    def test_valid_F_intermediate(self):
+        """F between min and max is allowed (I=1.5, J=2.5 → F in {1,2,3,4})."""
+        for F in [1, 2, 3, 4]:
+            hyperfine.LevelF(I=1.5, J=2.5, F=F)  # should not raise
+
+    def test_F_too_large_raises(self):
+        """F > J + I must raise ValueError."""
+        with self.assertRaises(ValueError):
+            hyperfine.LevelF(I=1.5, J=0.5, F=3)  # F_max = 2
+
+    def test_F_too_small_raises(self):
+        """F < |J - I| must raise ValueError."""
+        with self.assertRaises(ValueError):
+            hyperfine.LevelF(I=1.5, J=0.5, F=0)  # F_min = 1
+
+    def test_error_message_contains_values(self):
+        """ValueError message should include I, J, F and the bounds."""
+        with self.assertRaises(ValueError, msg="F=3") as ctx:
+            hyperfine.LevelF(I=1.5, J=0.5, F=3)
+        self.assertIn("F=3", str(ctx.exception))
+        self.assertIn("J+I", str(ctx.exception))

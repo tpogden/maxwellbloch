@@ -238,8 +238,8 @@ class LevelF(object):
 
     Notes:
         - The magnitude of F can take values in the range
-            `|J - I| <= F <= J + I`.
-        TODO: Now we have I, J in this class, throw if this is not met.
+            `|J - I| <= F <= J + I`. A ``ValueError`` is raised if this is
+            not satisfied.
         - The mF_energies are set _relative_ to the F level energy.
     """
 
@@ -256,6 +256,15 @@ class LevelF(object):
         self.J = J
         self.F = F
         self.energy = energy
+
+        F_min = abs(J - I)
+        F_max = J + I
+        if not (F_min <= F <= F_max):
+            raise ValueError(
+                f"F={F} is outside the allowed range |J-I| <= F <= J+I "
+                f"(|{J}-{I}| = {F_min:.1f}, {J}+{I} = {F_max:.1f})."
+            )
+
         self.build_mF_levels(mF_energies)
 
     def __repr__(self):

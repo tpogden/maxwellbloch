@@ -308,43 +308,48 @@ class TestCheck(unittest.TestCase):
         self.assertRaises(ValueError, mbs.check)
 
 
-class TestGetOmegasIntpTFuncs(unittest.TestCase):
-    """Unit tests of the get_Omegas_intp_t_funcs method"""
+class TestBuildIntpHOmegaList(unittest.TestCase):
+    """Unit tests for MBSolve._build_intp_H_Omega_list."""
 
-    def test_one_field(self):
-        """For the case of a single field"""
+    def test_one_field_structure(self):
+        """Returns a list of [Qobj, Coefficient] pairs, one per field."""
+        import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(mb_solve_00.get_Omegas_intp_t_funcs(), ["intp"])
+        self.assertEqual(len(result), 1)
+        H_op, coeff = result[0]
+        from qutip.core.cy.coefficient import Coefficient
 
-    def test_two_fields(self):
-        """For the case of two fields"""
+        self.assertIsInstance(H_op, qu.Qobj)
+        self.assertIsInstance(coeff, Coefficient)
 
+    def test_two_fields_length(self):
+        """Returns one pair per field."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
-        mb_solve_lamda = mb_solve.MBSolve().from_json(json_path)
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(mb_solve_lamda.get_Omegas_intp_t_funcs(), ["intp", "intp"])
+        self.assertEqual(len(result), 2)
 
-
-class TestGetOmegasIntpTArgs(unittest.TestCase):
-    """Unit tests of the get_Omegas_intp_t_args method"""
-
-    def test_one_field(self):
-        """For the case of a single field"""
-
+    def test_coefficient_evaluates_correctly(self):
+        """Coefficient at tlist[k] equals Omegas_z[0,k].real / (2π)."""
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
-
-        Omegas_z = mb_solve_00.Omegas_zt[:, 0, :]
-
-        t_args = mb_solve_00.get_Omegas_intp_t_args(Omegas_z)
-
-        self.assertEqual(len(t_args), 1)
-
-        self.assertTrue(np.all(t_args[0]["tlist"] == mb_solve_00.tlist))
-        self.assertTrue(np.all(t_args[0]["ylist"] == Omegas_z / (2.0 * np.pi)))
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        # Use a non-trivial field profile
+        mbs.mbsolve()
+        Omegas_z = mbs.Omegas_zt[:, -1, :]
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
+        _H_op, coeff = result[0]
+        # Check a few time points
+        for k in [0, len(mbs.tlist) // 2, -1]:
+            t = mbs.tlist[k]
+            expected = Omegas_z[0, k].real / (2 * np.pi)
+            self.assertAlmostEqual(coeff(t), expected, places=10)
 
 
 class TestPopulations(unittest.TestCase):
@@ -399,3 +404,182 @@ class TestCoherencesField(unittest.TestCase):
         coh = mbs.coherences_field(field_idx=0)
 
         np.testing.assert_allclose(coh, np.zeros((mbs.z_steps + 1, mbs.t_steps + 1)))
+
+
+class TestNormaliseVelocityClasses(unittest.TestCase):
+    """Unit tests for MBSolve._normalise_velocity_classes."""
+
+    def setUp(self):
+        self.mbs = mb_solve.MBSolve()
+
+    def test_none_gives_all_defaults(self):
+        """None input returns a dict with all default keys."""
+        vc = self.mbs._normalise_velocity_classes(None)
+        self.assertEqual(vc["thermal_width"], 1.0)
+        self.assertEqual(vc["thermal_delta_min"], 0.0)
+        self.assertEqual(vc["thermal_delta_max"], 0.0)
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+        self.assertEqual(vc["thermal_delta_inner_min"], 0.0)
+        self.assertEqual(vc["thermal_delta_inner_max"], 0.0)
+        self.assertEqual(vc["thermal_delta_inner_steps"], 0)
+
+    def test_empty_dict_gives_all_defaults(self):
+        """Empty dict returns a dict with all default keys."""
+        vc = self.mbs._normalise_velocity_classes({})
+        self.assertEqual(vc["thermal_width"], 1.0)
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+
+    def test_user_values_override_defaults(self):
+        """Supplied values override the defaults; unspecified keys keep defaults."""
+        vc = self.mbs._normalise_velocity_classes(
+            {"thermal_width": 2.5, "thermal_delta_min": -1.0, "thermal_delta_max": 1.0}
+        )
+        self.assertEqual(vc["thermal_width"], 2.5)
+        self.assertEqual(vc["thermal_delta_min"], -1.0)
+        self.assertEqual(vc["thermal_delta_max"], 1.0)
+        # Unspecified keys still present with defaults
+        self.assertEqual(vc["thermal_delta_steps"], 0)
+        self.assertEqual(vc["thermal_delta_inner_steps"], 0)
+
+    def test_zero_thermal_width_raises(self):
+        with self.assertRaises(ValueError):
+            self.mbs._normalise_velocity_classes({"thermal_width": 0.0})
+
+    def test_negative_thermal_width_raises(self):
+        with self.assertRaises(ValueError):
+            self.mbs._normalise_velocity_classes({"thermal_width": -1.0})
+
+    def test_does_not_mutate_input(self):
+        """The original dict must not be modified."""
+        original = {"thermal_width": 0.5}
+        original_copy = dict(original)
+        self.mbs._normalise_velocity_classes(original)
+        self.assertEqual(original, original_copy)
+
+
+class TestBuildThermalDeltaList(unittest.TestCase):
+    """Unit tests for MBSolve._build_thermal_delta_list."""
+
+    def setUp(self):
+        self.mbs = mb_solve.MBSolve()
+
+    def _vc(self, **kwargs):
+        """Helper: build a normalised vc dict from kwargs."""
+        return self.mbs._normalise_velocity_classes(kwargs if kwargs else None)
+
+    def test_single_point_default(self):
+        """Default vc (all zeros) gives a single detuning at 0."""
+        vc = self._vc()
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        np.testing.assert_array_almost_equal(deltas, [0.0])
+
+    def test_outer_range_only(self):
+        """Outer range with 2 steps gives 3 evenly-spaced points."""
+        vc = self._vc(
+            thermal_delta_min=-1.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        expected = 2 * np.pi * np.array([-1.0, 0.0, 1.0])
+        np.testing.assert_array_almost_equal(deltas, expected)
+
+    def test_two_pi_scaling(self):
+        """Detuning values are in angular-frequency units (multiplied by 2π)."""
+        vc = self._vc(
+            thermal_delta_min=0.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=1,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        np.testing.assert_array_almost_equal(deltas, [0.0, 2 * np.pi])
+
+    def test_inner_and_outer_merged_and_deduplicated(self):
+        """Overlapping outer and inner ranges are merged with np.unique."""
+        vc = self._vc(
+            thermal_delta_min=-1.0,
+            thermal_delta_max=1.0,
+            thermal_delta_steps=2,
+            thermal_delta_inner_min=-0.5,
+            thermal_delta_inner_max=0.5,
+            thermal_delta_inner_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        # Outer: -1, 0, 1  Inner: -0.5, 0, 0.5  — 0 appears in both, deduped
+        expected = 2 * np.pi * np.array([-1.0, -0.5, 0.0, 0.5, 1.0])
+        np.testing.assert_array_almost_equal(deltas, expected)
+
+    def test_output_is_sorted(self):
+        """Output array must be monotonically increasing."""
+        vc = self._vc(
+            thermal_delta_min=-2.0,
+            thermal_delta_max=2.0,
+            thermal_delta_steps=4,
+            thermal_delta_inner_min=-0.5,
+            thermal_delta_inner_max=0.5,
+            thermal_delta_inner_steps=2,
+        )
+        deltas = self.mbs._build_thermal_delta_list(vc)
+        self.assertTrue(np.all(np.diff(deltas) > 0))
+
+
+class TestZStepFields(unittest.TestCase):
+    """Unit tests for _z_step_fields_euler and _z_step_fields_ab."""
+
+    def setUp(self):
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        self.mbs = mb_solve.MBSolve().from_json(json_path)
+
+    def test_euler_output_shape(self):
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_euler(
+            h=0.1, N=1.0, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        self.assertEqual(result.shape, (n_fields, n_t))
+
+    def test_euler_zero_coherence_is_identity(self):
+        """With zero coherence the field does not change."""
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.ones((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_euler(
+            h=0.1, N=1.0, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        np.testing.assert_array_equal(result, Omegas_z)
+
+    def test_euler_known_value(self):
+        """dΩ/dz = i·N·g·ρ; check against hand-computed value."""
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.ones((n_fields, n_t), dtype=complex)
+        h, N = 0.1, 1.0
+        result = self.mbs._z_step_fields_euler(
+            h=h, N=N, Omegas_z_this=Omegas_z, sum_coh_this=sum_coh
+        )
+        expected = h * 1.0j * N * self.mbs.g[0] * np.ones(n_t, dtype=complex)
+        np.testing.assert_allclose(result[0], expected)
+
+    def test_ab_output_shape(self):
+        n_fields = len(self.mbs.atom.fields)
+        n_t = len(self.mbs.tlist)
+        Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
+        sum_coh = np.zeros((n_fields, n_t), dtype=complex)
+        result = self.mbs._z_step_fields_ab(
+            h=0.1,
+            N=1.0,
+            sum_coh_prev=sum_coh,
+            sum_coh_this=sum_coh,
+            Omegas_z_this=Omegas_z,
+        )
+        self.assertEqual(result.shape, (n_fields, n_t))
+
+    def test_ab_has_no_z_prev(self):
+        import inspect
+
+        sig = inspect.signature(self.mbs._z_step_fields_ab)
+        self.assertNotIn("z_prev", sig.parameters)

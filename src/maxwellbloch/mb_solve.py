@@ -53,7 +53,7 @@ class MBSolve(ob_solve.OBSolve):
             z_min=z_min, z_max=z_max, z_steps=z_steps, z_steps_inner=z_steps_inner
         )
 
-        self.build_number_density(
+        self._build_number_density(
             interaction_strengths=interaction_strengths,
             num_density_z_func=num_density_z_func,
             num_density_z_args=num_density_z_args,
@@ -116,70 +116,75 @@ class MBSolve(ob_solve.OBSolve):
         """Returns the distance from one inner space point to the next."""
         return self.z_step() / self.z_steps_inner
 
+    def _normalise_velocity_classes(self, velocity_classes: dict | None) -> dict:
+        """Return a copy of velocity_classes with all keys filled with defaults.
+
+        Args:
+            velocity_classes: user-supplied dict, or None / empty dict for the
+                no-Doppler-broadening case.
+
+        Returns:
+            A new dict with every expected key present.
+
+        Raises:
+            ValueError: if thermal_width is not positive.
+        """
+        defaults: dict = {
+            "thermal_width": 1.0,
+            "thermal_delta_min": 0.0,
+            "thermal_delta_max": 0.0,
+            "thermal_delta_steps": 0,
+            "thermal_delta_inner_min": 0.0,
+            "thermal_delta_inner_max": 0.0,
+            "thermal_delta_inner_steps": 0,
+        }
+        vc = {**defaults, **(velocity_classes or {})}
+        if vc["thermal_width"] <= 0.0:
+            raise ValueError("Thermal width must be > 0.0.")
+        return vc
+
+    def _build_thermal_delta_list(self, vc: dict) -> np.ndarray:
+        """Merge the outer and inner detuning ranges into one sorted unique array.
+
+        Args:
+            vc: normalised velocity-class dict (from _normalise_velocity_classes).
+
+        Returns:
+            1-D array of thermal detuning values in angular-frequency units.
+        """
+        outer = np.linspace(
+            2 * np.pi * vc["thermal_delta_min"],
+            2 * np.pi * vc["thermal_delta_max"],
+            vc["thermal_delta_steps"] + 1,
+        )
+        inner = np.linspace(
+            2 * np.pi * vc["thermal_delta_inner_min"],
+            2 * np.pi * vc["thermal_delta_inner_max"],
+            vc["thermal_delta_inner_steps"] + 1,
+        )
+        return np.unique(np.concatenate([outer, inner]))
+
     def build_velocity_classes(
         self, velocity_classes: dict | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
-        """Builds the velocity class structure from a dict."""
-        # TODO: break this up, too big.
-        # TODO: If there are no vel classes, the weight for thermal width of 1
-        # is ~ 0.57, should be a single weight of 1. Actually should not matter
-        # as for a single value, np.average weights will be ignored
-        # *weight/sum(weights) => *weight/weight
+        """Build the velocity-class detuning grid and Boltzmann weights.
 
-        self.velocity_classes = {}
+        Args:
+            velocity_classes: dict of velocity-class parameters, or None for
+                the no-Doppler-broadening case (single detuning class at 0).
 
-        if velocity_classes:
-            self.velocity_classes = velocity_classes
-
-            if "thermal_width" not in velocity_classes:
-                self.velocity_classes["thermal_width"] = 1.0
-
-            if velocity_classes["thermal_width"] <= 0.0:
-                raise ValueError("Thermal width must be > 0.0.")
-
-            if "thermal_delta_steps" not in velocity_classes:
-                self.velocity_classes["thermal_delta_min"] = 0.0
-                self.velocity_classes["thermal_delta_max"] = 0.0
-                self.velocity_classes["thermal_delta_steps"] = 0
-
-            # If no inner steps, set to default
-            if "thermal_delta_inner_steps" not in velocity_classes:
-                self.velocity_classes["thermal_delta_inner_min"] = 0.0
-                self.velocity_classes["thermal_delta_inner_max"] = 0.0
-                self.velocity_classes["thermal_delta_inner_steps"] = 0
-
-        else:
-            self.velocity_classes["thermal_delta_min"] = 0.0
-            self.velocity_classes["thermal_delta_max"] = 0.0
-            self.velocity_classes["thermal_delta_steps"] = 0
-            self.velocity_classes["thermal_delta_inner_min"] = 0.0
-            self.velocity_classes["thermal_delta_inner_max"] = 0.0
-            self.velocity_classes["thermal_delta_inner_steps"] = 0
-            self.velocity_classes["thermal_width"] = 1.0
-
-        Delta_min = 2 * np.pi * self.velocity_classes["thermal_delta_min"]
-        Delta_max = 2 * np.pi * self.velocity_classes["thermal_delta_max"]
-        Delta_steps = self.velocity_classes["thermal_delta_steps"]
-        Delta_range = np.linspace(Delta_min, Delta_max, Delta_steps + 1)
-
-        # Narrow set of Delta classes around 0
-        Delta2_min = 2 * np.pi * self.velocity_classes["thermal_delta_inner_min"]
-        Delta2_max = 2 * np.pi * self.velocity_classes["thermal_delta_inner_max"]
-        Delta2_steps = self.velocity_classes["thermal_delta_inner_steps"]
-        Delta2_range = np.linspace(Delta2_min, Delta2_max, Delta2_steps + 1)
-
-        # Merge the two ranges
-        self.thermal_delta_list = np.unique(
-            np.sort(np.append(Delta_range, Delta2_range))
-        )
-
+        Returns:
+            (thermal_delta_list, thermal_weights)
+        """
+        self.velocity_classes = self._normalise_velocity_classes(velocity_classes)
+        self.thermal_delta_list = self._build_thermal_delta_list(self.velocity_classes)
         self.thermal_weights = maxwell_boltzmann(
-            self.thermal_delta_list, 2 * np.pi * self.velocity_classes["thermal_width"]
+            self.thermal_delta_list,
+            2 * np.pi * self.velocity_classes["thermal_width"],
         )
-
         return self.thermal_delta_list, self.thermal_weights
 
-    def build_number_density(
+    def _build_number_density(
         self,
         interaction_strengths: list[float],
         num_density_z_func: str | None = None,
@@ -227,11 +232,19 @@ class MBSolve(ob_solve.OBSolve):
         return True
 
     def init_Omegas_zt(self) -> np.ndarray:
-        """Inits the Rabi frequency array."""
+        """Inits the Rabi frequency array.
+
+        Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
+        states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first.
+        These are inconsistent; correcting either is a breaking API change,
+        deferred to a future major version.
+        """
         self.Omegas_zt = np.zeros(
             (len(self.atom.fields), len(self.zlist), len(self.tlist)), dtype=complex
         )
-        ### Set the initial Omegas to the field time func values
+        self._Omegas_z_buf = np.zeros(
+            (len(self.atom.fields), len(self.tlist)), dtype=complex
+        )
         for f_i, f in enumerate(self.atom.fields):
             self.Omegas_zt[f_i][0] = (
                 2.0
@@ -243,8 +256,6 @@ class MBSolve(ob_solve.OBSolve):
 
     def init_states_zt(self) -> np.ndarray:
         """Inits the system density matrices."""
-        # TODO: Change states_zt to state_zt. Omegas refers to the fact that
-        # there are multiple fields.
         self.states_zt = np.zeros(
             (
                 len(self.zlist),
@@ -315,44 +326,35 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
-        # For the interpolation
-        rabi_freq_ones = np.ones(len(self.atom.fields))
-        # Set initial states at z=0
-        self.states_zt[0, :] = self.solve_and_average_over_thermal_detunings()
-        # NOTE: This means the first z gets ob solved twice.
-        # Can I avoid?
-        ### All Steps:
+        self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
         for j, z in enumerate(self.zlist[:-1]):
             _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
-            # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
-            z_this = z
-            ### Inner z loop
-            for _jj in range(self.z_steps_inner):
-                z_next = z_this + self.z_step_inner()
-                thermal_states_t = self.solve_and_average_over_thermal_detunings()
+            z_cur = z
+            for _ in range(self.z_steps_inner):
+                z_next = z_cur + self.z_step_inner()
+                h = z_next - z_cur
+                N = self.num_density_z_func(z_next, self.num_density_z_args)
+                thermal_states_t = self._solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
                     states_t=thermal_states_t
                 )
-                Omegas_z_next = self.z_step_fields_euler(
-                    z_this=z_this,
-                    z_next=z_next,
-                    Omegas_z_this=Omegas_z_this,
-                    sum_coh_this=sum_coh_this,
+                np.copyto(
+                    self._Omegas_z_buf,
+                    self._z_step_fields_euler(
+                        h=h,
+                        N=N,
+                        Omegas_z_this=Omegas_z_this,
+                        sum_coh_this=sum_coh_this,
+                    ),
                 )
-                Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z=Omegas_z_next)
-                self.atom.set_H_Omega(
-                    rabi_freqs=rabi_freq_ones,
-                    rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(),
-                    rabi_freq_t_args=Omegas_z_next_args,
+                self.atom.H_Omega_list = self._build_intp_H_Omega_list(
+                    self._Omegas_z_buf
                 )
-                # Set up for next inner step
-                Omegas_z_this = Omegas_z_next
-                z_this = z_next
-            # Once we've been through the inner loops we can set the field
-            # and states at the next outer space step and continue.
+                Omegas_z_this = self._Omegas_z_buf
+                z_cur = z_next
             self.states_zt[j + 1, :] = self.states_t()
-            self.Omegas_zt[:, j + 1, :] = Omegas_z_next
+            self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(
@@ -374,164 +376,138 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
-        # For use in the loop
-        rabi_freq_ones = np.ones(len(self.atom.fields))
-        # Set initial states at z=0
-        thermal_states_t = self.solve_and_average_over_thermal_detunings()
+        thermal_states_t = self._solve_and_average_over_thermal_detunings()
         self.states_zt[0, :] = thermal_states_t
-        # We won't need these until the first AB step
         sum_coh_prev = self.atom.get_fields_sum_coherence(states_t=thermal_states_t)
-        z_prev = self.z_min
-        ### First z step, Euler
+        # First z step: Euler bootstrap
         j = 0
-        z = self.z_min
-        # Set initial fields and state
-        Omegas_z_this = self.Omegas_zt[:, j, :]
-        z_this = z
-        z_next = z_this + self.z_step_inner()
-        Omegas_z_next = self.z_step_fields_euler(
-            z_this=z_this,
-            z_next=z_next,
-            Omegas_z_this=Omegas_z_this,
-            sum_coh_this=sum_coh_prev,
+        z_cur = self.z_min
+        z_next = z_cur + self.z_step_inner()
+        h = z_next - z_cur
+        N = self.num_density_z_func(z_next, self.num_density_z_args)
+        np.copyto(
+            self._Omegas_z_buf,
+            self._z_step_fields_euler(
+                h=h,
+                N=N,
+                Omegas_z_this=self.Omegas_zt[:, j, :],
+                sum_coh_this=sum_coh_prev,
+            ),
         )
-        Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z=Omegas_z_next)
-        self.atom.set_H_Omega(
-            rabi_freqs=rabi_freq_ones,
-            rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(),
-            rabi_freq_t_args=Omegas_z_next_args,
-        )
+        self.atom.H_Omega_list = self._build_intp_H_Omega_list(self._Omegas_z_buf)
         self.states_zt[j + 1, :] = self.states_t()
-        self.Omegas_zt[:, j + 1, :] = Omegas_z_next
-        ### Remaining steps, Adams-Bashforth
+        self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+        # Remaining steps: Adams-Bashforth
         for j, z in enumerate(self.zlist[1:-1], start=1):
             _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
-            # Set initial fields and state
             Omegas_z_this = self.Omegas_zt[:, j, :]
-            z_this = z
-            ### Inner z loop
-            for _jj in range(self.z_steps_inner):
-                z_next = z_this + self.z_step_inner()
-                thermal_states_t = self.solve_and_average_over_thermal_detunings()
+            z_cur = z
+            for _ in range(self.z_steps_inner):
+                z_next = z_cur + self.z_step_inner()
+                h = z_next - z_cur
+                N = self.num_density_z_func(z_next, self.num_density_z_args)
+                thermal_states_t = self._solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
                     states_t=thermal_states_t
                 )
-                Omegas_z_next = self.z_step_fields_ab(
-                    z_prev=z_prev,
-                    z_this=z_this,
-                    z_next=z_next,
-                    sum_coh_prev=sum_coh_prev,
-                    sum_coh_this=sum_coh_this,
-                    Omegas_z_this=Omegas_z_this,
+                np.copyto(
+                    self._Omegas_z_buf,
+                    self._z_step_fields_ab(
+                        h=h,
+                        N=N,
+                        sum_coh_prev=sum_coh_prev,
+                        sum_coh_this=sum_coh_this,
+                        Omegas_z_this=Omegas_z_this,
+                    ),
                 )
-                Omegas_z_next_args = self.get_Omegas_intp_t_args(Omegas_z_next)
-                self.atom.set_H_Omega(
-                    rabi_freqs=rabi_freq_ones,
-                    rabi_freq_t_funcs=self.get_Omegas_intp_t_funcs(),
-                    rabi_freq_t_args=Omegas_z_next_args,
+                self.atom.H_Omega_list = self._build_intp_H_Omega_list(
+                    self._Omegas_z_buf
                 )
-                # Set up for next inner step
-                Omegas_z_this = Omegas_z_next
-                z_this = z_next
-                z_prev = z_this
+                Omegas_z_this = self._Omegas_z_buf
+                z_cur = z_next
                 sum_coh_prev = sum_coh_this
-            # Once we've been through the inner loops we can set the field
-            # and states at the next outer space step and continue.
             self.states_zt[j + 1, :] = self.states_t()
-            self.Omegas_zt[:, j + 1, :] = Omegas_z_next
+            self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
         return self.Omegas_zt, self.states_zt
 
-    def z_step_fields_euler(
+    def _z_step_fields_euler(
         self,
-        z_this: float,
-        z_next: float,
+        h: float,
+        N: float,
         Omegas_z_this: np.ndarray,
         sum_coh_this: np.ndarray,
     ) -> np.ndarray:
-        """For the current state of the atom, given fields Omegas_z_this,
-        make an Euler step to determine the field at the next space step.
+        """Euler step: advance all field Rabi frequencies by one spatial step.
 
         Args:
-            z_this: The current space point
-            z_next: the next space point
-            Omegas_z_this: complex[num_t_steps]
-                The field rabi frequencies at z_step.
-        """
-        h = z_next - z_this
-        N = self.num_density_z_func(z_next, self.num_density_z_args)
-        Omegas_z_next = np.zeros(
-            (len(self.atom.fields), len(self.tlist)), dtype=complex
-        )
-        for f_i, _f in enumerate(self.atom.fields):
-            dOmega_f_dz = 1.0j * N * self.g[f_i] * sum_coh_this[f_i]
-            Omegas_z_next[f_i, :] = Omegas_z_this[f_i, :] + h * dOmega_f_dz
-        return Omegas_z_next
+            h: spatial step size (z_next - z_this)
+            N: number density at z_next
+            Omegas_z_this: shape (num_fields, t_steps+1) — fields at z_this
+            sum_coh_this: shape (num_fields, t_steps+1) — coherences at z_this
 
-    def z_step_fields_ab(
+        Returns:
+            Omegas_z_next: shape (num_fields, t_steps+1)
+        """
+        # self.g shape (num_fields,) broadcasts with sum_coh_this (num_fields, t_steps+1)
+        dOmega_dz = 1.0j * N * self.g[:, None] * sum_coh_this
+        return Omegas_z_this + h * dOmega_dz
+
+    def _z_step_fields_ab(
         self,
-        z_prev: float,
-        z_this: float,
-        z_next: float,
+        h: float,
+        N: float,
         sum_coh_prev: np.ndarray,
         sum_coh_this: np.ndarray,
         Omegas_z_this: np.ndarray,
     ) -> np.ndarray:
-        """For the current state of the atom, given fields Omegas_z_this,
-        make an Euler step to determine the field at the next space step.
+        """Adams-Bashforth step: advance all field Rabi frequencies by one spatial step.
 
         Args:
-            z_prev: The previous space point
-            z_this: The current space point
-            z_next: the next space point
-            Omegas_z_this: complex[num_t_steps]
-                The field rabi frequencies at z_step.
+            h: spatial step size (z_next - z_this); assumes uniform step size
+            N: number density at z_next
+            sum_coh_prev: shape (num_fields, t_steps+1) — coherences at z_prev
+            sum_coh_this: shape (num_fields, t_steps+1) — coherences at z_this
+            Omegas_z_this: shape (num_fields, t_steps+1) — fields at z_this
+
+        Returns:
+            Omegas_z_next: shape (num_fields, t_steps+1)
         """
-        h = z_next - z_this  # Assumes same step size
-        N = self.num_density_z_func(z_next, self.num_density_z_args)
-        Omegas_z_next = np.zeros(
-            (len(self.atom.fields), len(self.tlist)), dtype=complex
-        )
-        for f_i, _f in enumerate(self.atom.fields):
-            sum_coh_this_f = sum_coh_this[f_i]
-            sum_coh_prev_f = sum_coh_prev[f_i]
-            dOmega_f_dz_this = 1.0j * N * self.g[f_i] * sum_coh_this_f
-            dOmega_f_dz_prev = 1.0j * N * self.g[f_i] * sum_coh_prev_f
-            Omegas_z_next[f_i, :] = (
-                Omegas_z_this[f_i, :]
-                + 1.5 * h * dOmega_f_dz_this
-                - 0.5 * h * dOmega_f_dz_prev
-            )
-        return Omegas_z_next
+        dOmega_dz_this = 1.0j * N * self.g[:, None] * sum_coh_this
+        dOmega_dz_prev = 1.0j * N * self.g[:, None] * sum_coh_prev
+        return Omegas_z_this + 1.5 * h * dOmega_dz_this - 0.5 * h * dOmega_dz_prev
 
-    def get_Omegas_intp_t_funcs(self) -> list[str]:
-        """Gets a list of strings representing the interpolation t_funcs for
-        use the MB solver, which needs a function representing the field
-        at a z step to perform the next master equation solver.
+    def _build_intp_H_Omega_list(self, Omegas_z: np.ndarray) -> list:
+        """Build H_Omega_list for the next z-step using QuTiP InterCoefficient.
 
-        Returns: A list of strings ['intp', 'intp', …]
+        At each spatial step the field Rabi frequency profile is known as an
+        array over time.  Rather than wiring this through the intp() closure
+        (which recreates a scipy interp1d on every ODE function call), we
+        create a QuTiP InterCoefficient once per z-step — a compiled Cython
+        interpolator that evaluates cheaply at each ODE step.
+
+        Args:
+            Omegas_z: shape (num_fields, t_steps+1) — complex Rabi frequency
+                profiles at the next z position, in angular-frequency units.
+
+        Returns:
+            List of [H_Omega (Qobj), InterCoefficient] pairs, one per field.
         """
-        return ["intp" for f in self.atom.fields]
+        H_Omega_list = []
+        for f_i, f in enumerate(self.atom.fields):
+            # Build the sigma structure with rabi_freq=1 (same as _build_H_Omega)
+            H_Omega = qu.Qobj(np.zeros([self.atom.num_states, self.atom.num_states]))
+            for c_i, c in enumerate(f.coupled_levels):
+                H_Omega += (
+                    self.atom.sigma(a=c[0], b=c[1]) + self.atom.sigma(a=c[1], b=c[0])
+                ) * f.factors[c_i]
+            H_Omega = H_Omega * np.pi  # pi * 1.0 (rabi_freq normalised to 1)
+            # Divide by 2π: H_Omega * coeff(t) = sigma * pi * Omega_z/(2π)
+            #                                   = sigma * Omega_z/2  ✓
+            coeff = qu.coefficient(Omegas_z[f_i].real / (2 * np.pi), tlist=self.tlist)
+            H_Omega_list.append([H_Omega, coeff])
+        return H_Omega_list
 
-    def get_Omegas_intp_t_args(self, Omegas_z: np.ndarray) -> list[dict]:
-        """Return the values of Omegas at a given point as a list of
-        args for interpolation
-
-        e.g. [{'tlist': [], 'ylist': []},
-              {'tlist': [], 'ylist': []}]
-
-        Note:
-            The factor of 1/2pi is needed as we pass Rabi freq functions
-            in without the factor of 2pi.
-        """
-        fields_args = [{}] * len(self.atom.fields)
-        for f_i, _f in enumerate(Omegas_z):
-            fields_args[f_i] = {
-                "tlist": self.tlist,
-                "ylist": Omegas_z[f_i] / (2.0 * np.pi),
-            }
-        return fields_args
-
-    def solve_and_average_over_thermal_detunings(self) -> np.ndarray:
+    def _solve_and_average_over_thermal_detunings(self) -> np.ndarray:
         """Solves the Lindblad equation for the OBAtom over a range of
             detuning shifts for velocity classes.
 
@@ -619,12 +595,9 @@ class MBSolve(ob_solve.OBSolve):
         Note:
             - Casting upper to int so upper is 1, lower is 0.
         """
-        # TODO: This is also used in H_Delta. Really, lower_levels and
-        # upper_levels could be methods of Field.
-        upper_levels = list(
-            set(c[int(upper)] for c in self.atom.fields[field_idx].coupled_levels)
-        )
-        return self.populations(upper_levels)
+        f = self.atom.fields[field_idx]
+        levels = f.upper_levels() if upper else f.lower_levels()
+        return self.populations(levels)
 
     def coherences(self, coupled_levels: list[list[int]]) -> np.ndarray:
         """Gets the sum of coherences (off-diagonals) in a list of coupled
@@ -632,17 +605,18 @@ class MBSolve(ob_solve.OBSolve):
 
         Args:
             coupled_levels: a list of pairs of level indexes
+
         Returns:
             np.array, shape (z_steps+1, t_steps+1), dtype=complex
 
-        #TODO: This is repeating OBAtom.get_fields_sum_coherence. Decide
-        #   what to do about this!
+        Note:
+            Unlike ``OBAtom.get_fields_sum_coherence``, which operates on a
+            single-z time series with per-field weighting factors, this method
+            sums over the full (z, t) array with unit weights.
         """
-
-        sum_coh = np.zeros(self.states_zt.shape[:2], dtype=complex)
-        for cl in coupled_levels:
-            sum_coh += self.states_zt[:, :, cl[0], cl[1]]
-        return sum_coh
+        rows = [cl[0] for cl in coupled_levels]
+        cols = [cl[1] for cl in coupled_levels]
+        return self.states_zt[:, :, rows, cols].sum(axis=2)
 
     def coherences_field(self, field_idx: int) -> np.ndarray:
         """Get the sum of coherences (off-diagonals) for the levels coupled by
