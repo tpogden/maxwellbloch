@@ -138,8 +138,7 @@ class OBSolve(object):
 
         self.atom.fields[field_idx].rabi_freq_t_args = t_args
 
-    # TODO: Rename to obsolve for clarity when calling from derived class
-    def solve(
+    def obsolve(
         self,
         e_ops: list | None = None,
         opts: dict | None = None,

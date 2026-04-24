@@ -114,7 +114,7 @@ class TestSolve(unittest.TestCase):
             "num_states": 2,
         }
         obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
-        obs.solve()
+        obs.obsolve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -154,7 +154,7 @@ class TestSolve(unittest.TestCase):
             t_steps=100,
             opts={"atol": 1e-6, "rtol": 1e-4},
         )
-        obs.solve()
+        obs.obsolve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -189,7 +189,7 @@ class TestSolve(unittest.TestCase):
             "initial_state": [0.0, 1.0],
         }
         obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
-        obs.solve()
+        obs.obsolve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -215,7 +215,7 @@ class TestSolve(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "obs-two-two-fields.json")
         obs = ob_solve.OBSolve().from_json(json_path)
-        obs.solve()
+        obs.obsolve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -253,7 +253,7 @@ class TestSolve(unittest.TestCase):
         json_path = os.path.join(JSON_DIR, "obs-vee-cw-weak-sech-2pi.json")
         obs = ob_solve.OBSolve().from_json(json_path)
         # Test that solve does not throw any exceptions.
-        obs.solve()
+        obs.obsolve()
 
 
 class TestJSON(unittest.TestCase):
@@ -310,8 +310,8 @@ class TestSaveLoad(unittest.TestCase):
         json_path = os.path.join(JSON_DIR, "ob_solve_02.json")
         ob_solve_02 = ob_solve.OBSolve().from_json(json_path)
 
-        states_t = ob_solve_02.solve()
+        states_t = ob_solve_02.obsolve()
 
-        states_t_loaded = ob_solve_02.solve(recalc=False)
+        states_t_loaded = ob_solve_02.obsolve(recalc=False)
 
         self.assertTrue((states_t == states_t_loaded).all())

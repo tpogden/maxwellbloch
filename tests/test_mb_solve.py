@@ -238,18 +238,21 @@ class TestSaveLoad(unittest.TestCase):
         results in the MBSolve object to null. Load the results from
         file and check that they equal the original values.
         """
+        import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
 
         Omegas_zt, states_zt = mb_solve_01.mbsolve()
 
-        mb_solve_01.save_results()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mb_solve_01.savefile = os.path.join(tmpdir, "result")
+            mb_solve_01.save_results()
 
-        mb_solve_01.Omegas_zt = None
-        mb_solve_01.states_zt = None
+            mb_solve_01.Omegas_zt = None
+            mb_solve_01.states_zt = None
 
-        mb_solve_01.load_results()
+            mb_solve_01.load_results()
 
         Omegas_zt_loaded = mb_solve_01.Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
@@ -258,18 +261,21 @@ class TestSaveLoad(unittest.TestCase):
         self.assertTrue((states_zt == states_zt_loaded).all())
 
     def test_save_load_no_recalc(self):
+        import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
 
         Omegas_zt, states_zt = mb_solve_01.mbsolve()
 
-        mb_solve_01.save_results()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mb_solve_01.savefile = os.path.join(tmpdir, "result")
+            mb_solve_01.save_results()
 
-        mb_solve_01.Omegas_zt = None
-        mb_solve_01.states_zt = None
+            mb_solve_01.Omegas_zt = None
+            mb_solve_01.states_zt = None
 
-        Omegas_zt, states_zt = mb_solve_01.mbsolve(recalc=False)
+            Omegas_zt, states_zt = mb_solve_01.mbsolve(recalc=False)
 
         Omegas_zt_loaded = mb_solve_01.Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt

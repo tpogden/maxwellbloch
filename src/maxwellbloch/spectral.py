@@ -43,15 +43,7 @@ def rabi_freq(mb_solve: MBSolve, field_idx: int) -> np.ndarray:
 
     rabi_freq_zt = mb_solve.Omegas_zt[field_idx]
 
-    rabi_freq_fft = np.zeros(rabi_freq_zt.shape, dtype=complex)
-
-    # TODO: I should be able to do this without the loop by specifying
-    # axis?
-    for i, _Omega_z_i in enumerate(rabi_freq_zt):
-        rabi_freq_fft[i] = np.fft.fft(rabi_freq_zt[i])
-        rabi_freq_fft[i] = np.fft.fftshift(rabi_freq_fft[i])
-
-    return rabi_freq_fft
+    return np.fft.fftshift(np.fft.fft(rabi_freq_zt, axis=1), axes=1)
 
 
 def absorption(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray:
