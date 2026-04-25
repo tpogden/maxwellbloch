@@ -38,3 +38,4 @@
    :maxdepth: 1
 
    mbs-ladder-weak-pulse-coupling-decay
+   mbs-ladder-rydberg-eit-counter
