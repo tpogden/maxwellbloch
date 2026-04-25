@@ -59,7 +59,7 @@ class OBAtom(ob_base.OBBase):
     def build_initial_state(self, initial_state: list[float] | None = None) -> qu.Qobj:
         """Build the initial density matrix for the atom.
 
-        The default is for all of the population to be in |0> <0|.
+        The default is for all of the population to be in ``|0><0|``.
 
         Args:
             rho0: a list or array of populations, length num_states.
