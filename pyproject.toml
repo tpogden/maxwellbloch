@@ -25,6 +25,8 @@ docs = [
     "seaborn",
     "sphinx_rtd_theme",
     "recommonmark",
+    "plotly>=5.18",
+    "kaleido>=0.2",
 ]
 dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
 
