@@ -145,11 +145,11 @@ class Atom1e(_JsonMixin):
             (list): factors, length of mF_list
 
         Notes:
-        - An isotropic field is a field with equal components in all three
-            possible polarizations.
-        - Any given polarisation of the field only interacts with one of the
-            three components of the dipole moment, so it is appropriate to
-            average over the couplings (i.e. factor 1/3) rather than sum.
+            - An isotropic field is a field with equal components in all three
+              possible polarizations.
+            - Any given polarisation of the field only interacts with one of the
+              three components of the dipole moment, so it is appropriate to
+              average over the couplings (i.e. factor 1/3) rather than sum.
         """
 
         return self.get_decay_factors(F_level_idxs_a, F_level_idxs_b) / np.sqrt(3.0)
@@ -185,10 +185,10 @@ class Atom1e(_JsonMixin):
             never needs to be set, just used for testing that claim.
 
         Notes:
-        - Sum of the matrix elements from a single ground-state sublevel to the
-            levels in a particular F' energy level.
-        - The sum S_{FF'} is independent of the ground state sublevel chosen.
-        - The sum of S_{FF'} over upper F levels should be 1.
+            - Sum of the matrix elements from a single ground-state sublevel
+              to the levels in a particular F' energy level.
+            - The sum S_{FF'} is independent of the ground state sublevel chosen.
+            - The sum of S_{FF'} over upper F levels should be 1.
 
         Refs:
             [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
