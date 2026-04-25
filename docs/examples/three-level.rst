@@ -14,6 +14,7 @@
    mbs-lambda-weak-pulse-cloud-atoms-with-coupling
    mbs-lambda-weak-pulse-cloud-atoms-with-coupling-store
    mbs-lambda-cpt
+   mbs-lambda-adiabatons
 
 ********************
   V Configuration
