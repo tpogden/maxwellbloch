@@ -21,6 +21,14 @@ class Field(object):
         detuning (float): detuning of the fields from resonance with the
             coupled_levels transitions.
         detuning_positive (bool): is the detuning positive?
+        counter_propagating (bool): if True, this field travels in the
+            opposite direction to the forward-propagating solver direction.
+            Sets factor_doppler_shift = -1.0. Orthogonal to detuning_positive.
+        factor_doppler_shift (float): multiplier applied to the thermal
+            detuning Delta for each velocity class. Default 1.0 (co-propagating).
+            Set to -1.0 for a counter-propagating field, or to an arbitrary
+            float for schemes where wavelength differences matter (e.g. a
+            three-photon ladder where k-vector magnitudes differ).
         rabi_freq (float): Rabi frequency of the field on the transition.
         rabi_freq_t_func (func): Time-dependency of rabi_freq as function of
             time f(t, args)
@@ -35,6 +43,8 @@ class Field(object):
         factors: list[float] | None = None,
         detuning: float = 0.0,
         detuning_positive: bool = True,
+        counter_propagating: bool = False,
+        factor_doppler_shift: float | None = None,
         rabi_freq: float = 1.0,
         rabi_freq_t_func: str | None = None,
         rabi_freq_t_args: dict[str, float] | None = None,
@@ -55,6 +65,8 @@ class Field(object):
         self.detuning = detuning
         self.detuning_positive = detuning_positive
 
+        self._build_doppler_shift(counter_propagating, factor_doppler_shift)
+
         self.rabi_freq = rabi_freq
         self.rabi_freq_t_args = rabi_freq_t_args
 
@@ -70,7 +82,11 @@ class Field(object):
             + "factors={3}, "
             + "detuning={4}, "
             + "detuning_positive={5}, "
-            "rabi_freq={6}, " + "rabi_freq_t_func={7}, " + "rabi_freq_t_args={8})"
+            + "counter_propagating={6}, "
+            + "factor_doppler_shift={7}, "
+            + "rabi_freq={8}, "
+            + "rabi_freq_t_func={9}, "
+            + "rabi_freq_t_args={10})"
         ).format(
             self.label,
             self.index,
@@ -78,10 +94,40 @@ class Field(object):
             self.factors,
             self.detuning,
             self.detuning_positive,
+            self.counter_propagating,
+            self.factor_doppler_shift,
             self.rabi_freq,
             self.rabi_freq_t_func,
             self.rabi_freq_t_args,
         )
+
+    def _build_doppler_shift(
+        self, counter_propagating: bool, factor_doppler_shift: float | None
+    ) -> None:
+        """Set counter_propagating and factor_doppler_shift with consistency check.
+
+        counter_propagating=True is sugar for factor_doppler_shift=-1.0. Setting
+        counter_propagating=True alongside an explicit positive factor_doppler_shift
+        is a conflict and raises ValueError.
+        """
+        if (
+            counter_propagating
+            and factor_doppler_shift is not None
+            and factor_doppler_shift > 0.0
+        ):
+            raise ValueError(
+                "counter_propagating=True implies factor_doppler_shift < 0, "
+                "but factor_doppler_shift={} was also supplied. "
+                "Either set counter_propagating=True (to use -1.0) or set "
+                "factor_doppler_shift directly, not both.".format(factor_doppler_shift)
+            )
+        self.counter_propagating = counter_propagating
+        if counter_propagating:
+            self.factor_doppler_shift = -1.0
+        elif factor_doppler_shift is None:
+            self.factor_doppler_shift = 1.0
+        else:
+            self.factor_doppler_shift = factor_doppler_shift
 
     def lower_levels(self) -> list[int]:
         """Return the unique lower (ground) level indices coupled by this field.
@@ -172,6 +218,8 @@ class Field(object):
             "factors": self.factors,
             "detuning": self.detuning,
             "detuning_positive": self.detuning_positive,
+            "counter_propagating": self.counter_propagating,
+            "factor_doppler_shift": self.factor_doppler_shift,
             "rabi_freq": self.rabi_freq,
             "rabi_freq_t_args": self.rabi_freq_t_args,
         }
