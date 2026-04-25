@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
+import datetime
+import hashlib
+import importlib.metadata
 import os
+import warnings
 
 import numpy as np
 import qutip as qu
@@ -214,11 +218,17 @@ class MBSolve(ob_solve.OBSolve):
         for i, g in enumerate(interaction_strengths):
             self.g[i] = 2 * np.pi * g
         # Set the num_density function
+        self._num_density_z_func_name = num_density_z_func or "square"
         if num_density_z_func:
             self.num_density_z_func = getattr(t_funcs, num_density_z_func)(0)
         else:
             self.num_density_z_func = t_funcs.square(0)
         # Set the num_density args
+        self._num_density_z_args_raw = num_density_z_args or {
+            "on": 0.0,
+            "off": 1.0,
+            "ampl": 1.0,
+        }
         if num_density_z_args:
             self.num_density_z_args = {}
             for key, value in num_density_z_args.items():
@@ -294,8 +304,8 @@ class MBSolve(ob_solve.OBSolve):
         self.check()
         self.init_Omegas_zt()
         self.init_states_zt()
-        # Should we recalculate or load a savefile?
-        if recalc or not self.savefile_exists():
+
+        def _do_solve() -> None:
             if step == "euler":
                 self.mbsolve_euler(
                     rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
@@ -305,8 +315,15 @@ class MBSolve(ob_solve.OBSolve):
                     rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
                 )
             self.save_results()
+
+        # Should we recalculate or load a savefile?
+        if recalc or not self.savefile_exists():
+            _do_solve()
         else:
-            self.load_results()
+            try:
+                self.load_results()
+            except ValueError:
+                _do_solve()
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_euler(
@@ -542,6 +559,32 @@ class MBSolve(ob_solve.OBSolve):
         )
         return thermal_states_t
 
+    def get_json_dict(self) -> dict:
+        """Return the full problem definition as a JSON-serialisable dict."""
+        d = super().get_json_dict()
+        d.update(
+            {
+                "z_min": self.z_min,
+                "z_max": self.z_max,
+                "z_steps": self.z_steps,
+                "z_steps_inner": self.z_steps_inner,
+                "num_density_z_func": self._num_density_z_func_name,
+                "num_density_z_args": self._num_density_z_args_raw,
+                "interaction_strengths": self.interaction_strengths,
+                "velocity_classes": self.velocity_classes,
+            }
+        )
+        return d
+
+    def _savefile_metadata(self) -> dict:
+        """Build the metadata dict stored alongside results in the .qu file."""
+        return {
+            "hash": hashlib.sha256(self.to_json_str().encode()).hexdigest(),
+            "maxwellbloch": importlib.metadata.version("maxwellbloch"),
+            "qutip": importlib.metadata.version("qutip"),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+        }
+
     def save_results(self) -> None:
         """Saves the solution to a QuTiP pickle file.
 
@@ -549,20 +592,53 @@ class MBSolve(ob_solve.OBSolve):
             - The path to which the results will be saved is taken from
                 self.savefile.
         """
-        # Only save the file if we have a place to save it.
         if self.savefile:
             os.makedirs(os.path.dirname(self.savefile) or ".", exist_ok=True)
             print("Saving MBSolve to", self.savefile + ".qu")
-            qu.qsave((self.Omegas_zt, self.states_zt), self.savefile)
+            qu.qsave(
+                (self.Omegas_zt, self.states_zt, self._savefile_metadata()),
+                self.savefile,
+            )
 
     def load_results(self) -> None:
         """Loads the solution from a QuTiP pickle file.
 
+        Raises:
+            ValueError: if the savefile was built from a different problem
+                definition (hash mismatch).
+
         Notes:
             - The path from which the results will be loaded is taken from
                 self.savefile.
+            - Old savefiles without metadata are loaded without integrity
+                checking, with a warning.
         """
-        self.Omegas_zt, self.states_zt = qu.qload(self.savefile)
+        data = qu.qload(self.savefile)
+        if len(data) == 3:
+            Omegas_zt, states_zt, meta = data
+            current_hash = hashlib.sha256(self.to_json_str().encode()).hexdigest()
+            if meta["hash"] != current_hash:
+                raise ValueError(
+                    f"Savefile {self.savefile}.qu was built from a different "
+                    "problem definition. Delete it or set recalc=True."
+                )
+            for key in ("maxwellbloch", "qutip"):
+                saved = meta.get(key)
+                current = importlib.metadata.version(key)
+                if saved and saved != current:
+                    warnings.warn(
+                        f"Savefile was built with {key}=={saved}, "
+                        f"current version is {current}.",
+                        stacklevel=2,
+                    )
+        else:
+            warnings.warn(
+                f"Savefile {self.savefile}.qu has no integrity metadata "
+                "(old format). Loading without hash check.",
+                stacklevel=2,
+            )
+            Omegas_zt, states_zt = data
+        self.Omegas_zt, self.states_zt = Omegas_zt, states_zt
 
     def fields_area(self) -> np.ndarray:
         """Gets the integrated pulse area of each field.
