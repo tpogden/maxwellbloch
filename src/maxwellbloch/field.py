@@ -48,7 +48,7 @@ class Field(object):
         self.label = label
         self.index = index
 
-        self.coupled_levels = coupled_levels  # TODO should I convert to array?
+        self.coupled_levels = coupled_levels
 
         self._build_factors(factors)
 
