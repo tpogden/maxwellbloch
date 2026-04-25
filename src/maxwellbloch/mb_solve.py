@@ -11,6 +11,7 @@ import numpy as np
 import qutip as qu
 
 from maxwellbloch import ob_solve, t_funcs
+from maxwellbloch.exceptions import CounterPropagatingDepletionError
 from maxwellbloch.utility import maxwell_boltzmann
 
 
@@ -286,6 +287,9 @@ class MBSolve(ob_solve.OBSolve):
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
         pbar_chunk_size: int = 10,
+        check_counter_prop_depletion: bool = True,
+        depletion_warn: float = 0.01,
+        depletion_error: float = 0.10,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations for the system.
 
@@ -294,6 +298,11 @@ class MBSolve(ob_solve.OBSolve):
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
             pbar_chunk_size: Every how many % should we log progress to stdout.
+            check_counter_prop_depletion: Run a post-solve depletion check on
+                any counter-propagating fields. Set False to suppress.
+            depletion_warn: Depletion fraction that triggers a UserWarning.
+            depletion_error: Depletion fraction that raises
+                CounterPropagatingDepletionError.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -324,6 +333,12 @@ class MBSolve(ob_solve.OBSolve):
                 self.load_results()
             except ValueError:
                 _do_solve()
+
+        if check_counter_prop_depletion:
+            self._check_counter_prop_depletion(
+                depletion_warn=depletion_warn, depletion_error=depletion_error
+            )
+
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_euler(
@@ -546,9 +561,16 @@ class MBSolve(ob_solve.OBSolve):
         # The set detunings, without any thermal shifting
         fixed_detunings = self.atom.get_detunings()
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
-            # print('Delta_i: {0}, Delta: {1:.2f}'.format(Delta_i, Delta))
-            # Shift each detuning by Delta.
-            self.atom.set_H_Delta([fd + Delta for fd in fixed_detunings])
+            # Shift each field's detuning by Delta scaled by that field's
+            # Doppler sign. Counter-propagating fields get factor_doppler_shift=-1.
+            self.atom.set_H_Delta(
+                [
+                    fd + Delta * field.factor_doppler_shift
+                    for fd, field in zip(
+                        fixed_detunings, self.atom.fields, strict=False
+                    )
+                ]
+            )
             # We don't want the obsolve to save.
             self.obsolve(opts=None, save=False)
             states_t_Delta[Delta_i] = self.states_t()
@@ -558,6 +580,49 @@ class MBSolve(ob_solve.OBSolve):
             states_t_Delta, axis=0, weights=self.thermal_weights
         )
         return thermal_states_t
+
+    def _check_counter_prop_depletion(
+        self,
+        depletion_warn: float = 0.01,
+        depletion_error: float = 0.10,
+    ) -> None:
+        """Check counter-propagating fields for significant depletion.
+
+        For each field with factor_doppler_shift < 0, computes the peak-based
+        depletion across the cell:
+
+            depletion = 1 - max_t|Ω(z_max, t)| / max_t|Ω(z_min, t)|
+
+        Emits a UserWarning at depletion_warn; raises
+        CounterPropagatingDepletionError at depletion_error.
+
+        The forward-propagation solver is only equivalent to true
+        counter-propagation when depletion is negligible. Results at high
+        depletion levels may be unreliable.
+        """
+        for field_idx, field in enumerate(self.atom.fields):
+            if field.factor_doppler_shift >= 0:
+                continue
+            Omega_field = self.Omegas_zt[field_idx]  # shape (z_steps+1, t_steps+1)
+            peak_zmin = np.max(np.abs(Omega_field[0]))
+            peak_zmax = np.max(np.abs(Omega_field[-1]))
+            if peak_zmin == 0.0:
+                continue
+            depletion = 1.0 - peak_zmax / peak_zmin
+            name = field.label or f"field[{field_idx}]"
+            msg = (
+                f"Counter-propagating field '{name}' depleted by {depletion:.1%} "
+                f"across the cell. The forward-propagation solver is only equivalent "
+                f"to true counter-propagation when depletion is negligible. Results "
+                f"at this depletion level may be unreliable."
+            )
+            if depletion >= depletion_error:
+                raise CounterPropagatingDepletionError(
+                    msg + " Pass check_counter_prop_depletion=False to mbsolve() to "
+                    "suppress this check."
+                )
+            elif depletion >= depletion_warn:
+                warnings.warn(msg, UserWarning, stacklevel=3)
 
     def get_json_dict(self) -> dict:
         """Return the full problem definition as a JSON-serialisable dict."""
