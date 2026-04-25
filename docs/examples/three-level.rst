@@ -13,6 +13,7 @@
    mbs-lambda-weak-pulse-more-atoms-with-coupling
    mbs-lambda-weak-pulse-cloud-atoms-with-coupling
    mbs-lambda-weak-pulse-cloud-atoms-with-coupling-store
+   mbs-lambda-cpt
 
 ********************
   V Configuration
@@ -38,4 +39,5 @@
    :maxdepth: 1
 
    mbs-ladder-weak-pulse-coupling-decay
+   mbs-ladder-autler-townes
    mbs-ladder-rydberg-eit-counter
