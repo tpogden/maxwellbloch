@@ -84,6 +84,12 @@ See the Examples section below for details.
 
    support/troubleshooting
 
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
+
+   api/index
+
 .. Indices and Tables
 .. ==================
 

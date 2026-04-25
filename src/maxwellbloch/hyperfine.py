@@ -8,7 +8,17 @@ import numpy as np
 from maxwellbloch.angmom import calc_clebsch_hf
 
 
-class Atom1e(object):
+class _JsonMixin:
+    """Mixin that provides to_json_str() for classes with get_json_dict()."""
+
+    def to_json_str(self) -> str:
+        """Return a JSON string representation of this object."""
+        return json.dumps(
+            self.get_json_dict(), indent=2, separators=None, sort_keys=True
+        )
+
+
+class Atom1e(_JsonMixin):
     """Represents an atom object and contains a list of J levels."""
 
     def __init__(self, element=None, isotope=None):
@@ -65,10 +75,21 @@ class Atom1e(object):
         return [mF_level["energy"] for mF_level in self.get_mF_list()]
 
     def get_coupled_levels(self, F_level_idxs_a, F_level_idxs_b):
-        """Returns a list of pairs of mF level indexes, representing all
-        pairs of mF levels between two F levels."""
-        # TODO: docstring
-        # TODO: Need to check Not trying to couple J=J', i.e. selection rules
+        """Return all mF-level index pairs between two sets of F levels.
+
+        Args:
+            F_level_idxs_a: Indices into self.F_levels for the first group.
+            F_level_idxs_b: Indices into self.F_levels for the second group.
+
+        Returns:
+            List of [i, j] pairs where i is an mF index from group a and
+            j is an mF index from group b.
+
+        Note:
+            Selection rules (e.g. forbidding J=J' transitions) are not
+            enforced here. Callers are responsible for passing physically
+            valid level index sets.
+        """
 
         F_level_idx_map = self.get_F_level_idx_map()
         a_levels = [i for i, idx in enumerate(F_level_idx_map) if idx in F_level_idxs_a]
@@ -89,8 +110,6 @@ class Atom1e(object):
             (list): factors, length of mF_list
 
         """
-
-        # TODO: Selection rules? Either needs to be here or get_coupled_levels
 
         mF_list = self.get_mF_list()
         coupled_levels = self.get_coupled_levels(F_level_idxs_a, F_level_idxs_b)
@@ -126,11 +145,11 @@ class Atom1e(object):
             (list): factors, length of mF_list
 
         Notes:
-        - An isotropic field is a field with equal components in all three
-            possible polarizations.
-        - Any given polarisation of the field only interacts with one of the
-            three components of the dipole moment, so it is appropriate to
-            average over the couplings (i.e. factor 1/3) rather than sum.
+            - An isotropic field is a field with equal components in all three
+              possible polarizations.
+            - Any given polarisation of the field only interacts with one of the
+              three components of the dipole moment, so it is appropriate to
+              average over the couplings (i.e. factor 1/3) rather than sum.
         """
 
         return self.get_decay_factors(F_level_idxs_a, F_level_idxs_b) / np.sqrt(3.0)
@@ -166,10 +185,10 @@ class Atom1e(object):
             never needs to be set, just used for testing that claim.
 
         Notes:
-        - Sum of the matrix elements from a single ground-state sublevel to the
-            levels in a particular F' energy level.
-        - The sum S_{FF'} is independent of the ground state sublevel chosen.
-        - The sum of S_{FF'} over upper F levels should be 1.
+            - Sum of the matrix elements from a single ground-state sublevel
+              to the levels in a particular F' energy level.
+            - The sum S_{FF'} is independent of the ground state sublevel chosen.
+            - The sum of S_{FF'} over upper F levels should be 1.
 
         Refs:
             [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
@@ -203,19 +222,6 @@ class Atom1e(object):
 
         return factor_sq_sum
 
-    def to_json_str(self):
-        """Return a JSON string representation of the LevelJ object.
-
-        # TODO: This could be a decorator as we use it for all classes.
-
-        Returns:
-            (string) JSON representation of the LevelJ object.
-        """
-
-        return json.dumps(
-            self.get_json_dict(), indent=2, separators=None, sort_keys=True
-        )
-
     def get_json_dict(self):
 
         json_dict = {
@@ -226,7 +232,7 @@ class Atom1e(object):
         return json_dict
 
 
-class LevelF(object):
+class LevelF(_JsonMixin):
     """Represents an F hyperfine structure level and holds its magnetic
         sublevels mF.
 
@@ -268,7 +274,7 @@ class LevelF(object):
         self.build_mF_levels(mF_energies)
 
     def __repr__(self):
-        return self.to_json_str()  # "<LevelF :: %s>" % self.__dict__
+        return self.to_json_str()
 
     def build_mF_levels(self, mF_energies=None):
         """Builds the mF sublevels of the F level.
@@ -308,19 +314,8 @@ class LevelF(object):
         }
         return json_dict
 
-    def to_json_str(self):
-        """Return a JSON string representation of the LevelF object.
 
-        Returns:
-            (string) JSON representation of the LevelF object.
-        """
-
-        return json.dumps(
-            self.get_json_dict(), indent=2, separators=None, sort_keys=True
-        )
-
-
-class LevelMF(object):
+class LevelMF(_JsonMixin):
     """Represents an m_F hyperfine sublevel.
 
     Attributes:
@@ -335,197 +330,5 @@ class LevelMF(object):
     def __repr__(self):
         return "<LevelMF :: %s>" % self.__dict__
 
-    def to_json_str(self):
-        """Return a JSON string representation of the LevelMF object.
-
-        Returns:
-            (string) JSON representation of the LevelMF object.
-        """
-
-        return json.dumps(self.__dict__, indent=2, separators=None, sort_keys=True)
-
-
-# class LevelNL(object):
-#     """ Represents a nL level of a single-electron atom.
-
-#     Examples:
-#         Rb_87_5s = LevelNL(n=5, I=1.5, L=1, S=0.5)
-
-#     Notes:
-#         - The J_energies are set _relative_ to the nL level energy.
-#     TODO: I may not need this anymore, now Atom1e takes a list of J_levels
-#     """
-
-#     def __init__(self, n, I, L, S, energy=0.0, J_energies=None,
-#         F_energies=None, mF_energies=None):
-#         """
-#         Args:
-#             n (float): principal atomic number.
-#             I (float): Nuclear spin atomic number.
-#             L (float): Orbital angular momenutm number.
-#             S (float): Spin angular momentum number.
-#             energy (float): Energy of the nL level
-#             J_energies (list of float): List of energies of each J level.
-#             F_energies (list of list of float): List of energies of the F
-#                 levels, relative to each J level.
-#             mF_energies (list of list of list of float): List of list of lists
-#                 containing mF_energies for each F level within each J level.
-#                 The length of each sublist must be 2F+1.
-#         """
-
-#         self.n = n
-#         self.I = I
-#         self.L = L
-#         self.S = S
-#         self.energy = energy
-#         self.J_levels = self.build_J_levels(J_energies, F_energies,
-#             mF_energies)
-
-#     def __repr__(self):
-#         return self.to_json_str() #"<LevelNL :: %s>" % self.__dict__
-
-#     def build_J_levels(self, J_energies=None, F_energies=None,
-#         mF_energies=None):
-
-#         self.J_levels = []
-#         J_range = self.get_J_range()
-
-#         if not J_energies:
-#             J_energies = [0.0 for i in J_range]
-#         if not F_energies:
-#             F_energies = [None for i in J_range]
-#         if not mF_energies:
-#             mF_energies = [None for i in J_range]
-
-#         if len(J_energies) != len(J_range):
-#             raise ValueError("J_energies is not the correct length.")
-#         if len(F_energies) != len(J_range):
-#             raise ValueError("F_energies is not the correct length.")
-#         if len(mF_energies) != len(J_range):
-#             raise ValueError("mF_energies is not the correct length.")
-
-#         for i, J in enumerate(J_range):
-#             self.J_levels.append(LevelJ(self.I, J, self.energy + J_energies[i],
-#                 F_energies[i], mF_energies[i]))
-
-#         return self.J_levels
-
-#     def get_J_range(self):
-#         return np.arange(abs(self.L - self.S), self.L + self.S + 1,
-#             dtype=float)
-
-#     def to_json_str(self):
-#         """ Return a JSON string representation of the LevelJ object.
-
-#         # TODO: This could be a decorator as we use it for all classes.
-
-#         Returns:
-#             (string) JSON representation of the LevelJ object.
-#         """
-
-#         return json.dumps(self.get_json_dict(), indent=2, separators=None,
-#             sort_keys=True)
-
-#     def get_json_dict(self):
-
-#         json_dict = {"n": self.n,
-#                      "I": self.I,
-#                      "L": self.L,
-#                      "S": self.S,
-#                      "energy": self.energy,
-#                      "J_levels": [i.get_json_dict() for i in self.J_levels]}
-#         return json_dict
-
-# class LevelJ(object):
-#     """ Represents a J fine structure level and holds its hyperfine structure
-#         sublevels.
-
-#     Examples:
-#         Rb_87_5p12 = LevelJ(I=1.5, J=0.5)
-
-#     Notes:
-#         - The magnitude of J can take values in the range
-#             `|L - S| <= J <= L + S`.
-#         - The F levels take values in the range `|J - I| <= F <= J + I`.
-#         - The F_energies are set _relative_ to the J level energy.
-#     """
-
-#     def __init__(self, I, J, energy=0.0, F_energies=None, mF_energies=None):
-#         """
-#         Args:
-#             I (float): Nuclear spin atomic number.
-#             J (float): Orbital angular momentum number.
-#             energy (float): Energy of the J level
-#             F_energies (list of float): List of energies of the F levels,
-#                 relative to the J level.
-#             mF_energies (list of list of float): List of lists containing
-#                 mF_energies for each F level. The length of each list must be
-#                 2F+1.
-
-#         Notes:
-#             - I and J must be integer or half-integer.
-#         """
-
-#         if ((2*I != round(2*I)) | (2*J != round(2*J))):
-#             raise ValueError('I and J must be integers or half-integers.')
-
-#         self.J = J
-#         self.I = I
-#         self.energy = energy
-#         self.build_F_levels(F_energies, mF_energies)
-
-#     def __repr__(self):
-#         return self.to_json_str() #"<LevelJ :: %s>" % self.__dict__
-
-#     def build_F_levels(self, F_energies=None, mF_energies=None):
-#         """ Builds the hyperfine structure F levels of the J level.
-
-#         Args:
-#             F_energies (list of float): List of energies of the F levels.
-#             mF_energies (list of list of float): List of lists containing
-#                 mF_energies for each F level. The length of each list must be
-#                 2F+1.
-
-#         """
-#         self.F_levels = []
-#         F_range = self.get_F_range()
-
-#         if not F_energies:
-#             F_energies = [0.0 for i in F_range]
-#         if not mF_energies:
-#             mF_energies = [None for i in F_range]
-#         if len(F_energies) != len(F_range):
-#             raise ValueError("F_energies is not the correct length.")
-#         if len(mF_energies) != len(F_range):
-#             raise ValueError("mF_energies is not the correct length.")
-#         for i, F in enumerate(F_range):
-#             self.F_levels.append(LevelF(F, self.energy + F_energies[i],
-#                 mF_energies[i]))
-
-#         return self.F_levels
-
-#     def get_F_range(self):
-#         """ The range of the F levels is given by `|J - I| <= F <= J + I`. """
-
-#         return np.arange(abs(self.J - self.I), self.J + self.I + 1,
-#             dtype=float)
-
-#     def get_json_dict(self):
-
-#         json_dict = {"I": self.I,
-#                      "J": self.J,
-#                      "energy": self.energy,
-#                      "F_levels": [F.get_json_dict() for F in self.F_levels]}
-#         return json_dict
-
-#     def to_json_str(self):
-#         """ Return a JSON string representation of the LevelJ object.
-
-#         # TODO: This could be a decorator as we use it for all classes.
-
-#         Returns:
-#             (string) JSON representation of the LevelJ object.
-#         """
-
-#         return json.dumps(self.get_json_dict(), indent=2, separators=None,
-#             sort_keys=True)
+    def get_json_dict(self):
+        return self.__dict__

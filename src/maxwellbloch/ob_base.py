@@ -115,8 +115,11 @@ class OBBase(object):
         This only works in the case of time-independent interaction,
         where no time_funcs have been specified."""
 
-        ## TODO: raise an error here if a time-dependent interaction has been
-        ## specified, i.e. if H_I is a list of [H_I_term, time_func] pairs.
+        if any(isinstance(h, list) for h in self.H_I_list()):
+            raise ValueError(
+                "H_I_sum() called on a time-dependent interaction. "
+                "Use H_I_list() directly and pass it to the solver."
+            )
 
         H_I = qu.Qobj(np.zeros([self.num_states, self.num_states]))
 
@@ -195,8 +198,8 @@ class OBBase(object):
 
             # Only save the file if we have a place to save it.
             if savefile:
+                os.makedirs(os.path.dirname(savefile) or ".", exist_ok=True)
                 print("Saving OBBase to {0}.qu".format(savefile))
-
                 qu.qsave(self.result, savefile)
 
         # Otherwise load the steady state rho_v_delta from file

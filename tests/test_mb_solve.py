@@ -238,18 +238,21 @@ class TestSaveLoad(unittest.TestCase):
         results in the MBSolve object to null. Load the results from
         file and check that they equal the original values.
         """
+        import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
 
         Omegas_zt, states_zt = mb_solve_01.mbsolve()
 
-        mb_solve_01.save_results()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mb_solve_01.savefile = os.path.join(tmpdir, "result")
+            mb_solve_01.save_results()
 
-        mb_solve_01.Omegas_zt = None
-        mb_solve_01.states_zt = None
+            mb_solve_01.Omegas_zt = None
+            mb_solve_01.states_zt = None
 
-        mb_solve_01.load_results()
+            mb_solve_01.load_results()
 
         Omegas_zt_loaded = mb_solve_01.Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
@@ -258,24 +261,118 @@ class TestSaveLoad(unittest.TestCase):
         self.assertTrue((states_zt == states_zt_loaded).all())
 
     def test_save_load_no_recalc(self):
+        import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
 
         Omegas_zt, states_zt = mb_solve_01.mbsolve()
 
-        mb_solve_01.save_results()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mb_solve_01.savefile = os.path.join(tmpdir, "result")
+            mb_solve_01.save_results()
 
-        mb_solve_01.Omegas_zt = None
-        mb_solve_01.states_zt = None
+            mb_solve_01.Omegas_zt = None
+            mb_solve_01.states_zt = None
 
-        Omegas_zt, states_zt = mb_solve_01.mbsolve(recalc=False)
+            Omegas_zt, states_zt = mb_solve_01.mbsolve(recalc=False)
 
         Omegas_zt_loaded = mb_solve_01.Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
         self.assertTrue((states_zt == states_zt_loaded).all())
+
+    def test_save_creates_missing_directory(self):
+        """GH#195: save_results must not error when the savefile directory
+        does not yet exist."""
+        import tempfile
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "subdir", "nested", "result")
+            mbs.savefile = savefile
+            mbs.save_results()  # must not raise
+            self.assertTrue(os.path.isfile(savefile + ".qu"))
+
+    def test_load_hash_mismatch_raises(self):
+        """GH#199: load_results raises ValueError when problem definition
+        has changed since the savefile was written."""
+        import tempfile
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs_a = mb_solve.MBSolve().from_json(json_path)
+        mbs_a.mbsolve()
+
+        # Build a different problem (more z_steps) and reuse the savefile from mbs_a.
+        mbs_b = mb_solve.MBSolve().from_json(json_path)
+        mbs_b.z_steps = mbs_a.z_steps + 1
+        mbs_b.build_zlist(mbs_b.z_min, mbs_b.z_max, mbs_b.z_steps, mbs_b.z_steps_inner)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "result")
+            mbs_a.savefile = savefile
+            mbs_a.save_results()
+
+            mbs_b.savefile = savefile
+            with self.assertRaises(ValueError):
+                mbs_b.load_results()
+
+    def test_load_stale_file_resolves(self):
+        """GH#199: mbsolve() re-solves automatically when the savefile hash
+        does not match the current problem definition."""
+        import tempfile
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs_a = mb_solve.MBSolve().from_json(json_path)
+        mbs_a.mbsolve()
+
+        # Build a different problem and point it at mbs_a's stale savefile.
+        mbs_b = mb_solve.MBSolve().from_json(json_path)
+        mbs_b.z_steps = mbs_a.z_steps + 1
+        mbs_b.build_zlist(mbs_b.z_min, mbs_b.z_max, mbs_b.z_steps, mbs_b.z_steps_inner)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "result")
+            mbs_a.savefile = savefile
+            mbs_a.save_results()
+
+            mbs_b.savefile = savefile
+            Omegas_zt, _ = mbs_b.mbsolve(recalc=False)
+
+        # Shape should reflect mbs_b's z_steps, not the stale mbs_a result.
+        self.assertEqual(Omegas_zt.shape[1], mbs_b.z_steps + 1)
+
+    def test_load_old_format_warns(self):
+        """GH#199: loading a legacy 2-tuple savefile emits a warning but
+        still loads the results."""
+        import tempfile
+        import warnings
+
+        import qutip as qu
+
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs.mbsolve()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "result")
+            mbs.savefile = savefile
+            # Write old-format 2-tuple directly.
+            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+
+            mbs.Omegas_zt = None
+            mbs.states_zt = None
+
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                mbs.load_results()
+
+        self.assertTrue(any("no integrity metadata" in str(w.message) for w in caught))
+        self.assertIsNotNone(mbs.Omegas_zt)
 
 
 class TestBuildZlist(unittest.TestCase):

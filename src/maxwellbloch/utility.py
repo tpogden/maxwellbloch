@@ -2,6 +2,20 @@ import numpy as np
 from scipy import interpolate
 
 
+def maxwell_boltzmann(v: np.ndarray, fwhm: float, offset: float = 0.0) -> np.ndarray:
+    """Maxwell-Boltzmann probability distribution.
+
+    Args:
+        v: velocity (or detuning) values.
+        fwhm: full-width at half-maximum of the distribution.
+        offset: centre of the distribution (default 0).
+
+    Returns:
+        Probability density at each value in ``v``.
+    """
+    return 1.0 / (fwhm * np.sqrt(np.pi)) * np.exp(-(((v - offset) / fwhm) ** 2))
+
+
 def half_max_roots(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float]:
     """Return the half-maximum value and the two roots where ``y`` crosses it.
 
