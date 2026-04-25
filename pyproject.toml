@@ -28,7 +28,8 @@ docs = [
     "plotly>=5.18",
     "kaleido>=0.2",
 ]
-dev = ["maxwellbloch[test,docs]", "ruff", "twine", "bump-my-version"]
+plot = ["plotly>=5.18", "kaleido>=0.2"]
+dev = ["maxwellbloch[test,docs,plot]", "ruff", "twine", "bump-my-version"]
 
 [tool.bumpversion]
 current_version = "0.10.0"

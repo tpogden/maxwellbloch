@@ -68,6 +68,7 @@ See the Examples section below for details.
    usage/spectral-analysis
    usage/velocity-classes
    usage/counter-propagating
+   usage/plotting
    usage/built-in-time-functions
    usage/scripts
 

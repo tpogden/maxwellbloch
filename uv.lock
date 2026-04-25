@@ -1955,6 +1955,10 @@ docs = [
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "sphinx-rtd-theme" },
 ]
+plot = [
+    { name = "kaleido" },
+    { name = "plotly" },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -1971,10 +1975,12 @@ requires-dist = [
     { name = "bump-my-version", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'docs'" },
     { name = "kaleido", marker = "extra == 'docs'", specifier = ">=0.2" },
+    { name = "kaleido", marker = "extra == 'plot'", specifier = ">=0.2" },
     { name = "matplotlib", marker = "extra == 'docs'" },
-    { name = "maxwellbloch", extras = ["test", "docs"], marker = "extra == 'dev'" },
+    { name = "maxwellbloch", extras = ["test", "docs", "plot"], marker = "extra == 'dev'" },
     { name = "nbsphinx", marker = "extra == 'docs'" },
     { name = "plotly", marker = "extra == 'docs'", specifier = ">=5.18" },
+    { name = "plotly", marker = "extra == 'plot'", specifier = ">=5.18" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "pytest-xdist", marker = "extra == 'test'" },
@@ -1986,7 +1992,7 @@ requires-dist = [
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'" },
     { name = "twine", marker = "extra == 'dev'" },
 ]
-provides-extras = ["test", "docs", "dev"]
+provides-extras = ["test", "docs", "plot", "dev"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest-benchmark", specifier = ">=5.2.3" }]
