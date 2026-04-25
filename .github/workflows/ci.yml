@@ -11,7 +11,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --extra test --extra plot
       - name: Lint with ruff
         run: |
           uvx ruff check .

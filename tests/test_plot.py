@@ -10,6 +10,10 @@ No visual correctness is checked — that belongs in the usage notebook.
 
 import unittest
 
+import pytest
+
+pytest.importorskip("plotly", reason="plotly not installed; install maxwellbloch[plot]")
+
 import numpy as np
 import plotly.graph_objects as go
 
