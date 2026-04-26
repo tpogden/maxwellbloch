@@ -76,6 +76,7 @@ See the Examples section below for details.
    :maxdepth: 3
    :caption: Examples
 
+   examples/gallery
    examples/two-level
    examples/three-level
    examples/structure
