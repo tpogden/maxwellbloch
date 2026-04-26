@@ -24,8 +24,16 @@ format_check:
 
 # Docs ------------------------------------------------------------------------
 
+# Incremental build — Sphinx skips unchanged source files (fast for development).
+# If a notebook's .ipynb source has changed, Sphinx will re-execute it.
 docs_html:
 	uv run sphinx-build docs docs/_build -b html
+
+# Full rebuild — clears the Sphinx environment cache (-E) so every source file
+# is re-read and every notebook is re-executed. Use this when .qu files are
+# stale but the .ipynb source is unchanged, or after a code change outside notebooks.
+docs_rebuild:
+	uv run sphinx-build -E docs docs/_build -b html
 
 docs_serve: docs_html
 	uv run python -m http.server 8000 --directory docs/_build
@@ -35,7 +43,7 @@ docs_serve: docs_html
 dist:
 	uv build
 
-.PHONY: dist
+.PHONY: dist docs_html docs_rebuild docs_serve clean_docs
 
 # Release (bump version, commit, tag — then push to trigger CI publish) ------
 # Usage: make bump_patch / bump_minor / bump_major
