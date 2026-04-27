@@ -51,3 +51,18 @@ entering at 1π, 3π, or 5π reshapes as it propagates.
    :maxdepth: 1
 
    mbs-two-sech-odd-pi
+
+***************************************************
+Photon Echo & Coherence Time ($T_2$) Measurement
+***************************************************
+
+A π/2 pulse followed by a π pulse creates a photon echo at $t = +\tau$ in an
+inhomogeneously broadened (Doppler-broadened) medium. The echo amplitude decays
+as $e^{-2\tau/T_2}$, allowing the **homogeneous** coherence time $T_2$ to be
+measured even when the lineshape is dominated by inhomogeneous broadening.
+
+.. toctree::
+   :maxdepth: 1
+
+   mbs-two-photon-echo
+
