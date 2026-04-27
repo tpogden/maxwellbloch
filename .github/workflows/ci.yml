@@ -42,9 +42,12 @@ jobs:
         run: |
           # Only add --benchmark-compare-fail when a baseline exists in the
           # cache. On the first run the cache is empty so we just save;
-          # subsequent runs compare and fail on >25% mean regression.
+          # subsequent runs compare and fail on >50% mean regression.
+          # 50% tolerates GitHub runner hardware variance (runners of the same
+          # OS label can differ by ~30% in wall-clock time) while still
+          # catching genuine algorithmic regressions.
           if find .benchmarks -name "*.json" 2>/dev/null | grep -q .; then
-            COMPARE="--benchmark-compare --benchmark-compare-fail=mean:25%"
+            COMPARE="--benchmark-compare --benchmark-compare-fail=mean:50%"
           else
             COMPARE=""
           fi

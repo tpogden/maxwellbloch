@@ -57,6 +57,9 @@ All examples at a glance. Jump to the detailed pages via
    * - :doc:`mbs-two-sech-odd-pi`
      - 2-level
      - Area theorem: 1π, 3π, 5π instability
+   * - :doc:`mbs-two-photon-echo`
+     - 2-level
+     - Photon echo: inhomogeneous dephasing, rephasing, T₂ measurement
    * - :doc:`mbs-lambda-weak-pulse-more-atoms-no-coupling`
      - Λ
      - Weak probe, no coupling — two-level-like absorption

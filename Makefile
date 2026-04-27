@@ -26,6 +26,8 @@ format_check:
 
 # Incremental build — Sphinx skips unchanged source files (fast for development).
 # If a notebook's .ipynb source has changed, Sphinx will re-execute it.
+docs: docs_html
+
 docs_html:
 	uv run sphinx-build docs docs/_build -b html
 
