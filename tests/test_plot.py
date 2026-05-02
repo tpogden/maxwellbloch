@@ -17,7 +17,7 @@ pytest.importorskip("plotly", reason="plotly not installed; install maxwellbloch
 import numpy as np
 import plotly.graph_objects as go
 
-from maxwellbloch import mb_solve, plot
+from maxwellbloch import mb_solve, plot, spectral
 
 # Minimal two-level two-field config used by all field/state tests.
 _TWO_LEVEL_JSON = """
@@ -202,6 +202,24 @@ class TestSpectrum(unittest.TestCase):
         fig = plot.spectrum(mbs)
         self.assertEqual(len(fig.data[0].x), len(mbs.tlist))
 
+    def test_freq_range_clips_data(self):
+        mbs = _get_mbs2()
+        fig = plot.spectrum(mbs, freq_range=1.0)
+        self.assertTrue(np.all(np.abs(fig.data[0].x) <= 1.0 + 1e-9))
+        self.assertLess(len(fig.data[0].x), len(mbs.tlist))
+
+    def test_freq_scale_arcsinh_transforms_x(self):
+        mbs = _get_mbs2()
+        freqs = spectral.freq_list(mbs)
+        fig = plot.spectrum(mbs, freq_scale="arcsinh", arcsinh_scale=1.0)
+        expected_max = np.arcsinh(np.max(np.abs(freqs)))
+        self.assertLessEqual(np.max(np.abs(fig.data[0].x)), expected_max + 1e-9)
+
+    def test_window_hann_does_not_change_length(self):
+        mbs = _get_mbs2()
+        fig = plot.spectrum(mbs, window="hann")
+        self.assertEqual(len(fig.data[0].x), len(mbs.tlist))
+
 
 class TestSpectrumOverlay(unittest.TestCase):
     def test_returns_figure(self):
@@ -213,6 +231,24 @@ class TestSpectrumOverlay(unittest.TestCase):
         mbs = _get_mbs2()
         fig = plot.spectrum_overlay([mbs, mbs])
         self.assertEqual(len(fig.data), 2)
+
+    def test_freq_range_clips_data(self):
+        mbs = _get_mbs2()
+        fig = plot.spectrum_overlay([mbs, mbs], freq_range=1.0)
+        for trace in fig.data:
+            self.assertTrue(np.all(np.abs(trace.x) <= 1.0 + 1e-9))
+
+    def test_freq_scale_arcsinh_transforms_x(self):
+        mbs = _get_mbs2()
+        freqs = spectral.freq_list(mbs)
+        fig = plot.spectrum_overlay([mbs], freq_scale="arcsinh", arcsinh_scale=1.0)
+        expected_max = np.arcsinh(np.max(np.abs(freqs)))
+        self.assertLessEqual(np.max(np.abs(fig.data[0].x)), expected_max + 1e-9)
+
+    def test_window_hann_does_not_change_length(self):
+        mbs = _get_mbs2()
+        fig = plot.spectrum_overlay([mbs], window="hann")
+        self.assertEqual(len(fig.data[0].x), len(mbs.tlist))
 
 
 class TestPopulation(unittest.TestCase):
