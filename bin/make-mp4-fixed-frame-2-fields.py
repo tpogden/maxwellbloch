@@ -93,7 +93,7 @@ show_peak_line = opts.peak_line
 
 mb_solve_00 = mb_solve.MBSolve().from_json(json_file)
 
-mb_solve_00.mbsolve(recalc=False, pbar_chunk_size=2)
+mb_solve_00.mbsolve(recalc=False)
 
 ### PLOT FIRST
 

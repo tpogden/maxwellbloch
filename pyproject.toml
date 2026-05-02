@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Thomas P Ogden", email = "t@ogden.eu" }]
 requires-python = ">=3.10"
-dependencies = ["qutip>=5"]
+dependencies = ["qutip>=5", "tqdm>=4"]
 
 [project.urls]
 Homepage = "https://github.com/tpogden/maxwellbloch"
