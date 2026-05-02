@@ -40,12 +40,14 @@ docs_rebuild:
 docs_serve: docs_html
 	uv run python -m http.server 8000 --directory docs/_build
 
+serve: docs_serve
+
 # Dist ------------------------------------------------------------------------
 
 dist:
 	uv build
 
-.PHONY: dist docs_html docs_rebuild docs_serve clean_docs
+.PHONY: dist docs_html docs_rebuild docs_serve serve clean_docs
 
 # Release (bump version, commit, tag — then push to trigger CI publish) ------
 # Usage: make bump_patch / bump_minor / bump_major
