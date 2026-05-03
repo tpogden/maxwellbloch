@@ -56,4 +56,3 @@ Doppler-narrowed Rydberg EIT in thermal vapour.
 
    mbs-ladder-weak-pulse-coupling-decay
    mbs-ladder-autler-townes
-   mbs-ladder-rydberg-eit-counter

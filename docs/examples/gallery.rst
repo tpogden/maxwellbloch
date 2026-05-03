@@ -108,9 +108,6 @@ All examples at a glance. Jump to the detailed pages via
    * - :doc:`mbs-ladder-autler-townes`
      - Ξ
      - Autler-Townes splitting vs coupling strength
-   * - :doc:`mbs-ladder-rydberg-eit-counter`
-     - Ξ
-     - Rydberg EIT: Doppler narrowing, counter-propagating
    * - :doc:`mbs-Rb87_5s12_5p12_F11_q1-weak-pulse-decay`
      - Rb87 D1
      - σ⁺ optical pumping, F=1→F'=1
