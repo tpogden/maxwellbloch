@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import plotly.graph_objects as go
 
 from maxwellbloch import spectral
@@ -14,6 +15,50 @@ if TYPE_CHECKING:
 
 _TEMPLATE = "maxwellbloch"
 
+# Candidate tick magnitudes for arcsinh axis (symmetric about 0).
+# Ticks ≤ the displayed f_max are shown; no hardcoded upper bound.
+_ARCSINH_TICK_CANDIDATES = [1, 2, 5, 10, 20, 50, 100, 200]
+
+
+def _apply_freq_options(
+    freqs: np.ndarray,
+    arrays: list[np.ndarray],
+    freq_range: float | None,
+    freq_scale: str,
+    arcsinh_scale: float,
+) -> tuple[np.ndarray, list[np.ndarray], np.ndarray]:
+    """Clip and/or transform the frequency axis and matching data arrays.
+
+    Returns ``(x_plot, clipped_arrays, freqs_clipped)`` where ``x_plot`` is
+    the array of x-values to pass to Plotly traces.
+    """
+    if freq_range is not None:
+        mask = np.abs(freqs) <= freq_range
+        freqs = freqs[mask]
+        arrays = [a[mask] for a in arrays]
+
+    if freq_scale == "arcsinh":
+        x_plot = np.arcsinh(freqs / arcsinh_scale)
+    else:
+        x_plot = freqs
+
+    return x_plot, arrays, freqs
+
+
+def _arcsinh_tick_layout(freqs: np.ndarray, arcsinh_scale: float) -> dict:
+    """Return an xaxis dict with human-readable tick labels for an arcsinh axis."""
+    f_max = np.max(np.abs(freqs))
+    tick_vals = sorted(
+        {0}
+        | {v for v in _ARCSINH_TICK_CANDIDATES if v <= f_max}
+        | {-v for v in _ARCSINH_TICK_CANDIDATES if v <= f_max}
+    )
+    return dict(
+        tickmode="array",
+        tickvals=np.arcsinh(np.array(tick_vals) / arcsinh_scale).tolist(),
+        ticktext=[str(v) for v in tick_vals],
+    )
+
 
 def spectrum(
     mbs: MBSolve,
@@ -21,6 +66,10 @@ def spectrum(
     *,
     z_idx: int = -1,
     show_dispersion: bool = False,
+    freq_range: float | None = None,
+    freq_scale: str = "linear",
+    arcsinh_scale: float = 1.0,
+    window: str | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -35,6 +84,17 @@ def spectrum(
         field_idx: Index of the probe field.
         z_idx: z-step index at which to compute absorption.
         show_dispersion: If True, also plot the dispersion on a secondary axis.
+        freq_range: If given, only frequencies with |f| ≤ freq_range are shown.
+            Clips the underlying data arrays, not just the axis view.
+        freq_scale: ``"linear"`` (default) or ``"arcsinh"``. With ``"arcsinh"``
+            the x-axis is compressed nonlinearly — linear near zero, log-like at
+            large |f| — so narrow and broad features coexist in one plot.
+        arcsinh_scale: Scale factor for the arcsinh transform (only used when
+            *freq_scale* is ``"arcsinh"``). Larger values give a wider linear
+            region near zero.
+        window: Optional SciPy window name (e.g. ``"hann"``, ``"blackman"``)
+            applied to the time-domain field before the FFT. Reduces spectral
+            leakage from step-function pulses. Default ``None`` (no windowing).
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -42,9 +102,16 @@ def spectrum(
         plotly Figure.
     """
     freqs = spectral.freq_list(mbs)
-    absorp = spectral.absorption(mbs, field_idx, z_idx=z_idx)
+    arrays = [spectral.absorption(mbs, field_idx, z_idx=z_idx, window=window)]
+    if show_dispersion:
+        arrays.append(spectral.dispersion(mbs, field_idx, z_idx=z_idx, window=window))
 
     label = mbs.atom.fields[field_idx].label or f"field {field_idx}"
+
+    x_plot, arrays, freqs_clipped = _apply_freq_options(
+        freqs, arrays, freq_range, freq_scale, arcsinh_scale
+    )
+    absorp = arrays[0]
 
     fig = go.Figure(
         layout=go.Layout(
@@ -56,14 +123,13 @@ def spectrum(
             template=_TEMPLATE,
         )
     )
-    fig.add_trace(go.Scatter(x=freqs, y=absorp, mode="lines", name="absorption"))
+    fig.add_trace(go.Scatter(x=x_plot, y=absorp, mode="lines", name="absorption"))
 
     if show_dispersion:
-        disp = spectral.dispersion(mbs, field_idx, z_idx=z_idx)
         fig.add_trace(
             go.Scatter(
-                x=freqs,
-                y=disp,
+                x=x_plot,
+                y=arrays[1],
                 mode="lines",
                 name="dispersion",
                 yaxis="y2",
@@ -78,6 +144,9 @@ def spectrum(
             )
         )
 
+    if freq_scale == "arcsinh":
+        fig.update_layout(xaxis=_arcsinh_tick_layout(freqs_clipped, arcsinh_scale))
+
     return fig
 
 
@@ -87,6 +156,10 @@ def spectrum_overlay(
     *,
     z_idx: int = -1,
     labels: list[str] | None = None,
+    freq_range: float | None = None,
+    freq_scale: str = "linear",
+    arcsinh_scale: float = 1.0,
+    window: str | None = None,
     width: int = 900,
     height: int = 400,
 ) -> go.Figure:
@@ -97,6 +170,15 @@ def spectrum_overlay(
         field_idx: Field index to plot in each.
         z_idx: z-step index for absorption.
         labels: Trace labels, one per element of mbs_list.
+        freq_range: If given, only frequencies with |f| ≤ freq_range are shown.
+            Clips the underlying data arrays, not just the axis view.
+        freq_scale: ``"linear"`` (default) or ``"arcsinh"``. With ``"arcsinh"``
+            the x-axis is compressed nonlinearly — linear near zero, log-like at
+            large |f|.
+        arcsinh_scale: Scale factor for the arcsinh transform (only used when
+            *freq_scale* is ``"arcsinh"``).
+        window: Optional SciPy window name (e.g. ``"hann"``, ``"blackman"``)
+            applied to the time-domain field before the FFT. Default ``None``.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -116,9 +198,17 @@ def spectrum_overlay(
             template=_TEMPLATE,
         )
     )
+    freqs_clipped_last = None
     for mbs, lbl in zip(mbs_list, labels, strict=False):
         freqs = spectral.freq_list(mbs)
-        absorp = spectral.absorption(mbs, field_idx, z_idx=z_idx)
-        fig.add_trace(go.Scatter(x=freqs, y=absorp, mode="lines", name=lbl))
+        absorp = spectral.absorption(mbs, field_idx, z_idx=z_idx, window=window)
+        x_plot, (absorp,), freqs_clipped = _apply_freq_options(
+            freqs, [absorp], freq_range, freq_scale, arcsinh_scale
+        )
+        freqs_clipped_last = freqs_clipped
+        fig.add_trace(go.Scatter(x=x_plot, y=absorp, mode="lines", name=lbl))
+
+    if freq_scale == "arcsinh" and freqs_clipped_last is not None:
+        fig.update_layout(xaxis=_arcsinh_tick_layout(freqs_clipped_last, arcsinh_scale))
 
     return fig

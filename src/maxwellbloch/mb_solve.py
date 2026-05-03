@@ -9,19 +9,11 @@ import warnings
 
 import numpy as np
 import qutip as qu
+import tqdm
 
 from maxwellbloch import ob_solve, t_funcs
 from maxwellbloch.exceptions import CounterPropagatingDepletionError
 from maxwellbloch.utility import maxwell_boltzmann
-
-
-def _print_progress(j: int, total: int, chunk_size: int) -> None:
-    """Print a progress update every chunk_size percent of total steps."""
-    if chunk_size > 0 and total > 0:
-        interval = max(1, total * chunk_size // 100)
-        if j % interval == 0:
-            pct = 100 * j // total
-            print(f"  z-step {j}/{total} ({pct}%)", flush=True)
 
 
 class MBSolve(ob_solve.OBSolve):
@@ -281,12 +273,22 @@ class MBSolve(ob_solve.OBSolve):
         )
         return self.states_zt
 
+    def _pbar_postfix(self, progress_show_area: bool) -> dict:
+        postfix = {"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"}
+        if progress_show_area:
+            for i, field in enumerate(self.atom.fields):
+                area = np.trapezoid(np.abs(self._Omegas_z_buf[i]), self.tlist)
+                key = f"A({field.label})" if field.label else f"A{i}"
+                postfix[key] = f"{area:.3g}"
+        return postfix
+
     def mbsolve(
         self,
         step: str = "ab",
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 10,
+        progress: bool = True,
+        progress_show_area: bool = False,
         check_counter_prop_depletion: bool = True,
         depletion_warn: float = 0.01,
         depletion_error: float = 0.10,
@@ -297,7 +299,10 @@ class MBSolve(ob_solve.OBSolve):
             step: 'euler (for Euler method) or 'ab' (for Adams-Bashforth)
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar with elapsed time, ETA and
+                current max field amplitude.
+            progress_show_area: Extend the progress bar with the pulse area ∫|Ω|dt for
+                each field at the current z-step.  Requires progress=True.
             check_counter_prop_depletion: Run a post-solve depletion check on
                 any counter-propagating fields. Set False to suppress.
             depletion_warn: Depletion fraction that triggers a UserWarning.
@@ -317,11 +322,17 @@ class MBSolve(ob_solve.OBSolve):
         def _do_solve() -> None:
             if step == "euler":
                 self.mbsolve_euler(
-                    rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
                 )
             elif step == "ab":
                 self.mbsolve_ab(
-                    rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
                 )
             self.save_results()
 
@@ -345,14 +356,16 @@ class MBSolve(ob_solve.OBSolve):
         self,
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 0,
+        progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using a Euler step.
 
         Args:
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -361,8 +374,13 @@ class MBSolve(ob_solve.OBSolve):
                 and time t.
         """
         self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
-        for j, z in enumerate(self.zlist[:-1]):
-            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
+        pbar = tqdm.tqdm(
+            enumerate(self.zlist[:-1]),
+            total=self.z_steps,
+            disable=not progress,
+            unit="z",
+        )
+        for j, z in pbar:
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_cur = z
             for _ in range(self.z_steps_inner):
@@ -389,20 +407,23 @@ class MBSolve(ob_solve.OBSolve):
                 z_cur = z_next
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(
         self,
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 0,
+        progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using an Adams-Bashforth step.
 
         Args:
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -413,6 +434,7 @@ class MBSolve(ob_solve.OBSolve):
         thermal_states_t = self._solve_and_average_over_thermal_detunings()
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.atom.get_fields_sum_coherence(states_t=thermal_states_t)
+        pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
         # First z step: Euler bootstrap
         j = 0
         z_cur = self.z_min
@@ -431,9 +453,10 @@ class MBSolve(ob_solve.OBSolve):
         self.atom.H_Omega_list = self._build_intp_H_Omega_list(self._Omegas_z_buf)
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+        pbar.update(1)
+        pbar.set_postfix(self._pbar_postfix(progress_show_area))
         # Remaining steps: Adams-Bashforth
         for j, z in enumerate(self.zlist[1:-1], start=1):
-            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_cur = z
             for _ in range(self.z_steps_inner):
@@ -462,6 +485,9 @@ class MBSolve(ob_solve.OBSolve):
                 sum_coh_prev = sum_coh_this
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            pbar.update(1)
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
+        pbar.close()
         return self.Omegas_zt, self.states_zt
 
     def _z_step_fields_euler(
