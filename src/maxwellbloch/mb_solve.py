@@ -273,12 +273,22 @@ class MBSolve(ob_solve.OBSolve):
         )
         return self.states_zt
 
+    def _pbar_postfix(self, progress_show_area: bool) -> dict:
+        postfix = {"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"}
+        if progress_show_area:
+            for i, field in enumerate(self.atom.fields):
+                area = np.trapezoid(np.abs(self._Omegas_z_buf[i]), self.tlist)
+                key = f"A({field.label})" if field.label else f"A{i}"
+                postfix[key] = f"{area:.3g}"
+        return postfix
+
     def mbsolve(
         self,
         step: str = "ab",
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
         progress: bool = True,
+        progress_show_area: bool = False,
         check_counter_prop_depletion: bool = True,
         depletion_warn: float = 0.01,
         depletion_error: float = 0.10,
@@ -291,6 +301,8 @@ class MBSolve(ob_solve.OBSolve):
             recalc (bool): Recalculate the solution even if a savefile exists?
             progress: Show a tqdm progress bar with elapsed time, ETA and
                 current max field amplitude.
+            progress_show_area: Extend the progress bar with the pulse area ∫|Ω|dt for
+                each field at the current z-step.  Requires progress=True.
             check_counter_prop_depletion: Run a post-solve depletion check on
                 any counter-propagating fields. Set False to suppress.
             depletion_warn: Depletion fraction that triggers a UserWarning.
@@ -309,9 +321,19 @@ class MBSolve(ob_solve.OBSolve):
 
         def _do_solve() -> None:
             if step == "euler":
-                self.mbsolve_euler(rho0=rho0, recalc=recalc, progress=progress)
+                self.mbsolve_euler(
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
+                )
             elif step == "ab":
-                self.mbsolve_ab(rho0=rho0, recalc=recalc, progress=progress)
+                self.mbsolve_ab(
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
+                )
             self.save_results()
 
         # Should we recalculate or load a savefile?
@@ -335,6 +357,7 @@ class MBSolve(ob_solve.OBSolve):
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
         progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using a Euler step.
 
@@ -342,6 +365,7 @@ class MBSolve(ob_solve.OBSolve):
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
             progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -383,7 +407,7 @@ class MBSolve(ob_solve.OBSolve):
                 z_cur = z_next
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
-            pbar.set_postfix({"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"})
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(
@@ -391,6 +415,7 @@ class MBSolve(ob_solve.OBSolve):
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
         progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using an Adams-Bashforth step.
 
@@ -398,6 +423,7 @@ class MBSolve(ob_solve.OBSolve):
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
             progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -428,7 +454,7 @@ class MBSolve(ob_solve.OBSolve):
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
         pbar.update(1)
-        pbar.set_postfix({"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"})
+        pbar.set_postfix(self._pbar_postfix(progress_show_area))
         # Remaining steps: Adams-Bashforth
         for j, z in enumerate(self.zlist[1:-1], start=1):
             Omegas_z_this = self.Omegas_zt[:, j, :]
@@ -460,7 +486,7 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
             pbar.update(1)
-            pbar.set_postfix({"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"})
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
         pbar.close()
         return self.Omegas_zt, self.states_zt
 
