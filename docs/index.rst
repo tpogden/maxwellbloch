@@ -67,6 +67,8 @@ See the Examples section below for details.
    usage/structure
    usage/spectral-analysis
    usage/velocity-classes
+   usage/counter-propagating
+   usage/plotting
    usage/built-in-time-functions
    usage/scripts
 
@@ -74,6 +76,7 @@ See the Examples section below for details.
    :maxdepth: 3
    :caption: Examples
 
+   examples/gallery
    examples/two-level
    examples/three-level
    examples/structure

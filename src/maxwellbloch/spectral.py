@@ -29,30 +29,46 @@ def freq_list(mb_solve: MBSolve) -> np.ndarray:
     return np.fft.fftshift(f_list)
 
 
-def rabi_freq(mb_solve: MBSolve, field_idx: int) -> np.ndarray:
+def rabi_freq(
+    mb_solve: MBSolve, field_idx: int, *, window: str | None = None
+) -> np.ndarray:
     """Fourier transform of the field result of field index.
 
     Args:
         mb_solve: An MBSolve object.
         field_idx: Field to return FFT of.
+        window: Optional SciPy window name (e.g. ``'hann'``, ``'blackman'``) applied
+            to the time axis before the FFT to reduce spectral leakage. ``None``
+            (default) applies no windowing and does not change the result.
 
     Returns:
         Array[num_z_steps, num_t_steps] Field result in frequency domain.
 
     """
 
-    rabi_freq_zt = mb_solve.Omegas_zt[field_idx]
+    data = mb_solve.Omegas_zt[field_idx]
+    if window is not None:
+        from scipy.signal import windows as _sig_windows
 
-    return np.fft.fftshift(np.fft.fft(rabi_freq_zt, axis=1), axes=1)
+        w = _sig_windows.get_window(window, data.shape[1])
+        data = data * w[np.newaxis, :]
+    return np.fft.fftshift(np.fft.fft(data, axis=1), axes=1)
 
 
-def absorption(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray:
+def absorption(
+    mb_solve: MBSolve,
+    field_idx: int,
+    z_idx: int = -1,
+    *,
+    window: str | None = None,
+) -> np.ndarray:
     """Field absorption in the frequency domain.
 
     Args:
         mb_solve: An MBSolve object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
+        window: Optional SciPy window name passed to :func:`rabi_freq`.
 
     Returns:
         Array[num_freq_points] of absorption values.
@@ -63,18 +79,25 @@ def absorption(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray
         See TP Ogden thesis Eqn (2.58)
     """
 
-    rabi_freq_abs = np.abs(rabi_freq(mb_solve, field_idx))
+    rabi_freq_abs = np.abs(rabi_freq(mb_solve, field_idx, window=window))
 
     return -np.log(rabi_freq_abs[z_idx] / rabi_freq_abs[0])
 
 
-def dispersion(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray:
+def dispersion(
+    mb_solve: MBSolve,
+    field_idx: int,
+    z_idx: int = -1,
+    *,
+    window: str | None = None,
+) -> np.ndarray:
     """Field dispersion in the frequency domain.
 
     Args:
         mb_solve: An MBSolve object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
+        window: Optional SciPy window name passed to :func:`rabi_freq`.
 
     Note:
         In the linear regime this is the real part of the linear
@@ -83,7 +106,7 @@ def dispersion(mb_solve: MBSolve, field_idx: int, z_idx: int = -1) -> np.ndarray
         See TP Ogden Thesis Eqn (2.59)
     """
 
-    Omega_freq_angle = np.angle(rabi_freq(mb_solve, field_idx))
+    Omega_freq_angle = np.angle(rabi_freq(mb_solve, field_idx, window=window))
 
     return Omega_freq_angle[0] - Omega_freq_angle[z_idx]
 

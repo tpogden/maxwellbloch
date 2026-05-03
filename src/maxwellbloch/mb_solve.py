@@ -9,18 +9,11 @@ import warnings
 
 import numpy as np
 import qutip as qu
+import tqdm
 
 from maxwellbloch import ob_solve, t_funcs
+from maxwellbloch.exceptions import CounterPropagatingDepletionError
 from maxwellbloch.utility import maxwell_boltzmann
-
-
-def _print_progress(j: int, total: int, chunk_size: int) -> None:
-    """Print a progress update every chunk_size percent of total steps."""
-    if chunk_size > 0 and total > 0:
-        interval = max(1, total * chunk_size // 100)
-        if j % interval == 0:
-            pct = 100 * j // total
-            print(f"  z-step {j}/{total} ({pct}%)", flush=True)
 
 
 class MBSolve(ob_solve.OBSolve):
@@ -280,12 +273,25 @@ class MBSolve(ob_solve.OBSolve):
         )
         return self.states_zt
 
+    def _pbar_postfix(self, progress_show_area: bool) -> dict:
+        postfix = {"Ω_max": f"{np.abs(self._Omegas_z_buf).max():.3g}"}
+        if progress_show_area:
+            for i, field in enumerate(self.atom.fields):
+                area = np.trapezoid(np.abs(self._Omegas_z_buf[i]), self.tlist)
+                key = f"A({field.label})" if field.label else f"A{i}"
+                postfix[key] = f"{area:.3g}"
+        return postfix
+
     def mbsolve(
         self,
         step: str = "ab",
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 10,
+        progress: bool = True,
+        progress_show_area: bool = False,
+        check_counter_prop_depletion: bool = True,
+        depletion_warn: float = 0.01,
+        depletion_error: float = 0.10,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations for the system.
 
@@ -293,7 +299,15 @@ class MBSolve(ob_solve.OBSolve):
             step: 'euler (for Euler method) or 'ab' (for Adams-Bashforth)
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar with elapsed time, ETA and
+                current max field amplitude.
+            progress_show_area: Extend the progress bar with the pulse area ∫|Ω|dt for
+                each field at the current z-step.  Requires progress=True.
+            check_counter_prop_depletion: Run a post-solve depletion check on
+                any counter-propagating fields. Set False to suppress.
+            depletion_warn: Depletion fraction that triggers a UserWarning.
+            depletion_error: Depletion fraction that raises
+                CounterPropagatingDepletionError.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -308,11 +322,17 @@ class MBSolve(ob_solve.OBSolve):
         def _do_solve() -> None:
             if step == "euler":
                 self.mbsolve_euler(
-                    rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
                 )
             elif step == "ab":
                 self.mbsolve_ab(
-                    rho0=rho0, recalc=recalc, pbar_chunk_size=pbar_chunk_size
+                    rho0=rho0,
+                    recalc=recalc,
+                    progress=progress,
+                    progress_show_area=progress_show_area,
                 )
             self.save_results()
 
@@ -324,20 +344,28 @@ class MBSolve(ob_solve.OBSolve):
                 self.load_results()
             except ValueError:
                 _do_solve()
+
+        if check_counter_prop_depletion:
+            self._check_counter_prop_depletion(
+                depletion_warn=depletion_warn, depletion_error=depletion_error
+            )
+
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_euler(
         self,
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 0,
+        progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using a Euler step.
 
         Args:
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -346,8 +374,13 @@ class MBSolve(ob_solve.OBSolve):
                 and time t.
         """
         self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
-        for j, z in enumerate(self.zlist[:-1]):
-            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
+        pbar = tqdm.tqdm(
+            enumerate(self.zlist[:-1]),
+            total=self.z_steps,
+            disable=not progress,
+            unit="z",
+        )
+        for j, z in pbar:
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_cur = z
             for _ in range(self.z_steps_inner):
@@ -374,20 +407,23 @@ class MBSolve(ob_solve.OBSolve):
                 z_cur = z_next
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
         return self.Omegas_zt, self.states_zt
 
     def mbsolve_ab(
         self,
         rho0: qu.Qobj | None = None,
         recalc: bool = True,
-        pbar_chunk_size: int = 0,
+        progress: bool = False,
+        progress_show_area: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the Maxwell-Bloch equations using an Adams-Bashforth step.
 
         Args:
             rho0 (Qobj): the initial density matrix state
             recalc (bool): Recalculate the solution even if a savefile exists?
-            pbar_chunk_size: Every how many % should we log progress to stdout.
+            progress: Show a tqdm progress bar.
+            progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
             self.Omegas_zt: The solved field complex Rabi frequency at each
@@ -398,6 +434,7 @@ class MBSolve(ob_solve.OBSolve):
         thermal_states_t = self._solve_and_average_over_thermal_detunings()
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.atom.get_fields_sum_coherence(states_t=thermal_states_t)
+        pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
         # First z step: Euler bootstrap
         j = 0
         z_cur = self.z_min
@@ -416,9 +453,10 @@ class MBSolve(ob_solve.OBSolve):
         self.atom.H_Omega_list = self._build_intp_H_Omega_list(self._Omegas_z_buf)
         self.states_zt[j + 1, :] = self.states_t()
         self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+        pbar.update(1)
+        pbar.set_postfix(self._pbar_postfix(progress_show_area))
         # Remaining steps: Adams-Bashforth
         for j, z in enumerate(self.zlist[1:-1], start=1):
-            _print_progress(j=j, total=self.z_steps, chunk_size=pbar_chunk_size)
             Omegas_z_this = self.Omegas_zt[:, j, :]
             z_cur = z
             for _ in range(self.z_steps_inner):
@@ -447,6 +485,9 @@ class MBSolve(ob_solve.OBSolve):
                 sum_coh_prev = sum_coh_this
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            pbar.update(1)
+            pbar.set_postfix(self._pbar_postfix(progress_show_area))
+        pbar.close()
         return self.Omegas_zt, self.states_zt
 
     def _z_step_fields_euler(
@@ -546,9 +587,16 @@ class MBSolve(ob_solve.OBSolve):
         # The set detunings, without any thermal shifting
         fixed_detunings = self.atom.get_detunings()
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
-            # print('Delta_i: {0}, Delta: {1:.2f}'.format(Delta_i, Delta))
-            # Shift each detuning by Delta.
-            self.atom.set_H_Delta([fd + Delta for fd in fixed_detunings])
+            # Shift each field's detuning by Delta scaled by that field's
+            # Doppler sign. Counter-propagating fields get factor_doppler_shift=-1.
+            self.atom.set_H_Delta(
+                [
+                    fd + Delta * field.factor_doppler_shift
+                    for fd, field in zip(
+                        fixed_detunings, self.atom.fields, strict=False
+                    )
+                ]
+            )
             # We don't want the obsolve to save.
             self.obsolve(opts=None, save=False)
             states_t_Delta[Delta_i] = self.states_t()
@@ -558,6 +606,49 @@ class MBSolve(ob_solve.OBSolve):
             states_t_Delta, axis=0, weights=self.thermal_weights
         )
         return thermal_states_t
+
+    def _check_counter_prop_depletion(
+        self,
+        depletion_warn: float = 0.01,
+        depletion_error: float = 0.10,
+    ) -> None:
+        """Check counter-propagating fields for significant depletion.
+
+        For each field with factor_doppler_shift < 0, computes the peak-based
+        depletion across the cell:
+
+            depletion = 1 - max_t|Ω(z_max, t)| / max_t|Ω(z_min, t)|
+
+        Emits a UserWarning at depletion_warn; raises
+        CounterPropagatingDepletionError at depletion_error.
+
+        The forward-propagation solver is only equivalent to true
+        counter-propagation when depletion is negligible. Results at high
+        depletion levels may be unreliable.
+        """
+        for field_idx, field in enumerate(self.atom.fields):
+            if field.factor_doppler_shift >= 0:
+                continue
+            Omega_field = self.Omegas_zt[field_idx]  # shape (z_steps+1, t_steps+1)
+            peak_zmin = np.max(np.abs(Omega_field[0]))
+            peak_zmax = np.max(np.abs(Omega_field[-1]))
+            if peak_zmin == 0.0:
+                continue
+            depletion = 1.0 - peak_zmax / peak_zmin
+            name = field.label or f"field[{field_idx}]"
+            msg = (
+                f"Counter-propagating field '{name}' depleted by {depletion:.1%} "
+                f"across the cell. The forward-propagation solver is only equivalent "
+                f"to true counter-propagation when depletion is negligible. Results "
+                f"at this depletion level may be unreliable."
+            )
+            if depletion >= depletion_error:
+                raise CounterPropagatingDepletionError(
+                    msg + " Pass check_counter_prop_depletion=False to mbsolve() to "
+                    "suppress this check."
+                )
+            elif depletion >= depletion_warn:
+                warnings.warn(msg, UserWarning, stacklevel=3)
 
     def get_json_dict(self) -> dict:
         """Return the full problem definition as a JSON-serialisable dict."""
