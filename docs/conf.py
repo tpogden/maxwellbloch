@@ -53,7 +53,15 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints", "_spike"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**.ipynb_checkpoints",
+    "_spike",
+    # Draft notebooks — not ready to publish:
+    "examples/mbs-ladder-rydberg-eit-counter.ipynb",
+]
 
 # -- Options for HTML output -------------------------------------------------
 
