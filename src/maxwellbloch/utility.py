@@ -1,6 +1,11 @@
 import numpy as np
 from scipy import interpolate
 
+# Converts sech-pulse FWHM to the width parameter used by t_funcs.sech:
+# sech(t/t_width) has intensity FWHM = 2*arccosh(sqrt(2)) * t_width
+# so t_width = FWHM / (2*arccosh(sqrt(2))) = FWHM * SECH_FWHM_CONV
+SECH_FWHM_CONV = 1.0 / 2.6339157938
+
 
 def maxwell_boltzmann(v: np.ndarray, fwhm: float, offset: float = 0.0) -> np.ndarray:
     """Maxwell-Boltzmann probability distribution.

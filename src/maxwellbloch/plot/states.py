@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import plotly.graph_objects as go
@@ -54,6 +54,10 @@ def population(
     for si in state_indices:
         rho_ii = mbs.states_zt[z_idx, :, si, si].real
         fig.add_trace(go.Scatter(x=mbs.tlist, y=rho_ii, mode="lines", name=f"|{si}⟩"))
+    fig.update_layout(
+        xaxis_minallowed=float(mbs.tlist[0]),
+        xaxis_maxallowed=float(mbs.tlist[-1]),
+    )
     return fig
 
 
@@ -62,20 +66,25 @@ def population_spacetime(
     state_idx: int = 0,
     *,
     colorscale: str = "Viridis",
+    plot_type: Literal["heatmap", "contour"] = "heatmap",
     zmin: float | None = None,
     zmax: float | None = None,
+    show_z_bounds: tuple[float, float] | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
-    """Heatmap of population ρ_ii(z, t) for a single state.
+    """Heatmap or contour plot of population ρ_ii(z, t) for a single state.
 
     Args:
         mbs: A solved MBSolve instance.
         state_idx: State index.
         colorscale: Plotly colorscale name.
+        plot_type: ``"heatmap"`` (default, smoothed) or ``"contour"``.
         zmin: Colorbar minimum. Defaults to auto (data minimum).
         zmax: Colorbar maximum. Defaults to auto (data maximum). Pass
             ``zmin=0, zmax=1`` to compare populations on a common scale.
+        show_z_bounds: If given, draw dotted grey lines at these two z values
+            to mark the start and end of the medium, e.g. ``(0.0, 1.0)``.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -84,16 +93,16 @@ def population_spacetime(
     """
     rho_ii = mbs.states_zt[:, :, state_idx, state_idx].real
 
+    _common = dict(z=rho_ii, x=mbs.tlist, y=mbs.zlist, colorscale=colorscale,
+                   colorbar=dict(title=f"ρ_{state_idx}{state_idx}"),
+                   zmin=zmin, zmax=zmax)
+    if plot_type == "contour":
+        trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
+    else:
+        trace = go.Heatmap(**_common, zsmooth="best")
+
     fig = go.Figure(
-        data=go.Heatmap(
-            z=rho_ii,
-            x=mbs.tlist,
-            y=mbs.zlist,
-            colorscale=colorscale,
-            colorbar=dict(title=f"ρ_{state_idx}{state_idx}"),
-            zmin=zmin,
-            zmax=zmax,
-        ),
+        data=trace,
         layout=go.Layout(
             title=f"Population ρ_{state_idx}{state_idx}(z, t)",
             xaxis_title="t (γ⁻¹)",
@@ -103,6 +112,15 @@ def population_spacetime(
             template=_TEMPLATE,
         ),
     )
+    fig.update_layout(
+        xaxis_minallowed=float(mbs.tlist[0]),
+        xaxis_maxallowed=float(mbs.tlist[-1]),
+        yaxis_minallowed=float(mbs.zlist[0]),
+        yaxis_maxallowed=float(mbs.zlist[-1]),
+    )
+    if show_z_bounds is not None:
+        for z in show_z_bounds:
+            fig.add_hline(y=float(z), line=dict(color="grey", dash="dot", width=1))
     return fig
 
 
@@ -155,5 +173,9 @@ def coherence(
             height=height,
             template=_TEMPLATE,
         ),
+    )
+    fig.update_layout(
+        xaxis_minallowed=float(mbs.tlist[0]),
+        xaxis_maxallowed=float(mbs.tlist[-1]),
     )
     return fig

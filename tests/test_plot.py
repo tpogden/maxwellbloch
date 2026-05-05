@@ -117,9 +117,13 @@ class TestFieldSpacetime(unittest.TestCase):
         fig = plot.field_spacetime(_get_mbs2())
         self.assertIsInstance(fig, go.Figure)
 
-    def test_has_heatmap_trace(self):
+    def test_default_is_heatmap(self):
         fig = plot.field_spacetime(_get_mbs2())
         self.assertIsInstance(fig.data[0], go.Heatmap)
+
+    def test_contour_plot_type(self):
+        fig = plot.field_spacetime(_get_mbs2(), plot_type="contour")
+        self.assertIsInstance(fig.data[0], go.Contour)
 
     def test_heatmap_shape(self):
         mbs = _get_mbs2()
@@ -142,6 +146,20 @@ class TestFieldSpacetime(unittest.TestCase):
         # Plotly resolves names to tuples; they should differ between scales
         self.assertNotEqual(fig_v.data[0].colorscale, fig_c.data[0].colorscale)
 
+    def test_default_colorscale_by_field_idx(self):
+        fig0 = plot.field_spacetime(_get_mbs3(), field_idx=0)
+        fig1 = plot.field_spacetime(_get_mbs3(), field_idx=1)
+        self.assertNotEqual(fig0.data[0].colorscale, fig1.data[0].colorscale)
+
+    def test_show_z_bounds_adds_two_hlines(self):
+        fig = plot.field_spacetime(_get_mbs2(), show_z_bounds=(0.0, 1.0))
+        hlines = [s for s in fig.layout.shapes if s.type == "line" and s.x0 == 0]
+        self.assertEqual(len(hlines), 2)
+
+    def test_no_show_z_bounds_by_default(self):
+        fig = plot.field_spacetime(_get_mbs2())
+        self.assertEqual(len(fig.layout.shapes), 0)
+
 
 class TestFieldEnvelope(unittest.TestCase):
     def test_returns_figure(self):
@@ -160,6 +178,59 @@ class TestFieldEnvelope(unittest.TestCase):
         mbs = _get_mbs2()
         fig = plot.field_envelope(mbs, z_indices=0)
         self.assertEqual(len(fig.data[0].x), len(mbs.tlist))
+
+    def test_fill_tozeroy(self):
+        fig = plot.field_envelope(_get_mbs2(), z_indices=0)
+        self.assertEqual(fig.data[0].fill, "tozeroy")
+
+    def test_color_differs_by_field_idx(self):
+        fig0 = plot.field_envelope(_get_mbs3(), field_idx=0, z_indices=0)
+        fig1 = plot.field_envelope(_get_mbs3(), field_idx=1, z_indices=0)
+        self.assertNotEqual(fig0.data[0].line.color, fig1.data[0].line.color)
+
+
+class TestFieldZProfileAnim(unittest.TestCase):
+    def test_returns_figure(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        self.assertIsInstance(fig, go.Figure)
+
+    def test_has_scatter_trace(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        self.assertIsInstance(fig.data[0], go.Scatter)
+
+    def test_fill_tozeroy(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        self.assertEqual(fig.data[0].fill, "tozeroy")
+
+    def test_frame_count_matches_tlist(self):
+        mbs = _get_mbs2()
+        fig = plot.field_z_profile_anim(mbs)
+        self.assertEqual(len(fig.frames), len(mbs.tlist))
+
+    def test_initial_trace_length_matches_zlist(self):
+        mbs = _get_mbs2()
+        fig = plot.field_z_profile_anim(mbs)
+        self.assertEqual(len(fig.data[0].x), len(mbs.zlist))
+
+    def test_has_slider(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        self.assertGreater(len(fig.layout.sliders), 0)
+
+    def test_slider_step_count_matches_tlist(self):
+        mbs = _get_mbs2()
+        fig = plot.field_z_profile_anim(mbs)
+        self.assertEqual(len(fig.layout.sliders[0].steps), len(mbs.tlist))
+
+    def test_has_play_pause_buttons(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        labels = [b.label for b in fig.layout.updatemenus[0].buttons]
+        self.assertIn("▶ Play", labels)
+        self.assertIn("⏸ Pause", labels)
+
+    def test_color_differs_by_field_idx(self):
+        fig0 = plot.field_z_profile_anim(_get_mbs3(), field_idx=0)
+        fig1 = plot.field_z_profile_anim(_get_mbs3(), field_idx=1)
+        self.assertNotEqual(fig0.data[0].line.color, fig1.data[0].line.color)
 
 
 class TestPulseArea(unittest.TestCase):
@@ -277,9 +348,13 @@ class TestPopulationSpacetime(unittest.TestCase):
         fig = plot.population_spacetime(_get_mbs2(), state_idx=0)
         self.assertIsInstance(fig, go.Figure)
 
-    def test_has_heatmap_trace(self):
+    def test_default_is_heatmap(self):
         fig = plot.population_spacetime(_get_mbs2(), state_idx=0)
         self.assertIsInstance(fig.data[0], go.Heatmap)
+
+    def test_contour_plot_type(self):
+        fig = plot.population_spacetime(_get_mbs2(), state_idx=0, plot_type="contour")
+        self.assertIsInstance(fig.data[0], go.Contour)
 
     def test_colorbar_range_default_auto(self):
         fig = plot.population_spacetime(_get_mbs2(), state_idx=0)
@@ -290,6 +365,15 @@ class TestPopulationSpacetime(unittest.TestCase):
         fig = plot.population_spacetime(_get_mbs2(), state_idx=0, zmin=0.0, zmax=1.0)
         self.assertEqual(fig.data[0].zmin, 0.0)
         self.assertEqual(fig.data[0].zmax, 1.0)
+
+    def test_show_z_bounds_adds_two_hlines(self):
+        fig = plot.population_spacetime(_get_mbs2(), state_idx=0, show_z_bounds=(0.0, 1.0))
+        hlines = [s for s in fig.layout.shapes if s.type == "line" and s.x0 == 0]
+        self.assertEqual(len(hlines), 2)
+
+    def test_no_show_z_bounds_by_default(self):
+        fig = plot.population_spacetime(_get_mbs2(), state_idx=0)
+        self.assertEqual(len(fig.layout.shapes), 0)
 
 
 class TestCoherence(unittest.TestCase):

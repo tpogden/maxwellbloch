@@ -147,6 +147,10 @@ def spectrum(
     if freq_scale == "arcsinh":
         fig.update_layout(xaxis=_arcsinh_tick_layout(freqs_clipped, arcsinh_scale))
 
+    fig.update_layout(
+        xaxis_minallowed=float(x_plot[0]),
+        xaxis_maxallowed=float(x_plot[-1]),
+    )
     return fig
 
 
@@ -199,6 +203,7 @@ def spectrum_overlay(
         )
     )
     freqs_clipped_last = None
+    x_plot_last = None
     for mbs, lbl in zip(mbs_list, labels, strict=False):
         freqs = spectral.freq_list(mbs)
         absorp = spectral.absorption(mbs, field_idx, z_idx=z_idx, window=window)
@@ -206,9 +211,15 @@ def spectrum_overlay(
             freqs, [absorp], freq_range, freq_scale, arcsinh_scale
         )
         freqs_clipped_last = freqs_clipped
+        x_plot_last = x_plot
         fig.add_trace(go.Scatter(x=x_plot, y=absorp, mode="lines", name=lbl))
 
     if freq_scale == "arcsinh" and freqs_clipped_last is not None:
         fig.update_layout(xaxis=_arcsinh_tick_layout(freqs_clipped_last, arcsinh_scale))
 
+    if x_plot_last is not None:
+        fig.update_layout(
+            xaxis_minallowed=float(x_plot_last[0]),
+            xaxis_maxallowed=float(x_plot_last[-1]),
+        )
     return fig
