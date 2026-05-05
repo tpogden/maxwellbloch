@@ -30,6 +30,7 @@ except ImportError as e:
 
 from maxwellbloch.plot.fields import (
     field_envelope,
+    field_profile,
     field_spacetime,
     field_z_profile_anim,
     pulse_area,
@@ -38,6 +39,7 @@ from maxwellbloch.plot.spectra import spectrum, spectrum_overlay
 from maxwellbloch.plot.states import coherence, population, population_spacetime
 
 __all__ = [
+    "field_profile",
     "field_spacetime",
     "field_envelope",
     "field_z_profile_anim",

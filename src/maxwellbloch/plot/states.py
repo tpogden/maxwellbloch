@@ -93,9 +93,15 @@ def population_spacetime(
     """
     rho_ii = mbs.states_zt[:, :, state_idx, state_idx].real
 
-    _common = dict(z=rho_ii, x=mbs.tlist, y=mbs.zlist, colorscale=colorscale,
-                   colorbar=dict(title=f"ρ_{state_idx}{state_idx}"),
-                   zmin=zmin, zmax=zmax)
+    _common = dict(
+        z=rho_ii,
+        x=mbs.tlist,
+        y=mbs.zlist,
+        colorscale=colorscale,
+        colorbar=dict(title=f"ρ_{state_idx}{state_idx}"),
+        zmin=zmin,
+        zmax=zmax,
+    )
     if plot_type == "contour":
         trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
     else:

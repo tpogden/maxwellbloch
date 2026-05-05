@@ -18,6 +18,7 @@ def omega_abs(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
     """
     return np.abs(mbs.Omegas_zt[field_idx])
 
+
 # TODO: make this a method of MBSolve
 def pulse_area_z(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
     """Return the pulse area ∫|Ω(z,t)|dt / π vs z.

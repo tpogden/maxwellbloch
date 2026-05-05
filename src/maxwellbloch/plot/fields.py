@@ -10,6 +10,9 @@ from maxwellbloch.plot import theme as _theme  # noqa: F401 — registers templa
 from maxwellbloch.plot.utils import field_label, omega_abs, pulse_area_z
 
 if TYPE_CHECKING:
+    import numpy as np
+
+    from maxwellbloch.field import Field
     from maxwellbloch.mb_solve import MBSolve
 
 _TEMPLATE = "maxwellbloch"
@@ -25,6 +28,57 @@ _DEFAULT_FIELD_COLORS = [
 ]
 
 
+def field_profile(
+    field: "Field",
+    tlist: "np.ndarray",
+    *,
+    field_idx: int = 0,
+    width: int = 700,
+    height: int = 400,
+) -> go.Figure:
+    """Line plot of the input Rabi frequency profile |Ω(t)| for a single field.
+
+    Args:
+        field: A Field instance with rabi_freq_t_func and rabi_freq_t_args set.
+        tlist: 1-D array of time points to evaluate the profile over.
+        field_idx: Used only to pick a colour from the default palette.
+        width: Figure width in pixels.
+        height: Figure height in pixels.
+
+    Returns:
+        plotly Figure.
+    """
+    import numpy as np
+
+    profile = np.abs(
+        field.rabi_freq * field.rabi_freq_t_func(tlist, args=field.rabi_freq_t_args)
+    )
+    line_color, fill_color = _DEFAULT_FIELD_COLORS[
+        field_idx % len(_DEFAULT_FIELD_COLORS)
+    ]
+
+    fig = go.Figure(
+        data=go.Scatter(
+            x=tlist,
+            y=profile,
+            mode="lines",
+            line=dict(color=line_color),
+            fill="tozeroy",
+            fillcolor=fill_color,
+            showlegend=False,
+        ),
+        layout=go.Layout(
+            title="|Ω(t)| — input profile",
+            xaxis_title="t",
+            yaxis_title="|Ω|",
+            width=width,
+            height=height,
+            template=_TEMPLATE,
+        ),
+    )
+    return fig
+
+
 def field_spacetime(
     mbs: MBSolve,
     field_idx: int = 0,
@@ -32,6 +86,7 @@ def field_spacetime(
     colorscale: str | None = None,
     plot_type: Literal["heatmap", "contour"] = "heatmap",
     show_z_bounds: tuple[float, float] | None = None,
+    speed_of_light: float | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -45,6 +100,8 @@ def field_spacetime(
         plot_type: ``"heatmap"`` (default, smoothed) or ``"contour"``.
         show_z_bounds: If given, draw dotted grey lines at these two z values
             to mark the start and end of the medium, e.g. ``(0.0, 1.0)``.
+        speed_of_light: If given, apply the fixed-frame transform using
+            ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -53,11 +110,28 @@ def field_spacetime(
     """
     if colorscale is None:
         colorscale = _DEFAULT_COLORSCALES[field_idx % len(_DEFAULT_COLORSCALES)]
-    Omega = omega_abs(mbs, field_idx)
     label = field_label(mbs, field_idx)
 
-    _common = dict(z=Omega, x=mbs.tlist, y=mbs.zlist, colorscale=colorscale,
-                   colorbar=dict(title="|Ω| (γ)"))
+    if speed_of_light is not None:
+        from maxwellbloch import fixed
+
+        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(mbs, speed_of_light)
+        x_title = "t (fixed frame)"
+        title_suffix = " — fixed frame"
+    else:
+        Omega = omega_abs(mbs, field_idx)
+        tlist = mbs.tlist
+        x_title = "t (γ⁻¹)"
+        title_suffix = ""
+
+    _common = dict(
+        z=Omega,
+        x=tlist,
+        y=mbs.zlist,
+        colorscale=colorscale,
+        colorbar=dict(title="|Ω| (γ)"),
+    )
     if plot_type == "contour":
         trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
     else:
@@ -66,8 +140,8 @@ def field_spacetime(
     fig = go.Figure(
         data=trace,
         layout=go.Layout(
-            title=f"|Ω(z, t)| — {label}",
-            xaxis_title="t (γ⁻¹)",
+            title=f"|Ω(z, t)| — {label}{title_suffix}",
+            xaxis_title=x_title,
             yaxis_title="z",
             width=width,
             height=height,
@@ -75,8 +149,8 @@ def field_spacetime(
         ),
     )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.tlist[0]),
-        xaxis_maxallowed=float(mbs.tlist[-1]),
+        xaxis_minallowed=float(tlist[0]),
+        xaxis_maxallowed=float(tlist[-1]),
         yaxis_minallowed=float(mbs.zlist[0]),
         yaxis_maxallowed=float(mbs.zlist[-1]),
     )
@@ -91,6 +165,7 @@ def field_envelope(
     field_idx: int = 0,
     *,
     z_indices: int | list[int] | None = None,
+    speed_of_light: float | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -100,15 +175,31 @@ def field_envelope(
         mbs: A solved MBSolve instance.
         field_idx: Index of the field to plot.
         z_indices: z-step index or list of indices. Defaults to first and last.
+        speed_of_light: If given, apply the fixed-frame transform using
+            ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
     Returns:
         plotly Figure.
     """
-    Omega = omega_abs(mbs, field_idx)
     label = field_label(mbs, field_idx)
-    line_color, fill_color = _DEFAULT_FIELD_COLORS[field_idx % len(_DEFAULT_FIELD_COLORS)]
+    line_color, fill_color = _DEFAULT_FIELD_COLORS[
+        field_idx % len(_DEFAULT_FIELD_COLORS)
+    ]
+
+    if speed_of_light is not None:
+        from maxwellbloch import fixed
+
+        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(mbs, speed_of_light)
+        x_title = "t (fixed frame)"
+        title_suffix = " — fixed frame"
+    else:
+        Omega = omega_abs(mbs, field_idx)
+        tlist = mbs.tlist
+        x_title = "t (γ⁻¹)"
+        title_suffix = ""
 
     if z_indices is None:
         z_indices = [0, -1]
@@ -117,8 +208,8 @@ def field_envelope(
 
     fig = go.Figure(
         layout=go.Layout(
-            title=f"|Ω(t)| — {label}",
-            xaxis_title="t (γ⁻¹)",
+            title=f"|Ω(t)| — {label}{title_suffix}",
+            xaxis_title=x_title,
             yaxis_title="|Ω| (γ)",
             width=width,
             height=height,
@@ -129,7 +220,7 @@ def field_envelope(
         z_val = mbs.zlist[zi]
         fig.add_trace(
             go.Scatter(
-                x=mbs.tlist,
+                x=tlist,
                 y=Omega[zi],
                 mode="lines",
                 name=f"z = {z_val:.2f}",
@@ -139,8 +230,8 @@ def field_envelope(
             )
         )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.tlist[0]),
-        xaxis_maxallowed=float(mbs.tlist[-1]),
+        xaxis_minallowed=float(tlist[0]),
+        xaxis_maxallowed=float(tlist[-1]),
     )
     return fig
 
@@ -149,6 +240,7 @@ def field_z_profile_anim(
     mbs: MBSolve,
     field_idx: int = 0,
     *,
+    speed_of_light: float | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -160,46 +252,62 @@ def field_z_profile_anim(
     Args:
         mbs: A solved MBSolve instance.
         field_idx: Index of the field to plot.
+        speed_of_light: If given, apply the fixed-frame transform using
+            ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
     Returns:
         plotly Figure with animation frames, time slider, and play/pause buttons.
     """
-    Omega = omega_abs(mbs, field_idx)  # shape (n_z, n_t)
+    if speed_of_light is not None:
+        from maxwellbloch import fixed
+
+        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(mbs, speed_of_light)
+    else:
+        Omega = omega_abs(mbs, field_idx)
+        tlist = mbs.tlist
+
     label = field_label(mbs, field_idx)
-    line_color, fill_color = _DEFAULT_FIELD_COLORS[field_idx % len(_DEFAULT_FIELD_COLORS)]
+    line_color, fill_color = _DEFAULT_FIELD_COLORS[
+        field_idx % len(_DEFAULT_FIELD_COLORS)
+    ]
     y_max = float(Omega.max())
 
     frames = [
         go.Frame(data=[go.Scatter(y=Omega[:, t_idx])], name=str(t_idx))
-        for t_idx in range(len(mbs.tlist))
+        for t_idx in range(len(tlist))
     ]
 
     slider_steps = [
         {
             "args": [
                 [str(t_idx)],
-                {"frame": {"duration": 0, "redraw": False},
-                 "mode": "immediate",
-                 "transition": {"duration": 0}},
+                {
+                    "frame": {"duration": 0, "redraw": False},
+                    "mode": "immediate",
+                    "transition": {"duration": 0},
+                },
             ],
             "label": f"{t_val:.2f}",
             "method": "animate",
         }
-        for t_idx, t_val in enumerate(mbs.tlist)
+        for t_idx, t_val in enumerate(tlist)
     ]
 
     fig = go.Figure(
-        data=[go.Scatter(
-            x=mbs.zlist,
-            y=Omega[:, 0],
-            mode="lines",
-            line=dict(color=line_color),
-            fill="tozeroy",
-            fillcolor=fill_color,
-            showlegend=False,
-        )],
+        data=[
+            go.Scatter(
+                x=mbs.zlist,
+                y=Omega[:, 0],
+                mode="lines",
+                line=dict(color=line_color),
+                fill="tozeroy",
+                fillcolor=fill_color,
+                showlegend=False,
+            )
+        ],
         frames=frames,
         layout=go.Layout(
             title=f"|Ω(z, t)| — {label}",
@@ -209,52 +317,62 @@ def field_z_profile_anim(
             width=width,
             height=height,
             template=_TEMPLATE,
-            updatemenus=[{
-                "buttons": [
-                    {
-                        "args": [None, {
-                            "frame": {"duration": 50, "redraw": False},
-                            "fromcurrent": True,
-                            "transition": {"duration": 0},
-                        }],
-                        "label": "▶ Play",
-                        "method": "animate",
-                    },
-                    {
-                        "args": [[None], {
-                            "frame": {"duration": 0, "redraw": False},
-                            "mode": "immediate",
-                            "transition": {"duration": 0},
-                        }],
-                        "label": "⏸ Pause",
-                        "method": "animate",
-                    },
-                ],
-                "direction": "left",
-                "pad": {"r": 10, "t": 87},
-                "showactive": False,
-                "type": "buttons",
-                "x": 0.1,
-                "xanchor": "right",
-                "y": 0,
-                "yanchor": "top",
-            }],
-            sliders=[{
-                "active": 0,
-                "yanchor": "top",
-                "xanchor": "left",
-                "currentvalue": {
-                    "prefix": "t = ",
-                    "visible": True,
+            updatemenus=[
+                {
+                    "buttons": [
+                        {
+                            "args": [
+                                None,
+                                {
+                                    "frame": {"duration": 50, "redraw": False},
+                                    "fromcurrent": True,
+                                    "transition": {"duration": 0},
+                                },
+                            ],
+                            "label": "▶ Play",
+                            "method": "animate",
+                        },
+                        {
+                            "args": [
+                                [None],
+                                {
+                                    "frame": {"duration": 0, "redraw": False},
+                                    "mode": "immediate",
+                                    "transition": {"duration": 0},
+                                },
+                            ],
+                            "label": "⏸ Pause",
+                            "method": "animate",
+                        },
+                    ],
+                    "direction": "left",
+                    "pad": {"r": 10, "t": 87},
+                    "showactive": False,
+                    "type": "buttons",
+                    "x": 0.1,
                     "xanchor": "right",
-                },
-                "transition": {"duration": 0},
-                "pad": {"b": 10, "t": 50},
-                "len": 0.9,
-                "x": 0.1,
-                "y": 0,
-                "steps": slider_steps,
-            }],
+                    "y": 0,
+                    "yanchor": "top",
+                }
+            ],
+            sliders=[
+                {
+                    "active": 0,
+                    "yanchor": "top",
+                    "xanchor": "left",
+                    "currentvalue": {
+                        "prefix": "t = ",
+                        "visible": True,
+                        "xanchor": "right",
+                    },
+                    "transition": {"duration": 0},
+                    "pad": {"b": 10, "t": 50},
+                    "len": 0.9,
+                    "x": 0.1,
+                    "y": 0,
+                    "steps": slider_steps,
+                }
+            ],
         ),
     )
     fig.update_layout(
@@ -286,7 +404,9 @@ def pulse_area(
     area = pulse_area_z(mbs, field_idx)
     label = field_label(mbs, field_idx)
 
-    line_color, fill_color = _DEFAULT_FIELD_COLORS[2]  # orange — distinct from field blue
+    line_color, fill_color = _DEFAULT_FIELD_COLORS[
+        2
+    ]  # orange — distinct from field blue
 
     fig = go.Figure(
         data=go.Scatter(

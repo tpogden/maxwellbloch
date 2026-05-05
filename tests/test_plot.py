@@ -367,7 +367,9 @@ class TestPopulationSpacetime(unittest.TestCase):
         self.assertEqual(fig.data[0].zmax, 1.0)
 
     def test_show_z_bounds_adds_two_hlines(self):
-        fig = plot.population_spacetime(_get_mbs2(), state_idx=0, show_z_bounds=(0.0, 1.0))
+        fig = plot.population_spacetime(
+            _get_mbs2(), state_idx=0, show_z_bounds=(0.0, 1.0)
+        )
         hlines = [s for s in fig.layout.shapes if s.type == "line" and s.x0 == 0]
         self.assertEqual(len(hlines), 2)
 
