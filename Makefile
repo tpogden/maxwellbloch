@@ -32,13 +32,13 @@ format_check:
 docs: docs_html
 
 docs_html:
-	uv run sphinx-build docs docs/_build -b html
+	uv run sphinx-build docs docs/_build -b html --jobs auto
 
 # Full rebuild — clears the Sphinx environment cache (-E) so every source file
 # is re-read and every notebook is re-executed. Use this when .qu files are
 # stale but the .ipynb source is unchanged, or after a code change outside notebooks.
 docs_rebuild:
-	uv run sphinx-build -E docs docs/_build -b html
+	uv run sphinx-build -E docs docs/_build -b html --jobs auto
 
 docs_serve: docs_html
 	uv run python -m http.server 8000 --directory docs/_build
@@ -82,3 +82,5 @@ clean_docs:
 
 clean_dist:
 	rm -rf dist/*
+
+clean: clean_docs clean_qu clean_dist
