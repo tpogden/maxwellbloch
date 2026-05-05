@@ -389,7 +389,7 @@ class MBSolve(ob_solve.OBSolve):
             disable=not progress,
             unit="z",
         )
-        for j, z in pbar:
+        for j, _z in pbar:
             Omegas_z_this = self.Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
@@ -470,7 +470,7 @@ class MBSolve(ob_solve.OBSolve):
         pbar.update(1)
         pbar.set_postfix(self._pbar_postfix(progress_show_area))
         # Remaining steps: Adams-Bashforth
-        for j, z in enumerate(self.zlist[1:-1], start=1):
+        for j, _z in enumerate(self.zlist[1:-1], start=1):
             Omegas_z_this = self.Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
