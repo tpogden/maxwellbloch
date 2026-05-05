@@ -36,27 +36,9 @@ All examples at a glance. Jump to the detailed pages via
    * - :doc:`mbs-two-weak-square-decay`
      - 2-level
      - Square pulse absorption with decay
-   * - :doc:`mbs-two-gaussian-0.8pi`
+   * - :doc:`mbs-sit-area-theorem`
      - 2-level
-     - Sub-π Gaussian pulse: absorption
-   * - :doc:`mbs-two-gaussian-1.8pi`
-     - 2-level
-     - Near-2π Gaussian pulse: area reshaping
-   * - :doc:`mbs-two-sech-2pi`
-     - 2-level
-     - Self-Induced Transparency — 2π soliton
-   * - :doc:`mbs-two-sech-4pi`
-     - 2-level
-     - SIT — 4π pulse breakup into two solitons
-   * - :doc:`mbs-two-sech-6pi`
-     - 2-level
-     - SIT — 6π pulse breakup into three solitons
-   * - :doc:`mbs-two-sech-2pi-collision`
-     - 2-level
-     - Collision of two 2π solitons
-   * - :doc:`mbs-two-sech-odd-pi`
-     - 2-level
-     - Area theorem: 1π, 3π, 5π instability
+     - Self-Induced Transparency: area theorem, solitons, pulse breakup, collision
    * - :doc:`mbs-two-photon-echo`
      - 2-level
      - Photon echo: inhomogeneous dephasing, rephasing, T₂ measurement
