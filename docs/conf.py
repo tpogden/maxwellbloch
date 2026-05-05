@@ -59,6 +59,7 @@ exclude_patterns = [
     ".DS_Store",
     "**.ipynb_checkpoints",
     "_spike",
+    "examples/mbs-ladder-rydberg-eit-counter.ipynb",
 ]
 
 # -- Options for HTML output -------------------------------------------------
