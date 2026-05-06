@@ -13,14 +13,7 @@ how increasing optical depth reshapes the transmitted pulse.
 .. toctree::
    :maxdepth: 1
 
-   mbs-two-weak-pulse-few-atoms
-   mbs-two-weak-pulse
-   mbs-two-weak-pulse-more-atoms
-   mbs-two-weak-pulse-decay
-   mbs-two-weak-pulse-more-atoms-decay
-   mbs-two-weak-cw-decay
-   mbs-two-weak-cw-more-atoms-decay
-   mbs-two-weak-square-decay
+   mbs-linear-absorption
 
 ***************************************************
 Self-Induced Transparency & Optical Solitons

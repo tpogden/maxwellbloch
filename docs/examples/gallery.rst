@@ -12,30 +12,9 @@ All examples at a glance. Jump to the detailed pages via
    * - Example
      - Scheme
      - Phenomenon
-   * - :doc:`mbs-two-weak-pulse-few-atoms`
+   * - :doc:`mbs-linear-absorption`
      - 2-level
-     - Beer-Lambert absorption, few atoms
-   * - :doc:`mbs-two-weak-pulse`
-     - 2-level
-     - Beer-Lambert absorption
-   * - :doc:`mbs-two-weak-pulse-more-atoms`
-     - 2-level
-     - Beer-Lambert absorption, high OD
-   * - :doc:`mbs-two-weak-pulse-decay`
-     - 2-level
-     - Beer-Lambert absorption with decay
-   * - :doc:`mbs-two-weak-pulse-more-atoms-decay`
-     - 2-level
-     - Beer-Lambert absorption, high OD, decay
-   * - :doc:`mbs-two-weak-cw-decay`
-     - 2-level
-     - CW absorption with decay
-   * - :doc:`mbs-two-weak-cw-more-atoms-decay`
-     - 2-level
-     - CW absorption, high OD, decay
-   * - :doc:`mbs-two-weak-square-decay`
-     - 2-level
-     - Square pulse absorption with decay
+     - Beer-Lambert law: optical depth, decay, CW and pulsed fields
    * - :doc:`mbs-sit-area-theorem`
      - 2-level
      - Self-Induced Transparency: area theorem, solitons, pulse breakup, collision
