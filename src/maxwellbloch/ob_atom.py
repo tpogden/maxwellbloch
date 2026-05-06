@@ -205,11 +205,10 @@ class OBAtom(ob_base.OBBase):
 
         self.H_Omega_list = []
         for f in self.fields:
-            H_Omega = qu.Qobj(np.zeros([self.num_states, self.num_states]))
-            for c_i, c in enumerate(f.coupled_levels):
-                H_Omega += (
-                    self.sigma(a=c[0], b=c[1]) + self.sigma(a=c[1], b=c[0])
-                ) * f.factors[c_i]
+            H_Omega = sum(
+                (self.sigma(a=c[0], b=c[1]) + self.sigma(a=c[1], b=c[0])) * fac
+                for c, fac in zip(f.coupled_levels, f.factors, strict=True)
+            )
             H_Omega *= pi * f.rabi_freq  # 2π*rabi_freq/2
             if self.is_field_td():  # time-dependent interaction
                 self.H_Omega_list.append([H_Omega, f.rabi_freq_t_func])

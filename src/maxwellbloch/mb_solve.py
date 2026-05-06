@@ -373,6 +373,15 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
+        h = self.z_step_inner()
+        N_z = np.array(
+            [
+                self.num_density_z_func(
+                    self.z_min + (i + 1) * h, self.num_density_z_args
+                )
+                for i in range(self.z_steps * self.z_steps_inner)
+            ]
+        )
         self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
         pbar = tqdm.tqdm(
             enumerate(self.zlist[:-1]),
@@ -380,13 +389,10 @@ class MBSolve(ob_solve.OBSolve):
             disable=not progress,
             unit="z",
         )
-        for j, z in pbar:
+        for j, _z in pbar:
             Omegas_z_this = self.Omegas_zt[:, j, :]
-            z_cur = z
-            for _ in range(self.z_steps_inner):
-                z_next = z_cur + self.z_step_inner()
-                h = z_next - z_cur
-                N = self.num_density_z_func(z_next, self.num_density_z_args)
+            for k in range(self.z_steps_inner):
+                N = N_z[j * self.z_steps_inner + k]
                 thermal_states_t = self._solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
                     states_t=thermal_states_t
@@ -404,7 +410,6 @@ class MBSolve(ob_solve.OBSolve):
                     self._Omegas_z_buf
                 )
                 Omegas_z_this = self._Omegas_z_buf
-                z_cur = z_next
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
             pbar.set_postfix(self._pbar_postfix(progress_show_area))
@@ -431,6 +436,15 @@ class MBSolve(ob_solve.OBSolve):
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
+        h = self.z_step_inner()
+        N_z = np.array(
+            [
+                self.num_density_z_func(
+                    self.z_min + (i + 1) * h, self.num_density_z_args
+                )
+                for i in range(self.z_steps * self.z_steps_inner)
+            ]
+        )
         thermal_states_t = self._solve_and_average_over_thermal_detunings()
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.atom.get_fields_sum_coherence(states_t=thermal_states_t)
@@ -445,8 +459,8 @@ class MBSolve(ob_solve.OBSolve):
             self._Omegas_z_buf,
             self._z_step_fields_euler(
                 h=h,
-                N=N,
-                Omegas_z_this=self.Omegas_zt[:, j, :],
+                N=N_z[0],
+                Omegas_z_this=self.Omegas_zt[:, 0, :],
                 sum_coh_this=sum_coh_prev,
             ),
         )
@@ -456,13 +470,10 @@ class MBSolve(ob_solve.OBSolve):
         pbar.update(1)
         pbar.set_postfix(self._pbar_postfix(progress_show_area))
         # Remaining steps: Adams-Bashforth
-        for j, z in enumerate(self.zlist[1:-1], start=1):
+        for j, _z in enumerate(self.zlist[1:-1], start=1):
             Omegas_z_this = self.Omegas_zt[:, j, :]
-            z_cur = z
-            for _ in range(self.z_steps_inner):
-                z_next = z_cur + self.z_step_inner()
-                h = z_next - z_cur
-                N = self.num_density_z_func(z_next, self.num_density_z_args)
+            for k in range(self.z_steps_inner):
+                N = N_z[j * self.z_steps_inner + k]
                 thermal_states_t = self._solve_and_average_over_thermal_detunings()
                 sum_coh_this = self.atom.get_fields_sum_coherence(
                     states_t=thermal_states_t
@@ -481,7 +492,6 @@ class MBSolve(ob_solve.OBSolve):
                     self._Omegas_z_buf
                 )
                 Omegas_z_this = self._Omegas_z_buf
-                z_cur = z_next
                 sum_coh_prev = sum_coh_this
             self.states_zt[j + 1, :] = self.states_t()
             self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
