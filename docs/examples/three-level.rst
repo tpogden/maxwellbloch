@@ -15,10 +15,7 @@ transfer (adiabatons).
 .. toctree::
    :maxdepth: 1
 
-   mbs-lambda-weak-pulse-more-atoms-no-coupling
-   mbs-lambda-weak-pulse-more-atoms-with-coupling
-   mbs-lambda-weak-pulse-cloud-atoms-with-coupling
-   mbs-lambda-weak-pulse-cloud-atoms-with-coupling-store
+   mbs-lambda-eit-slow-light
    mbs-lambda-cpt
    mbs-lambda-adiabatons
 
@@ -33,14 +30,7 @@ shape-preserving **simulton** solutions that propagate without loss.
 .. toctree::
    :maxdepth: 1
 
-   mbs-vee-sech-0.5pi-0.5pi
-   mbs-vee-sech-0.5pi-1.5pi
-   mbs-vee-sech-sqrt2pi-sqrt2pi
-   mbs-vee-sech-sqrt8pi-sqrt8pi
-   mbs-vee-sech-sqrt18pi-sqrt18pi
-   mbs-vee-sech-sqrt8pi-sqrt8pi-collision
-   mbs-vee-weak-cw-sech-2pi
-   mbs-vee-weak-cw-sech-4pi
+   mbs-vee-simultons
 
 *******************************************************
 Ladder (Ξ) Configuration: EIT, Autler-Townes & Rydberg

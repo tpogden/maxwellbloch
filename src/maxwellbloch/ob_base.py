@@ -191,7 +191,7 @@ class OBBase(object):
                 options["progress_bar"] = "text"
 
             self.result = qu.mesolve(
-                H, rho0, tlist, self.c_ops, e_ops, args=args, options=options
+                H, rho0, tlist, self.c_ops, e_ops=e_ops, args=args, options=options
             )
 
             self.rho = self.result.states[-1]  #  Set rho to the final state.
