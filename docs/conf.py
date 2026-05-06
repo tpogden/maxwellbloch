@@ -59,6 +59,7 @@ exclude_patterns = [
     ".DS_Store",
     "**.ipynb_checkpoints",
     "_spike",
+    # Draft notebooks — not ready to publish:
     "examples/mbs-ladder-rydberg-eit-counter.ipynb",
 ]
 
