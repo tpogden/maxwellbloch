@@ -43,3 +43,20 @@ measured even when the lineshape is dominated by inhomogeneous broadening.
 
    mbs-two-photon-echo
 
+**************************************************
+Stimulated Echo & Population Lifetime ($T_1$)
+**************************************************
+
+Three π/2 pulses with delays τ (between pulses 1–2) and $T_w$ (between
+pulses 2–3) generate a stimulated photon echo at $t = +\tau$ after the
+third pulse. The echo amplitude decays as
+$e^{-2\tau/T_2}\,e^{-T_w/T_1}$: a $T_w$ sweep isolates $T_1$,
+complementing the $T_2$ measurement from the two-pulse echo. The defining
+feature is that coherence information is stored as a **population grating**
+during $T_w$, so no macroscopic polarisation exists in that interval.
+
+.. toctree::
+   :maxdepth: 1
+
+   mbs-two-stimulated-echo
+
