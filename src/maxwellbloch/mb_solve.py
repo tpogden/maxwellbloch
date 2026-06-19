@@ -519,7 +519,9 @@ class MBSolve(ob_solve.OBSolve):
             Omegas_z_next: shape (num_fields, t_steps+1)
         """
         # self.g shape (num_fields,) broadcasts with sum_coh_this (num_fields, t_steps+1)
-        dOmega_dz = 1.0j * N * self.g[:, None] * sum_coh_this
+        # Factor of 2: the Maxwell equation is ∂Ω/∂z = 2iNg·ρ when the Bloch
+        # Hamiltonian uses the standard coupling Ω/2 (vs Ω in the thesis convention).
+        dOmega_dz = 2.0j * N * self.g[:, None] * sum_coh_this
         return Omegas_z_this + h * dOmega_dz
 
     def _z_step_fields_ab(
@@ -542,8 +544,8 @@ class MBSolve(ob_solve.OBSolve):
         Returns:
             Omegas_z_next: shape (num_fields, t_steps+1)
         """
-        dOmega_dz_this = 1.0j * N * self.g[:, None] * sum_coh_this
-        dOmega_dz_prev = 1.0j * N * self.g[:, None] * sum_coh_prev
+        dOmega_dz_this = 2.0j * N * self.g[:, None] * sum_coh_this
+        dOmega_dz_prev = 2.0j * N * self.g[:, None] * sum_coh_prev
         return Omegas_z_this + 1.5 * h * dOmega_dz_this - 0.5 * h * dOmega_dz_prev
 
     def _build_intp_H_Omega_list(self, Omegas_z: np.ndarray) -> list:

@@ -114,14 +114,18 @@ def dispersion(
 def susceptibility_two_linear_known(
     freq_list: np.ndarray, interaction_strength: float, decay_rate: float
 ) -> np.ndarray:
-    """In the linear regime for a two-level system, the suecpetibility is
+    """In the linear regime for a two-level system, the susceptibility is
     known analytically. This is here for useful comparison, as good
     agreement between a simulated weak field in a two-level system tells us
     that the model is accurate in the linear regime, which gives us
     confidence in the scheme for going beyond the weak field limit.
 
     Notes:
-        See TP Ogden Thesis Eqn(2.61)
+        Returns g·χ_ρ, where χ_ρ is the coherence susceptibility satisfying
+        ρ₀₁ = χ_ρ·Ω in the weak-field limit. The Bloch Hamiltonian uses the
+        standard coupling Ω/2, so χ_ρ = i/(Γ/2 − iΔ). The absorption and
+        dispersion are its imaginary and real parts respectively.
+        See TP Ogden Thesis Eqn(2.61).
     """
 
     return 1j * interaction_strength / (decay_rate / 2 - 1j * freq_list)
@@ -130,27 +134,21 @@ def susceptibility_two_linear_known(
 def absorption_two_linear_known(
     freq_list: np.ndarray, interaction_strength: float, decay_rate: float
 ) -> np.ndarray:
-    """The absorption is half the imaginary part of the susecptibility."""
+    """The field absorption, equal to the imaginary part of the susceptibility."""
 
-    return (
-        susceptibility_two_linear_known(
-            freq_list, interaction_strength, decay_rate
-        ).imag
-        / 2.0
-    )
+    return susceptibility_two_linear_known(
+        freq_list, interaction_strength, decay_rate
+    ).imag
 
 
 def dispersion_two_linear_known(
     freq_list: np.ndarray, interaction_strength: float, decay_rate: float
 ) -> np.ndarray:
-    """The dispersion is half the real part of the susecptibility."""
+    """The field dispersion, equal to the real part of the susceptibility."""
 
-    return (
-        susceptibility_two_linear_known(
-            freq_list, interaction_strength, decay_rate
-        ).real
-        / 2.0
-    )
+    return susceptibility_two_linear_known(
+        freq_list, interaction_strength, decay_rate
+    ).real
 
 
 def voigt_two_linear_known(
@@ -174,5 +172,5 @@ def voigt_two_linear_known(
 
     a = decay_rate / (2 * np.pi * thermal_width)
     b = freq_list / (2 * np.pi * thermal_width)
-    s = 1.0j * (0.5 * np.sqrt(np.pi) / (2 * np.pi * thermal_width)) * wofz(b + 0.5j * a)
+    s = 1.0j * (1.0 * np.sqrt(np.pi) / (2 * np.pi * thermal_width)) * wofz(b + 0.5j * a)
     return s
