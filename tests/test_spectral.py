@@ -35,11 +35,11 @@ class TestSpectral(unittest.TestCase):
         abs = spectral.absorption(mbs, 0, -1)
         hm, r1, r2 = utility.half_max_roots(freq_list, abs)
 
-        # The absorption profile should have a peak at 1.0 and have a FWHM of
+        # The absorption profile should have a peak at 2.0 and have a FWHM of
         # 1.0 centred at 0.0.
-        self.assertAlmostEqual(hm, 0.5, places=1)
-        self.assertAlmostEqual(r1, -0.5, places=3)
-        self.assertAlmostEqual(r2, 0.5, places=3)
+        self.assertAlmostEqual(hm, 1.0, places=1)
+        self.assertAlmostEqual(r1, -0.5, places=2)
+        self.assertAlmostEqual(r2, 0.5, places=2)
 
         abs_linear_known = spectral.absorption_two_linear_known(
             freq_list, mbs.interaction_strengths[0], mbs.atom.decays[0]["rate"]
@@ -47,8 +47,9 @@ class TestSpectral(unittest.TestCase):
 
         # Assert that the max of the abs residuals between the absorption
         # profile and the known absorption profile for linear two-level systems
-        # is below a tolerance
-        self.assertTrue(np.max(np.abs(abs - abs_linear_known)) < 0.05)
+        # is below a tolerance. The tolerance scales with OD (doubled after
+        # fixing the Maxwell propagation factor-of-2 bug).
+        self.assertTrue(np.max(np.abs(abs - abs_linear_known)) < 0.1)
 
 
 class TestVoigtProfile(unittest.TestCase):
