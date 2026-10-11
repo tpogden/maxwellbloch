@@ -24,7 +24,7 @@ ob_atom.OBAtom(
 | [get_detunings](#clerq.ob_atom.OBAtom.get_detunings) | Returns a list of detunings, one for each field in fields. |
 | [get_fields_sum_coherence](#clerq.ob_atom.OBAtom.get_fields_sum_coherence) | Returns the sum coherences of the atom density matrix for each |
 | [set_H_Delta](#clerq.ob_atom.OBAtom.set_H_Delta) | Set the detuning part of the interaction Hamiltonian, H_Delta, |
-| [set_H_Omega](#clerq.ob_atom.OBAtom.set_H_Omega) |  |
+| [set_H_Omega](#clerq.ob_atom.OBAtom.set_H_Omega) | Set the Rabi frequency part of the interaction Hamiltonian. |
 | [to_json_str](#clerq.ob_atom.OBAtom.to_json_str) | Return a JSON string representation of the Atom object. |
 
 ### add_field { #clerq.ob_atom.OBAtom.add_field }
@@ -55,15 +55,22 @@ The default is for all of the population to be in ``|0><0|``.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type   | Description                                        | Default    |
-|--------|--------|----------------------------------------------------|------------|
-| rho0   |        | a list or array of populations, length num_states. | _required_ |
+| Name          | Type                  | Description                                                                                            | Default   |
+|---------------|-----------------------|--------------------------------------------------------------------------------------------------------|-----------|
+| initial_state | list\[float\] \| None | a list or array of populations, length num_states. If not given, all the population starts in level 0. | `None`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type    | Description                                        |
-|--------|---------|----------------------------------------------------|
-|        | qu.Qobj | Qu.Qobj: A density matrix representing the initial |
+| Name   | Type    | Description                                                      |
+|--------|---------|------------------------------------------------------------------|
+|        | qu.Qobj | The initial density matrix, diagonal with the given populations. |
+|        | qu.Qobj | It is also stored as ``self.initial_state`` and ``self.rho``.    |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type       | Description                                                                |
+|--------|------------|----------------------------------------------------------------------------|
+|        | ValueError | If ``initial_state`` has the wrong length or its elements do not sum to 1. |
 
 #### Notes {.doc-section .doc-section-notes}
 
@@ -129,15 +136,24 @@ Set the detuning part of the interaction Hamiltonian, H_Delta,
 ob_atom.OBAtom.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)
 ```
 
+Set the Rabi frequency part of the interaction Hamiltonian.
+
+Updates each field's Rabi frequency and time function, then rebuilds
+the Hamiltonian.
+
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name              | Type          | Description   | Default    |
-|-------------------|---------------|---------------|------------|
-| rabi_freqs        | list\[float\] | [floats]      | _required_ |
-| rabi_freq_t_funcs | list          | [strings]     | _required_ |
-| rabi_freqs_t_args |               | [dicts]       | _required_ |
+| Name              | Type          | Description                                                                              | Default    |
+|-------------------|---------------|------------------------------------------------------------------------------------------|------------|
+| rabi_freqs        | list\[float\] | Rabi frequency for each field.                                                           | _required_ |
+| rabi_freq_t_funcs | list          | Name of the time function for each field, as in ``clerq.t_funcs`` (e.g. ``"gaussian"``). | _required_ |
+| rabi_freq_t_args  | list\[dict\]  | Argument dict for each field's time function.                                            | _required_ |
 
-Returns:
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                       |
+|--------|--------|-------------------------------------------------------------------|
+|        | list   | The list of Rabi frequency Hamiltonian terms, one for each field. |
 
 ### to_json_str { #clerq.ob_atom.OBAtom.to_json_str }
 

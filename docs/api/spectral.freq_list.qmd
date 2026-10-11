@@ -5,11 +5,16 @@ spectral.freq_list(mb_solve)
 ```
 
 Fourier transform of the tlist into the frequency domain for
-    spectral analysis.
+spectral analysis.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name     | Type    | Description                                 | Default    |
-|----------|---------|---------------------------------------------|------------|
-| mb_solve | MBSolve | An MBSolve object.                          | _required_ |
-| Returns  |         | Array[num_time_points] of frequency values. | _required_ |
+| Name     | Type    | Description        | Default    |
+|----------|---------|--------------------|------------|
+| mb_solve | MBSolve | An MBSolve object. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                |
+|--------|------------|------------------------------------------------------------|
+|        | np.ndarray | Array of frequency values, length ``len(mb_solve.tlist)``. |

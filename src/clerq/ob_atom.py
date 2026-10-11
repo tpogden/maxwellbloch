@@ -62,10 +62,16 @@ class OBAtom(ob_base.OBBase):
         The default is for all of the population to be in ``|0><0|``.
 
         Args:
-            rho0: a list or array of populations, length num_states.
+            initial_state: a list or array of populations, length num_states.
+                If not given, all the population starts in level 0.
 
         Returns:
-            Qu.Qobj: A density matrix representing the initial
+            The initial density matrix, diagonal with the given populations.
+            It is also stored as ``self.initial_state`` and ``self.rho``.
+
+        Raises:
+            ValueError: If ``initial_state`` has the wrong length or its
+                elements do not sum to 1.
 
         Notes:
             - The elements must sum to 1 (as this will be the trace of the
@@ -222,14 +228,19 @@ class OBAtom(ob_base.OBBase):
         rabi_freq_t_funcs: list,
         rabi_freq_t_args: list[dict],
     ) -> list:
-        """
+        """Set the Rabi frequency part of the interaction Hamiltonian.
+
+        Updates each field's Rabi frequency and time function, then rebuilds
+        the Hamiltonian.
+
         Args:
-            rabi_freqs: [floats]
-            rabi_freq_t_funcs: [strings]
-            rabi_freqs_t_args: [dicts]
+            rabi_freqs: Rabi frequency for each field.
+            rabi_freq_t_funcs: Name of the time function for each field, as
+                in ``clerq.t_funcs`` (e.g. ``"gaussian"``).
+            rabi_freq_t_args: Argument dict for each field's time function.
 
         Returns:
-
+            The list of Rabi frequency Hamiltonian terms, one for each field.
         """
 
         for f_i, f in enumerate(self.fields):

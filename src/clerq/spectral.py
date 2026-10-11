@@ -14,13 +14,13 @@ if TYPE_CHECKING:
 
 def freq_list(mb_solve: MBSolve) -> np.ndarray:
     """Fourier transform of the tlist into the frequency domain for
-        spectral analysis.
+    spectral analysis.
 
     Args:
         mb_solve: An MBSolve object.
 
-        Returns:
-            Array[num_time_points] of frequency values.
+    Returns:
+        Array of frequency values, length ``len(mb_solve.tlist)``.
 
     """
 
