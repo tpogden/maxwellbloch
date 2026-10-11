@@ -15,6 +15,9 @@ project:
     - news/*.qmd
     - api/*.qmd
 
+filters:
+  - _filters/pagetitle.lua
+
 website:
   title: "clerq"
   description: "Classical Maxwell fields propagating through open quantum systems"

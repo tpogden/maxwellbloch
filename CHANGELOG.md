@@ -13,13 +13,24 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   `urllib3`, `mistune`, `anyio`, `soupsieve`; `setuptools` dropped from the lock). None are dependencies of the
   installed package (`qutip`, `tqdm`), so `pip install clerq` is unaffected.
 
+## [Unreleased]
+
+### Fixed
+- Release assets: only the wheel, sdist and their attestations are attached to the GitHub release (a stray
+  `default.gitignore` from `dist/.gitignore` was included before).
+- Documentation: API page titles in the browser tab keep their case (`mb_solve.MBSolve`, not `mb_solve.mbsolve`); the
+  docstrings that produced 16 quartodoc warnings now match their signatures (`hyperfine`, `ob_atom`, `spectral`).
+
+### Changed
+- CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 added.
+
 ## [0.13.1] 2026-10-09
 
 ### Fixed
-- The `mbsolve` and `obsolve` command-line scripts crashed in 0.13.0: `mbsolve` failed while building its argument
-  parser (an unescaped `%` in a help string, an error on Python 3.14) and called `MBSolve.mbsolve` with a keyword that
-  no longer exists; `obsolve` called a non-existent `OBSolve.solve`. The dead `--pbarchunksize` option is removed
-  (the progress bar is always on), and `tests/test_bin.py` now solves a small problem with each script.
+- The `mbsolve` and `obsolve` command-line scripts were broken and are fixed. `obsolve` called `OBSolve.solve`, which
+  was renamed `obsolve` in 0.10.0; `mbsolve` passed the `pbar_chunk_size` keyword removed in 0.11.0, and also failed
+  while building its argument parser on Python 3.14 (an unescaped `%` in a help string). The dead `--pbarchunksize`
+  option is removed (the progress bar is always on), and `tests/test_bin.py` now solves a small problem with each script.
 - Example notebooks recalibrated after the factor-of-2 fix in 0.13.0: interaction strengths halved (and the
   `linear-absorption` labels and Beer-Lambert formula updated), so every example solves the physical problem it
   was designed for, bit for bit as in 0.12.0; plot limits widened where the data left the axes.
@@ -57,6 +68,55 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Documentation moved from Sphinx/readthedocs to Quarto (clerq.org). Executed
   executed outputs are stored in the notebooks; the `.qu` solver caches
   are no longer committed.
+
+## [0.12.0] 2026-05-06
+
+### Added
+- Plot helpers `plot.field_profile` and `plot.field_z_profile_anim`; `show_z_bounds` and `speed_of_light` (fixed-frame
+  transform) options on the plot functions; x-axis bounds for `plot.spectrum`.
+- `SECH_FWHM_CONV` constant in `utility`.
+
+### Changed
+- Performance: the number-density profile N(z) is computed once up front and the sigma-operator loop is vectorised.
+- `OBBase.mesolve` passes `e_ops` to `qutip.mesolve` by keyword.
+- Examples consolidated: the SIT, linear-absorption, V-system and Λ EIT/slow-light notebooks are merged into one
+  notebook each.
+
+## [0.11.0] 2026-05-03
+
+### Added
+- Counter-propagating fields: `Field(counter_propagating=True)` models a field travelling against the others via a
+  Doppler-shift factor. A depletion check raises `CounterPropagatingDepletionError` when forward-only propagation is no
+  longer a valid approximation (disable with `check_counter_prop_depletion=False`).
+- `maxwellbloch.plot`: a Plotly plotting module with a shared theme (field space-time and envelope plots, spectra,
+  populations, coherences, pulse area). Install with the `plot` extra.
+- `spectral` FFT functions accept a `window` (SciPy window name); `plot.spectrum` gains `freq_range`, an `arcsinh`
+  frequency scale and `window`.
+- Examples: Autler-Townes splitting, CPT dark resonance, adiabatons, two-pulse photon echo, odd-π sech pulses,
+  Rb 87 D2 cycling transition, and a Rydberg EIT draft (kept out of the published docs); an examples gallery page.
+- `bench_max` benchmark (Rb 87 V-simulton, D1 + D2 hyperfine, thermal).
+
+### Changed
+- **Breaking:** the print-based progress reporting of `MBSolve.mbsolve` and its `pbar_chunk_size` argument are
+  replaced by a tqdm progress bar, controlled by `progress` (default `True`) and `progress_show_area`.
+- `spectral.absorption`, `dispersion` and `rabi_freq` take the optional `window` argument.
+
+## [0.10.0] 2026-04-25
+
+### Added
+- Savefile integrity check (GH#199): `.qu` files store a hash of the problem definition and the library versions;
+  loading a file built from a different problem raises `ValueError`, and older files load with a warning.
+- Generated API reference pages; a `docs_serve` Makefile target.
+
+### Changed
+- **Breaking:** `OBSolve.solve` is renamed `OBSolve.obsolve`.
+- `maxwell_boltzmann` moved to `utility` and gained an `offset` parameter.
+- Hyperfine classes share their JSON (de)serialisation through a mixin (`to_json_str`, `get_json_dict`); dead code
+  removed and in-code TODOs resolved.
+
+### Fixed
+- A missing savefile directory is created before the `.qu` file is written (GH#195).
+- `IndexError` in `get_fields_sum_coherence` when fields are added after construction.
 
 ## [0.9.0] 2026-04-24
 
