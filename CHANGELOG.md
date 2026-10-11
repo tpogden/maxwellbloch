@@ -22,6 +22,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
   The modules are now `clerq.propagation`, `clerq.lindblad`, `clerq.system` and `clerq.system_base` (`OBBase` is
   `SystemBase`). "System" replaces "atom" because the solvers work for any few-level open quantum system.
+- Functions that take a solver name that argument `solver` everywhere: it was `mb_solve` in `spectral`, `fixed` and
+  `fileio`, and `mbs` in `plot` (`mbs_list`, in `plot.spectrum_overlay`, is `solvers`).
 - Problem definitions are written with a `system` key. A `PropagationSolver` `.qu` savefile made by an earlier version no longer matches
   its problem definition, so it is solved again and overwritten the first time it is used.
 - `PropagationSolver` and `System` have class docstrings describing their arguments.
@@ -29,7 +31,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ### Deprecated
 - The old names above still work and raise a `DeprecationWarning`: the `mb_solve`, `ob_solve`, `ob_atom` and `ob_base`
   modules and their classes, `mbsolve()`, `obsolve()`, the `atom` argument and attribute, and the `atom` key in JSON
-  problem definitions. `mbsolve_euler()` and `mbsolve_ab()` are deprecated in favour of `solve(step=...)`. They will be
+  problem definitions, and the `mb_solve`, `mbs` and `mbs_list` keyword arguments. `mbsolve_euler()` and `mbsolve_ab()` are deprecated in favour of `solve(step=...)`. They will be
   removed in a future release. The `mbsolve` and `obsolve` command-line scripts are unchanged.
 
 ### Security

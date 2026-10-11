@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import plotly.graph_objects as go
 
+from clerq._deprecation import renamed_arg
 from clerq.plot import theme as _theme  # noqa: F401 — registers template
 
 if TYPE_CHECKING:
@@ -15,8 +16,9 @@ if TYPE_CHECKING:
 _TEMPLATE = "clerq"
 
 
+@renamed_arg("mbs", "solver")
 def population(
-    mbs: PropagationSolver,
+    solver: PropagationSolver,
     state_indices: int | list[int] | None = None,
     *,
     z_idx: int = 0,
@@ -26,7 +28,7 @@ def population(
     """Line plot of populations ρ_ii(t) at a fixed z position.
 
     Args:
-        mbs: A solved PropagationSolver instance.
+        solver: A solved PropagationSolver instance.
         state_indices: State index or list of indices. Defaults to all states.
         z_idx: z-step index.
         width: Figure width in pixels.
@@ -35,7 +37,7 @@ def population(
     Returns:
         plotly Figure.
     """
-    num_states = mbs.system.num_states
+    num_states = solver.system.num_states
     if state_indices is None:
         state_indices = list(range(num_states))
     if isinstance(state_indices, int):
@@ -43,7 +45,7 @@ def population(
 
     fig = go.Figure(
         layout=go.Layout(
-            title=f"Population vs t (z = {mbs.zlist[z_idx]:.2f})",
+            title=f"Population vs t (z = {solver.zlist[z_idx]:.2f})",
             xaxis_title="t (γ⁻¹)",
             yaxis_title="population",
             width=width,
@@ -52,17 +54,20 @@ def population(
         )
     )
     for si in state_indices:
-        rho_ii = mbs.states_zt[z_idx, :, si, si].real
-        fig.add_trace(go.Scatter(x=mbs.tlist, y=rho_ii, mode="lines", name=f"|{si}⟩"))
+        rho_ii = solver.states_zt[z_idx, :, si, si].real
+        fig.add_trace(
+            go.Scatter(x=solver.tlist, y=rho_ii, mode="lines", name=f"|{si}⟩")
+        )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.tlist[0]),
-        xaxis_maxallowed=float(mbs.tlist[-1]),
+        xaxis_minallowed=float(solver.tlist[0]),
+        xaxis_maxallowed=float(solver.tlist[-1]),
     )
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def population_spacetime(
-    mbs: PropagationSolver,
+    solver: PropagationSolver,
     state_idx: int = 0,
     *,
     colorscale: str = "Viridis",
@@ -76,7 +81,7 @@ def population_spacetime(
     """Heatmap or contour plot of population ρ_ii(z, t) for a single state.
 
     Args:
-        mbs: A solved PropagationSolver instance.
+        solver: A solved PropagationSolver instance.
         state_idx: State index.
         colorscale: Plotly colorscale name.
         plot_type: ``"heatmap"`` (default, smoothed) or ``"contour"``.
@@ -91,12 +96,12 @@ def population_spacetime(
     Returns:
         plotly Figure.
     """
-    rho_ii = mbs.states_zt[:, :, state_idx, state_idx].real
+    rho_ii = solver.states_zt[:, :, state_idx, state_idx].real
 
     _common = dict(
         z=rho_ii,
-        x=mbs.tlist,
-        y=mbs.zlist,
+        x=solver.tlist,
+        y=solver.zlist,
         colorscale=colorscale,
         colorbar=dict(title=f"ρ_{state_idx}{state_idx}"),
         zmin=zmin,
@@ -119,10 +124,10 @@ def population_spacetime(
         ),
     )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.tlist[0]),
-        xaxis_maxallowed=float(mbs.tlist[-1]),
-        yaxis_minallowed=float(mbs.zlist[0]),
-        yaxis_maxallowed=float(mbs.zlist[-1]),
+        xaxis_minallowed=float(solver.tlist[0]),
+        xaxis_maxallowed=float(solver.tlist[-1]),
+        yaxis_minallowed=float(solver.zlist[0]),
+        yaxis_maxallowed=float(solver.zlist[-1]),
     )
     if show_z_bounds is not None:
         for z in show_z_bounds:
@@ -130,8 +135,9 @@ def population_spacetime(
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def coherence(
-    mbs: PropagationSolver,
+    solver: PropagationSolver,
     i: int,
     j: int,
     *,
@@ -143,7 +149,7 @@ def coherence(
     """Line plot of coherence ρ_ij(t) at a fixed z position.
 
     Args:
-        mbs: A solved PropagationSolver instance.
+        solver: A solved PropagationSolver instance.
         i: Row index of the density matrix element.
         j: Column index of the density matrix element.
         z_idx: z-step index.
@@ -154,7 +160,7 @@ def coherence(
     Returns:
         plotly Figure.
     """
-    rho_ij = mbs.states_zt[z_idx, :, i, j]
+    rho_ij = solver.states_zt[z_idx, :, i, j]
     if component == "abs":
         y = np.abs(rho_ij)
         ylabel = f"|ρ_{i}{j}|"
@@ -170,9 +176,9 @@ def coherence(
         )
 
     fig = go.Figure(
-        data=go.Scatter(x=mbs.tlist, y=y, mode="lines"),
+        data=go.Scatter(x=solver.tlist, y=y, mode="lines"),
         layout=go.Layout(
-            title=f"{ylabel}(t) at z = {mbs.zlist[z_idx]:.2f}",
+            title=f"{ylabel}(t) at z = {solver.zlist[z_idx]:.2f}",
             xaxis_title="t (γ⁻¹)",
             yaxis_title=ylabel,
             width=width,
@@ -181,7 +187,7 @@ def coherence(
         ),
     )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.tlist[0]),
-        xaxis_maxallowed=float(mbs.tlist[-1]),
+        xaxis_minallowed=float(solver.tlist[0]),
+        xaxis_maxallowed=float(solver.tlist[-1]),
     )
     return fig

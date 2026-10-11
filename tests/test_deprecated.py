@@ -106,3 +106,72 @@ def test_mbsolve(old, step):
         old_Omegas_zt, old_states_zt = getattr(old_solver, old)(progress=False)
     assert np.array_equal(old_Omegas_zt, Omegas_zt)
     assert np.array_equal(old_states_zt, states_zt)
+
+
+class TestSolverArg:
+    """Functions that take a solver named the argument mb_solve, mbs or
+    mbs_list."""
+
+    @pytest.fixture(scope="class")
+    def solver(self):
+        solver = PropagationSolver(
+            system=SYSTEM, t_steps=10, z_steps=4, interaction_strengths=[1.0]
+        )
+        solver.solve(progress=False)
+        return solver
+
+    def test_mb_solve(self, solver):
+        from clerq import fixed, spectral
+
+        for func, kwargs in [
+            (spectral.freq_list, {}),
+            (spectral.rabi_freq, {"field_idx": 0}),
+            (spectral.absorption, {"field_idx": 0}),
+            (spectral.dispersion, {"field_idx": 0}),
+            (fixed.t_list, {"speed_of_light": 10.0}),
+            (fixed.rabi_freq, {"field_idx": 0, "speed_of_light": 10.0}),
+        ]:
+            expected = func(solver, **kwargs)
+            assert np.array_equal(func(solver=solver, **kwargs), expected)
+            with pytest.warns(DeprecationWarning, match="'mb_solve' argument"):
+                assert np.array_equal(func(mb_solve=solver, **kwargs), expected)
+
+    def test_mb_solve_fileio(self, solver, tmp_path):
+        from clerq import fileio
+
+        for func in [fileio.save_csv_rabi_freq, fileio.save_csv_rabi_freq_abs]:
+            path = tmp_path / f"{func.__name__}.csv"
+            with pytest.warns(DeprecationWarning, match="'mb_solve' argument"):
+                func(mb_solve=solver, filename=str(path))
+            assert path.exists()
+
+    def test_mbs(self, solver):
+        from clerq import plot
+        from clerq.plot import utils
+
+        for func in [
+            plot.field_spacetime,
+            plot.field_envelope,
+            plot.pulse_area,
+            plot.population,
+            plot.spectrum,
+            utils.omega_abs,
+            utils.pulse_area_z,
+            utils.field_label,
+        ]:
+            func(solver=solver)
+            with pytest.warns(DeprecationWarning, match="'mbs' argument"):
+                func(mbs=solver)
+
+    def test_mbs_list(self, solver):
+        from clerq import plot
+
+        plot.spectrum_overlay(solvers=[solver])
+        with pytest.warns(DeprecationWarning, match="'mbs_list' argument"):
+            plot.spectrum_overlay(mbs_list=[solver])
+
+    def test_old_and_new(self, solver):
+        from clerq import spectral
+
+        with pytest.raises(TypeError):
+            spectral.freq_list(solver=solver, mb_solve=solver)

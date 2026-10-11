@@ -2,7 +2,9 @@
 
 """Helpers for names kept only for backwards compatibility."""
 
+import functools
 import warnings
+from collections.abc import Callable
 
 
 def warn_deprecated(old: str, new: str, stacklevel: int = 3) -> None:
@@ -51,3 +53,23 @@ def rename_atom_key(json_dict: dict, stacklevel: int = 4) -> dict:
         json_dict = dict(json_dict)
         json_dict["system"] = json_dict.pop("atom")
     return json_dict
+
+
+def renamed_arg(old: str, new: str) -> Callable:
+    """Decorator accepting the deprecated keyword ``old`` for argument ``new``."""
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if old in kwargs:
+                if new in kwargs:
+                    raise TypeError(
+                        f"Pass '{new}' only; '{old}' is its deprecated name."
+                    )
+                warn_deprecated(f"The '{old}' argument", f"'{new}'")
+                kwargs[new] = kwargs.pop(old)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

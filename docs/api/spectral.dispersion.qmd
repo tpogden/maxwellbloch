@@ -1,7 +1,7 @@
 # spectral.dispersion { #clerq.spectral.dispersion }
 
 ```python
-spectral.dispersion(mb_solve, field_idx, z_idx=-1, *, window=None)
+spectral.dispersion(solver, field_idx, z_idx=-1, *, window=None)
 ```
 
 Field dispersion in the frequency domain.
@@ -10,7 +10,7 @@ Field dispersion in the frequency domain.
 
 | Name      | Type              | Description                                             | Default    |
 |-----------|-------------------|---------------------------------------------------------|------------|
-| mb_solve  | PropagationSolver | A PropagationSolver object.                             | _required_ |
+| solver    | PropagationSolver | A PropagationSolver object.                             | _required_ |
 | field_idx | int               | Field to return spectrum of.                            | _required_ |
 | z_idx     | int               | z step at which to return absorption.                   | `-1`       |
 | window    | str \| None       | Optional SciPy window name passed to :func:`rabi_freq`. | `None`     |

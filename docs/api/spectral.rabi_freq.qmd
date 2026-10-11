@@ -1,7 +1,7 @@
 # spectral.rabi_freq { #clerq.spectral.rabi_freq }
 
 ```python
-spectral.rabi_freq(mb_solve, field_idx, *, window=None)
+spectral.rabi_freq(solver, field_idx, *, window=None)
 ```
 
 Fourier transform of the field result of field index.
@@ -10,7 +10,7 @@ Fourier transform of the field result of field index.
 
 | Name      | Type              | Description                                                                                                                                                                                              | Default    |
 |-----------|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| mb_solve  | PropagationSolver | A PropagationSolver object.                                                                                                                                                                              | _required_ |
+| solver    | PropagationSolver | A PropagationSolver object.                                                                                                                                                                              | _required_ |
 | field_idx | int               | Field to return FFT of.                                                                                                                                                                                  | _required_ |
 | window    | str \| None       | Optional SciPy window name (e.g. ``'hann'``, ``'blackman'``) applied to the time axis before the FFT to reduce spectral leakage. ``None`` (default) applies no windowing and does not change the result. | `None`     |
 

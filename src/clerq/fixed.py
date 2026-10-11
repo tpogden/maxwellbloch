@@ -10,28 +10,32 @@ from typing import TYPE_CHECKING
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
+from clerq._deprecation import renamed_arg
+
 if TYPE_CHECKING:
     from clerq.propagation import PropagationSolver
 
 
-def t_list(mb_solve: PropagationSolver, speed_of_light: float) -> np.ndarray:
+@renamed_arg("mb_solve", "solver")
+def t_list(solver: PropagationSolver, speed_of_light: float) -> np.ndarray:
     """Return the time points shifted to the fixed (lab) frame of
     reference given a speed-of-light.
 
     Args:
-        mb_solve: A PropagationSolver object
+        solver: A PropagationSolver object
         speed_of_light: The speed of light in the system.
 
     Returns:
         Array of time values in the fixed frame of reference.
     """
 
-    t_scale = 1.0 + mb_solve.z_max / (speed_of_light * mb_solve.t_max)
-    return mb_solve.tlist * t_scale
+    t_scale = 1.0 + solver.z_max / (speed_of_light * solver.t_max)
+    return solver.tlist * t_scale
 
 
+@renamed_arg("mb_solve", "solver")
 def rabi_freq(
-    mb_solve: PropagationSolver,
+    solver: PropagationSolver,
     field_idx: int,
     speed_of_light: float,
     part: str = "real",
@@ -42,7 +46,7 @@ def rabi_freq(
     abs value.
 
     Args:
-        mb_solve: A PropagationSolver object
+        solver: A PropagationSolver object
         field_idx: The field to return
         speed_of_light: The speed of light in the system
         part: Which part of the complex field ('real' or 'abs')
@@ -55,24 +59,24 @@ def rabi_freq(
     """
 
     if part == "abs":
-        rabi_freq_zt = np.abs(mb_solve.Omegas_zt[field_idx])
+        rabi_freq_zt = np.abs(solver.Omegas_zt[field_idx])
     elif part == "real":
-        rabi_freq_zt = np.real(mb_solve.Omegas_zt[field_idx])
+        rabi_freq_zt = np.real(solver.Omegas_zt[field_idx])
     else:
         raise ValueError('Invalid part. Try "abs" or "real"')
 
     rabi_freq_intp = RegularGridInterpolator(
-        (mb_solve.zlist, mb_solve.tlist),
+        (solver.zlist, solver.tlist),
         rabi_freq_zt,
         method=interp_kind,
         bounds_error=False,
         fill_value=0.0,
     )
 
-    rabi_freq_fixed = np.zeros(mb_solve.Omegas_zt[field_idx].shape, dtype=float)
+    rabi_freq_fixed = np.zeros(solver.Omegas_zt[field_idx].shape, dtype=float)
 
-    for i, z_i in enumerate(mb_solve.zlist):
-        t_shifted = t_list(mb_solve, speed_of_light) - z_i / speed_of_light
+    for i, z_i in enumerate(solver.zlist):
+        t_shifted = t_list(solver, speed_of_light) - z_i / speed_of_light
         pts = np.column_stack([np.full(len(t_shifted), z_i), t_shifted])
         rabi_freq_fixed[i] = rabi_freq_intp(pts)
 

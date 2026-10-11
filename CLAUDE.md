@@ -71,7 +71,7 @@ Hyperfine structure lives in `hyperfine.py` and `angmom.py` (3j/6j symbols, Cleb
 
 ### Deprecated names
 
-Up to 0.13.1 the classes were `OBBase`, `OBAtom`, `OBSolve` and `MBSolve` (modules `ob_base`, `ob_atom`, `ob_solve`, `mb_solve`), the solve methods were `obsolve()` and `mbsolve()`, and the system was called `atom` (constructor argument, attribute and JSON key). These all still work and raise a `DeprecationWarning`; the helpers are in `_deprecation.py` and the tests in `tests/test_deprecated.py`. Do not use them in new code. The `mbsolve` and `obsolve` command-line scripts keep their names.
+Up to 0.13.1 the classes were `OBBase`, `OBAtom`, `OBSolve` and `MBSolve` (modules `ob_base`, `ob_atom`, `ob_solve`, `mb_solve`), the solve methods were `obsolve()` and `mbsolve()`, and the system was called `atom` (constructor argument, attribute and JSON key). Functions taking a solver named the argument `mb_solve` (`spectral`, `fixed`, `fileio`) or `mbs` (`plot`); it is now `solver`. These all still work and raise a `DeprecationWarning`; the helpers are in `_deprecation.py` and the tests in `tests/test_deprecated.py`. Do not use them in new code. The `mbsolve` and `obsolve` command-line scripts keep their names.
 
 ### Solver flow
 
