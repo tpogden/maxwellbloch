@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from clerq.field import Field
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 _TEMPLATE = "clerq"
 
@@ -80,7 +80,7 @@ def field_profile(
 
 
 def field_spacetime(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     field_idx: int = 0,
     *,
     colorscale: str | None = None,
@@ -93,7 +93,7 @@ def field_spacetime(
     """Heatmap or contour plot of |Ω(z, t)| for *field_idx*.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         colorscale: Plotly colorscale name. Defaults to Blues for field 0,
             Greens for field 1 (cycles through _DEFAULT_COLORSCALES).
@@ -161,7 +161,7 @@ def field_spacetime(
 
 
 def field_envelope(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     field_idx: int = 0,
     *,
     z_indices: int | list[int] | None = None,
@@ -172,7 +172,7 @@ def field_envelope(
     """Line plot of |Ω(t)| at one or more fixed z positions.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         z_indices: z-step index or list of indices. Defaults to first and last.
         speed_of_light: If given, apply the fixed-frame transform using
@@ -237,7 +237,7 @@ def field_envelope(
 
 
 def field_z_profile_anim(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     field_idx: int = 0,
     *,
     speed_of_light: float | None = None,
@@ -250,7 +250,7 @@ def field_z_profile_anim(
     to scrub through time, or press Play to animate the pulse propagation.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         speed_of_light: If given, apply the fixed-frame transform using
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
@@ -384,7 +384,7 @@ def field_z_profile_anim(
 
 
 def pulse_area(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     field_idx: int = 0,
     *,
     width: int = 700,
@@ -393,7 +393,7 @@ def pulse_area(
     """Line plot of pulse area ∫|Ω|dt / π vs z.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         width: Figure width in pixels.
         height: Figure height in pixels.

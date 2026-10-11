@@ -1,6 +1,6 @@
 -- Give pages that have no title of their own (the quartodoc API pages) a
 -- browser-tab <title> taken from their first level-1 heading, preserving case.
--- Quarto otherwise derives a lowercased `pagetitle` (mb_solve.mbsolve); this
+-- Quarto otherwise derives a lowercased `pagetitle` (propagationsolver); this
 -- overrides it. Setting `pagetitle` leaves the page body alone, so no second
 -- title block appears.
 function Pandoc(doc)

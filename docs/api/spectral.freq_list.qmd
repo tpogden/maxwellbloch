@@ -9,9 +9,9 @@ spectral analysis.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name     | Type    | Description        | Default    |
-|----------|---------|--------------------|------------|
-| mb_solve | MBSolve | An MBSolve object. | _required_ |
+| Name     | Type              | Description                 | Default    |
+|----------|-------------------|-----------------------------|------------|
+| mb_solve | PropagationSolver | A PropagationSolver object. | _required_ |
 
 ## Returns {.doc-section .doc-section-returns}
 

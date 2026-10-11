@@ -1,0 +1,370 @@
+# PropagationSolver { #clerq.PropagationSolver }
+
+```python
+PropagationSolver(
+    system=None,
+    t_min=0.0,
+    t_max=1.0,
+    t_steps=100,
+    method='mesolve',
+    opts=None,
+    savefile=None,
+    z_min=0.0,
+    z_max=1.0,
+    z_steps=10,
+    z_steps_inner=2,
+    num_density_z_func=None,
+    num_density_z_args=None,
+    interaction_strengths=None,
+    velocity_classes=None,
+    *,
+    atom=None,
+)
+```
+
+Solver for the propagation of fields through a medium of systems.
+
+Steps the fields through space with a finite-difference method, solving
+the Lindblad master equation for the :class:`~clerq.system.System` at
+each step (once per velocity class if the medium is Doppler broadened).
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                  | Type                  | Description                                                                                                            | Default     |
+|-----------------------|-----------------------|------------------------------------------------------------------------------------------------------------------------|-------------|
+| system                | dict \| None          | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.              | `None`      |
+| t_min                 | float                 | Start time of the simulation.                                                                                          | `0.0`       |
+| t_max                 | float                 | End time of the simulation.                                                                                            | `1.0`       |
+| t_steps               | int                   | Number of time steps.                                                                                                  | `100`       |
+| method                | str                   | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                  | `'mesolve'` |
+| opts                  | dict \| None          | Dict of QuTiP solver options.                                                                                          | `None`      |
+| savefile              | str \| None           | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching. | `None`      |
+| z_min                 | float                 | The front of the medium.                                                                                               | `0.0`       |
+| z_max                 | float                 | The back of the medium.                                                                                                | `1.0`       |
+| z_steps               | int                   | Number of space steps at which the solution is recorded.                                                               | `10`        |
+| z_steps_inner         | int                   | Number of finite-difference steps made within each space step.                                                         | `2`         |
+| num_density_z_func    | str \| None           | Name of a function in ``clerq.t_funcs`` giving the number density profile over z. Square by default.                   | `None`      |
+| num_density_z_args    | dict \| None          | Dict of arguments for ``num_density_z_func``.                                                                          | `None`      |
+| interaction_strengths | list\[float\] \| None | Interaction strength of each field with the medium, one for each field.                                                | `None`      |
+| velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening.                              | `None`      |
+| atom                  | dict \| None          | Deprecated name for ``system``.                                                                                        | `None`      |
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [build_velocity_classes](#clerq.PropagationSolver.build_velocity_classes) | Build the velocity-class detuning grid and Boltzmann weights. |
+| [build_zlist](#clerq.PropagationSolver.build_zlist) | Builds the space grid. |
+| [check](#clerq.PropagationSolver.check) | Validates the PropagationSolver object. |
+| [coherences](#clerq.PropagationSolver.coherences) | Gets the sum of coherences (off-diagonals) in a list of coupled |
+| [coherences_field](#clerq.PropagationSolver.coherences_field) | Get the sum of coherences (off-diagonals) for the levels coupled by |
+| [fields_area](#clerq.PropagationSolver.fields_area) | Gets the integrated pulse area of each field. |
+| [get_json_dict](#clerq.PropagationSolver.get_json_dict) | Return the full problem definition as a JSON-serialisable dict. |
+| [init_Omegas_zt](#clerq.PropagationSolver.init_Omegas_zt) | Inits the Rabi frequency array. |
+| [init_states_zt](#clerq.PropagationSolver.init_states_zt) | Inits the system density matrices. |
+| [load_results](#clerq.PropagationSolver.load_results) | Loads the solution from a QuTiP pickle file. |
+| [mbsolve](#clerq.PropagationSolver.mbsolve) | Deprecated name for :meth:`PropagationSolver.solve`. |
+| [mbsolve_ab](#clerq.PropagationSolver.mbsolve_ab) | Deprecated; use :meth:`PropagationSolver.solve` with ``step="ab"``. |
+| [mbsolve_euler](#clerq.PropagationSolver.mbsolve_euler) | Deprecated; use :meth:`PropagationSolver.solve` with ``step="euler"``. |
+| [populations](#clerq.PropagationSolver.populations) | Gets the sum of populations in a list of levels. |
+| [populations_field](#clerq.PropagationSolver.populations_field) | Gets the sum of populations for the upper (excited) level coupled by |
+| [save_results](#clerq.PropagationSolver.save_results) | Saves the solution to a QuTiP pickle file. |
+| [solve](#clerq.PropagationSolver.solve) | Solves the propagation of the fields through the medium. |
+| [z_step](#clerq.PropagationSolver.z_step) | Returns the distance from one space point to the next. |
+| [z_step_inner](#clerq.PropagationSolver.z_step_inner) | Returns the distance from one inner space point to the next. |
+
+### build_velocity_classes { #clerq.PropagationSolver.build_velocity_classes }
+
+```python
+PropagationSolver.build_velocity_classes(velocity_classes=None)
+```
+
+Build the velocity-class detuning grid and Boltzmann weights.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type         | Description                                                                                                 | Default   |
+|------------------|--------------|-------------------------------------------------------------------------------------------------------------|-----------|
+| velocity_classes | dict \| None | dict of velocity-class parameters, or None for the no-Doppler-broadening case (single detuning class at 0). | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                            | Description                           |
+|--------|---------------------------------|---------------------------------------|
+|        | tuple\[np.ndarray, np.ndarray\] | (thermal_delta_list, thermal_weights) |
+
+### build_zlist { #clerq.PropagationSolver.build_zlist }
+
+```python
+PropagationSolver.build_zlist(z_min, z_max, z_steps, z_steps_inner)
+```
+
+Builds the space grid.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type   | Description                                                                                                | Default    |
+|---------------|--------|------------------------------------------------------------------------------------------------------------|------------|
+| z_min         | float  | The front of the medium, in your chosen length unit.                                                       | _required_ |
+| z_max         | float  | The back of the medium.                                                                                    | _required_ |
+| z_steps       | int    | The number of even-spaced steps on which to solve and record the solution.                                 | _required_ |
+| z_steps_inner | int    | Between each z_step, make this many inner steps of the finite-difference solver (for numerical stability). | _required_ |
+
+#### Notes {.doc-section .doc-section-notes}
+
+- If the problem requires a lot of space steps for stability, but
+    you don't need to record the solution at such a high-level of
+    resolution, increase z_steps_inner.
+
+### check { #clerq.PropagationSolver.check }
+
+```python
+PropagationSolver.check()
+```
+
+Validates the PropagationSolver object.
+
+### coherences { #clerq.PropagationSolver.coherences }
+
+```python
+PropagationSolver.coherences(coupled_levels)
+```
+
+Gets the sum of coherences (off-diagonals) in a list of coupled
+    level pairs.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type                | Description                      | Default    |
+|----------------|---------------------|----------------------------------|------------|
+| coupled_levels | list\[list\[int\]\] | a list of pairs of level indexes | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                           |
+|--------|------------|-------------------------------------------------------|
+|        | np.ndarray | np.array, shape (z_steps+1, t_steps+1), dtype=complex |
+
+#### Note {.doc-section .doc-section-note}
+
+Unlike ``System.get_fields_sum_coherence``, which operates on a
+single-z time series with per-field weighting factors, this method
+sums over the full (z, t) array with unit weights.
+
+### coherences_field { #clerq.PropagationSolver.coherences_field }
+
+```python
+PropagationSolver.coherences_field(field_idx)
+```
+
+Get the sum of coherences (off-diagonals) for the levels coupled by
+a field.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                 | Default    |
+|-----------|--------|-----------------------------|------------|
+| field_idx | int    | index in the list of fields | _required_ |
+
+Returns:
+    np.array, shape (z_steps+1, t_steps+1), dtype=complex
+
+### fields_area { #clerq.PropagationSolver.fields_area }
+
+```python
+PropagationSolver.fields_area()
+```
+
+Gets the integrated pulse area of each field.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                       |
+|--------|------------|-------------------------------------------------------------------|
+|        | np.ndarray | np.array [num_fields, num_z_steps]: Integrated area of each field |
+|        | np.ndarray | over time                                                         |
+
+### get_json_dict { #clerq.PropagationSolver.get_json_dict }
+
+```python
+PropagationSolver.get_json_dict()
+```
+
+Return the full problem definition as a JSON-serialisable dict.
+
+### init_Omegas_zt { #clerq.PropagationSolver.init_Omegas_zt }
+
+```python
+PropagationSolver.init_Omegas_zt()
+```
+
+Inits the Rabi frequency array.
+
+Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
+states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first.
+These are inconsistent; correcting either is a breaking API change,
+deferred to a future major version.
+
+### init_states_zt { #clerq.PropagationSolver.init_states_zt }
+
+```python
+PropagationSolver.init_states_zt()
+```
+
+Inits the system density matrices.
+
+### load_results { #clerq.PropagationSolver.load_results }
+
+```python
+PropagationSolver.load_results()
+```
+
+Loads the solution from a QuTiP pickle file.
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type       | Description                                                                    |
+|--------|------------|--------------------------------------------------------------------------------|
+|        | ValueError | if the savefile was built from a different problem definition (hash mismatch). |
+
+#### Notes {.doc-section .doc-section-notes}
+
+- The path from which the results will be loaded is taken from
+    self.savefile.
+- Old savefiles without metadata are loaded without integrity
+    checking, with a warning.
+
+### mbsolve { #clerq.PropagationSolver.mbsolve }
+
+```python
+PropagationSolver.mbsolve(*args, **kwargs)
+```
+
+Deprecated name for :meth:`PropagationSolver.solve`.
+
+### mbsolve_ab { #clerq.PropagationSolver.mbsolve_ab }
+
+```python
+PropagationSolver.mbsolve_ab(*args, **kwargs)
+```
+
+Deprecated; use :meth:`PropagationSolver.solve` with ``step="ab"``.
+
+### mbsolve_euler { #clerq.PropagationSolver.mbsolve_euler }
+
+```python
+PropagationSolver.mbsolve_euler(*args, **kwargs)
+```
+
+Deprecated; use :meth:`PropagationSolver.solve` with ``step="euler"``.
+
+### populations { #clerq.PropagationSolver.populations }
+
+```python
+PropagationSolver.populations(levels)
+```
+
+Gets the sum of populations in a list of levels.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type        | Description              | Default    |
+|--------|-------------|--------------------------|------------|
+| levels | list\[int\] | a list of level indexes] | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                           |
+|--------|------------|-------------------------------------------------------|
+|        | np.ndarray | np.array, shape (z_steps+1, t_steps+1), dtype=np.real |
+
+### populations_field { #clerq.PropagationSolver.populations_field }
+
+```python
+PropagationSolver.populations_field(field_idx, upper=True)
+```
+
+Gets the sum of populations for the upper (excited) level coupled by
+    a field.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                 | Default    |
+|-----------|--------|-----------------------------|------------|
+| field_idx | int    | index in the list of fields | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                           |
+|--------|------------|-------------------------------------------------------|
+|        | np.ndarray | np.array, shape (z_steps+1, t_steps+1), dtype=np.real |
+
+#### Note {.doc-section .doc-section-note}
+
+- Casting upper to int so upper is 1, lower is 0.
+
+### save_results { #clerq.PropagationSolver.save_results }
+
+```python
+PropagationSolver.save_results()
+```
+
+Saves the solution to a QuTiP pickle file.
+
+#### Notes {.doc-section .doc-section-notes}
+
+- The path to which the results will be saved is taken from
+    self.savefile.
+
+### solve { #clerq.PropagationSolver.solve }
+
+```python
+PropagationSolver.solve(
+    step='ab',
+    rho0=None,
+    recalc=True,
+    progress=True,
+    progress_show_area=False,
+    check_counter_prop_depletion=True,
+    depletion_warn=0.01,
+    depletion_error=0.1,
+)
+```
+
+Solves the propagation of the fields through the medium.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                         | Type   | Description                                                                                                         | Default   |
+|------------------------------|--------|---------------------------------------------------------------------------------------------------------------------|-----------|
+| step                         | str    | 'euler (for Euler method) or 'ab' (for Adams-Bashforth)                                                             | `'ab'`    |
+| rho0                         | Qobj   | the initial density matrix state                                                                                    | `None`    |
+| recalc                       | bool   | Recalculate the solution even if a savefile exists?                                                                 | `True`    |
+| progress                     | bool   | Show a tqdm progress bar with elapsed time, ETA and current max field amplitude.                                    | `True`    |
+| progress_show_area           | bool   | Extend the progress bar with the pulse area ∫\|Ω\|dt for each field at the current z-step.  Requires progress=True. | `False`   |
+| check_counter_prop_depletion | bool   | Run a post-solve depletion check on any counter-propagating fields. Set False to suppress.                          | `True`    |
+| depletion_warn               | float  | Depletion fraction that triggers a UserWarning.                                                                     | `0.01`    |
+| depletion_error              | float  | Depletion fraction that raises CounterPropagatingDepletionError.                                                    | `0.1`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                                                  |
+|--------|------------|----------------------------------------------------------------------------------------------|
+|        | np.ndarray | self.Omegas_zt: The solved field complex Rabi frequency at each point in space z and time t. |
+|        | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.               |
+
+### z_step { #clerq.PropagationSolver.z_step }
+
+```python
+PropagationSolver.z_step()
+```
+
+Returns the distance from one space point to the next.
+
+### z_step_inner { #clerq.PropagationSolver.z_step_inner }
+
+```python
+PropagationSolver.z_step_inner()
+```
+
+Returns the distance from one inner space point to the next.

@@ -1,7 +1,7 @@
-# ob_atom.OBAtom { #clerq.ob_atom.OBAtom }
+# System { #clerq.System }
 
 ```python
-ob_atom.OBAtom(
+System(
     label=None,
     num_states=1,
     energies=None,
@@ -11,45 +11,59 @@ ob_atom.OBAtom(
 )
 ```
 
+An open quantum system: its states, decays and the fields coupling them.
 
+The system can be an atom or any other few-level quantum system, such as
+a quantum dot or a colour centre.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                  | Description                                                                                                                                                                     | Default   |
+|---------------|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| label         | str \| None           | string label describing the system.                                                                                                                                             | `None`    |
+| num_states    | int                   | number of states.                                                                                                                                                               | `1`       |
+| energies      | list\[float\] \| None | absolute or relative energy levels of the states.                                                                                                                               | `None`    |
+| decays        | list\[dict\] \| None  | list of dicts representing decays. e.g. [ { "rate": 1.0, "channels": [[0,1]], "factors": [1.0] }   { "rate": 2.0, "channels": [[2,1], [3,1]],     "factors": [0.707, 0.707] } ] | `None`    |
+| initial_state | list\[float\] \| None | initial state, as a list or array                                                                                                                                               | `None`    |
+| fields        | list\[dict\] \| None  | list of dicts representing the fields that couple the system's states.                                                                                                          | `None`    |
 
 ## Methods
 
 | Name | Description |
 | --- | --- |
-| [add_field](#clerq.ob_atom.OBAtom.add_field) | Add a Field to the list given a dict representing the field. |
-| [build_fields](#clerq.ob_atom.OBAtom.build_fields) | Build the field list given a list of dicts representing fields. |
-| [build_initial_state](#clerq.ob_atom.OBAtom.build_initial_state) | Build the initial density matrix for the atom. |
-| [build_operators](#clerq.ob_atom.OBAtom.build_operators) | Build the quantum operators representing the bare Hamiltonian, |
-| [get_detunings](#clerq.ob_atom.OBAtom.get_detunings) | Returns a list of detunings, one for each field in fields. |
-| [get_fields_sum_coherence](#clerq.ob_atom.OBAtom.get_fields_sum_coherence) | Returns the sum coherences of the atom density matrix for each |
-| [set_H_Delta](#clerq.ob_atom.OBAtom.set_H_Delta) | Set the detuning part of the interaction Hamiltonian, H_Delta, |
-| [set_H_Omega](#clerq.ob_atom.OBAtom.set_H_Omega) | Set the Rabi frequency part of the interaction Hamiltonian. |
-| [to_json_str](#clerq.ob_atom.OBAtom.to_json_str) | Return a JSON string representation of the Atom object. |
+| [add_field](#clerq.System.add_field) | Add a Field to the list given a dict representing the field. |
+| [build_fields](#clerq.System.build_fields) | Build the field list given a list of dicts representing fields. |
+| [build_initial_state](#clerq.System.build_initial_state) | Build the initial density matrix for the system. |
+| [build_operators](#clerq.System.build_operators) | Build the quantum operators representing the bare Hamiltonian, |
+| [get_detunings](#clerq.System.get_detunings) | Returns a list of detunings, one for each field in fields. |
+| [get_fields_sum_coherence](#clerq.System.get_fields_sum_coherence) | Returns the sum coherences of the system density matrix for each |
+| [set_H_Delta](#clerq.System.set_H_Delta) | Set the detuning part of the interaction Hamiltonian, H_Delta, |
+| [set_H_Omega](#clerq.System.set_H_Omega) | Set the Rabi frequency part of the interaction Hamiltonian. |
+| [to_json_str](#clerq.System.to_json_str) | Return a JSON string representation of the System object. |
 
-### add_field { #clerq.ob_atom.OBAtom.add_field }
+### add_field { #clerq.System.add_field }
 
 ```python
-ob_atom.OBAtom.add_field(field_dict)
+System.add_field(field_dict)
 ```
 
 Add a Field to the list given a dict representing the field.
 
-### build_fields { #clerq.ob_atom.OBAtom.build_fields }
+### build_fields { #clerq.System.build_fields }
 
 ```python
-ob_atom.OBAtom.build_fields(field_dicts)
+System.build_fields(field_dicts)
 ```
 
 Build the field list given a list of dicts representing fields.
 
-### build_initial_state { #clerq.ob_atom.OBAtom.build_initial_state }
+### build_initial_state { #clerq.System.build_initial_state }
 
 ```python
-ob_atom.OBAtom.build_initial_state(initial_state=None)
+System.build_initial_state(initial_state=None)
 ```
 
-Build the initial density matrix for the atom.
+Build the initial density matrix for the system.
 
 The default is for all of the population to be in ``|0><0|``.
 
@@ -77,30 +91,30 @@ The default is for all of the population to be in ``|0><0|``.
 - The elements must sum to 1 (as this will be the trace of the
     density matrix).
 
-### build_operators { #clerq.ob_atom.OBAtom.build_operators }
+### build_operators { #clerq.System.build_operators }
 
 ```python
-ob_atom.OBAtom.build_operators()
+System.build_operators()
 ```
 
 Build the quantum operators representing the bare Hamiltonian,
 collapse operators and interaction Hamiltonian.
 
-### get_detunings { #clerq.ob_atom.OBAtom.get_detunings }
+### get_detunings { #clerq.System.get_detunings }
 
 ```python
-ob_atom.OBAtom.get_detunings()
+System.get_detunings()
 ```
 
 Returns a list of detunings, one for each field in fields.
 
-### get_fields_sum_coherence { #clerq.ob_atom.OBAtom.get_fields_sum_coherence }
+### get_fields_sum_coherence { #clerq.System.get_fields_sum_coherence }
 
 ```python
-ob_atom.OBAtom.get_fields_sum_coherence(states_t=None)
+System.get_fields_sum_coherence(states_t=None)
 ```
 
-Returns the sum coherences of the atom density matrix for each
+Returns the sum coherences of the system density matrix for each
     field, including the relative strength factors.
 
 #### Parameters {.doc-section .doc-section-parameters}
@@ -115,10 +129,10 @@ Returns the sum coherences of the atom density matrix for each
 |--------|------------|---------------------------------------------|
 |        | np.ndarray | np.ndarray of shape (num_fields, t_steps+1) |
 
-### set_H_Delta { #clerq.ob_atom.OBAtom.set_H_Delta }
+### set_H_Delta { #clerq.System.set_H_Delta }
 
 ```python
-ob_atom.OBAtom.set_H_Delta(detunings)
+System.set_H_Delta(detunings)
 ```
 
 Set the detuning part of the interaction Hamiltonian, H_Delta,
@@ -130,10 +144,10 @@ Set the detuning part of the interaction Hamiltonian, H_Delta,
 |-----------|---------------|-----------------------------------------------------|------------|
 | detunings | list\[float\] | list of floats: detunings of each field in the list | _required_ |
 
-### set_H_Omega { #clerq.ob_atom.OBAtom.set_H_Omega }
+### set_H_Omega { #clerq.System.set_H_Omega }
 
 ```python
-ob_atom.OBAtom.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)
+System.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)
 ```
 
 Set the Rabi frequency part of the interaction Hamiltonian.
@@ -155,16 +169,16 @@ the Hamiltonian.
 |--------|--------|-------------------------------------------------------------------|
 |        | list   | The list of Rabi frequency Hamiltonian terms, one for each field. |
 
-### to_json_str { #clerq.ob_atom.OBAtom.to_json_str }
+### to_json_str { #clerq.System.to_json_str }
 
 ```python
-ob_atom.OBAtom.to_json_str()
+System.to_json_str()
 ```
 
-Return a JSON string representation of the Atom object.
+Return a JSON string representation of the System object.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                      |
-|--------|--------|--------------------------------------------------|
-|        | str    | (string) JSON representation of the Atom object. |
+| Name   | Type   | Description                                        |
+|--------|--------|----------------------------------------------------|
+|        | str    | (string) JSON representation of the System object. |

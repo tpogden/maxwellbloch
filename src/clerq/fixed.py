@@ -11,15 +11,15 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 
-def t_list(mb_solve: MBSolve, speed_of_light: float) -> np.ndarray:
+def t_list(mb_solve: PropagationSolver, speed_of_light: float) -> np.ndarray:
     """Return the time points shifted to the fixed (lab) frame of
     reference given a speed-of-light.
 
     Args:
-        mb_solve: An MBSolve object
+        mb_solve: A PropagationSolver object
         speed_of_light: The speed of light in the system.
 
     Returns:
@@ -31,7 +31,7 @@ def t_list(mb_solve: MBSolve, speed_of_light: float) -> np.ndarray:
 
 
 def rabi_freq(
-    mb_solve: MBSolve,
+    mb_solve: PropagationSolver,
     field_idx: int,
     speed_of_light: float,
     part: str = "real",
@@ -42,7 +42,7 @@ def rabi_freq(
     abs value.
 
     Args:
-        mb_solve: An MBSolve object
+        mb_solve: A PropagationSolver object
         field_idx: The field to return
         speed_of_light: The speed of light in the system
         part: Which part of the complex field ('real' or 'abs')

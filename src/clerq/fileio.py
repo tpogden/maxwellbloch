@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-"""Save and load MBSolve result data to and from files."""
+"""Save and load PropagationSolver result data to and from files."""
 
 import numpy as np
 
 
 def save_csv_rabi_freq(mb_solve, field_idx=0, filename=None):
-    """Save the complex field Rabi frequency result for an MBSolve field.
+    """Save the complex field Rabi frequency result for a PropagationSolver field.
 
     Args:
         mb_solve :
-            The MBSolve object
+            The PropagationSolver object
         field_idx :
             The field to save
         filename :
@@ -25,11 +25,11 @@ def save_csv_rabi_freq(mb_solve, field_idx=0, filename=None):
 
 def save_csv_rabi_freq_abs(mb_solve, field_idx=0, filename=None):
     """Save the abs value of the complex field Rabi frequency result for an
-        MBSolve field.
+        PropagationSolver field.
 
     Args:
         mb_solve :
-            The MBSolve object
+            The PropagationSolver object
         field_idx :
             The field to save
         filename :

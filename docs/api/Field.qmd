@@ -1,7 +1,7 @@
-# field.Field { #clerq.field.Field }
+# Field { #clerq.Field }
 
 ```python
-field.Field(
+Field(
     label='',
     index=0,
     coupled_levels=None,
@@ -16,7 +16,7 @@ field.Field(
 )
 ```
 
-Field object to address the OBAtom object, describing the atomic levels
+Field object to address the System object, describing the atomic levels
 coupled, detuning and Rabi frequency function.
 
 ## Attributes {.doc-section .doc-section-attributes}
@@ -24,7 +24,7 @@ coupled, detuning and Rabi frequency function.
 | Name                 | Type   | Description                                                                                                                                                                                                                                                                                  |
 |----------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | label                | string | a name for the field e.g. "probe".                                                                                                                                                                                                                                                           |
-| index                | int    | index of the field, to reference within an OBAtom.                                                                                                                                                                                                                                           |
+| index                | int    | index of the field, to reference within a System.                                                                                                                                                                                                                                            |
 | coupled_levels       | list   | pairs of levels coupled by the field. e.g. [[0,1], [0,2]]                                                                                                                                                                                                                                    |
 | factors              | list   | List of strength factors for each pair in coupled levels.                                                                                                                                                                                                                                    |
 | detuning             | float  | detuning of the fields from resonance with the coupled_levels transitions.                                                                                                                                                                                                                   |
@@ -39,15 +39,15 @@ coupled, detuning and Rabi frequency function.
 
 | Name | Description |
 | --- | --- |
-| [get_json_dict](#clerq.field.Field.get_json_dict) | Return a dict representation of the Field object to be dumped to |
-| [lower_levels](#clerq.field.Field.lower_levels) | Return the unique lower (ground) level indices coupled by this field. |
-| [to_json_str](#clerq.field.Field.to_json_str) | Return a JSON string representation of the Field object. |
-| [upper_levels](#clerq.field.Field.upper_levels) | Return the unique upper (excited) level indices coupled by this field. |
+| [get_json_dict](#clerq.Field.get_json_dict) | Return a dict representation of the Field object to be dumped to |
+| [lower_levels](#clerq.Field.lower_levels) | Return the unique lower (ground) level indices coupled by this field. |
+| [to_json_str](#clerq.Field.to_json_str) | Return a JSON string representation of the Field object. |
+| [upper_levels](#clerq.Field.upper_levels) | Return the unique upper (excited) level indices coupled by this field. |
 
-### get_json_dict { #clerq.field.Field.get_json_dict }
+### get_json_dict { #clerq.Field.get_json_dict }
 
 ```python
-field.Field.get_json_dict()
+Field.get_json_dict()
 ```
 
 Return a dict representation of the Field object to be dumped to
@@ -59,10 +59,10 @@ For the rabi_freq_t_func attribute generated with
 build_rabi_freq_t_func, a suffix for the index will have been
 added. We remove that. e.g. e.g. ramp_onoff_0 -> ramp_onoff
 
-### lower_levels { #clerq.field.Field.lower_levels }
+### lower_levels { #clerq.Field.lower_levels }
 
 ```python
-field.Field.lower_levels()
+Field.lower_levels()
 ```
 
 Return the unique lower (ground) level indices coupled by this field.
@@ -73,10 +73,10 @@ Return the unique lower (ground) level indices coupled by this field.
 |--------|-------------|-----------------------------------------------------------------|
 |        | list\[int\] | Sorted list of unique indices ``c[0]`` from ``coupled_levels``. |
 
-### to_json_str { #clerq.field.Field.to_json_str }
+### to_json_str { #clerq.Field.to_json_str }
 
 ```python
-field.Field.to_json_str()
+Field.to_json_str()
 ```
 
 Return a JSON string representation of the Field object.
@@ -87,10 +87,10 @@ Return a JSON string representation of the Field object.
 |--------|--------|---------------------------------------------------|
 |        | str    | (string) JSON representation of the Field object. |
 
-### upper_levels { #clerq.field.Field.upper_levels }
+### upper_levels { #clerq.Field.upper_levels }
 
 ```python
-field.Field.upper_levels()
+Field.upper_levels()
 ```
 
 Return the unique upper (excited) level indices coupled by this field.

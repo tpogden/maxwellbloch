@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 
-def omega_abs(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
+def omega_abs(mbs: PropagationSolver, field_idx: int = 0) -> np.ndarray:
     """Return |Ω(z, t)| for *field_idx*.
 
     Returns:
@@ -19,8 +19,8 @@ def omega_abs(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
     return np.abs(mbs.Omegas_zt[field_idx])
 
 
-# TODO: make this a method of MBSolve
-def pulse_area_z(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
+# TODO: make this a method of PropagationSolver
+def pulse_area_z(mbs: PropagationSolver, field_idx: int = 0) -> np.ndarray:
     """Return the pulse area ∫|Ω(z,t)|dt / π vs z.
 
     Returns:
@@ -30,7 +30,7 @@ def pulse_area_z(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
     return np.trapezoid(Omega, mbs.tlist, axis=1) / np.pi
 
 
-def field_label(mbs: MBSolve, field_idx: int = 0) -> str:
+def field_label(mbs: PropagationSolver, field_idx: int = 0) -> str:
     """Return a display label for a field, falling back to its index."""
-    label = mbs.atom.fields[field_idx].label
+    label = mbs.system.fields[field_idx].label
     return label if label else f"field {field_idx}"

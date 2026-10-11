@@ -8,6 +8,30 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- The main classes have clearer names and are exported from the top-level package, so `import clerq` is enough:
+
+  | Before | Now |
+  |---|---|
+  | `clerq.mb_solve.MBSolve` | `clerq.PropagationSolver` |
+  | `clerq.ob_solve.OBSolve` | `clerq.LindbladSolver` |
+  | `clerq.ob_atom.OBAtom` | `clerq.System` |
+  | `clerq.field.Field` | `clerq.Field` |
+  | `MBSolve.mbsolve()`, `OBSolve.obsolve()` | `solve()` |
+  | `atom` (argument, attribute, JSON key) | `system` |
+
+  The modules are now `clerq.propagation`, `clerq.lindblad`, `clerq.system` and `clerq.system_base` (`OBBase` is
+  `SystemBase`). "System" replaces "atom" because the solvers work for any few-level open quantum system.
+- Problem definitions are written with a `system` key. A `PropagationSolver` `.qu` savefile made by an earlier version no longer matches
+  its problem definition, so it is solved again and overwritten the first time it is used.
+- `PropagationSolver` and `System` have class docstrings describing their arguments.
+
+### Deprecated
+- The old names above still work and raise a `DeprecationWarning`: the `mb_solve`, `ob_solve`, `ob_atom` and `ob_base`
+  modules and their classes, `mbsolve()`, `obsolve()`, the `atom` argument and attribute, and the `atom` key in JSON
+  problem definitions. `mbsolve_euler()` and `mbsolve_ab()` are deprecated in favour of `solve(step=...)`. They will be
+  removed in a future release. The `mbsolve` and `obsolve` command-line scripts are unchanged.
+
 ### Security
 - Lockfile updated to clear 19 Dependabot alerts in transitive docs/dev packages (`tornado`, `notebook`, `jupyterlab`,
   `urllib3`, `mistune`, `anyio`, `soupsieve`; `setuptools` dropped from the lock). None are dependencies of the

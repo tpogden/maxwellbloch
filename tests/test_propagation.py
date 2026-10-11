@@ -10,7 +10,7 @@ import unittest
 
 import numpy as np
 
-from clerq import mb_solve, spectral, t_funcs, utility
+from clerq import PropagationSolver, spectral, t_funcs, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -19,9 +19,9 @@ JSON_DIR = os.path.abspath(os.path.join(__file__, "../", "json"))
 
 class TestInit(unittest.TestCase):
     def test_init_default(self):
-        """Default MBSolve has a single-state atom, standard time/space grids."""
-        mbs = mb_solve.MBSolve()
-        self.assertEqual(mbs.atom.num_states, 1)
+        """Default PropagationSolver has a single-state atom, standard time/space grids."""
+        mbs = PropagationSolver()
+        self.assertEqual(mbs.system.num_states, 1)
         self.assertEqual(mbs.t_min, 0.0)
         self.assertEqual(mbs.t_max, 1.0)
         self.assertEqual(mbs.t_steps, 100)
@@ -31,17 +31,17 @@ class TestInit(unittest.TestCase):
 
     def test_init_from_json(self):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve.MBSolve().from_json(json_path)
+        PropagationSolver().from_json(json_path)
 
 
-class TestMBSolve(unittest.TestCase):
+class TestPropagationSolver(unittest.TestCase):
     def test_mb_solve(self):
         """Basic test of mb_solve method."""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_00 = PropagationSolver().from_json(json_path)
 
-        mb_solve_00.mbsolve()
+        mb_solve_00.solve()
 
     def test_no_atoms(self):
         """Setting the number density ampl to 0.0, i.e. no atoms. The end
@@ -49,9 +49,9 @@ class TestMBSolve(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_atoms.json")
 
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
-        mbs.mbsolve(step="euler")
+        mbs.solve(step="euler")
 
         self.assertEqual(mbs.Omegas_zt.shape, (1, 5, 101))
 
@@ -66,9 +66,9 @@ class TestMBSolve(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_atoms.json")
 
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
-        mbs.mbsolve(step="ab")
+        mbs.solve(step="ab")
 
         # Check that the field at the end of the medium matches the field
         # at the start of the medium.
@@ -81,20 +81,20 @@ class TestMBSolve(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_decays.json")
 
-        mb_solve_nd = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_nd = PropagationSolver().from_json(json_path)
 
-        mb_solve_nd.mbsolve()
+        mb_solve_nd.solve()
 
     def test_no_rabi_freq_t_func(self):
         """Empty decay list. TODO: No mbsolve, should be in init"""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_rabi_freq_t_func.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         # self.assertEqual(mbs.ob_atom.fields[0].rabi_freq_t_func,
         # t_funcs.square_1)
         self.assertDictEqual(
-            mbs.atom.fields[0].rabi_freq_t_args,
+            mbs.system.fields[0].rabi_freq_t_args,
             {"ampl_0": 1.0, "on_0": 0.0, "off_0": 1.0},
         )
 
@@ -103,8 +103,8 @@ class TestMBSolve(unittest.TestCase):
         system.
         """
         json_path = os.path.join(JSON_DIR, "mbs_two_gaussian_2pi.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
         # Input pulse is 2pi
         self.assertAlmostEqual(mbs.fields_area()[0][0] / (np.pi), 2.0, places=1)
         # Output pulse is 2pi
@@ -115,8 +115,8 @@ class TestMBSolve(unittest.TestCase):
         system.
         """
         json_path = os.path.join(JSON_DIR, "mbs_two_gaussian_2pi_n_pi.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
         # Input pulse is 2pi
         self.assertAlmostEqual(mbs.fields_area()[0][0] / (np.pi), 2.0, places=1)
         # Output pulse is 2pi
@@ -125,8 +125,8 @@ class TestMBSolve(unittest.TestCase):
     def test_two_sech_2pi(self):
         """Test of a 2pi soliton propagating through a two-level system."""
         json_path = os.path.join(JSON_DIR, "mbs_two_sech_2pi.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
         # Input pulse is 2pi
         self.assertAlmostEqual(mbs.fields_area()[0][0] / (np.pi), 2.0, places=1)
         # Output pulse is 2pi
@@ -137,8 +137,8 @@ class TestMBSolve(unittest.TestCase):
         passing n_pi.
         """
         json_path = os.path.join(JSON_DIR, "mbs_two_sech_2pi_n_pi.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
         # Input pulse is 2pi
         self.assertAlmostEqual(mbs.fields_area()[0][0] / (np.pi), 2.0, places=1)
         # Output pulse is 2pi
@@ -149,8 +149,8 @@ class TestMBSolve(unittest.TestCase):
         absorbed by the Λ medium (interaction_strength=10, decay rate=1).
         """
         json_path = os.path.join(JSON_DIR, "mbs_lambda_eit_no_coupling.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
 
         probe_area = mbs.fields_area()[0]
         transmission = probe_area[-1] / probe_area[0]
@@ -162,8 +162,8 @@ class TestMBSolve(unittest.TestCase):
         probe is substantially transmitted through the EIT window.
         """
         json_path = os.path.join(JSON_DIR, "mbs_lambda_eit_with_coupling.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
 
         probe_area = mbs.fields_area()[0]
         transmission = probe_area[-1] / probe_area[0]
@@ -174,18 +174,18 @@ class TestMBSolve(unittest.TestCase):
         """Empty velocity class dict."""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         vc = {}
 
         mbs.build_velocity_classes(vc)
-        mbs.mbsolve()
+        mbs.solve()
 
     def test_no_vel_classes_inner(self):
         """No inner delta values in dict. TODO: No mbsolve, should be init"""
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         vc = {
             "thermal_delta_min": -1.0,
@@ -195,12 +195,12 @@ class TestMBSolve(unittest.TestCase):
         }
 
         mbs.build_velocity_classes(vc)
-        mbs.mbsolve()
+        mbs.solve()
 
     def test_zero_thermal_width(self):
         """TODO: No mbsolve, should be in init"""
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         vc = {
             "thermal_delta_min": -1.0,
@@ -219,8 +219,8 @@ class TestMBSolve(unittest.TestCase):
         absorption matches the known Voigt profile.
         """
         json_path = os.path.join(JSON_DIR, "velocity-classes.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
         freq_list = spectral.freq_list(mbs)
         abs = spectral.absorption(mbs, 0, -1)
         voigt = spectral.voigt_two_linear_known(freq_list, 1.0, 0.05).imag
@@ -232,19 +232,19 @@ class TestMBSolve(unittest.TestCase):
 
 
 class TestSaveLoad(unittest.TestCase):
-    """Tests for the MBSolve save and load methods."""
+    """Tests for the PropagationSolver save and load methods."""
 
     def test_save_load_01(self):
-        """Solve a basic MBSolve problem. Save the results to file. Set the
-        results in the MBSolve object to null. Load the results from
+        """Solve a basic PropagationSolver problem. Save the results to file. Set the
+        results in the PropagationSolver object to null. Load the results from
         file and check that they equal the original values.
         """
         import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_01 = PropagationSolver().from_json(json_path)
 
-        Omegas_zt, states_zt = mb_solve_01.mbsolve()
+        Omegas_zt, states_zt = mb_solve_01.solve()
 
         with tempfile.TemporaryDirectory() as tmpdir:
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
@@ -265,9 +265,9 @@ class TestSaveLoad(unittest.TestCase):
         import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_01 = PropagationSolver().from_json(json_path)
 
-        Omegas_zt, states_zt = mb_solve_01.mbsolve()
+        Omegas_zt, states_zt = mb_solve_01.solve()
 
         with tempfile.TemporaryDirectory() as tmpdir:
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
@@ -276,7 +276,7 @@ class TestSaveLoad(unittest.TestCase):
             mb_solve_01.Omegas_zt = None
             mb_solve_01.states_zt = None
 
-            Omegas_zt, states_zt = mb_solve_01.mbsolve(recalc=False)
+            Omegas_zt, states_zt = mb_solve_01.solve(recalc=False)
 
         Omegas_zt_loaded = mb_solve_01.Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
@@ -290,8 +290,8 @@ class TestSaveLoad(unittest.TestCase):
         import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
 
         with tempfile.TemporaryDirectory() as tmpdir:
             savefile = os.path.join(tmpdir, "subdir", "nested", "result")
@@ -305,11 +305,11 @@ class TestSaveLoad(unittest.TestCase):
         import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs_a = mb_solve.MBSolve().from_json(json_path)
-        mbs_a.mbsolve()
+        mbs_a = PropagationSolver().from_json(json_path)
+        mbs_a.solve()
 
         # Build a different problem (more z_steps) and reuse the savefile from mbs_a.
-        mbs_b = mb_solve.MBSolve().from_json(json_path)
+        mbs_b = PropagationSolver().from_json(json_path)
         mbs_b.z_steps = mbs_a.z_steps + 1
         mbs_b.build_zlist(mbs_b.z_min, mbs_b.z_max, mbs_b.z_steps, mbs_b.z_steps_inner)
 
@@ -328,11 +328,11 @@ class TestSaveLoad(unittest.TestCase):
         import tempfile
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs_a = mb_solve.MBSolve().from_json(json_path)
-        mbs_a.mbsolve()
+        mbs_a = PropagationSolver().from_json(json_path)
+        mbs_a.solve()
 
         # Build a different problem and point it at mbs_a's stale savefile.
-        mbs_b = mb_solve.MBSolve().from_json(json_path)
+        mbs_b = PropagationSolver().from_json(json_path)
         mbs_b.z_steps = mbs_a.z_steps + 1
         mbs_b.build_zlist(mbs_b.z_min, mbs_b.z_max, mbs_b.z_steps, mbs_b.z_steps_inner)
 
@@ -342,7 +342,7 @@ class TestSaveLoad(unittest.TestCase):
             mbs_a.save_results()
 
             mbs_b.savefile = savefile
-            Omegas_zt, _ = mbs_b.mbsolve(recalc=False)
+            Omegas_zt, _ = mbs_b.solve(recalc=False)
 
         # Shape should reflect mbs_b's z_steps, not the stale mbs_a result.
         self.assertEqual(Omegas_zt.shape[1], mbs_b.z_steps + 1)
@@ -356,8 +356,8 @@ class TestSaveLoad(unittest.TestCase):
         import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
 
         with tempfile.TemporaryDirectory() as tmpdir:
             savefile = os.path.join(tmpdir, "result")
@@ -378,43 +378,43 @@ class TestSaveLoad(unittest.TestCase):
 
 class TestBuildZlist(unittest.TestCase):
     def test_default_zlist(self):
-        mbs = mb_solve.MBSolve()
+        mbs = PropagationSolver()
         zlist = np.linspace(0.0, 1.0, 11)
         self.assertTrue(np.allclose(mbs.zlist, zlist, rtol=1.0e-6))
 
     def test_z_step(self):
         """z_step returns (z_max - z_min) / z_steps."""
-        mbs = mb_solve.MBSolve()
+        mbs = PropagationSolver()
         self.assertAlmostEqual(mbs.z_step(), 0.1)
 
     def test_z_step_inner(self):
         """z_step_inner divides z_step by z_steps_inner."""
-        mbs = mb_solve.MBSolve()
+        mbs = PropagationSolver()
         self.assertAlmostEqual(mbs.z_step_inner(), mbs.z_step() / mbs.z_steps_inner)
 
 
 class TestCheck(unittest.TestCase):
     def test_check_passes_when_strengths_match_fields(self):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         self.assertTrue(mbs.check())
 
     def test_check_raises_when_strengths_mismatch_fields(self):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         mbs.interaction_strengths = [1.0, 2.0]  # two strengths, one field
         self.assertRaises(ValueError, mbs.check)
 
 
 class TestBuildIntpHOmegaList(unittest.TestCase):
-    """Unit tests for MBSolve._build_intp_H_Omega_list."""
+    """Unit tests for PropagationSolver._build_intp_H_Omega_list."""
 
     def test_one_field_structure(self):
         """Returns a list of [Qobj, Coefficient] pairs, one per field."""
         import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         Omegas_z = mbs.Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
@@ -428,7 +428,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
     def test_two_fields_length(self):
         """Returns one pair per field."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         Omegas_z = mbs.Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
@@ -437,9 +437,9 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
     def test_coefficient_evaluates_correctly(self):
         """Coefficient at tlist[k] equals Omegas_z[0,k].real / (2π)."""
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         # Use a non-trivial field profile
-        mbs.mbsolve()
+        mbs.solve()
         Omegas_z = mbs.Omegas_zt[:, -1, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
         _H_op, coeff = result[0]
@@ -454,7 +454,7 @@ class TestPopulations(unittest.TestCase):
     def test_twolevel_shape(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         pop_lower = mbs.populations([0])
         pop_upper = mbs.populations([1])
@@ -471,7 +471,7 @@ class TestPopulationsField(unittest.TestCase):
     def test_twolevel_shape(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
 
         pop_upper = mbs.populations_field(field_idx=0, upper=True)
         pop_lower = mbs.populations_field(field_idx=0, upper=False)
@@ -488,7 +488,7 @@ class TestCoherences(unittest.TestCase):
     def test_twolevel_shape(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         coh = mbs.coherences([[0, 1]])
 
         np.testing.assert_allclose(coh, np.zeros((mbs.z_steps + 1, mbs.t_steps + 1)))
@@ -498,17 +498,17 @@ class TestCoherencesField(unittest.TestCase):
     def test_twolevel_shape(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
+        mbs = PropagationSolver().from_json(json_path)
         coh = mbs.coherences_field(field_idx=0)
 
         np.testing.assert_allclose(coh, np.zeros((mbs.z_steps + 1, mbs.t_steps + 1)))
 
 
 class TestNormaliseVelocityClasses(unittest.TestCase):
-    """Unit tests for MBSolve._normalise_velocity_classes."""
+    """Unit tests for PropagationSolver._normalise_velocity_classes."""
 
     def setUp(self):
-        self.mbs = mb_solve.MBSolve()
+        self.mbs = PropagationSolver()
 
     def test_none_gives_all_defaults(self):
         """None input returns a dict with all default keys."""
@@ -556,10 +556,10 @@ class TestNormaliseVelocityClasses(unittest.TestCase):
 
 
 class TestBuildThermalDeltaList(unittest.TestCase):
-    """Unit tests for MBSolve._build_thermal_delta_list."""
+    """Unit tests for PropagationSolver._build_thermal_delta_list."""
 
     def setUp(self):
-        self.mbs = mb_solve.MBSolve()
+        self.mbs = PropagationSolver()
 
     def _vc(self, **kwargs):
         """Helper: build a normalised vc dict from kwargs."""
@@ -626,10 +626,10 @@ class TestZStepFields(unittest.TestCase):
 
     def setUp(self):
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        self.mbs = mb_solve.MBSolve().from_json(json_path)
+        self.mbs = PropagationSolver().from_json(json_path)
 
     def test_euler_output_shape(self):
-        n_fields = len(self.mbs.atom.fields)
+        n_fields = len(self.mbs.system.fields)
         n_t = len(self.mbs.tlist)
         Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
         sum_coh = np.zeros((n_fields, n_t), dtype=complex)
@@ -640,7 +640,7 @@ class TestZStepFields(unittest.TestCase):
 
     def test_euler_zero_coherence_is_identity(self):
         """With zero coherence the field does not change."""
-        n_fields = len(self.mbs.atom.fields)
+        n_fields = len(self.mbs.system.fields)
         n_t = len(self.mbs.tlist)
         Omegas_z = np.ones((n_fields, n_t), dtype=complex)
         sum_coh = np.zeros((n_fields, n_t), dtype=complex)
@@ -651,7 +651,7 @@ class TestZStepFields(unittest.TestCase):
 
     def test_euler_known_value(self):
         """dΩ/dz = 2i·N·g·ρ; check against hand-computed value."""
-        n_fields = len(self.mbs.atom.fields)
+        n_fields = len(self.mbs.system.fields)
         n_t = len(self.mbs.tlist)
         Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
         sum_coh = np.ones((n_fields, n_t), dtype=complex)
@@ -663,7 +663,7 @@ class TestZStepFields(unittest.TestCase):
         np.testing.assert_allclose(result[0], expected)
 
     def test_ab_output_shape(self):
-        n_fields = len(self.mbs.atom.fields)
+        n_fields = len(self.mbs.system.fields)
         n_t = len(self.mbs.tlist)
         Omegas_z = np.zeros((n_fields, n_t), dtype=complex)
         sum_coh = np.zeros((n_fields, n_t), dtype=complex)

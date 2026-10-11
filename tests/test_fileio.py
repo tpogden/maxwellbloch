@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from clerq import fileio, mb_solve
+from clerq import PropagationSolver, fileio
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -21,7 +21,7 @@ class TestSaveCSVRabiFreq(unittest.TestCase):
     def test_save_load(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
-        mb_solve_00 = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_00 = PropagationSolver().from_json(json_path)
 
         # Don't solve, just check initial state
 

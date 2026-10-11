@@ -10,13 +10,13 @@ import plotly.graph_objects as go
 from clerq.plot import theme as _theme  # noqa: F401 — registers template
 
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 _TEMPLATE = "clerq"
 
 
 def population(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     state_indices: int | list[int] | None = None,
     *,
     z_idx: int = 0,
@@ -26,7 +26,7 @@ def population(
     """Line plot of populations ρ_ii(t) at a fixed z position.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         state_indices: State index or list of indices. Defaults to all states.
         z_idx: z-step index.
         width: Figure width in pixels.
@@ -35,7 +35,7 @@ def population(
     Returns:
         plotly Figure.
     """
-    num_states = mbs.atom.num_states
+    num_states = mbs.system.num_states
     if state_indices is None:
         state_indices = list(range(num_states))
     if isinstance(state_indices, int):
@@ -62,7 +62,7 @@ def population(
 
 
 def population_spacetime(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     state_idx: int = 0,
     *,
     colorscale: str = "Viridis",
@@ -76,7 +76,7 @@ def population_spacetime(
     """Heatmap or contour plot of population ρ_ii(z, t) for a single state.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         state_idx: State index.
         colorscale: Plotly colorscale name.
         plot_type: ``"heatmap"`` (default, smoothed) or ``"contour"``.
@@ -131,7 +131,7 @@ def population_spacetime(
 
 
 def coherence(
-    mbs: MBSolve,
+    mbs: PropagationSolver,
     i: int,
     j: int,
     *,
@@ -143,7 +143,7 @@ def coherence(
     """Line plot of coherence ρ_ij(t) at a fixed z position.
 
     Args:
-        mbs: A solved MBSolve instance.
+        mbs: A solved PropagationSolver instance.
         i: Row index of the density matrix element.
         j: Column index of the density matrix element.
         z_idx: z-step index.

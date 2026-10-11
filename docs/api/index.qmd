@@ -6,15 +6,15 @@ Time-domain and spatial-propagation solvers.
 
 | | |
 | --- | --- |
-| [mb_solve.MBSolve](mb_solve.MBSolve.qmd#clerq.mb_solve.MBSolve) |  |
-| [ob_solve.OBSolve](ob_solve.OBSolve.qmd#clerq.ob_solve.OBSolve) | Time-domain master equation solver for a single spatial point. |
+| [PropagationSolver](PropagationSolver.qmd#clerq.PropagationSolver) | Solver for the propagation of fields through a medium of systems. |
+| [LindbladSolver](LindbladSolver.qmd#clerq.LindbladSolver) | Time-domain master equation solver for a single spatial point. |
 
-## Atoms and fields
+## Systems and fields
 
 | | |
 | --- | --- |
-| [ob_atom.OBAtom](ob_atom.OBAtom.qmd#clerq.ob_atom.OBAtom) |  |
-| [field.Field](field.Field.qmd#clerq.field.Field) | Field object to address the OBAtom object, describing the atomic levels |
+| [System](System.qmd#clerq.System) | An open quantum system: its states, decays and the fields coupling them. |
+| [Field](Field.qmd#clerq.Field) | Field object to address the System object, describing the atomic levels |
 
 ## Time functions
 

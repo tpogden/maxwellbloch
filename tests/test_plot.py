@@ -17,12 +17,12 @@ pytest.importorskip("plotly", reason="plotly not installed; install clerq[plot]"
 import numpy as np
 import plotly.graph_objects as go
 
-from clerq import mb_solve, plot, spectral
+from clerq import PropagationSolver, plot, spectral
 
 # Minimal two-level two-field config used by all field/state tests.
 _TWO_LEVEL_JSON = """
 {
-  "atom": {
+  "system": {
     "num_states": 2,
     "decays": [{"channels": [[0, 1]], "rate": 1.0}],
     "fields": [
@@ -49,7 +49,7 @@ _TWO_LEVEL_JSON = """
 # Three-level ladder — two fields, for spectrum_overlay test.
 _THREE_LEVEL_JSON = """
 {
-  "atom": {
+  "system": {
     "num_states": 3,
     "decays": [{"channels": [[0, 1], [1, 2]], "rate": 1.0}],
     "fields": [
@@ -82,14 +82,14 @@ _THREE_LEVEL_JSON = """
 
 
 def _solve_two_level():
-    mbs = mb_solve.MBSolve.from_json_str(_TWO_LEVEL_JSON)
-    mbs.mbsolve(recalc=True)
+    mbs = PropagationSolver.from_json_str(_TWO_LEVEL_JSON)
+    mbs.solve(recalc=True)
     return mbs
 
 
 def _solve_three_level():
-    mbs = mb_solve.MBSolve.from_json_str(_THREE_LEVEL_JSON)
-    mbs.mbsolve(recalc=True)
+    mbs = PropagationSolver.from_json_str(_THREE_LEVEL_JSON)
+    mbs.solve(recalc=True)
     return mbs
 
 
@@ -330,7 +330,7 @@ class TestPopulation(unittest.TestCase):
     def test_default_all_states(self):
         mbs = _get_mbs2()
         fig = plot.population(mbs)
-        self.assertEqual(len(fig.data), mbs.atom.num_states)
+        self.assertEqual(len(fig.data), mbs.system.num_states)
 
     def test_single_state(self):
         fig = plot.population(_get_mbs2(), state_indices=0)

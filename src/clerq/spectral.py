@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Spectral analysis of MBSolve results."""
+"""Spectral analysis of PropagationSolver results."""
 
 from __future__ import annotations
 
@@ -9,15 +9,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 
-def freq_list(mb_solve: MBSolve) -> np.ndarray:
+def freq_list(mb_solve: PropagationSolver) -> np.ndarray:
     """Fourier transform of the tlist into the frequency domain for
     spectral analysis.
 
     Args:
-        mb_solve: An MBSolve object.
+        mb_solve: A PropagationSolver object.
 
     Returns:
         Array of frequency values, length ``len(mb_solve.tlist)``.
@@ -30,12 +30,12 @@ def freq_list(mb_solve: MBSolve) -> np.ndarray:
 
 
 def rabi_freq(
-    mb_solve: MBSolve, field_idx: int, *, window: str | None = None
+    mb_solve: PropagationSolver, field_idx: int, *, window: str | None = None
 ) -> np.ndarray:
     """Fourier transform of the field result of field index.
 
     Args:
-        mb_solve: An MBSolve object.
+        mb_solve: A PropagationSolver object.
         field_idx: Field to return FFT of.
         window: Optional SciPy window name (e.g. ``'hann'``, ``'blackman'``) applied
             to the time axis before the FFT to reduce spectral leakage. ``None``
@@ -56,7 +56,7 @@ def rabi_freq(
 
 
 def absorption(
-    mb_solve: MBSolve,
+    mb_solve: PropagationSolver,
     field_idx: int,
     z_idx: int = -1,
     *,
@@ -65,7 +65,7 @@ def absorption(
     """Field absorption in the frequency domain.
 
     Args:
-        mb_solve: An MBSolve object.
+        mb_solve: A PropagationSolver object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
         window: Optional SciPy window name passed to :func:`rabi_freq`.
@@ -85,7 +85,7 @@ def absorption(
 
 
 def dispersion(
-    mb_solve: MBSolve,
+    mb_solve: PropagationSolver,
     field_idx: int,
     z_idx: int = -1,
     *,
@@ -94,7 +94,7 @@ def dispersion(
     """Field dispersion in the frequency domain.
 
     Args:
-        mb_solve: An MBSolve object.
+        mb_solve: A PropagationSolver object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
         window: Optional SciPy window name passed to :func:`rabi_freq`.

@@ -16,7 +16,7 @@ import warnings
 
 import numpy as np
 
-from clerq import mb_solve
+from clerq import PropagationSolver
 from clerq.exceptions import CounterPropagatingDepletionError
 from clerq.field import Field
 
@@ -89,7 +89,7 @@ class TestFieldCounterPropInit(unittest.TestCase):
 # so the coupling field is strong and barely depletes (OD ≈ 0.5 per unit length).
 _LADDER_BASE_JSON = """
 {
-  "atom": {
+  "system": {
     "num_states": 3,
     "decays": [{"channels": [[0, 1], [1, 2]], "rate": 1.0}],
     "fields": [
@@ -126,7 +126,7 @@ _LADDER_BASE_JSON = """
 # (no velocity classes, so Doppler shift is irrelevant).
 _LADDER_NO_CP_JSON = """
 {
-  "atom": {
+  "system": {
     "num_states": 3,
     "decays": [{"channels": [[0, 1], [1, 2]], "rate": 1.0}],
     "fields": [
@@ -166,11 +166,11 @@ class TestRegression(unittest.TestCase):
         contains only [0.0], so factor_doppler_shift multiplies zero — output is
         bit-exact regardless of the flag.
         """
-        mbs_cp = mb_solve.MBSolve.from_json_str(_LADDER_BASE_JSON)
-        mbs_no_cp = mb_solve.MBSolve.from_json_str(_LADDER_NO_CP_JSON)
+        mbs_cp = PropagationSolver.from_json_str(_LADDER_BASE_JSON)
+        mbs_no_cp = PropagationSolver.from_json_str(_LADDER_NO_CP_JSON)
 
-        mbs_cp.mbsolve(recalc=True, check_counter_prop_depletion=False)
-        mbs_no_cp.mbsolve(recalc=True, check_counter_prop_depletion=False)
+        mbs_cp.solve(recalc=True, check_counter_prop_depletion=False)
+        mbs_no_cp.solve(recalc=True, check_counter_prop_depletion=False)
 
         np.testing.assert_array_equal(mbs_cp.Omegas_zt, mbs_no_cp.Omegas_zt)
         np.testing.assert_array_equal(mbs_cp.states_zt, mbs_no_cp.states_zt)
@@ -193,7 +193,7 @@ class TestRegression(unittest.TestCase):
 def _two_level_absorber_json(interaction_strength: float) -> str:
     return f"""
 {{
-  "atom": {{
+  "system": {{
     "num_states": 2,
     "decays": [{{"channels": [[0, 1]], "rate": 1.0}}],
     "fields": [
@@ -222,10 +222,10 @@ def _two_level_absorber_json(interaction_strength: float) -> str:
 class TestDepletionCheckUndepleted(unittest.TestCase):
     def test_no_warning_at_low_od(self):
         """Weak probe at very low OD: depletion < 1%, check passes silently."""
-        mbs = mb_solve.MBSolve.from_json_str(_two_level_absorber_json(0.003))
+        mbs = PropagationSolver.from_json_str(_two_level_absorber_json(0.003))
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            mbs.mbsolve(recalc=True)
+            mbs.solve(recalc=True)
         depletion_warnings = [
             x
             for x in w
@@ -245,10 +245,10 @@ class TestDepletionCheckUndepleted(unittest.TestCase):
 class TestDepletionCheckModerate(unittest.TestCase):
     def test_warning_at_moderate_od(self):
         """Probe at moderate OD: depletion between 1% and 10%, UserWarning emitted."""
-        mbs = mb_solve.MBSolve.from_json_str(_two_level_absorber_json(0.07))
+        mbs = PropagationSolver.from_json_str(_two_level_absorber_json(0.07))
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            mbs.mbsolve(recalc=True)
+            mbs.solve(recalc=True)
         depletion_warnings = [
             x
             for x in w
@@ -274,15 +274,15 @@ class TestDepletionCheckModerate(unittest.TestCase):
 class TestDepletionCheckHeavy(unittest.TestCase):
     def test_error_at_high_od(self):
         """Probe at high OD: depletion > 10%, CounterPropagatingDepletionError raised."""
-        mbs = mb_solve.MBSolve.from_json_str(_two_level_absorber_json(0.5))
+        mbs = PropagationSolver.from_json_str(_two_level_absorber_json(0.5))
         with self.assertRaises(CounterPropagatingDepletionError):
-            mbs.mbsolve(recalc=True)
+            mbs.solve(recalc=True)
 
     def test_suppressed_with_flag(self):
         """check_counter_prop_depletion=False suppresses the error."""
-        mbs = mb_solve.MBSolve.from_json_str(_two_level_absorber_json(0.5))
+        mbs = PropagationSolver.from_json_str(_two_level_absorber_json(0.5))
         # Should not raise
-        mbs.mbsolve(recalc=True, check_counter_prop_depletion=False)
+        mbs.solve(recalc=True, check_counter_prop_depletion=False)
 
 
 # ---------------------------------------------------------------------------
@@ -295,7 +295,7 @@ class TestDepletionCheckHeavy(unittest.TestCase):
 # is chosen so that its Doppler shift exactly cancels the probe detuning for
 # the COUNTER-propagating case, while doubling it for the CO-propagating case.
 #
-# Convention in MBSolve: thermal_delta_list[j] = 2π * thermal_delta_value.
+# Convention in PropagationSolver: thermal_delta_list[j] = 2π * thermal_delta_value.
 # This is added directly to f.detuning, which _build_H_Delta multiplies by 2π.
 # So the resonance condition for counter-prop is:
 #     f.detuning + (-1) * 2π * delta = 0  →  delta = D / (2π)
@@ -315,7 +315,7 @@ def _doppler_sign_json(counter_propagating: bool) -> str:
     d = _DOPPLER_SIGN_DELTA
     return f"""
 {{
-  "atom": {{
+  "system": {{
     "num_states": 2,
     "decays": [{{"channels": [[0, 1]], "rate": 1.0}}],
     "fields": [
@@ -362,13 +362,13 @@ class TestDopplerSignCorrectness(unittest.TestCase):
         Counter-propagating should therefore give significantly more absorption.
         Numerically calibrated: counter-prop depletion / co-prop depletion ≈ 11×.
         """
-        mbs_co = mb_solve.MBSolve.from_json_str(_doppler_sign_json(False))
-        mbs_cp = mb_solve.MBSolve.from_json_str(_doppler_sign_json(True))
+        mbs_co = PropagationSolver.from_json_str(_doppler_sign_json(False))
+        mbs_cp = PropagationSolver.from_json_str(_doppler_sign_json(True))
 
-        mbs_co.mbsolve(recalc=True, check_counter_prop_depletion=False)
-        mbs_cp.mbsolve(recalc=True, check_counter_prop_depletion=False)
+        mbs_co.solve(recalc=True, check_counter_prop_depletion=False)
+        mbs_cp.solve(recalc=True, check_counter_prop_depletion=False)
 
-        def _depletion(mbs: mb_solve.MBSolve) -> float:
+        def _depletion(mbs: PropagationSolver) -> float:
             Omega = mbs.Omegas_zt[0]
             peak_zmin = np.max(np.abs(Omega[0]))
             peak_zmax = np.max(np.abs(Omega[-1]))

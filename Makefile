@@ -9,7 +9,7 @@ test_cov:
 	uv run pytest --cov -n auto
 
 bench:
-	uv run pytest tests/bench_mb_solve.py --benchmark-only --benchmark-autosave --verbose
+	uv run pytest tests/bench_propagation.py --benchmark-only --benchmark-autosave --verbose
 
 bench_max: 
 	uv run pytest tests/bench_max.py --benchmark-only  --benchmark-autosave --verbose
