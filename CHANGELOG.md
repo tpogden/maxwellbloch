@@ -13,6 +13,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   `urllib3`, `mistune`, `anyio`, `soupsieve`; `setuptools` dropped from the lock). None are dependencies of the
   installed package (`qutip`, `tqdm`), so `pip install clerq` is unaffected.
 
+## [Unreleased]
+
+### Fixed
+- Release assets: only the wheel, sdist and their attestations are attached to the GitHub release (a stray
+  `default.gitignore` from `dist/.gitignore` was included before).
+- Documentation: API page titles in the browser tab keep their case (`mb_solve.MBSolve`, not `mb_solve.mbsolve`); the
+  docstrings that produced 16 quartodoc warnings now match their signatures (`hyperfine`, `ob_atom`, `spectral`).
+
+### Changed
+- CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 added.
+
 ## [0.13.1] 2026-10-09
 
 ### Fixed

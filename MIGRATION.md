@@ -217,10 +217,10 @@ the site over HTTPS; GitHub URLs redirect; release `v0.13.0` published; CI green
 - [x] PR #278 (A5 stimulated echo): recalibrated, merged 2026-10-09 and released in 0.13.1
 - [ ] Dependabot: 19 alerts (1 critical), all transitive docs/dev packages in `uv.lock` (see the lock-upgrade PR). Dependabot PRs target `master`; consider `target-branch: next` in `.github/dependabot.yml`
 - [x] `mbsolve` and `obsolve` scripts crashed in 0.13.0 (not only `--help`): fixed in #312, with end-to-end tests, shipped in 0.13.1
-- [ ] Quarto API page titles come out lowercased (`mb_solve.mbsolve`); cosmetic
-- [ ] Release workflow attaches `default.gitignore` (uv writes `dist/.gitignore`); cosmetic: use `dist/*.whl dist/*.tar.gz` in `publish.yml`
-- [ ] quartodoc prints ~14 docstring warnings (parameters documented but not in the signature) in `ob_atom.py`, `hyperfine.py`, `spectral.py`
-- [ ] CHANGELOG has no entries between 0.9.0 and 0.12.0
+- [x] Quarto API page titles came out lowercased in the browser tab (`mb_solve.mbsolve`): fixed with `docs/_filters/pagetitle.lua`, which sets `pagetitle` from the first heading for pages without a title
+- [x] Release workflow attached `default.gitignore` (uv writes `dist/.gitignore`): `publish.yml` now lists `dist/*.whl`, `dist/*.tar.gz` and `dist/*.publish.attestation`. Takes effect, and can only be confirmed, at the next release
+- [x] quartodoc docstring warnings (16): fixed in `hyperfine.py`, `ob_atom.py`, `spectral.py` (docstrings and annotations only); `quartodoc build` is now silent
+- [x] CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 backfilled from the git history and API diffs; the 0.13.1 entry now says `obsolve` was broken since 0.10.0 and `mbsolve` since 0.11.0
 - [x] CI `bench` gate was flaky (50% tolerance vs measured run-to-run variance of up to +127% on identical code); widened to 200% in #306
 
 ## Open issues and risks
