@@ -16,16 +16,16 @@ uv sync --extra dev
 uv run pytest -n auto
 
 # Run a single test file
-uv run pytest tests/test_mb_solve.py
+uv run pytest tests/test_propagation.py
 
 # Run a single test
-uv run pytest tests/test_mb_solve.py::TestClassName::test_method_name
+uv run pytest tests/test_propagation.py::TestClassName::test_method_name
 
 # Run with coverage
 uv run pytest --cov -n auto
 
 # Run performance benchmarks
-uv run pytest tests/bench_mb_solve.py --benchmark-only
+uv run pytest tests/bench_propagation.py --benchmark-only
 
 # Lint
 uv run ruff check .
@@ -54,28 +54,34 @@ Make targets: `test`, `test_cov`, `bench`, `lint`, `format`, `format_check`, `do
 ### Class hierarchy
 
 ```
-OBBase (ob_base.py)          — QuTiP interface, operators, density matrix math
-  └── OBAtom (ob_atom.py)    — atomic system: energy levels, decay channels, coupled fields
+SystemBase (system_base.py)              — QuTiP interface, operators, density matrix math
+  └── System (system.py)                 — quantum system: energy levels, decay channels, coupled fields
 
-OBSolve (ob_solve.py)        — time-domain master equation solver (wraps qutip.mesolve)
-  └── MBSolve (mb_solve.py)  — spatial propagation through a medium
+LindbladSolver (lindblad.py)             — time-domain master equation solver (wraps qutip.mesolve)
+  └── PropagationSolver (propagation.py) — spatial propagation through a medium
 
-Field (field.py)             — a laser field coupling two atomic levels (Rabi freq, detuning)
+Field (field.py)                         — a laser field coupling two levels (Rabi freq, detuning)
 ```
 
-OBSolve holds an `OBAtom` instance as `self.atom` and delegates Hamiltonian construction to it.
+`System`, `Field`, `LindbladSolver` and `PropagationSolver` are exported from the top-level `clerq` package.
+
+LindbladSolver holds a `System` instance as `self.system` and delegates Hamiltonian construction to it.
 
 Hyperfine structure lives in `hyperfine.py` and `angmom.py` (3j/6j symbols, Clebsch-Gordan coefficients).
 
+### Deprecated names
+
+Up to 0.13.1 the classes were `OBBase`, `OBAtom`, `OBSolve` and `MBSolve` (modules `ob_base`, `ob_atom`, `ob_solve`, `mb_solve`), the solve methods were `obsolve()` and `mbsolve()`, and the system was called `atom` (constructor argument, attribute and JSON key). These all still work and raise a `DeprecationWarning`; the helpers are in `_deprecation.py` and the tests in `tests/test_deprecated.py`. Do not use them in new code. The `mbsolve` and `obsolve` command-line scripts keep their names.
+
 ### Solver flow
 
-- **OBSolve** calls `qutip.mesolve` to evolve the atomic density matrix in time for a single spatial point.
-- **MBSolve** wraps OBSolve and propagates the field through space using finite differences (Adams or Euler method). At each z-step it: (1) solves the Bloch equations, (2) reads off coherences, (3) updates the Rabi frequency for the next step.
-- Velocity classes are used for Doppler broadening: OBSolve is run independently per velocity class and results are summed.
+- **LindbladSolver** calls `qutip.mesolve` to evolve the system density matrix in time for a single spatial point (`solve()`).
+- **PropagationSolver** wraps LindbladSolver and propagates the field through space using finite differences (Adams or Euler method). At each z-step its `solve()`: (1) solves the master equation, (2) reads off coherences, (3) updates the Rabi frequency for the next step.
+- Velocity classes are used for Doppler broadening: the master equation is solved independently per velocity class and results are summed.
 
 ### Configuration
 
-Problems are defined as JSON (see `fileio.py`). `MBSolve` and `OBSolve` accept a JSON string or a dict. Test fixtures live in `tests/json/`.
+Problems are defined as JSON (see `fileio.py`). `PropagationSolver` and `LindbladSolver` accept a JSON string or a dict. Test fixtures live in `tests/json/`.
 
 ### Caching
 
@@ -116,6 +122,10 @@ git checkout next
 ```
 
 The `git push --tags` triggers the CI publish workflow to PyPI.
+
+### Worktrees
+
+Do all code changes in a dedicated git worktree cut from `next`, not in the main checkout. At the start of a task, use EnterWorktree with a branch name describing the change. Run `uv sync --extra dev` in the new worktree before running tests, since `.venv` and `.qu` caches are not shared.
 
 ## Environment
 
