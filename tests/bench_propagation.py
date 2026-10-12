@@ -10,14 +10,14 @@ Or together with regular tests:
     uv run pytest --benchmark-enable         # include benchmarks
 """
 
-from clerq import mb_solve
+from clerq import PropagationSolver
 
 # ---------------------------------------------------------------------------
 # Benchmark configs — inline dicts mirror the corresponding doc examples
 # ---------------------------------------------------------------------------
 
 TWO_LEVEL_SECH_2PI = {
-    "atom": {
+    "system": {
         "num_states": 2,
         "fields": [
             {
@@ -41,7 +41,7 @@ TWO_LEVEL_SECH_2PI = {
 }
 
 LAMBDA_EIT = {
-    "atom": {
+    "system": {
         "num_states": 3,
         "decays": [{"channels": [[0, 1], [1, 2]], "rate": 1.0}],
         "fields": [
@@ -68,7 +68,7 @@ LAMBDA_EIT = {
 }
 
 TWO_LEVEL_VELOCITY_CLASSES = {
-    "atom": {
+    "system": {
         "num_states": 2,
         "decays": [{"channels": [[0, 1]], "rate": 1.0}],
         "fields": [
@@ -110,8 +110,8 @@ def test_bench_two_level_sech_2pi(benchmark):
 
     The canonical single-field propagation benchmark.
     """
-    mbs = mb_solve.MBSolve(**TWO_LEVEL_SECH_2PI)
-    benchmark(mbs.mbsolve, recalc=True)
+    mbs = PropagationSolver(**TWO_LEVEL_SECH_2PI)
+    benchmark(mbs.solve, recalc=True)
 
 
 def test_bench_lambda_eit(benchmark):
@@ -119,8 +119,8 @@ def test_bench_lambda_eit(benchmark):
 
     Tests the more complex Hamiltonian construction and two-field propagation.
     """
-    mbs = mb_solve.MBSolve(**LAMBDA_EIT)
-    benchmark(mbs.mbsolve, recalc=True)
+    mbs = PropagationSolver(**LAMBDA_EIT)
+    benchmark(mbs.solve, recalc=True)
 
 
 def test_bench_two_level_velocity_classes(benchmark):
@@ -129,5 +129,5 @@ def test_bench_two_level_velocity_classes(benchmark):
     The most expensive path: the master equation is solved independently
     for each velocity class and results are averaged.
     """
-    mbs = mb_solve.MBSolve(**TWO_LEVEL_VELOCITY_CLASSES)
-    benchmark(mbs.mbsolve, recalc=True)
+    mbs = PropagationSolver(**TWO_LEVEL_VELOCITY_CLASSES)
+    benchmark(mbs.solve, recalc=True)

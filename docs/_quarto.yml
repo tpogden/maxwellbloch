@@ -81,12 +81,12 @@ quartodoc:
     - title: Solvers
       desc: Time-domain and spatial-propagation solvers.
       contents:
-        - mb_solve.MBSolve
-        - ob_solve.OBSolve
-    - title: Atoms and fields
+        - PropagationSolver
+        - LindbladSolver
+    - title: Systems and fields
       contents:
-        - ob_atom.OBAtom
-        - field.Field
+        - System
+        - Field
     - title: Time functions
       contents:
         - t_funcs.square

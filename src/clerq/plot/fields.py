@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 import plotly.graph_objects as go
 
+from clerq._deprecation import renamed_arg
 from clerq.plot import theme as _theme  # noqa: F401 — registers template
 from clerq.plot.utils import field_label, omega_abs, pulse_area_z
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from clerq.field import Field
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 _TEMPLATE = "clerq"
 
@@ -79,8 +80,9 @@ def field_profile(
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def field_spacetime(
-    mbs: MBSolve,
+    solver: PropagationSolver,
     field_idx: int = 0,
     *,
     colorscale: str | None = None,
@@ -93,7 +95,7 @@ def field_spacetime(
     """Heatmap or contour plot of |Ω(z, t)| for *field_idx*.
 
     Args:
-        mbs: A solved MBSolve instance.
+        solver: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         colorscale: Plotly colorscale name. Defaults to Blues for field 0,
             Greens for field 1 (cycles through _DEFAULT_COLORSCALES).
@@ -110,25 +112,25 @@ def field_spacetime(
     """
     if colorscale is None:
         colorscale = _DEFAULT_COLORSCALES[field_idx % len(_DEFAULT_COLORSCALES)]
-    label = field_label(mbs, field_idx)
+    label = field_label(solver, field_idx)
 
     if speed_of_light is not None:
         from clerq import fixed
 
-        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
-        tlist = fixed.t_list(mbs, speed_of_light)
+        Omega = fixed.rabi_freq(solver, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(solver, speed_of_light)
         x_title = "t (fixed frame)"
         title_suffix = " — fixed frame"
     else:
-        Omega = omega_abs(mbs, field_idx)
-        tlist = mbs.tlist
+        Omega = omega_abs(solver, field_idx)
+        tlist = solver.tlist
         x_title = "t (γ⁻¹)"
         title_suffix = ""
 
     _common = dict(
         z=Omega,
         x=tlist,
-        y=mbs.zlist,
+        y=solver.zlist,
         colorscale=colorscale,
         colorbar=dict(title="|Ω| (γ)"),
     )
@@ -151,8 +153,8 @@ def field_spacetime(
     fig.update_layout(
         xaxis_minallowed=float(tlist[0]),
         xaxis_maxallowed=float(tlist[-1]),
-        yaxis_minallowed=float(mbs.zlist[0]),
-        yaxis_maxallowed=float(mbs.zlist[-1]),
+        yaxis_minallowed=float(solver.zlist[0]),
+        yaxis_maxallowed=float(solver.zlist[-1]),
     )
     if show_z_bounds is not None:
         for z in show_z_bounds:
@@ -160,8 +162,9 @@ def field_spacetime(
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def field_envelope(
-    mbs: MBSolve,
+    solver: PropagationSolver,
     field_idx: int = 0,
     *,
     z_indices: int | list[int] | None = None,
@@ -172,7 +175,7 @@ def field_envelope(
     """Line plot of |Ω(t)| at one or more fixed z positions.
 
     Args:
-        mbs: A solved MBSolve instance.
+        solver: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         z_indices: z-step index or list of indices. Defaults to first and last.
         speed_of_light: If given, apply the fixed-frame transform using
@@ -183,7 +186,7 @@ def field_envelope(
     Returns:
         plotly Figure.
     """
-    label = field_label(mbs, field_idx)
+    label = field_label(solver, field_idx)
     line_color, fill_color = _DEFAULT_FIELD_COLORS[
         field_idx % len(_DEFAULT_FIELD_COLORS)
     ]
@@ -191,13 +194,13 @@ def field_envelope(
     if speed_of_light is not None:
         from clerq import fixed
 
-        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
-        tlist = fixed.t_list(mbs, speed_of_light)
+        Omega = fixed.rabi_freq(solver, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(solver, speed_of_light)
         x_title = "t (fixed frame)"
         title_suffix = " — fixed frame"
     else:
-        Omega = omega_abs(mbs, field_idx)
-        tlist = mbs.tlist
+        Omega = omega_abs(solver, field_idx)
+        tlist = solver.tlist
         x_title = "t (γ⁻¹)"
         title_suffix = ""
 
@@ -217,7 +220,7 @@ def field_envelope(
         )
     )
     for zi in z_indices:
-        z_val = mbs.zlist[zi]
+        z_val = solver.zlist[zi]
         fig.add_trace(
             go.Scatter(
                 x=tlist,
@@ -236,8 +239,9 @@ def field_envelope(
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def field_z_profile_anim(
-    mbs: MBSolve,
+    solver: PropagationSolver,
     field_idx: int = 0,
     *,
     speed_of_light: float | None = None,
@@ -250,7 +254,7 @@ def field_z_profile_anim(
     to scrub through time, or press Play to animate the pulse propagation.
 
     Args:
-        mbs: A solved MBSolve instance.
+        solver: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         speed_of_light: If given, apply the fixed-frame transform using
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
@@ -263,13 +267,13 @@ def field_z_profile_anim(
     if speed_of_light is not None:
         from clerq import fixed
 
-        Omega = fixed.rabi_freq(mbs, field_idx, speed_of_light, part="abs")
-        tlist = fixed.t_list(mbs, speed_of_light)
+        Omega = fixed.rabi_freq(solver, field_idx, speed_of_light, part="abs")
+        tlist = fixed.t_list(solver, speed_of_light)
     else:
-        Omega = omega_abs(mbs, field_idx)
-        tlist = mbs.tlist
+        Omega = omega_abs(solver, field_idx)
+        tlist = solver.tlist
 
-    label = field_label(mbs, field_idx)
+    label = field_label(solver, field_idx)
     line_color, fill_color = _DEFAULT_FIELD_COLORS[
         field_idx % len(_DEFAULT_FIELD_COLORS)
     ]
@@ -299,7 +303,7 @@ def field_z_profile_anim(
     fig = go.Figure(
         data=[
             go.Scatter(
-                x=mbs.zlist,
+                x=solver.zlist,
                 y=Omega[:, 0],
                 mode="lines",
                 line=dict(color=line_color),
@@ -376,15 +380,16 @@ def field_z_profile_anim(
         ),
     )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.zlist[0]),
-        xaxis_maxallowed=float(mbs.zlist[-1]),
+        xaxis_minallowed=float(solver.zlist[0]),
+        xaxis_maxallowed=float(solver.zlist[-1]),
         yaxis_minallowed=0.0,
     )
     return fig
 
 
+@renamed_arg("mbs", "solver")
 def pulse_area(
-    mbs: MBSolve,
+    solver: PropagationSolver,
     field_idx: int = 0,
     *,
     width: int = 700,
@@ -393,7 +398,7 @@ def pulse_area(
     """Line plot of pulse area ∫|Ω|dt / π vs z.
 
     Args:
-        mbs: A solved MBSolve instance.
+        solver: A solved PropagationSolver instance.
         field_idx: Index of the field to plot.
         width: Figure width in pixels.
         height: Figure height in pixels.
@@ -401,8 +406,8 @@ def pulse_area(
     Returns:
         plotly Figure.
     """
-    area = pulse_area_z(mbs, field_idx)
-    label = field_label(mbs, field_idx)
+    area = pulse_area_z(solver, field_idx)
+    label = field_label(solver, field_idx)
 
     line_color, fill_color = _DEFAULT_FIELD_COLORS[
         2
@@ -410,7 +415,7 @@ def pulse_area(
 
     fig = go.Figure(
         data=go.Scatter(
-            x=mbs.zlist,
+            x=solver.zlist,
             y=area,
             mode="lines",
             fill="tozeroy",
@@ -427,7 +432,7 @@ def pulse_area(
         ),
     )
     fig.update_layout(
-        xaxis_minallowed=float(mbs.zlist[0]),
-        xaxis_maxallowed=float(mbs.zlist[-1]),
+        xaxis_minallowed=float(solver.zlist[0]),
+        xaxis_maxallowed=float(solver.zlist[-1]),
     )
     return fig

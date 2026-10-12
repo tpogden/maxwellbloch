@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""Unit tests for OBBase via its OBAtom subclass.
+"""Unit tests for SystemBase via its System subclass.
 
-OBBase is not intended to be instantiated directly (num_states=0 makes its
-methods meaningless), so we exercise its methods through a minimal OBAtom
-instance, which is the direct subclass of OBBase.
+SystemBase is not intended to be instantiated directly (num_states=0 makes its
+methods meaningless), so we exercise its methods through a minimal System
+instance, which is the direct subclass of SystemBase.
 """
 
 import unittest
@@ -12,16 +12,16 @@ import unittest
 import numpy as np
 import qutip as qu
 
-from clerq import ob_atom
+from clerq import System
 
 
 def make_two_state():
-    """Return a minimal two-state OBAtom."""
-    return ob_atom.OBAtom(num_states=2)
+    """Return a minimal two-state System."""
+    return System(num_states=2)
 
 
 class TestSigma(unittest.TestCase):
-    """Tests for OBBase.sigma()."""
+    """Tests for SystemBase.sigma()."""
 
     def test_sigma_ground_to_excited(self):
         """sigma(0, 1) should be |0><1|, i.e. the raising operator."""
@@ -47,7 +47,7 @@ class TestSigma(unittest.TestCase):
 
 
 class TestSetH0(unittest.TestCase):
-    """Tests for OBBase.set_H_0()."""
+    """Tests for SystemBase.set_H_0()."""
 
     def test_empty_energies_gives_zero_hamiltonian(self):
         """Empty energy list → all-zero bare Hamiltonian."""
@@ -72,7 +72,7 @@ class TestSetH0(unittest.TestCase):
 
 
 class TestHIList(unittest.TestCase):
-    """Tests for OBBase.H_I_list() and H_I_sum()."""
+    """Tests for SystemBase.H_I_list() and H_I_sum()."""
 
     def test_H_I_list_returns_H_Omega_list(self):
         """H_I_list() should return H_Omega_list."""

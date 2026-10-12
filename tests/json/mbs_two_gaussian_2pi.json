@@ -1,5 +1,5 @@
 {
-  "atom": {
+  "system": {
     "fields": [
       {
         "coupled_levels": [[0, 1]],

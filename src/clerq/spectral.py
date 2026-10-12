@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Spectral analysis of MBSolve results."""
+"""Spectral analysis of PropagationSolver results."""
 
 from __future__ import annotations
 
@@ -8,34 +8,38 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from clerq._deprecation import renamed_arg
+
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 
-def freq_list(mb_solve: MBSolve) -> np.ndarray:
+@renamed_arg("mb_solve", "solver")
+def freq_list(solver: PropagationSolver) -> np.ndarray:
     """Fourier transform of the tlist into the frequency domain for
     spectral analysis.
 
     Args:
-        mb_solve: An MBSolve object.
+        solver: A PropagationSolver object.
 
     Returns:
-        Array of frequency values, length ``len(mb_solve.tlist)``.
+        Array of frequency values, length ``len(solver.tlist)``.
 
     """
 
-    t_step = mb_solve.tlist[1] - mb_solve.tlist[0]
-    f_list = np.fft.fftfreq(len(mb_solve.tlist), t_step)  # FFT Freq
+    t_step = solver.tlist[1] - solver.tlist[0]
+    f_list = np.fft.fftfreq(len(solver.tlist), t_step)  # FFT Freq
     return np.fft.fftshift(f_list)
 
 
+@renamed_arg("mb_solve", "solver")
 def rabi_freq(
-    mb_solve: MBSolve, field_idx: int, *, window: str | None = None
+    solver: PropagationSolver, field_idx: int, *, window: str | None = None
 ) -> np.ndarray:
     """Fourier transform of the field result of field index.
 
     Args:
-        mb_solve: An MBSolve object.
+        solver: A PropagationSolver object.
         field_idx: Field to return FFT of.
         window: Optional SciPy window name (e.g. ``'hann'``, ``'blackman'``) applied
             to the time axis before the FFT to reduce spectral leakage. ``None``
@@ -46,7 +50,7 @@ def rabi_freq(
 
     """
 
-    data = mb_solve.Omegas_zt[field_idx]
+    data = solver.Omegas_zt[field_idx]
     if window is not None:
         from scipy.signal import windows as _sig_windows
 
@@ -55,8 +59,9 @@ def rabi_freq(
     return np.fft.fftshift(np.fft.fft(data, axis=1), axes=1)
 
 
+@renamed_arg("mb_solve", "solver")
 def absorption(
-    mb_solve: MBSolve,
+    solver: PropagationSolver,
     field_idx: int,
     z_idx: int = -1,
     *,
@@ -65,7 +70,7 @@ def absorption(
     """Field absorption in the frequency domain.
 
     Args:
-        mb_solve: An MBSolve object.
+        solver: A PropagationSolver object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
         window: Optional SciPy window name passed to :func:`rabi_freq`.
@@ -79,13 +84,14 @@ def absorption(
         See TP Ogden thesis Eqn (2.58)
     """
 
-    rabi_freq_abs = np.abs(rabi_freq(mb_solve, field_idx, window=window))
+    rabi_freq_abs = np.abs(rabi_freq(solver, field_idx, window=window))
 
     return -np.log(rabi_freq_abs[z_idx] / rabi_freq_abs[0])
 
 
+@renamed_arg("mb_solve", "solver")
 def dispersion(
-    mb_solve: MBSolve,
+    solver: PropagationSolver,
     field_idx: int,
     z_idx: int = -1,
     *,
@@ -94,7 +100,7 @@ def dispersion(
     """Field dispersion in the frequency domain.
 
     Args:
-        mb_solve: An MBSolve object.
+        solver: A PropagationSolver object.
         field_idx: Field to return spectrum of.
         z_idx: z step at which to return absorption.
         window: Optional SciPy window name passed to :func:`rabi_freq`.
@@ -106,7 +112,7 @@ def dispersion(
         See TP Ogden Thesis Eqn (2.59)
     """
 
-    Omega_freq_angle = np.angle(rabi_freq(mb_solve, field_idx, window=window))
+    Omega_freq_angle = np.angle(rabi_freq(solver, field_idx, window=window))
 
     return Omega_freq_angle[0] - Omega_freq_angle[z_idx]
 

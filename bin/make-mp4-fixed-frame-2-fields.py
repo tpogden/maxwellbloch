@@ -16,11 +16,11 @@ import seaborn as sns
 from matplotlib import animation
 from scipy.ndimage import zoom
 
-from clerq import fixed, mb_solve
+from clerq import PropagationSolver, fixed
 
 # Parse filename
 parser = argparse.ArgumentParser(
-    description="Takes an MBSolve problem \
+    description="Takes a PropagationSolver problem \
     defined in a JSON file and outputs an MP4 video showing the propagation."
 )
 parser.add_argument("-f", "--file", help="Path of input file.", required=True)
@@ -91,9 +91,9 @@ show_c_line = opts.c_line
 show_peak_line = opts.peak_line
 
 
-mb_solve_00 = mb_solve.MBSolve().from_json(json_file)
+mb_solve_00 = PropagationSolver().from_json(json_file)
 
-mb_solve_00.mbsolve(recalc=False)
+mb_solve_00.solve(recalc=False)
 
 ### PLOT FIRST
 
@@ -182,11 +182,11 @@ ax1.set_ylim((y_min, y_max_1))
 
 ax.set_xlabel("Distance ($L$)")
 ax.set_ylabel(
-    r"{0} Rabi Freq ($\Gamma / 2\pi $)".format(mb_solve_00.atom.fields[0].label),
+    r"{0} Rabi Freq ($\Gamma / 2\pi $)".format(mb_solve_00.system.fields[0].label),
     color=pal[2],
 )
 ax1.set_ylabel(
-    r"{0} Rabi Freq ($\Gamma / 2\pi $)".format(mb_solve_00.atom.fields[1].label),
+    r"{0} Rabi Freq ($\Gamma / 2\pi $)".format(mb_solve_00.system.fields[1].label),
     color=pal[3],
 )
 

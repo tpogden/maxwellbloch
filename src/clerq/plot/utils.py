@@ -6,31 +6,36 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from clerq._deprecation import renamed_arg
+
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 
-def omega_abs(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
+@renamed_arg("mbs", "solver")
+def omega_abs(solver: PropagationSolver, field_idx: int = 0) -> np.ndarray:
     """Return |Ω(z, t)| for *field_idx*.
 
     Returns:
         Array of shape (z_steps+1, t_steps+1).
     """
-    return np.abs(mbs.Omegas_zt[field_idx])
+    return np.abs(solver.Omegas_zt[field_idx])
 
 
-# TODO: make this a method of MBSolve
-def pulse_area_z(mbs: MBSolve, field_idx: int = 0) -> np.ndarray:
+# TODO: make this a method of PropagationSolver
+@renamed_arg("mbs", "solver")
+def pulse_area_z(solver: PropagationSolver, field_idx: int = 0) -> np.ndarray:
     """Return the pulse area ∫|Ω(z,t)|dt / π vs z.
 
     Returns:
         Array of shape (z_steps+1,) in units of π.
     """
-    Omega = omega_abs(mbs, field_idx)
-    return np.trapezoid(Omega, mbs.tlist, axis=1) / np.pi
+    Omega = omega_abs(solver, field_idx)
+    return np.trapezoid(Omega, solver.tlist, axis=1) / np.pi
 
 
-def field_label(mbs: MBSolve, field_idx: int = 0) -> str:
+@renamed_arg("mbs", "solver")
+def field_label(solver: PropagationSolver, field_idx: int = 0) -> str:
     """Return a display label for a field, falling back to its index."""
-    label = mbs.atom.fields[field_idx].label
+    label = solver.system.fields[field_idx].label
     return label if label else f"field {field_idx}"

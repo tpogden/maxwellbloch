@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Unit tests for the OBSolve class.
+Unit tests for the LindbladSolver class.
 
 Thomas Ogden <t@ogden.eu>
 
@@ -12,7 +12,7 @@ import unittest
 
 import numpy as np
 
-from clerq import ob_solve, t_funcs
+from clerq import LindbladSolver, t_funcs
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -20,7 +20,7 @@ JSON_DIR = os.path.abspath(os.path.join(__file__, "../", "json"))
 
 JSON_STR_02 = (
     "{"
-    '  "atom": {'
+    '  "system": {'
     '    "decays": ['
     '      { "channels": [[0,1], [1,2]], '
     '        "rate": 1.0'
@@ -70,7 +70,7 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
         set.
         """
 
-        ob_solve_02 = ob_solve.OBSolve().from_json_str(JSON_STR_02)
+        ob_solve_02 = LindbladSolver().from_json_str(JSON_STR_02)
 
         def two_pulse_t_func(t, args):
             return t_funcs.gaussian(0)(t, args) + t_funcs.gaussian(1)(t, args)
@@ -87,7 +87,7 @@ class TestSetFieldRabiTFunc(unittest.TestCase):
         ob_solve_02.set_field_rabi_freq_t_func(0, two_pulse_t_func)
         ob_solve_02.set_field_rabi_freq_t_args(0, two_pulse_t_args)
 
-        field_0 = ob_solve_02.atom.fields[0]
+        field_0 = ob_solve_02.system.fields[0]
 
         self.assertAlmostEqual(
             field_0.rabi_freq_t_func(0.0, field_0.rabi_freq_t_args), 1.0
@@ -113,8 +113,8 @@ class TestSolve(unittest.TestCase):
             "fields": [{"coupled_levels": [[0, 1]], "rabi_freq": RABI_FREQ}],
             "num_states": 2,
         }
-        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
-        obs.obsolve()
+        obs = LindbladSolver(system=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
+        obs.solve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -147,14 +147,14 @@ class TestSolve(unittest.TestCase):
             "num_states": 2,
             "initial_state": [1.0, 0.0],
         }
-        obs = ob_solve.OBSolve(
-            atom=atom_dict,
+        obs = LindbladSolver(
+            system=atom_dict,
             t_min=0.0,
             t_max=1.0,
             t_steps=100,
             opts={"atol": 1e-6, "rtol": 1e-4},
         )
-        obs.obsolve()
+        obs.solve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -188,8 +188,8 @@ class TestSolve(unittest.TestCase):
             "num_states": 2,
             "initial_state": [0.0, 1.0],
         }
-        obs = ob_solve.OBSolve(atom=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
-        obs.obsolve()
+        obs = LindbladSolver(system=atom_dict, t_min=0.0, t_max=1.0, t_steps=100)
+        obs.solve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -214,8 +214,8 @@ class TestSolve(unittest.TestCase):
         """
 
         json_path = os.path.join(JSON_DIR, "obs-two-two-fields.json")
-        obs = ob_solve.OBSolve().from_json(json_path)
-        obs.obsolve()
+        obs = LindbladSolver().from_json(json_path)
+        obs.solve()
 
         # Get the populations
         pop_0 = np.absolute(obs.states_t()[:, 0, 0])
@@ -251,22 +251,22 @@ class TestSolve(unittest.TestCase):
         """
 
         json_path = os.path.join(JSON_DIR, "obs-vee-cw-weak-sech-2pi.json")
-        obs = ob_solve.OBSolve().from_json(json_path)
+        obs = LindbladSolver().from_json(json_path)
         # Test that solve does not throw any exceptions.
-        obs.obsolve()
+        obs.solve()
 
 
 class TestJSON(unittest.TestCase):
     def test_to_from_json_str_00(self):
 
-        ob_solve_00 = ob_solve.OBSolve()
-        ob_solve_01 = ob_solve.OBSolve.from_json_str(ob_solve_00.to_json_str())
+        ob_solve_00 = LindbladSolver()
+        ob_solve_01 = LindbladSolver.from_json_str(ob_solve_00.to_json_str())
 
         self.assertEqual(ob_solve_00.to_json_str(), ob_solve_01.to_json_str())
 
     def test_from_json_str(self):
 
-        ob_solve_02 = ob_solve.OBSolve().from_json_str(JSON_STR_02)
+        ob_solve_02 = LindbladSolver().from_json_str(JSON_STR_02)
 
         self.assertEqual(ob_solve_02.t_min, 0.0)
         self.assertEqual(ob_solve_02.t_max, 1.0)
@@ -277,8 +277,8 @@ class TestJSON(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "ob_solve_03.json")
 
-        obs = ob_solve.OBSolve().from_json(json_path)
-        obs_test = ob_solve.OBSolve.from_json_str(obs.to_json_str())
+        obs = LindbladSolver().from_json(json_path)
+        obs_test = LindbladSolver.from_json_str(obs.to_json_str())
 
         self.assertEqual(obs.to_json_str(), obs_test.to_json_str())
 
@@ -288,30 +288,30 @@ class TestJSON(unittest.TestCase):
 
         filepath = "test_ob_solve_02.json"
 
-        ob_solve_02 = ob_solve.OBSolve().from_json_str(JSON_STR_02)
+        ob_solve_02 = LindbladSolver().from_json_str(JSON_STR_02)
 
         ob_solve_02.to_json(filepath)
 
-        ob_solve_03 = ob_solve.OBSolve().from_json(filepath)
+        ob_solve_03 = LindbladSolver().from_json(filepath)
         os.remove(filepath)
 
         self.assertEqual(ob_solve_02.to_json_str(), ob_solve_03.to_json_str())
 
 
 class TestSaveLoad(unittest.TestCase):
-    """Tests for the OBSolve save and load methods."""
+    """Tests for the LindbladSolver save and load methods."""
 
     def test_save_load_01(self):
-        """Solve a basic OBSolve problem. Save the results to file. Set the
-        results in the OBSolve object to null. Load the results from file
+        """Solve a basic LindbladSolver problem. Save the results to file. Set the
+        results in the LindbladSolver object to null. Load the results from file
         and check that they match the original values.
         """
 
         json_path = os.path.join(JSON_DIR, "ob_solve_02.json")
-        ob_solve_02 = ob_solve.OBSolve().from_json(json_path)
+        ob_solve_02 = LindbladSolver().from_json(json_path)
 
-        states_t = ob_solve_02.obsolve()
+        states_t = ob_solve_02.solve()
 
-        states_t_loaded = ob_solve_02.obsolve(recalc=False)
+        states_t_loaded = ob_solve_02.solve(recalc=False)
 
         self.assertTrue((states_t == states_t_loaded).all())

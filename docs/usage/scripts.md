@@ -4,7 +4,7 @@ Scripts are provided for producing MP4 and GIF movies showing propagation.
 
 ### `make-mp4-fixed-frame.py`
 
-This Python script takes an MBSolve problem defined in a JSON file and outputs
+This Python script takes a PropagationSolver problem defined in a JSON file and outputs
 an MP4 video showing the propagation.
 
 ```sh

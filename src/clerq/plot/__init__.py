@@ -11,10 +11,10 @@ for static PNG export (requires kaleido).
 
 Example::
 
-    from clerq import mb_solve, plot
+    from clerq import PropagationSolver, plot
 
-    mbs = mb_solve.MBSolve.from_json_str(...)
-    mbs.mbsolve()
+    mbs = PropagationSolver.from_json_str(...)
+    mbs.solve()
 
     fig = plot.field_spacetime(mbs)
     fig.show(renderer='notebook_connected')

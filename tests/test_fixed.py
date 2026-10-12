@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Unit tests for the fixed module for returning MBSolve results in the fixed
+"""Unit tests for the fixed module for returning PropagationSolver results in the fixed
 frame of reference.
 """
 
@@ -9,7 +9,7 @@ import unittest
 
 import numpy as np
 
-from clerq import fixed, mb_solve
+from clerq import PropagationSolver, fixed
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -23,7 +23,7 @@ class TestTlist(unittest.TestCase):
         """When the speed of light is 1.5, for t_max = 1.0 and z_max = 1.0,
         the t_max_fixed should be 1 + 1/1.5 = 5/3."""
 
-        mb_solve_00 = mb_solve.MBSolve()
+        mb_solve_00 = PropagationSolver()
 
         speed_of_light = 1.5  # speed of light
         t_max_fixed_expected = mb_solve_00.t_max + 1 / (
@@ -41,9 +41,9 @@ class TestRabiFreqAbs(unittest.TestCase):
     def test_rabi_freq_abs(self):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_no_atoms.json")
-        mb_solve_01 = mb_solve.MBSolve().from_json(json_path)
+        mb_solve_01 = PropagationSolver().from_json(json_path)
 
-        mb_solve_01.mbsolve(recalc=False)
+        mb_solve_01.solve(recalc=False)
 
         speed_of_light = 0.5
 

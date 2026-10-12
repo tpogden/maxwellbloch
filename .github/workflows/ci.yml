@@ -53,7 +53,7 @@ jobs:
           else
             COMPARE=""
           fi
-          uv run pytest tests/bench_mb_solve.py::test_bench_two_level_sech_2pi \
+          uv run pytest tests/bench_propagation.py::test_bench_two_level_sech_2pi \
             --benchmark-only \
             --benchmark-save=ci \
             $COMPARE
