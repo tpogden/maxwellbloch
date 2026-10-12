@@ -16,7 +16,7 @@ Legend: `[x]` done · `[ ]` to do · 👤 you must do it (external or credential
 - [x] 0.1 Reserve `clerq` on PyPI 👤: `clerq 0.0.0` live, verified 2026-10-09
 - [x] 0.2 Decisions locked (see plan): continue `0.x.y`, rename in place, ~~`freeze: auto`~~ (replaced by outputs stored in the notebooks), shim, new Zenodo DOI
 - [x] 0.3 `clerq.org` DNS points at GitHub Pages 👤: apex A records `185.199.108–111.153` and `www` CNAME to `tpogden.github.io`, verified 2026-10-09 (MX left as Hover mail forwarding)
-- [ ] 0.4 Revoke the account-wide PyPI token used for the stub; create a `clerq`-scoped token for Phase 4 👤
+- [x] 0.4 Revoke the account-wide PyPI token used for the stub 👤: revoked (confirmed 2026-10-12). The planned `clerq`-scoped token was never needed: the releases publish through PyPI trusted publishing (OIDC, `publish.yml` + the `pypi` environment), so CI holds no PyPI secret
 - [x] 0.5 Batch an API cleanup into the rename release? Decided no: the rename was a no-op at the API level (the breaking change was the separate factor-of-2 fix)
 
 ## Phase 1: Quarto build (local)
