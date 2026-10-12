@@ -109,7 +109,7 @@ git checkout -b my-feature-branch
 gh pr create --base next --title "..." --body "..."
 ```
 
-### Release notes
+### Release Notes
 
 `docs/release-notes.qmd` is the user-readable version of `CHANGELOG.md`. When a PR adds a CHANGELOG entry, update the
 matching section of the release notes (the "Unreleased" section until a release is cut, then retitle it with the version

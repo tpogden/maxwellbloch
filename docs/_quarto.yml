@@ -32,7 +32,7 @@ website:
       - {href: usage/two-level.ipynb, text: Usage}
       - {href: examples/index.qmd, text: Examples}
       - {href: api/index.qmd, text: API}
-      - {href: release-notes.qmd, text: Release notes}
+      - {href: release-notes.qmd, text: Release Notes}
       - {href: support/troubleshooting.md, text: Support}
   sidebar:
     - id: usage

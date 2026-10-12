@@ -1,5 +1,5 @@
 ---
-title: "Release notes"
+title: "Release Notes"
 description: "What changed in each version of clerq, and what you need to do about it."
 toc: true
 toc-depth: 2
