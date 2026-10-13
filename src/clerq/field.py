@@ -19,9 +19,13 @@ class Field(object):
         factors (list): List of strength factors for each pair in coupled
             levels. Each is the (signed) dipole matrix element of the pair
             relative to the reference transition, e.g. a Clebsch-Gordan
-            coefficient, so the squares sum to the line strength. The same
-            factor scales the pair's coupling in the Hamiltonian and its
-            coherence in the field's source term.
+            coefficient. The same factor scales the pair's coupling in the
+            Hamiltonian and its coherence in the field's source term, so a
+            weak probe is absorbed in proportion to the sum of the squared
+            factors over the pairs. For a single polarisation these are the
+            Clebsch-Gordan coefficients and the sum is the line strength; an
+            isotropic field (``get_clebsch_hf_factors_iso``) has factors
+            divided by sqrt(3), so the sum is a third of it.
         detuning (float): detuning of the fields from resonance with the
             coupled_levels transitions.
         detuning_positive (bool): is the detuning positive?

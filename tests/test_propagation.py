@@ -926,3 +926,84 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
                 self.assertGreater(lost, 0.1)
                 # The z-discretisation error is first order: about 1.5% here.
                 self.assertAlmostEqual(gained / lost, 1.0, delta=0.03)
+
+
+class TestSourceWeightsSavefile(unittest.TestCase):
+    """Results solved with the old factor**2 source weights are stale unless
+    all the field factors are 1, so they are not loaded."""
+
+    def _solver(self, system, savefile):
+        mbs = PropagationSolver(
+            system=system,
+            t_min=0.0,
+            t_max=1.0,
+            t_steps=20,
+            z_min=0.0,
+            z_max=0.1,
+            z_steps=4,
+            z_steps_inner=1,
+            num_density_z_func="square",
+            num_density_z_args={"on": 0.0, "off": 0.1, "ampl": 1.0},
+            interaction_strengths=[1.0],
+            savefile=savefile,
+        )
+        return mbs
+
+    def _write_old_savefile(self, mbs, savefile, legacy):
+        import qutip as qu
+
+        mbs.solve()
+        if legacy:
+            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+        else:
+            meta = mbs._savefile_metadata()
+            del meta["source_weights"]  # as written before the weights changed
+            qu.qsave((mbs.Omegas_zt, mbs.states_zt, meta), savefile)
+
+    def test_current_savefile_loads(self):
+        import tempfile
+
+        system, _, _ = _j_to_j_system(0.5, 0.5, "x", rabi_freq=1.0e-3)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mbs = self._solver(system, os.path.join(tmpdir, "result"))
+            mbs.solve()
+            mbs.load_results()
+
+    def test_old_savefile_with_nonunit_factors_rejected(self):
+        import tempfile
+
+        system, factors, _ = _j_to_j_system(0.5, 0.5, "x", rabi_freq=1.0e-3)
+        self.assertTrue(np.any(factors != 1.0))
+        for legacy in (False, True):
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as tmpdir:
+                savefile = os.path.join(tmpdir, "result")
+                mbs = self._solver(system, savefile)
+                self._write_old_savefile(mbs, savefile, legacy)
+                with self.assertRaises(ValueError):
+                    mbs.load_results()
+                # solve() recalculates rather than using the stale results,
+                # and writes a savefile that loads.
+                mbs.solve(recalc=False)
+                mbs.load_results()
+
+    def test_old_savefile_with_unit_factors_loads(self):
+        import tempfile
+
+        system = {
+            "num_states": 2,
+            "decays": [{"rate": 1.0, "channels": [[0, 1]], "factors": [1.0]}],
+            "initial_state": [1.0, 0.0],
+            "fields": [
+                {
+                    "coupled_levels": [[0, 1]],
+                    "factors": [1.0],
+                    "detuning": 0.0,
+                    "rabi_freq": 1.0e-3,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "result")
+            mbs = self._solver(system, savefile)
+            self._write_old_savefile(mbs, savefile, legacy=False)
+            mbs.load_results()

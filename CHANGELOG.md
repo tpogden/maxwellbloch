@@ -18,6 +18,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   antisymmetric factors with `sum(factor**3) = 0` and so passed through the medium unchanged, now absorbs.
   The Rb87 hyperfine example notebooks and `usage/structure` are recalibrated (interaction strengths scaled by the
   field factor, e.g. 250 -> 72 and 50 -> 14, rounded) so they show the same physical picture as before, and re-executed.
+  Cached `.qu` results solved with the old weights are not reused when a field has factors other than 1: `solve()`
+  recalculates them, and `load_results()` raises a `ValueError`.
 - Velocity classes (Doppler broadening) detuned the Hamiltonian by 2π times too much. `thermal_delta_*` and
   `thermal_width` are cyclic frequencies like the `decay` rates and `rabi_freq`s (as documented), and the weights
   already used them that way, but the angular `thermal_delta_list` was passed to `set_H_Delta`, which expects cyclic

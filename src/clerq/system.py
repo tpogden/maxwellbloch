@@ -290,7 +290,7 @@ class System(system_base.SystemBase):
         for f in self.fields:
             self._sum_coh_rows.append(np.array([cl[0] for cl in f.coupled_levels]))
             self._sum_coh_cols.append(np.array([cl[1] for cl in f.coupled_levels]))
-            self._sum_coh_weights.append(np.array(f.factors, dtype=complex))
+            self._sum_coh_weights.append(np.asarray(f.factors, dtype=float))
 
     def get_fields_sum_coherence(
         self, states_t: np.ndarray | None = None
