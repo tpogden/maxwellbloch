@@ -16,7 +16,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   factors are all 1 are unchanged. Hyperfine and multi-transition problems change: the absorption is stronger by
   the ratio `sum(factor**2) / sum(factor**3)`, and a linearly polarised field on a `J=1 -> 2` manifold, which had
   antisymmetric factors with `sum(factor**3) = 0` and so passed through the medium unchanged, now absorbs.
-  The Rb87 hyperfine example notebooks need re-executing (`make docs_execute`).
+  The Rb87 hyperfine example notebooks and `usage/structure` are recalibrated (interaction strengths scaled by the
+  field factor, e.g. 250 -> 72 and 50 -> 14, rounded) so they show the same physical picture as before, and re-executed.
 
 ### Changed
 - The main classes have clearer names and are exported from the top-level package, so `import clerq` is enough:
