@@ -295,19 +295,18 @@ class TestDepletionCheckHeavy(unittest.TestCase):
 # is chosen so that its Doppler shift exactly cancels the probe detuning for
 # the COUNTER-propagating case, while doubling it for the CO-propagating case.
 #
-# Convention in PropagationSolver: thermal_delta_list[j] = 2π * thermal_delta_value.
-# This is added directly to f.detuning, which _build_H_Delta multiplies by 2π.
-# So the resonance condition for counter-prop is:
-#     f.detuning + (-1) * 2π * delta = 0  →  delta = D / (2π)
+# Convention in PropagationSolver: thermal_delta_* are cyclic frequencies, in
+# the same units as the field `detuning`. A velocity class with value delta
+# shifts each field's detuning by delta * factor_doppler_shift, so the
+# resonance condition for counter-prop is:
+#     f.detuning + (-1) * delta = 0  →  delta = D
 #
-# At delta = D/(2π) ≈ 0.159 * D:
-#   co-prop:      eff_detuning ≈ D + D = 2D  →  off resonance → low absorption
-#   counter-prop: eff_detuning ≈ D - D = 0   →  on resonance  → high absorption
-#
-# Numerically calibrated: counter-prop gives ~11x more absorption than co-prop.
+# At delta = D:
+#   co-prop:      eff_detuning = D + D = 2D  →  off resonance → low absorption
+#   counter-prop: eff_detuning = D - D = 0   →  on resonance  → high absorption
 
 _DOPPLER_SIGN_D = 1.0  # probe detuning in γ units
-_DOPPLER_SIGN_DELTA = _DOPPLER_SIGN_D / (2.0 * np.pi)  # single velocity class value
+_DOPPLER_SIGN_DELTA = _DOPPLER_SIGN_D  # single velocity class value
 
 
 def _doppler_sign_json(counter_propagating: bool) -> str:
@@ -355,9 +354,9 @@ class TestDopplerSignCorrectness(unittest.TestCase):
     def test_counter_prop_increases_absorption_at_resonance(self):
         """Counter-propagating flag flips the Doppler sign, bringing probe on resonance.
 
-        With probe detuning D and a single velocity class at delta = D/(2π):
-        - Co-propagating:      effective detuning = D + 2π*(D/2π) =  2D (off resonance)
-        - Counter-propagating: effective detuning = D - 2π*(D/2π) =  0  (on resonance)
+        With probe detuning D and a single velocity class at delta = D:
+        - Co-propagating:      effective detuning = D + D =  2D (off resonance)
+        - Counter-propagating: effective detuning = D - D =  0  (on resonance)
 
         Counter-propagating should therefore give significantly more absorption.
         Numerically calibrated: counter-prop depletion / co-prop depletion ≈ 11×.

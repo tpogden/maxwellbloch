@@ -18,6 +18,18 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   antisymmetric factors with `sum(factor**3) = 0` and so passed through the medium unchanged, now absorbs.
   The Rb87 hyperfine example notebooks and `usage/structure` are recalibrated (interaction strengths scaled by the
   field factor, e.g. 250 -> 72 and 50 -> 14, rounded) so they show the same physical picture as before, and re-executed.
+- Velocity classes (Doppler broadening) detuned the Hamiltonian by 2π times too much. `thermal_delta_*` and
+  `thermal_width` are cyclic frequencies like the `decay` rates and `rabi_freq`s (as documented), and the weights
+  already used them that way, but the angular `thermal_delta_list` was passed to `set_H_Delta`, which expects cyclic
+  detunings and multiplies by 2π again. A class at `thermal_delta = x` now detunes the field by `x`, so the Gaussian of
+  width `thermal_width` is the physical lineshape. **This changes the numerical results of every problem with
+  `velocity_classes`**: the old behaviour is equivalent to a `thermal_width` and `thermal_delta_*` that are 2π times
+  larger, so multiply them by 2π to reproduce an old result.
+- `spectral.voigt_two_linear_known` took `thermal_width` as 2π times the Gaussian width its docstring describes, which
+  matched the bug above. It now agrees with a direct convolution of the Lorentzian with `exp(-(f / thermal_width)**2)`.
+- Examples recalibrated: the two-pulse and stimulated photon echoes use `thermal_width = 0.94` (was `0.15`) to keep the
+  same Doppler width; the other velocity-class notebooks keep their parameters, now with the Doppler widths their
+  text describes.
 
 ### Changed
 - The main classes have clearer names and are exported from the top-level package, so `import clerq` is enough:

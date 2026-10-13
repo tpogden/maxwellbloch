@@ -11,11 +11,11 @@ describes the absorption lineshape for a thermal two-level system.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name          | Type       | Description                                                            | Default    |
-|---------------|------------|------------------------------------------------------------------------|------------|
-| freq_list     | np.ndarray | List of frequency detunings from resonance (in 2pi Gamma).             | _required_ |
-| decay_rate    | float      | Spontaneous decay rate of the transition (in 2pi Gamma).               | _required_ |
-| thermal_width | float      | Width of the lineshape in the same units as decay rate (in 2pi Gamma). | _required_ |
+| Name          | Type       | Description                                                                                                                                                            | Default    |
+|---------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| freq_list     | np.ndarray | List of frequency detunings from resonance (in 2pi Gamma).                                                                                                             | _required_ |
+| decay_rate    | float      | Spontaneous decay rate of the transition (in 2pi Gamma).                                                                                                               | _required_ |
+| thermal_width | float      | Doppler width, in the same units as decay rate (in 2pi Gamma): the Gaussian is ``exp(-(freq / thermal_width)**2)``, so its FWHM is ``2 * sqrt(ln 2) * thermal_width``. | _required_ |
 
 ## Notes {.doc-section .doc-section-notes}
 
