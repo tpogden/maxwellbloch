@@ -64,19 +64,26 @@ def solve_slice(
     atol=1e-12,
     adjoint=None,
     max_steps=1_000_000,
+    n_steps=None,
 ):
-    """Solve rho(t) at times ``ts`` for one slice. Returns array (len(ts), n, n)."""
+    """Solve rho(t) at times ``ts`` for one slice. Returns array (len(ts), n, n).
+
+    ``n_steps`` switches to a fixed-step Tsit5 (ConstantStepSize) with that many steps:
+    use it for finite-difference checks, since adaptive step selection makes the discretised
+    map non-smooth in its inputs (FD noise ~ solver tolerance / h)."""
     sol = dfx.diffeqsolve(
         dfx.ODETerm(rhs),
         dfx.Tsit5(),
         ts[0],
         ts[-1],
-        (ts[-1] - ts[0]) / 1000.0,
+        (ts[-1] - ts[0]) / (n_steps or 1000),
         model["rho0"] if rho0 is None else rho0,
         args=(model, rabi, jnp.atleast_1d(jnp.asarray(detunings))),
         saveat=dfx.SaveAt(ts=ts),
-        stepsize_controller=dfx.PIDController(rtol=rtol, atol=atol),
+        stepsize_controller=(
+            dfx.ConstantStepSize() if n_steps else dfx.PIDController(rtol=rtol, atol=atol)
+        ),
         adjoint=adjoint or dfx.RecursiveCheckpointAdjoint(),
-        max_steps=max_steps,
+        max_steps=(n_steps + 2) if n_steps else max_steps,
     )
     return sol.ys

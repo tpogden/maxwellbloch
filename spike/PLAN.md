@@ -324,3 +324,46 @@ carried directly), analytic Gaussian drive, detuning 0.3, t in [-2, 3].
 - Cost: a 1000-point slice at dim 16 compiles and runs in 0.5 s.
 
 Next: Phase 2, drive from a sampled array via interpolation, gradient w.r.t. the field.
+
+## Phase 2 done: array-driven slice (`mbjax/drive.py`, `tests/test_drive.py`)
+
+The ODE is driven by a sampled field array through a differentiable interpolant;
+gradients flow into the samples.
+
+**Interpolant.** clerq drives the Hamiltonian with `qutip.coefficient(array, tlist)` =
+cubic **not-a-knot** spline (`make_interp_spline(k=3, bc_type=None)`). `CubicDrive` reproduces
+exactly that: knot derivatives are a fixed linear map `D @ y` (D from scipy, once), then
+piecewise-cubic evaluation in JAX. diffrax's built-in natural/Hermite splines would *not*
+match clerq. `D` is dense n_t x n_t (8 MB at n_t=1000, 200 MB at 5000): fine for the spike;
+a banded solve is the obvious optimisation if n_t gets large.
+
+| check | result |
+|-|-|
+| spline vs scipy (500 random points, knots) | < 1e-11 / 1e-12 |
+| JAX slice vs clerq's interpolated drive, 4 systems, rough 201-pt field | < 1e-8 (test bar) |
+| guard: linear drive differs from cubic by > 1e-5 | passes, so the match is specific to cubic |
+| AD vs central FD, fixed-step, incl. edge samples (0,1,2,198..200) | 1.3e-9 .. 4.8e-9 |
+| AD adaptive (PID 1e-11) vs AD fixed-step | cubic 5e-8..7e-8, linear 4e-6..8e-6 |
+| reverse (`RecursiveCheckpointAdjoint`) vs `jacfwd` (`ForwardMode`), dim 9 | < 1e-8 |
+
+**Lesson (confirms amendment A5).** The first version compared AD to FD on the *adaptive*
+solver and failed at 7e-3 for every case. Fixed-step AD gave the same gradient as PID AD to
+5+ digits and matched fixed-step FD to 4e-9: the gradient was right; FD through adaptive
+step selection is noise-limited (floor ~ rtol/h; best 1.6e-6 at h=1e-3, 1e-2 at h=1e-7).
+Rule for the rest of the spike: **FD references use `n_steps=` (fixed step)**; production
+runs use PID and are checked against fixed-step AD.
+
+**T2.3 decisions.**
+- Interpolation: cubic not-a-knot (matches clerq; also ~100x friendlier to the adaptive
+  solver than piecewise-linear, whose kinks cost 4e-6..8e-6 vs 5e-8 in gradient agreement).
+- `SaveAt(ts=...)` on the field grid. For Phase 3 save only the source-term coherence via
+  `SaveAt(ts, fn=...)` to avoid storing n^2 per time point (not yet exercised).
+- Gradient convention: the field is real (Re(Omega) only, as in clerq), so no complex
+  conjugate-gradient issue arises; rho stays complex internally.
+
+Caveat: loss is a random Hermitian observable summed over 80 output times (so it
+exercises all matrix elements but is not the Phase 3 propagation objective). Gradients through
+a *chain* of slices are the Phase 3 question.
+
+Next: Phase 3, `lax.scan` over z with AB2 updates, forward match to the clerq reference,
+then gradient through the chain.
