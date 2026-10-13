@@ -17,7 +17,11 @@ class Field(object):
         coupled_levels (list): pairs of levels coupled by the field.
             e.g. [[0,1], [0,2]]
         factors (list): List of strength factors for each pair in coupled
-            levels.
+            levels. Each is the (signed) dipole matrix element of the pair
+            relative to the reference transition, e.g. a Clebsch-Gordan
+            coefficient, so the squares sum to the line strength. The same
+            factor scales the pair's coupling in the Hamiltonian and its
+            coherence in the field's source term.
         detuning (float): detuning of the fields from resonance with the
             coupled_levels transitions.
         detuning_positive (bool): is the detuning positive?

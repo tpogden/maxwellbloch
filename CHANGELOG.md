@@ -8,6 +8,16 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- The source term of the Maxwell propagation equation weighted the coherence of each coupled pair by `factor**2`
+  while the Hamiltonian coupled it with `factor`, so a field coupling several transitions with non-unit factors
+  responded as `sum(factor**3)` instead of the line strength `sum(factor**2)`. The weights are now the signed
+  factors themselves (the dipole matrix elements), as in the Hamiltonian. Two-level problems and fields whose
+  factors are all 1 are unchanged. Hyperfine and multi-transition problems change: the absorption is stronger by
+  the ratio `sum(factor**2) / sum(factor**3)`, and a linearly polarised field on a `J=1 -> 2` manifold, which had
+  antisymmetric factors with `sum(factor**3) = 0` and so passed through the medium unchanged, now absorbs.
+  The Rb87 hyperfine example notebooks need re-executing (`make docs_execute`).
+
 ### Changed
 - The main classes have clearer names and are exported from the top-level package, so `import clerq` is enough:
 

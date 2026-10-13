@@ -280,7 +280,9 @@ class System(system_base.SystemBase):
         z-step.  For each field we store:
             _sum_coh_rows[f_i]    – row indices into the density matrix
             _sum_coh_cols[f_i]    – column indices into the density matrix
-            _sum_coh_weights[f_i] – corresponding factor² weights
+            _sum_coh_weights[f_i] – corresponding factors (signed dipole
+                                    matrix elements, the same weights as in
+                                    H_Omega)
         """
         self._sum_coh_rows: list[np.ndarray] = []
         self._sum_coh_cols: list[np.ndarray] = []
@@ -288,15 +290,21 @@ class System(system_base.SystemBase):
         for f in self.fields:
             self._sum_coh_rows.append(np.array([cl[0] for cl in f.coupled_levels]))
             self._sum_coh_cols.append(np.array([cl[1] for cl in f.coupled_levels]))
-            self._sum_coh_weights.append(
-                np.array([fac**2 for fac in f.factors], dtype=complex)
-            )
+            self._sum_coh_weights.append(np.array(f.factors, dtype=complex))
 
     def get_fields_sum_coherence(
         self, states_t: np.ndarray | None = None
     ) -> np.ndarray:
         """Returns the sum coherences of the system density matrix for each
             field, including the relative strength factors.
+
+        Notes:
+            The coherence of each coupled pair is weighted by the pair's
+            (signed) factor, i.e. by its dipole matrix element, the same
+            factor that multiplies the pair in the interaction Hamiltonian.
+            The field's polarisation is then
+            ``sum_k factor_k * rho_{a_k b_k}``, and in the weak-probe limit
+            the response goes as the line strength ``sum_k factor_k**2``.
 
         Args:
             states_t: (optional) a states_t object. If not provided, use
