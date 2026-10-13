@@ -5,6 +5,7 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
+import json
 import os
 import unittest
 
@@ -229,6 +230,88 @@ class TestPropagationSolver(unittest.TestCase):
         # two-level systems is below a tolerance. The tolerance scales with
         # OD (doubled after fixing the Maxwell propagation factor-of-2 bug).
         self.assertTrue(np.max(np.abs(abs - voigt)) < 0.1)
+
+
+class TestVelocityClassUnits(unittest.TestCase):
+    """Pins the units of the velocity classes (Doppler broadening).
+
+    ``thermal_delta_*`` and ``thermal_width`` are cyclic frequencies, in the
+    same units as ``decay`` rates and Rabi frequencies. ``thermal_delta_list``
+    is stored in angular units, and the weights are
+    ``exp(-(Delta / (2 pi thermal_width))**2)``, so a velocity class with
+    ``thermal_delta = x`` must detune the Hamiltonian by a cyclic ``x``.
+    """
+
+    def test_hamiltonian_sees_cyclic_detuning(self):
+        """Each class sets H_Delta from a cyclic detuning equal to
+        thermal_delta_list / (2 pi), not thermal_delta_list itself."""
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.build_velocity_classes(
+            {
+                "thermal_delta_min": -1.0,
+                "thermal_delta_max": 1.0,
+                "thermal_delta_steps": 2,
+                "thermal_width": 1.0,
+            }
+        )
+        seen = []
+        orig = mbs.system.set_H_Delta
+
+        def spy(detunings):
+            seen.append(list(detunings))
+            return orig(detunings)
+
+        mbs.system.set_H_Delta = spy
+        mbs._solve_system = lambda opts=None, save=False: None
+        mbs.states_t = lambda: np.zeros(
+            (len(mbs.tlist), mbs.system.num_states, mbs.system.num_states),
+            dtype=complex,
+        )
+        mbs._solve_and_average_over_thermal_detunings()
+
+        fixed = mbs.system.get_detunings()[0]
+        # One call per velocity class, then one restoring the fixed detunings.
+        cyclic = [s[0] - fixed for s in seen[:-1]]
+        np.testing.assert_allclose(cyclic, [-1.0, 0.0, 1.0], atol=1e-12)
+
+    def test_absorption_matches_doppler_broadened_lorentzian(self):
+        """The weak-probe absorption of a two-level system is the Lorentzian
+        (HWHM rate/2) convolved with the Gaussian exp(-(f/w)**2) of the
+        cyclic thermal width w. The reference is a direct quadrature, not
+        spectral.voigt_two_linear_known."""
+        with open(os.path.join(JSON_DIR, "velocity-classes.json")) as fh:
+            problem = json.load(fh)
+        rate, width, g = 1.0, 0.3, 1.0
+        problem["z_steps"] = 10
+        problem["interaction_strengths"] = [g]
+        problem["velocity_classes"] = {
+            "thermal_delta_min": -1.5,
+            "thermal_delta_max": 1.5,
+            "thermal_delta_steps": 60,
+            "thermal_width": width,
+        }
+        mbs = PropagationSolver().from_json_str(json.dumps(problem))
+        mbs.solve()
+        freq_list = spectral.freq_list(mbs)
+        absorption = spectral.absorption(mbs, 0, -1)
+
+        x = np.linspace(-6.0, 6.0, 4001)
+        gauss = np.exp(-((x / width) ** 2)) / (width * np.sqrt(np.pi))
+        known = np.array(
+            [
+                np.trapezoid(
+                    gauss * g / (rate / 2) / (1 + ((f - x) / (rate / 2)) ** 2), x
+                )
+                for f in freq_list
+            ]
+        )
+
+        self.assertLess(np.max(np.abs(absorption - known)), 0.1)
+        # Peak height distinguishes the cyclic width from 2 pi times it.
+        self.assertAlmostEqual(absorption.max() / known.max(), 1.0, delta=0.05)
+        # The packaged Voigt profile agrees with the quadrature.
+        voigt = spectral.voigt_two_linear_known(freq_list, rate, width).imag
+        self.assertLess(np.max(np.abs(voigt * g - known)), 1e-3)
 
 
 class TestSaveLoad(unittest.TestCase):

@@ -47,7 +47,10 @@ class PropagationSolver(LindbladSolver):
         interaction_strengths: Interaction strength of each field with the
             medium, one for each field.
         velocity_classes: Dict defining the velocity classes for Doppler
-            broadening, or ``None`` for no broadening.
+            broadening, or ``None`` for no broadening. ``thermal_width`` and
+            the ``thermal_delta_*`` values are cyclic frequencies, in the
+            same units as ``decays`` rates and ``rabi_freq``. The weights
+            are Gaussian, ``exp(-(delta / thermal_width)**2)``.
         atom: Deprecated name for ``system``.
     """
 
@@ -657,9 +660,11 @@ class PropagationSolver(LindbladSolver):
         for Delta_i, Delta in enumerate(self.thermal_delta_list):
             # Shift each field's detuning by Delta scaled by that field's
             # Doppler sign. Counter-propagating fields get factor_doppler_shift=-1.
+            # thermal_delta_list is angular, but field detunings are cyclic
+            # (set_H_Delta multiplies by 2*pi), so convert back to cyclic.
             self.system.set_H_Delta(
                 [
-                    fd + Delta * field.factor_doppler_shift
+                    fd + Delta / (2 * np.pi) * field.factor_doppler_shift
                     for fd, field in zip(
                         fixed_detunings, self.system.fields, strict=False
                     )
