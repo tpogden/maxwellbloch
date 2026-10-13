@@ -34,6 +34,8 @@ website:
       - {href: api/index.qmd, text: API}
       - {href: release-notes.qmd, text: Release Notes}
       - {href: support/troubleshooting.md, text: Support}
+    right:
+      - {icon: github, href: "https://github.com/tpogden/clerq", aria-label: GitHub}
   sidebar:
     - id: usage
       title: Usage
