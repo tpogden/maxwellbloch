@@ -300,3 +300,27 @@ still needs its own check.
 2. All timings single-run and noisy; repeat before quoting ratios.
 3. Multi-level and velocity-class clerq references not yet generated (needed by T3.4).
 4. Stretch-point S5 timing never measured (killed).
+
+## Phase 1 done: inner Lindblad ODE (`mbjax/lindblad.py`, `tests/test_lindblad.py`)
+
+Single-slice solve of the master equation in JAX/diffrax (Tsit5, PID rtol 1e-10, complex rho
+carried directly), analytic Gaussian drive, detuning 0.3, t in [-2, 3].
+
+| system | max abs diff vs clerq LindbladSolver | peak excited pop | AD vs FD (ampl, detuning) |
+|-|-|-|-|
+| two_level | 9e-11 | 0.25 | 1.1e-9 |
+| j12_12 | 4e-11 | 0.11 | 4.8e-11 |
+| j1_2_res | 1.3e-10 | 0.17 | 1.3e-10 |
+| j72_72 | 3.8e-11 | 0.095 | 3.9e-10 |
+
+- Not vacuous: a 1e-3 shift in detuning moves rho by 4e-5..6e-4, so the 1e-10 agreement
+  discriminates by ~5 orders of magnitude. Trace = 1 and Hermiticity hold to 1e-8.
+- Reverse mode (`RecursiveCheckpointAdjoint`) matches `jacfwd` + `ForwardMode` to < 1e-8
+  and central FD to < 1e-6 (tests), actual ~1e-9..1e-11.
+- Gradients are w.r.t. pulse amplitude and detuning, through a random Hermitian
+  observable summed over time, so all matrix elements are exercised.
+- Weak spot: the j72_72 drive is weak (rho moves only 0.035 from rho0 because the factors
+  are CG/sqrt2); use a stronger drive there in Phase 3 so dim 16 is properly stressed.
+- Cost: a 1000-point slice at dim 16 compiles and runs in 0.5 s.
+
+Next: Phase 2, drive from a sampled array via interpolation, gradient w.r.t. the field.
