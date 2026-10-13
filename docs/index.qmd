@@ -2,6 +2,11 @@
 title: "clerq"
 ---
 
+[![Build Status](https://github.com/tpogden/clerq/actions/workflows/ci.yml/badge.svg)](https://github.com/tpogden/clerq/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-clerq.org-blue)](https://clerq.org)
+[![PyPI](https://img.shields.io/pypi/v/clerq)](https://pypi.org/project/clerq/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23269881.svg)](https://doi.org/10.5281/zenodo.23269881)
+
 ::: {.callout-note}
 MaxwellBloch is now **clerq**. See [what changed and how to update](news/rename.qmd).
 :::
@@ -43,3 +48,8 @@ Some phenomena that can be demonstrated:
 * Hyperfine pumping.
 
 See the [Examples](examples/index.qmd) for details.
+
+## Source code
+
+clerq is open source. The code, issue tracker and releases are on GitHub:
+**[github.com/tpogden/clerq](https://github.com/tpogden/clerq)**.

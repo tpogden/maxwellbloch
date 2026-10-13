@@ -29,6 +29,8 @@ website:
       - {href: examples/index.qmd, text: Examples}
       - {href: api/index.qmd, text: API}
       - {href: support/troubleshooting.md, text: Support}
+    right:
+      - {icon: github, href: "https://github.com/tpogden/clerq", aria-label: GitHub}
   sidebar:
     - id: usage
       title: Usage
