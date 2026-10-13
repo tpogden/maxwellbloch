@@ -427,10 +427,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 67%">
-<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 83%">
+<col style="width: 3%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -528,7 +528,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>velocity_classes</td>
 <td>dict | None</td>
-<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening.</td>
+<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening. <code>thermal_width</code> and the <code>thermal_delta_*</code> values are cyclic frequencies, in the same units as <code>decays</code> rates and <code>rabi_freq</code>. The weights are Gaussian, <code>exp(-(delta / thermal_width)**2)</code>.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
