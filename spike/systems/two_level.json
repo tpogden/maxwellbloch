@@ -1,0 +1,38 @@
+{
+ "label": "two_level",
+ "num_states": 2,
+ "decays": [
+  {
+   "rate": 1.0,
+   "channels": [
+    [
+     0,
+     1
+    ]
+   ],
+   "factors": [
+    1.0
+   ]
+  }
+ ],
+ "initial_state": [
+  1.0,
+  0.0
+ ],
+ "fields": [
+  {
+   "label": "probe",
+   "coupled_levels": [
+    [
+     0,
+     1
+    ]
+   ],
+   "factors": [
+    1.0
+   ],
+   "detuning": 0.0,
+   "rabi_freq": 1.0
+  }
+ ]
+}

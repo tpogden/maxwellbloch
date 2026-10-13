@@ -1,0 +1,8 @@
+== mat_nosave
+RESULT {"variant": "mat_nosave", "fwd_wall_s": 0.715153624973027, "fwd_cpu_s": 0.7105959999999998, "grad_wall_s": 3.702359167014947, "grad_cpu_s": 4.175814000000001, "fwd_checksum": 96.96647158980375}
+== mat
+RESULT {"variant": "mat", "fwd_wall_s": 0.7175270000007004, "fwd_cpu_s": 0.7529910000000002, "grad_wall_s": 3.6874891670013312, "grad_cpu_s": 4.082145000000001, "fwd_checksum": 440.2534692241878}
+== pfn
+RESULT {"variant": "pfn", "fwd_wall_s": 2.4516674999904353, "fwd_cpu_s": 3.778309000000001, "grad_wall_s": 11.026888416003203, "grad_cpu_s": 21.910336, "fwd_checksum": 440.2534692241878}
+== base
+RESULT {"variant": "base", "fwd_wall_s": 2.4625170000072103, "fwd_cpu_s": 3.7822749999999994, "grad_wall_s": 11.18418416599161, "grad_cpu_s": 22.156594, "fwd_checksum": 440.2534692241878}

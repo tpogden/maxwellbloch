@@ -1,0 +1,29 @@
+[project]
+name = "mbjax-spike"
+version = "0.0.0"
+description = "Spike: differentiable Maxwell-Bloch backend (JAX/diffrax)"
+requires-python = ">=3.11"
+dependencies = [
+    "jax",
+    "diffrax",
+    "equinox",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "psutil",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+# clerq itself (+qutip), for reference data and operator cross-checks
+ref = ["clerq"]
+
+[tool.uv.sources]
+clerq = { path = "..", editable = true }
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
