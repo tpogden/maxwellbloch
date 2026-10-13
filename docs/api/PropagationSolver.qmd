@@ -223,16 +223,17 @@ Loads the solution from a QuTiP pickle file.
 
 #### Raises {.doc-section .doc-section-raises}
 
-| Name   | Type       | Description                                                                    |
-|--------|------------|--------------------------------------------------------------------------------|
-|        | ValueError | if the savefile was built from a different problem definition (hash mismatch). |
+| Name   | Type       | Description                                                                                                                                                                   |
+|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1. |
 
 #### Notes {.doc-section .doc-section-notes}
 
 - The path from which the results will be loaded is taken from
     self.savefile.
 - Old savefiles without metadata are loaded without integrity
-    checking, with a warning.
+    checking, with a warning, unless a field has factors other
+    than 1 (see Raises).
 
 ### mbsolve { #clerq.PropagationSolver.mbsolve }
 

@@ -117,6 +117,15 @@ System.get_fields_sum_coherence(states_t=None)
 Returns the sum coherences of the system density matrix for each
     field, including the relative strength factors.
 
+#### Notes {.doc-section .doc-section-notes}
+
+The coherence of each coupled pair is weighted by the pair's
+(signed) factor, i.e. by its dipole matrix element, the same
+factor that multiplies the pair in the interaction Hamiltonian.
+The field's polarisation is then
+``sum_k factor_k * rho_{a_k b_k}``, and in the weak-probe limit
+the response goes as the line strength ``sum_k factor_k**2``.
+
 #### Parameters {.doc-section .doc-section-parameters}
 
 | Name     | Type               | Description                                                        | Default   |

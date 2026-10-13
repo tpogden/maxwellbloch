@@ -17,6 +17,11 @@ from clerq.exceptions import CounterPropagatingDepletionError
 from clerq.lindblad import LindbladSolver
 from clerq.utility import maxwell_boltzmann
 
+# Weighting of each coupled pair's coherence in the field source term, stored
+# in savefiles. "factor" is the signed factor (as in the Hamiltonian); results
+# solved before it was introduced used factor**2.
+_SOURCE_WEIGHTS = "factor"
+
 
 class PropagationSolver(LindbladSolver):
     """Solver for the propagation of fields through a medium of systems.
@@ -744,6 +749,7 @@ class PropagationSolver(LindbladSolver):
         """Build the metadata dict stored alongside results in the .qu file."""
         return {
             "hash": hashlib.sha256(self.to_json_str().encode()).hexdigest(),
+            "source_weights": _SOURCE_WEIGHTS,
             "clerq": importlib.metadata.version("clerq"),
             "qutip": importlib.metadata.version("qutip"),
             "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
@@ -764,18 +770,40 @@ class PropagationSolver(LindbladSolver):
                 self.savefile,
             )
 
+    def _has_nonunit_factors(self) -> bool:
+        """True if any field couples a pair with a factor other than 1."""
+        return any(f != 1.0 for fld in self.system.fields for f in fld.factors)
+
+    def _check_source_weights(self, saved: str | None) -> None:
+        """Rejects results solved with a different source-term weighting.
+
+        Before the source term was weighted by the (signed) factor, as in the
+        Hamiltonian, it was weighted by factor**2. The two agree only when all
+        the field factors are 1, so older results are stale otherwise.
+        """
+        if saved != _SOURCE_WEIGHTS and self._has_nonunit_factors():
+            raise ValueError(
+                f"Savefile {self.savefile}.qu was solved with the old "
+                "factor**2 source-term weights, which differ from the "
+                "current ones for fields with factors other than 1. "
+                "Delete it or set recalc=True."
+            )
+
     def load_results(self) -> None:
         """Loads the solution from a QuTiP pickle file.
 
         Raises:
             ValueError: if the savefile was built from a different problem
-                definition (hash mismatch).
+                definition (hash mismatch), or was solved with the old
+                factor**2 source-term weights and a field has factors other
+                than 1.
 
         Notes:
             - The path from which the results will be loaded is taken from
                 self.savefile.
             - Old savefiles without metadata are loaded without integrity
-                checking, with a warning.
+                checking, with a warning, unless a field has factors other
+                than 1 (see Raises).
         """
         data = qu.qload(self.savefile)
         if len(data) == 3:
@@ -786,6 +814,7 @@ class PropagationSolver(LindbladSolver):
                     f"Savefile {self.savefile}.qu was built from a different "
                     "problem definition. Delete it or set recalc=True."
                 )
+            self._check_source_weights(meta.get("source_weights"))
             for key in ("clerq", "qutip"):
                 saved = meta.get(key)
                 current = importlib.metadata.version(key)
@@ -796,6 +825,7 @@ class PropagationSolver(LindbladSolver):
                         stacklevel=2,
                     )
         else:
+            self._check_source_weights(None)
             warnings.warn(
                 f"Savefile {self.savefile}.qu has no integrity metadata "
                 "(old format). Loading without hash check.",
