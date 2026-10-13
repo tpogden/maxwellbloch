@@ -367,3 +367,68 @@ a *chain* of slices are the Phase 3 question.
 
 Next: Phase 3, `lax.scan` over z with AB2 updates, forward match to the clerq reference,
 then gradient through the chain.
+
+## Phase 3 done: spatial propagation (`mbjax/propagate.py`, `tests/test_propagate.py`)
+
+`lax.scan` over z of (batched-class Lindblad solve -> velocity-averaged source -> AB2),
+slice 0 peeled (analytic drive + Euler bootstrap, exactly as clerq). 53 tests pass.
+
+**Forward match vs clerq `PropagationSolver` (T3.2, T3.4)** - same scheme, same z_steps:
+
+| case | rel L2 (Re Omega_zt) | medium effect (peak out/in) |
+|-|-|-|
+| frozen reference problem (n_z 200, n_t 1000, saved npz) | < 1e-6 (test bar) | 0.62 |
+| two_level, 5 velocity classes, detuning 0.2 | 4.8e-11 | 0.87 |
+| j12_12 | 1.2e-11 | 0.97 |
+| j1_2_res (dim 9, sigma+) | 2.1e-11 | 0.98 |
+| j72_72 (dim 16, g=1.5) | 3.5e-11 | 0.98 |
+
+**Gradients through the chain (T3.3)**, 7 parameters (g, decay scale, detuning, 4 pulse-basis
+coefficients), two_level with 3 velocity classes, 6 z-slices:
+
+| check | result |
+|-|-|
+| AD vs central FD, fixed-step | 1.7e-8 |
+| AD (PID rtol 1e-10) vs AD fixed-step | 1.8e-11 |
+| S2 / S3 / S5 gradients agree | < 1e-9 |
+| reverse vs `jacfwd` (`ForwardMode`), j12_12 | < 1e-8 |
+
+**First timing look (reference size, 2 params, single run best-of-3, CPU):**
+forward 0.62 s (clerq: 2.3 s), value_and_grad S2 2.6 s, S3 3.2 s (grad/fwd 4.3x / 5.2x);
+compile 1.4 s fwd, 5-6 s grad. At N=100 params FD would need ~200 forwards = ~120 s
+(JAX forward) or ~460 s (clerq forward) vs ~3 s for one AD gradient. Promising but
+preliminary: two-level only, one class, not repeated, N-scaling not yet measured (Phase 5).
+
+### Findings that need attention
+
+1. **diffrax: wrong reverse-mode gradients when save times coincide with fixed-step
+   boundaries** (diffrax 0.7.2, jax 0.11.2). `RecursiveCheckpointAdjoint` + `SaveAt(ts)` +
+   `ConstantStepSize` with an integer number of steps per output interval: forward values
+   right, gradient wrong (3.5e-2 in a scalar-ODE repro, `notes/diffrax_commensurate_repro.py`;
+   2.8x in the Lindblad slice, where it appeared only under `jit`). `DirectAdjoint` and
+   `ForwardMode` are fine. It cost an hour of debugging because it surfaced as "AD != FD,
+   and AD changes with n_steps". Mitigation: `check_fixed_step` raises on commensurate
+   `n_steps`; adaptive (PID) is unaffected in practice. Not yet reported upstream.
+2. **A vacuous test almost passed.** The dim-9 system returned a field change of 7e-18 in
+   clerq itself, so "JAX matches clerq to 3e-16" meant nothing. Cause below. Added a
+   non-vacuity guard (medium must change the field by > 1% in clerq) and moved the dim-9
+   system to sigma+.
+3. **Suspected clerq inconsistencies (to confirm with the maintainer; replicated, not fixed):**
+   a. *Doppler detuning units.* `thermal_delta_list` is built in angular units (2*pi*x), then
+      passed to `set_H_Delta`, which multiplies by 2*pi again: the Hamiltonian sees a cyclic
+      detuning of 2*pi*x while the Boltzmann weights treat the same number as 2*pi*x angular.
+      Verified numerically (H_Delta[1,1] = -39.48 for x=1, vs -6.28). No test validates the
+      Doppler physics against an analytic result. `velocity_classes(convention="physical")`
+      gives the alternative; the two differ by > 1e-3 in the output field.
+   b. *Source weights.* The Hamiltonian couples a pair with `factor`, but the field's source
+      term weights its coherence by `factor**2`. Dipole-consistent weighting would be
+      `factor`. Consequence: the response goes as sum(factor^3); for linear polarisation on
+      J=1->2 that is exactly zero, so the medium is invisible. For single-transition fields
+      (factor 1) nothing changes. Whether this is intended (factors normalised differently
+      in `hyperfine.py`) is unknown.
+
+### Open for Phase 4
+- Velocity-class batching is a batched (n_v, n, n) matmul inside one diffeqsolve; the matrix-state
+  trick from T0.2b (3x) has not been re-tried on the real Lindblad.
+- S5 and stretch-point memory/timing are still unmeasured on the *real* chain.
+- All timings single-run.

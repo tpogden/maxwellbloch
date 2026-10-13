@@ -15,6 +15,7 @@ from __future__ import annotations
 import diffrax as dfx
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from mbjax.systems import operators
 
@@ -40,6 +41,30 @@ def gaussian(ampl, centre, fwhm):
     """clerq's gaussian t_func in cyclic units: ampl * exp(-4 ln2 ((t-c)/fwhm)^2)."""
     k = 4.0 * jnp.log(2.0) / fwhm**2
     return lambda t: ampl * jnp.exp(-k * (t - centre) ** 2)
+
+
+def check_fixed_step(ts, n_steps):
+    """Raise if fixed-step boundaries coincide with interior save times.
+
+    diffrax 0.7.2 / jax 0.11.2: ``RecursiveCheckpointAdjoint`` returns *wrong* reverse-mode
+    gradients (forward values are right) when ``SaveAt(ts=...)`` times land exactly on
+    ``ConstantStepSize`` step boundaries; in the Lindblad slice it showed only under
+    ``jax.jit``, in a scalar-ODE repro also eagerly. ``DirectAdjoint`` and ``ForwardMode``
+    are unaffected. See notes/diffrax_commensurate_repro.py. Adaptive (PID) steps do not
+    hit this in practice (boundaries are not on the output grid).
+    """
+    try:
+        t = np.asarray(ts, dtype=float)
+    except Exception:  # traced; cannot check
+        return
+    if not n_steps or len(t) < 3:
+        return
+    idx = (t[1:-1] - t[0]) * n_steps / (t[-1] - t[0])
+    if np.any(np.abs(idx - np.round(idx)) < 1e-6):
+        raise ValueError(
+            f"n_steps={n_steps} puts fixed steps exactly on save times; reverse-mode "
+            "gradients under jit are unreliable. Choose a non-commensurate n_steps."
+        )
 
 
 def rhs(t, rho, args):
@@ -70,7 +95,9 @@ def solve_slice(
 
     ``n_steps`` switches to a fixed-step Tsit5 (ConstantStepSize) with that many steps:
     use it for finite-difference checks, since adaptive step selection makes the discretised
-    map non-smooth in its inputs (FD noise ~ solver tolerance / h)."""
+    map non-smooth in its inputs (FD noise ~ solver tolerance / h). It must not be
+    commensurate with ``ts`` (see ``check_fixed_step``)."""
+    check_fixed_step(ts, n_steps)
     sol = dfx.diffeqsolve(
         dfx.ODETerm(rhs),
         dfx.Tsit5(),

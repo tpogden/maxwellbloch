@@ -14,7 +14,7 @@ levels first in ascending m, then excited):
 
     two_level   dim  2   |g> <-> |e>
     j12_12      dim  4   Jg=1/2 -> Je=1/2
-    j1_2_res    dim  9   Jg=1 -> Je=2, plus a metastable reservoir level (index 8)
+    j1_2_res    dim  9   Jg=1 -> Je=2 (sigma+), plus a metastable reservoir level (index 8)
                          receiving 10% of the decay from every excited level
     j72_72      dim 16   Jg=7/2 -> Je=7/2
 """
@@ -59,8 +59,15 @@ def _j_to_j(
     rabi_freq=1.0,
     gamma=1.0,
     reservoir: float = 0.0,
+    pol: str = "x",
 ) -> dict:
-    """x-polarised (q=+/-1 with -1/sqrt2, +1/sqrt2) probe on a Jg -> Je manifold.
+    """Probe on a Jg -> Je manifold: ``pol="x"`` is linear (q=+/-1 with -1/sqrt2, +1/sqrt2),
+    ``pol="sigma+"`` is circular (q=+1 only, factor = CG).
+
+    Note for the propagation tests: clerq's field source weights each coupled pair by
+    factor**2 while H uses factor, so the medium's response goes as sum(factor**3). For the
+    linear polarisation with a symmetric manifold that sum vanishes identically (J=1 -> 2),
+    which makes a propagation test vacuous; use ``sigma+`` there.
 
     If ``reservoir`` > 0, one extra level (last index) is appended, uncoupled to the
     field and fed by that fraction of every excited level's decay."""
@@ -72,13 +79,13 @@ def _j_to_j(
 
     coupled, factors = [], []
     for mg in mgs:
-        for q, s in ((+1, -1.0), (-1, +1.0)):
+        for q, s in ((+1, -1.0), (-1, +1.0)) if pol == "x" else ((+1, 1.0),):
             me = mg + q
             if me in e_idx:
                 c = _cg(jg, mg, je, me, q)
                 if abs(c) > 1e-12:
                     coupled.append([g_idx[mg], e_idx[me]])
-                    factors.append(s / sqrt(2) * c)
+                    factors.append(s / sqrt(2) * c if pol == "x" else c)
 
     # spontaneous decay e -> g: one collapse operator per (g, e); branching b = CG^2
     # with q = me - mg in {-1, 0, +1}, so sum_g b = 1 for every excited level.
@@ -119,7 +126,7 @@ def _j_to_j(
 SYSTEMS = {
     "two_level": lambda **kw: _two_level(**kw),
     "j12_12": lambda **kw: _j_to_j(0.5, 0.5, "j12_12", **kw),
-    "j1_2_res": lambda **kw: _j_to_j(1.0, 2.0, "j1_2_res", reservoir=0.1, **kw),
+    "j1_2_res": lambda **kw: _j_to_j(1.0, 2.0, "j1_2_res", reservoir=0.1, pol="sigma+", **kw),
     "j72_72": lambda **kw: _j_to_j(3.5, 3.5, "j72_72", **kw),
 }
 DIMS = {"two_level": 2, "j12_12": 4, "j1_2_res": 9, "j72_72": 16}
