@@ -405,9 +405,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 6%">
-<col style="width: 2%">
-<col style="width: 90%">
+<col style="width: 3%">
+<col style="width: 1%">
+<col style="width: 95%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -435,7 +435,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>factors</td>
 <td>list</td>
-<td>List of strength factors for each pair in coupled levels.</td>
+<td>List of strength factors for each pair in coupled levels. Each is the (signed) dipole matrix element of the pair relative to the reference transition, e.g.&nbsp;a Clebsch-Gordan coefficient. The same factor scales the pair’s coupling in the Hamiltonian and its coherence in the field’s source term, so a weak probe is absorbed in proportion to the sum of the squared factors over the pairs. For a single polarisation these are the Clebsch-Gordan coefficients and the sum is the line strength; an isotropic field (<code>get_clebsch_hf_factors_iso</code>) has factors divided by sqrt(3), so the sum is a third of it.</td>
 </tr>
 <tr class="odd">
 <td>detuning</td>

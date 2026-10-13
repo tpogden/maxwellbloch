@@ -890,9 +890,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 12%">
-<col style="width: 80%">
+<col style="width: 4%">
+<col style="width: 6%">
+<col style="width: 89%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -905,7 +905,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td>ValueError</td>
-<td>if the savefile was built from a different problem definition (hash mismatch).</td>
+<td>if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1.</td>
 </tr>
 </tbody>
 </table>
@@ -914,7 +914,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-notes anchored" data-anchor-id="notes-1">Notes</h4>
 <ul>
 <li>The path from which the results will be loaded is taken from self.savefile.</li>
-<li>Old savefiles without metadata are loaded without integrity checking, with a warning.</li>
+<li>Old savefiles without metadata are loaded without integrity checking, with a warning, unless a field has factors other than 1 (see Raises).</li>
 </ul>
 </section>
 </section>
