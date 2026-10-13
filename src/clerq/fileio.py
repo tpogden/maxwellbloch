@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""Save and load MBSolve result data to and from files."""
+"""Save and load PropagationSolver result data to and from files."""
 
 import numpy as np
 
+from clerq._deprecation import renamed_arg
 
-def save_csv_rabi_freq(mb_solve, field_idx=0, filename=None):
-    """Save the complex field Rabi frequency result for an MBSolve field.
+
+@renamed_arg("mb_solve", "solver")
+def save_csv_rabi_freq(solver, field_idx=0, filename=None):
+    """Save the complex field Rabi frequency result for a PropagationSolver field.
 
     Args:
-        mb_solve :
-            The MBSolve object
+        solver :
+            The PropagationSolver object
         field_idx :
             The field to save
         filename :
@@ -18,18 +21,19 @@ def save_csv_rabi_freq(mb_solve, field_idx=0, filename=None):
     """
 
     if not filename:
-        filename = mb_solve.savefile + "_rabi_freq_" + str(field_idx) + ".csv"
+        filename = solver.savefile + "_rabi_freq_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, mb_solve.Omegas_zt[field_idx], delimiter=",")
+    np.savetxt(filename, solver.Omegas_zt[field_idx], delimiter=",")
 
 
-def save_csv_rabi_freq_abs(mb_solve, field_idx=0, filename=None):
+@renamed_arg("mb_solve", "solver")
+def save_csv_rabi_freq_abs(solver, field_idx=0, filename=None):
     """Save the abs value of the complex field Rabi frequency result for an
-        MBSolve field.
+        PropagationSolver field.
 
     Args:
-        mb_solve :
-            The MBSolve object
+        solver :
+            The PropagationSolver object
         field_idx :
             The field to save
         filename :
@@ -37,6 +41,6 @@ def save_csv_rabi_freq_abs(mb_solve, field_idx=0, filename=None):
     """
 
     if not filename:
-        filename = mb_solve.savefile + "_rabi_freq_abs_" + str(field_idx) + ".csv"
+        filename = solver.savefile + "_rabi_freq_abs_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, np.abs(mb_solve.Omegas_zt[field_idx]), delimiter=",")
+    np.savetxt(filename, np.abs(solver.Omegas_zt[field_idx]), delimiter=",")

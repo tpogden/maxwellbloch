@@ -11,10 +11,10 @@ Represents an atom object and contains a list of J levels.
 | Name | Description |
 | --- | --- |
 | [get_F_level_idx_map](#clerq.hyperfine.Atom1e.get_F_level_idx_map) | Maps each element of the mF_list to a F_level index. |
-| [get_clebsch_hf_factors](#clerq.hyperfine.Atom1e.get_clebsch_hf_factors) | Returns a list of Clebsch-Gordan coefficients for the hyperfine |
-| [get_clebsch_hf_factors_iso](#clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso) | Returns a list of Clebsch-Gordan coefficients for the hyperfine |
+| [get_clebsch_hf_factors](#clerq.hyperfine.Atom1e.get_clebsch_hf_factors) | Returns the Clebsch-Gordan coefficients for the hyperfine |
+| [get_clebsch_hf_factors_iso](#clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso) | Returns the Clebsch-Gordan coefficients for the hyperfine |
 | [get_coupled_levels](#clerq.hyperfine.Atom1e.get_coupled_levels) | Return all mF-level index pairs between two sets of F levels. |
-| [get_decay_factors](#clerq.hyperfine.Atom1e.get_decay_factors) | Returns a list of factors for the collapse operators for each |
+| [get_decay_factors](#clerq.hyperfine.Atom1e.get_decay_factors) | Returns the factors for the collapse operators of each hyperfine |
 | [get_energies](#clerq.hyperfine.Atom1e.get_energies) | Returns a list of energies for each mF level in all J levels. |
 | [get_mF_list](#clerq.hyperfine.Atom1e.get_mF_list) | Unnests the mF levels into a single list of dicts. |
 | [get_num_mF_levels](#clerq.hyperfine.Atom1e.get_num_mF_levels) | Returns the total number of mF levels in all J levels. |
@@ -34,22 +34,22 @@ Maps each element of the mF_list to a F_level index.
 hyperfine.Atom1e.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, q)
 ```
 
-Returns a list of Clebsch-Gordan coefficients for the hyperfine
-    transition dipole matrix elements for each coupled level pair.
+Returns the Clebsch-Gordan coefficients for the hyperfine
+transition dipole matrix elements of each coupled level pair.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name          | Type   | Description                                     | Default    |
-|---------------|--------|-------------------------------------------------|------------|
-| F_level_idx_a | int    | F level the transition is from (lower level)    | _required_ |
-| F_level_idx_b | int    | F level the transition is to (upper level)      | _required_ |
-| q             | int    | The field polarisation. Choose from [-1, 0, 1]. | _required_ |
+| Name           | Type        | Description                                                   | Default    |
+|----------------|-------------|---------------------------------------------------------------|------------|
+| F_level_idxs_a | list\[int\] | Indices of the F levels the transition is from (lower level). | _required_ |
+| F_level_idxs_b | list\[int\] | Indices of the F levels the transition is to (upper level).   | _required_ |
+| q              | int         | The field polarisation. Choose from [-1, 0, 1].               | _required_ |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                |
-|--------|--------|----------------------------|
-|        | list   | factors, length of mF_list |
+| Name   | Type       | Description                                                      |
+|--------|------------|------------------------------------------------------------------|
+|        | np.ndarray | Array of factors, one for each pair from ``get_coupled_levels``. |
 
 ### get_clebsch_hf_factors_iso { #clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso }
 
@@ -57,22 +57,22 @@ Returns a list of Clebsch-Gordan coefficients for the hyperfine
 hyperfine.Atom1e.get_clebsch_hf_factors_iso(F_level_idxs_a, F_level_idxs_b)
 ```
 
-Returns a list of Clebsch-Gordan coefficients for the hyperfine
-transition dipole matrix elements for each coupled level pair. for
+Returns the Clebsch-Gordan coefficients for the hyperfine
+transition dipole matrix elements of each coupled level pair, for
 an isotropic field.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name          | Type   | Description                                  | Default    |
-|---------------|--------|----------------------------------------------|------------|
-| F_level_idx_a | int    | F level the transition is from (lower level) | _required_ |
-| F_level_idx_b | int    | F level the transition is to (upper level)   | _required_ |
+| Name           | Type        | Description                                                   | Default    |
+|----------------|-------------|---------------------------------------------------------------|------------|
+| F_level_idxs_a | list\[int\] | Indices of the F levels the transition is from (lower level). | _required_ |
+| F_level_idxs_b | list\[int\] | Indices of the F levels the transition is to (upper level).   | _required_ |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                |
-|--------|--------|----------------------------|
-|        | list   | factors, length of mF_list |
+| Name   | Type       | Description                                                      |
+|--------|------------|------------------------------------------------------------------|
+|        | np.ndarray | Array of factors, one for each pair from ``get_coupled_levels``. |
 
 #### Notes {.doc-section .doc-section-notes}
 
@@ -92,17 +92,17 @@ Return all mF-level index pairs between two sets of F levels.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name           | Type   | Description                                      | Default    |
-|----------------|--------|--------------------------------------------------|------------|
-| F_level_idxs_a |        | Indices into self.F_levels for the first group.  | _required_ |
-| F_level_idxs_b |        | Indices into self.F_levels for the second group. | _required_ |
+| Name           | Type        | Description                                      | Default    |
+|----------------|-------------|--------------------------------------------------|------------|
+| F_level_idxs_a | list\[int\] | Indices into self.F_levels for the first group.  | _required_ |
+| F_level_idxs_b | list\[int\] | Indices into self.F_levels for the second group. | _required_ |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                                  |
-|--------|--------|--------------------------------------------------------------|
-|        |        | List of [i, j] pairs where i is an mF index from group a and |
-|        |        | j is an mF index from group b.                               |
+| Name   | Type                | Description                                                  |
+|--------|---------------------|--------------------------------------------------------------|
+|        | list\[list\[int\]\] | List of [i, j] pairs where i is an mF index from group a and |
+|        | list\[list\[int\]\] | j is an mF index from group b.                               |
 
 #### Note {.doc-section .doc-section-note}
 
@@ -116,24 +116,28 @@ valid level index sets.
 hyperfine.Atom1e.get_decay_factors(F_level_idxs_a, F_level_idxs_b)
 ```
 
-Returns a list of factors for the collapse operators for each
-hyperfine coupled level pair.
+Returns the factors for the collapse operators of each hyperfine
+coupled level pair.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name          | Type   | Description                                  | Default    |
-|---------------|--------|----------------------------------------------|------------|
-| F_level_idx_a | int    | F level the transition is from (lower level) | _required_ |
-| F_level_idx_b | int    | F level the transition is to(upper level)    | _required_ |
+| Name           | Type        | Description                                                   | Default    |
+|----------------|-------------|---------------------------------------------------------------|------------|
+| F_level_idxs_a | list\[int\] | Indices of the F levels the transition is from (lower level). | _required_ |
+| F_level_idxs_b | list\[int\] | Indices of the F levels the transition is to (upper level).   | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                      |
+|--------|------------|------------------------------------------------------------------|
+|        | np.ndarray | Array of factors, one for each pair from ``get_coupled_levels``. |
 
 #### Notes {.doc-section .doc-section-notes}
 
 This is equivalent to the clebsch_hf_factors for all
 polarisations as decay photons are of all polarisations. Note
-that for any coupled levels pair there will be only one n
-on-zero factor to sum.
-
-Returns: (list): factors, length of mF_list
+that for any coupled levels pair there will be only one
+non-zero factor to sum.
 
 ### get_energies { #clerq.hyperfine.Atom1e.get_energies }
 

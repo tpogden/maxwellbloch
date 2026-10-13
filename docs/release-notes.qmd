@@ -1,0 +1,204 @@
+---
+title: "Release Notes"
+description: "What changed in each version of clerq, and what you need to do about it."
+toc: true
+toc-depth: 2
+---
+
+This page is the readable version of the
+[CHANGELOG](https://github.com/tpogden/clerq/blob/master/CHANGELOG.md), which
+has the full list of changes. Versions are newest first, and
+[Semantic Versioning](https://semver.org/) applies: a minor version adds
+features, and anything marked **breaking** will need a change to your code or
+a recalculation of your results.
+
+Entries before 0.13.0 use the old package name, `maxwellbloch`, and its old
+class names, as they were at the time. See
+[MaxwellBloch is now clerq](news/rename.qmd) for the rename.
+
+## Unreleased
+
+Not yet released; this is on the `next` branch.
+
+::: {.callout-note}
+## Upgrading from 0.13.1
+Your code keeps working: the old names still run and raise a
+`DeprecationWarning`. Switching to the new names now will save you work when
+they are removed in a future release.
+:::
+
+**Clearer names, all available from `import clerq`.**
+
+| Before | Now |
+|---|---|
+| `clerq.mb_solve.MBSolve` | `clerq.PropagationSolver` |
+| `clerq.ob_solve.OBSolve` | `clerq.LindbladSolver` |
+| `clerq.ob_atom.OBAtom` | `clerq.System` |
+| `clerq.field.Field` | `clerq.Field` |
+| `mbsolve()`, `obsolve()` | `solve()` |
+| `atom` (argument, attribute, JSON key) | `system` |
+
+- "System" replaces "atom" because the solvers work for any few-level open
+  quantum system, not only atoms.
+- The modules are now `clerq.propagation`, `clerq.lindblad`, `clerq.system`
+  and `clerq.system_base`.
+- Helper functions that take a solver always call that argument `solver`.
+  Before, it was `mb_solve` in `spectral`, `fixed` and `fileio`, and `mbs` in
+  `plot`.
+- `mbsolve_euler()` and `mbsolve_ab()` are deprecated in favour of
+  `solve(step=...)`.
+- The `mbsolve` and `obsolve` command-line scripts keep their names.
+
+**Cached results.** A `.qu` savefile made by an earlier version no longer
+matches its problem definition (which now has a `system` key), so it is solved
+again and overwritten the first time you use it.
+
+**Other changes**
+
+- `PropagationSolver` and `System` have class docstrings describing their
+  arguments.
+- The release assets on GitHub are now just the wheel, the sdist and their
+  attestations.
+- The documentation has correct API page titles, and several docstrings that
+  disagreed with their signatures are fixed.
+- The lockfile is updated to clear security alerts in documentation and
+  development packages. The installed package is unaffected.
+
+## 0.13.1 — 9 October 2026
+
+A fix-up release after the rename.
+
+**Fixed**
+
+- The `mbsolve` and `obsolve` command-line scripts work again. They had been
+  broken since 0.10.0 and 0.11.0, and `mbsolve` also failed on Python 3.14. The
+  unused `--pbarchunksize` option is removed.
+- The example notebooks are recalibrated after the 0.13.0 factor-of-2 fix, so
+  each example solves the physical problem it was designed for and gives the
+  same results as in 0.12.0.
+
+**Added**
+
+- The stimulated three-pulse photon echo example.
+- `CITATION.cff`, so GitHub's "Cite this repository" works.
+
+**Changed**
+
+- clerq is described as classical Maxwell fields propagating through open
+  quantum systems, not as a Maxwell–Bloch solver.
+- The documentation outputs are regenerated cleanly, and there is a page
+  explaining the new name.
+
+## 0.13.0 — 9 October 2026
+
+::: {.callout-important}
+## Breaking: results change
+The Maxwell propagation equation was missing a factor of 2, so the optical
+depth in earlier versions was **half** its physical value. Absorption and
+propagation results change, so recompute any cached `.qu` results and any
+figures made with earlier versions. The theory curves in `clerq.spectral` are
+updated to match.
+:::
+
+- **Renamed from `maxwellbloch` to `clerq`.** Change `import maxwellbloch` to
+  `import clerq`. The PyPI name is also `clerq`, the Plotly theme is named
+  `"clerq"`, and `.qu` files record the `clerq` version.
+- The documentation moved from Sphinx and Read the Docs to Quarto, at
+  [clerq.org](https://clerq.org).
+
+## 0.12.0 — 6 May 2026
+
+- **Plotting:** `plot.field_profile` and `plot.field_z_profile_anim`, a
+  `show_z_bounds` option, and a `speed_of_light` option to plot in the fixed
+  frame. `plot.spectrum` accepts x-axis bounds.
+- **Faster:** the number-density profile is computed once up front, and the
+  inner loop over sigma operators is vectorised.
+- **Examples:** the SIT, linear absorption, V-system and Λ EIT/slow-light
+  examples are each merged into one notebook.
+
+## 0.11.0 — 3 May 2026
+
+**New**
+
+- **Counter-propagating fields:** `Field(counter_propagating=True)` models a
+  field travelling against the others. If the field has depleted so much that
+  forward-only propagation is no longer valid, a
+  `CounterPropagatingDepletionError` is raised (turn the check off with
+  `check_counter_prop_depletion=False`).
+- **Plotting module** `plot`, built on Plotly with a shared theme: field
+  space-time and envelope plots, spectra, populations, coherences and pulse
+  area. Install it with the `plot` extra.
+- **Spectral windows:** the FFT functions in `spectral` accept a SciPy
+  `window`, and `plot.spectrum` gains `freq_range`, an `arcsinh` frequency
+  scale and `window`.
+- **New examples:** Autler–Townes splitting, CPT dark resonance, adiabatons,
+  two-pulse photon echo, odd-π sech pulses and the Rb 87 D2 cycling
+  transition, plus an examples gallery page.
+
+**Breaking**
+
+- The printed progress reports of `MBSolve.mbsolve` and its `pbar_chunk_size`
+  argument are replaced by a tqdm progress bar. Use `progress` (default
+  `True`) and `progress_show_area` to control it, and remove any
+  `pbar_chunk_size` argument.
+
+## 0.10.0 — 25 April 2026
+
+**Breaking**
+
+- `OBSolve.solve` is renamed `OBSolve.obsolve`.
+
+**New**
+
+- **Savefile check:** a `.qu` file stores a hash of its problem definition and
+  the library versions. Loading a file built from a different problem raises
+  `ValueError`, and older files load with a warning.
+- Generated API reference pages.
+
+**Fixed**
+
+- A missing savefile directory is created before the `.qu` file is written.
+- An `IndexError` when fields are added to a system after construction.
+
+**Changed**
+
+- `maxwell_boltzmann` moved to `utility` and gained an `offset` parameter.
+
+## 0.9.0 — 24 April 2026
+
+- **About 43× faster** inner propagation loop, from building the field
+  interpolation once per z-step with QuTiP 5.
+- `Field.upper_levels()` and `Field.lower_levels()` return the sorted level
+  indices a field couples.
+- `LevelF` checks that `|J−I| ≤ F ≤ J+I` and raises `ValueError` for
+  impossible hyperfine quantum numbers.
+- Internal methods are renamed with a leading `_` to mark them as private
+  (for example `build_H_0` is now `_build_H_0`). If you called any of these
+  directly, update the name.
+
+## 0.8.1 — 23 April 2026
+
+Maintenance: type annotations throughout, mutable default arguments fixed,
+more tests, and a docs build in CI. `fixed.rabi_freq_abs` is removed; use
+`fixed.rabi_freq(..., part="abs")`.
+
+## 0.8.0 — 15 April 2026
+
+A modernisation release.
+
+- Supports QuTiP 5, NumPy 2 and SciPy 1.14+.
+- **Python 3.10 or later is required.**
+- Packaging moved to `pyproject.toml`; uv is the main environment manager.
+- CI moved to GitHub Actions with trusted publishing to PyPI.
+
+## Older releases
+
+| Version | Date | Highlights |
+|---|---|---|
+| 0.7.1 | 10 Aug 2020 | Fixed a bug when adding multiple fields. |
+| 0.7.0 | 11 Jul 2020 | `mbsolve` and `obsolve` scripts; set sech pulse width by FWHM and sech/Gaussian amplitude by area in multiples of π; the default Rabi frequency of a field changed from 0.0 to 1.0; Structure, Angular Momentum and Examples docs. |
+| 0.6.0 | 17 May 2020 | Fixed Doppler broadening; Usage and Examples docs. |
+| 0.5.0 | 7 Aug 2019 | Hyperfine structure: strength factors, Clebsch–Gordan coefficients, Wigner 3j and 6j symbols, isotropic fields; set the initial state; solver options; fixed the detuning term for fields coupling several upper levels. |
+| 0.4.0 | 28 Aug 2018 | Atom labels; empty velocity classes allowed; `ob_atom` renamed `atom`; fields default to a constant time function; MP4 script fixes. |
+| 0.3.0 | 8 Jan 2018 | Spectral and fixed-frame modules; FFT analysis; custom input fields; run from the command line; MP4 and GIF tools; Travis CI. |
+| 0.2.0 | 27 Mar 2017 | First release: solves the Maxwell–Bloch equations. |

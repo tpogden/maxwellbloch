@@ -7,21 +7,21 @@
 import sys
 import argparse
 
-from clerq import ob_solve
+from clerq import LindbladSolver
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', required=True,
-        help='Path of a JSON file containing an ob_solve problem definition')
+        help='Path of a JSON file containing a LindbladSolver problem definition')
     parser.add_argument('-r', '--recalc', required=False, action="store_true",
         help='Recalculate the solution even if a savefile exists?', 
         default=False)
     args = vars(parser.parse_args())
 
     print('Loading problem definition from file {0}'.format(args['file']))
-    obs = ob_solve.OBSolve().from_json(args['file'])
+    obs = LindbladSolver().from_json(args['file'])
     print(obs.to_json_str())
-    obs.obsolve(show_pbar=True, recalc=args['recalc'])
+    obs.solve(show_pbar=True, recalc=args['recalc'])
 
     return 0
 

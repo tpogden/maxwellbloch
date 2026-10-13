@@ -31,7 +31,7 @@ Run with:
     uv run pytest tests/bench_max.py --benchmark-only -v
 """
 
-from clerq import hyperfine, mb_solve
+from clerq import PropagationSolver, hyperfine
 
 # ---------------------------------------------------------------------------
 # Build the hyperfine structure for the two arms of the V system.
@@ -85,7 +85,7 @@ _SECH_AMPL = 2.0 / _SECH_WIDTH
 # ---------------------------------------------------------------------------
 
 VEE_SIMULTON_RB87 = {
-    "atom": {
+    "system": {
         "num_states": 11,
         "decays": [
             {
@@ -168,5 +168,5 @@ def test_bench_max_vee_simulton_rb87(benchmark):
     - Doppler velocity classes (runs mesolve independently per class)
     - Nonlinear (simulton) propagation regime
     """
-    mbs = mb_solve.MBSolve(**VEE_SIMULTON_RB87)
-    benchmark(mbs.mbsolve, recalc=True)
+    mbs = PropagationSolver(**VEE_SIMULTON_RB87)
+    benchmark(mbs.solve, recalc=True)

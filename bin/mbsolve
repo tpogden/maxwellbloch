@@ -7,12 +7,12 @@
 import sys
 import argparse
 
-from clerq import mb_solve
+from clerq import PropagationSolver
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', required=True,
-        help='Path of a JSON file containing an mb_solve problem definition')
+        help='Path of a JSON file containing a PropagationSolver problem definition')
     parser.add_argument('-s', '--step', required=False, 
         help="Finite difference step to use. 'ab' or 'euler'",
             choices=['ab', 'euler'], default='ab')
@@ -22,14 +22,14 @@ def main():
     args = vars(parser.parse_args())
 
     print('Loading problem definition from file {0}'.format(args['file']))
-    mbs = mb_solve.MBSolve().from_json(args['file'])
+    mbs = PropagationSolver().from_json(args['file'])
     print(mbs.to_json_str())
 
     if mbs.savefile_exists() and not args['recalc']:
         print(f'Savefile {mbs.savefile}.qu exists and recalc not requested.')
         print(f'Loading from file.')
 
-    mbs.mbsolve(step=args['step'], rho0=None, recalc=args['recalc'],
+    mbs.solve(step=args['step'], rho0=None, recalc=args['recalc'],
                 progress=True)
 
     return 0

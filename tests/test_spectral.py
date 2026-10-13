@@ -10,7 +10,7 @@ import unittest
 
 import numpy as np
 
-from clerq import mb_solve, spectral, utility
+from clerq import PropagationSolver, spectral, utility
 
 # Absolute path of tests/json directory, so that tests can be called from
 # different directories.
@@ -23,8 +23,8 @@ class TestSpectral(unittest.TestCase):
     def test_two_spectral(self):
 
         json_path = os.path.join(JSON_DIR, "mbs-two-spectral.json")
-        mbs = mb_solve.MBSolve().from_json(json_path)
-        mbs.mbsolve()
+        mbs = PropagationSolver().from_json(json_path)
+        mbs.solve()
 
         # We're not asserting anything about these calls, apart from that they
         # run without exception.
@@ -42,7 +42,7 @@ class TestSpectral(unittest.TestCase):
         self.assertAlmostEqual(r2, 0.5, places=2)
 
         abs_linear_known = spectral.absorption_two_linear_known(
-            freq_list, mbs.interaction_strengths[0], mbs.atom.decays[0]["rate"]
+            freq_list, mbs.interaction_strengths[0], mbs.system.decays[0]["rate"]
         )
 
         # Assert that the max of the abs residuals between the absorption

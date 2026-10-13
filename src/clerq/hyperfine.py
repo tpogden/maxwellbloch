@@ -74,7 +74,9 @@ class Atom1e(_JsonMixin):
 
         return [mF_level["energy"] for mF_level in self.get_mF_list()]
 
-    def get_coupled_levels(self, F_level_idxs_a, F_level_idxs_b):
+    def get_coupled_levels(
+        self, F_level_idxs_a: list[int], F_level_idxs_b: list[int]
+    ) -> list[list[int]]:
         """Return all mF-level index pairs between two sets of F levels.
 
         Args:
@@ -97,17 +99,21 @@ class Atom1e(_JsonMixin):
         # product returns iterator of tuples, convert to list of lists
         return [list(i) for i in product(a_levels, b_levels)]
 
-    def get_clebsch_hf_factors(self, F_level_idxs_a, F_level_idxs_b, q):
-        """Returns a list of Clebsch-Gordan coefficients for the hyperfine
-            transition dipole matrix elements for each coupled level pair.
+    def get_clebsch_hf_factors(
+        self, F_level_idxs_a: list[int], F_level_idxs_b: list[int], q: int
+    ) -> np.ndarray:
+        """Returns the Clebsch-Gordan coefficients for the hyperfine
+        transition dipole matrix elements of each coupled level pair.
 
         Args:
-            F_level_idx_a (int): F level the transition is from (lower level)
-            F_level_idx_b (int): F level the transition is to (upper level)
-            q (int): The field polarisation. Choose from [-1, 0, 1].
+            F_level_idxs_a: Indices of the F levels the transition is from
+                (lower level).
+            F_level_idxs_b: Indices of the F levels the transition is to
+                (upper level).
+            q: The field polarisation. Choose from [-1, 0, 1].
 
         Returns:
-            (list): factors, length of mF_list
+            Array of factors, one for each pair from ``get_coupled_levels``.
 
         """
 
@@ -130,19 +136,21 @@ class Atom1e(_JsonMixin):
             )
         return factors
 
-    def get_clebsch_hf_factors_iso(self, F_level_idxs_a, F_level_idxs_b):
-        """Returns a list of Clebsch-Gordan coefficients for the hyperfine
-        transition dipole matrix elements for each coupled level pair. for
+    def get_clebsch_hf_factors_iso(
+        self, F_level_idxs_a: list[int], F_level_idxs_b: list[int]
+    ) -> np.ndarray:
+        """Returns the Clebsch-Gordan coefficients for the hyperfine
+        transition dipole matrix elements of each coupled level pair, for
         an isotropic field.
 
         Args:
-            F_level_idx_a (int): F level the transition is from (lower
-                level)
-            F_level_idx_b (int): F level the transition is to (upper
-                level)
+            F_level_idxs_a: Indices of the F levels the transition is from
+                (lower level).
+            F_level_idxs_b: Indices of the F levels the transition is to
+                (upper level).
 
         Returns:
-            (list): factors, length of mF_list
+            Array of factors, one for each pair from ``get_coupled_levels``.
 
         Notes:
             - An isotropic field is a field with equal components in all three
@@ -154,21 +162,26 @@ class Atom1e(_JsonMixin):
 
         return self.get_decay_factors(F_level_idxs_a, F_level_idxs_b) / np.sqrt(3.0)
 
-    def get_decay_factors(self, F_level_idxs_a, F_level_idxs_b):
-        """Returns a list of factors for the collapse operators for each
-        hyperfine coupled level pair.
+    def get_decay_factors(
+        self, F_level_idxs_a: list[int], F_level_idxs_b: list[int]
+    ) -> np.ndarray:
+        """Returns the factors for the collapse operators of each hyperfine
+        coupled level pair.
 
         Args:
-            F_level_idx_a(int): F level the transition is from (lower level)
-            F_level_idx_b(int): F level the transition is to(upper level)
+            F_level_idxs_a: Indices of the F levels the transition is from
+                (lower level).
+            F_level_idxs_b: Indices of the F levels the transition is to
+                (upper level).
+
+        Returns:
+            Array of factors, one for each pair from ``get_coupled_levels``.
 
         Notes:
             This is equivalent to the clebsch_hf_factors for all
             polarisations as decay photons are of all polarisations. Note
-            that for any coupled levels pair there will be only one n
-            on-zero factor to sum.
-
-        Returns: (list): factors, length of mF_list
+            that for any coupled levels pair there will be only one
+            non-zero factor to sum.
         """
 
         return (

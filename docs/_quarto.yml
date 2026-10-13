@@ -12,8 +12,12 @@ project:
     - examples/*.ipynb
     - "!examples/mbs-ladder-rydberg-eit-counter.ipynb"  # draft
     - support/troubleshooting.md
+    - release-notes.qmd
     - news/*.qmd
     - api/*.qmd
+
+filters:
+  - _filters/pagetitle.lua
 
 website:
   title: "clerq"
@@ -28,7 +32,10 @@ website:
       - {href: usage/two-level.ipynb, text: Usage}
       - {href: examples/index.qmd, text: Examples}
       - {href: api/index.qmd, text: API}
+      - {href: release-notes.qmd, text: Release Notes}
       - {href: support/troubleshooting.md, text: Support}
+    right:
+      - {icon: github, href: "https://github.com/tpogden/clerq", aria-label: GitHub}
   sidebar:
     - id: usage
       title: Usage
@@ -78,12 +85,12 @@ quartodoc:
     - title: Solvers
       desc: Time-domain and spatial-propagation solvers.
       contents:
-        - mb_solve.MBSolve
-        - ob_solve.OBSolve
-    - title: Atoms and fields
+        - PropagationSolver
+        - LindbladSolver
+    - title: Systems and fields
       contents:
-        - ob_atom.OBAtom
-        - field.Field
+        - System
+        - Field
     - title: Time functions
       contents:
         - t_funcs.square

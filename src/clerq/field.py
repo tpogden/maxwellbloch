@@ -8,12 +8,12 @@ from clerq.t_funcs import TFunc
 
 
 class Field(object):
-    """Field object to address the OBAtom object, describing the atomic levels
+    """Field object to address the System object, describing the atomic levels
     coupled, detuning and Rabi frequency function.
 
     Attributes:
         label (string): a name for the field e.g. "probe".
-        index (int): index of the field, to reference within an OBAtom.
+        index (int): index of the field, to reference within a System.
         coupled_levels (list): pairs of levels coupled by the field.
             e.g. [[0,1], [0,2]]
         factors (list): List of strength factors for each pair in coupled

@@ -16,8 +16,8 @@ Legend: `[x]` done · `[ ]` to do · 👤 you must do it (external or credential
 - [x] 0.1 Reserve `clerq` on PyPI 👤: `clerq 0.0.0` live, verified 2026-10-09
 - [x] 0.2 Decisions locked (see plan): continue `0.x.y`, rename in place, ~~`freeze: auto`~~ (replaced by outputs stored in the notebooks), shim, new Zenodo DOI
 - [x] 0.3 `clerq.org` DNS points at GitHub Pages 👤: apex A records `185.199.108–111.153` and `www` CNAME to `tpogden.github.io`, verified 2026-10-09 (MX left as Hover mail forwarding)
-- [ ] 0.4 Revoke the account-wide PyPI token used for the stub; create a `clerq`-scoped token for Phase 4 👤
-- [ ] 0.5 Decide whether to batch a small API cleanup into the rename release (open question in plan)
+- [x] 0.4 Revoke the account-wide PyPI token used for the stub 👤: revoked (confirmed 2026-10-12). The planned `clerq`-scoped token was never needed: the releases publish through PyPI trusted publishing (OIDC, `publish.yml` + the `pypi` environment), so CI holds no PyPI secret
+- [x] 0.5 Batch an API cleanup into the rename release? Decided no: the rename was a no-op at the API level (the breaking change was the separate factor-of-2 fix)
 
 ## Phase 1: Quarto build (local)
 
@@ -31,7 +31,7 @@ Legend: `[x]` done · `[ ]` to do · 👤 you must do it (external or credential
 - [x] API reference: quartodoc (28 generated pages, committed; CI checks they are up to date)
 - [x] Sphinx-only content ported (figure caption, gallery); no `:doc:`/`:ref:` left in notebooks; navbar uses one sidebar per section
 - [x] Sphinx removed: `conf.py`, `*.rst`, `make.bat`, `.readthedocs.yml`, `custom.css`; `docs` extra, Makefile targets and CI `docs` job now use Quarto
-- [ ] readthedocs badge in README (handled in Phase 3 README rebrand)
+- [x] readthedocs badge in README (removed in the Phase 3 README rebrand)
 
 Notes: kept the existing `mbs-*` notebook names. The plan's `a0`–`a12` naming does
 not exist in this repo.
@@ -131,7 +131,7 @@ results), so I recommend **`clerq 0.13.0`** via `uv run bump-my-version bump min
 
 Pre-flight 👤
 
-- [ ] This branch's PR (to `next`) is green on CI
+- [x] This branch's PR (to `next`) is green on CI (#301, merged)
 - [x] DNS for `clerq.org` verified (2026-10-09)
 - [x] Tagged the last pre-rename release as `final-maxwellbloch` (on the `v0.12.0` commit `baa79e2`), 2026-10-09. Not named `v-final-…`: `publish.yml` runs on any `v*` tag and would have tried to republish to PyPI
 
@@ -193,8 +193,8 @@ the site over HTTPS; GitHub URLs redirect; release `v0.13.0` published; CI green
 - [ ] External references sweep 👤 (done 2026-10-09 except the items marked open):
   - [x] `tpogden/clerq` repo description and homepage (`https://clerq.org`)
   - [x] Site `index.qmd` Projects entry in `tpogden.github.com` (master, `fb70693`) and `tpogden-quarto` (main, `ce6796e`).
-        `ogden.eu` is served from the `gh-pages` branch of `tpogden.github.com`, published by hand, so the live site
-        changes when you next run `quarto publish gh-pages`
+        `ogden.eu` is served from the `gh-pages` branch of `tpogden.github.com` (published by hand); republished, live
+        site shows the clerq entry (`gh-pages` rebuilt 2026-10-11 06:47 UTC)
   - [x] `tpogden.github.com/environment.yml`: pip `clerq`, python 3.11, dropped the `qutip=4` / python 3.7 pins (no
         `maxwellbloch` >= 0.8 could install with them). The file is unreferenced; the site is built with uv
   - [x] Read the Docs, `maxwellbloch.readthedocs.io`: exact redirect with *Force redirect* on, verified 2026-10-09:
@@ -202,8 +202,13 @@ the site over HTTPS; GitHub URLs redirect; release `v0.13.0` published; CI green
         (`/en/v0.8.1/...`) all return 301 to `https://clerq.org/` (deep links land on the new home page, since page names
         differ). `.readthedocs.yml` is gone, so new RTD builds fail, which no longer matters
   - [ ] CV (`tpogden/cv`, `tpo-cv.tex`): project entry still says MaxwellBloch
-  - [ ] `paper-maxwellbloch`: title and "Program Title" say MaxwellBloch and the abstract frames the package as solving
-        the Maxwell-Bloch equations; a rewrite decision, not a find and replace
+  - [x] `paper-maxwellbloch`: **dropped** (2026-10-11). It is an unfinished, never-submitted 2020 draft for Computer
+        Physics Communications (private repo, 7 commits 2017-06 to 2020-02; only the theory section and the opening of the
+        scheme section were written, the rest are empty headings, the abstract is the journal template text, the
+        bibliography is placeholders). Its Maxwell equation is the thesis form `i N g rho`, the convention the code had
+        before the 0.13.0 fix, so it would need rechecking anyway. A new paper will be drafted from scratch once the
+        autodiff spike (`clerq-spike-design.md`) has been decided; the repo is left untouched. (An earlier version of
+        this item wrongly said the abstract framed the package as solving the Maxwell-Bloch equations: it is boilerplate.)
   - [ ] Blog posts that `import maxwellbloch` and use parameters tuned before the factor-of-2 fix (figures are baked, but a
         re-execution gives different optical depths); add a note or leave
   - [ ] Google Scholar and ORCID entries (not reachable from the repo)
@@ -215,12 +220,12 @@ the site over HTTPS; GitHub URLs redirect; release `v0.13.0` published; CI green
 ## Follow-ups after the cutover
 
 - [x] PR #278 (A5 stimulated echo): recalibrated, merged 2026-10-09 and released in 0.13.1
-- [ ] Dependabot: 19 alerts (1 critical), all transitive docs/dev packages in `uv.lock` (see the lock-upgrade PR). Dependabot PRs target `master`; consider `target-branch: next` in `.github/dependabot.yml`
+- [x] Dependabot: 19 alerts (all transitive docs/dev packages in `uv.lock`) cleared by #315 (0 open); the seven superseded PRs are closed. Optional: add `.github/dependabot.yml` with `target-branch: next` so future bumps go through `next` instead of straight to `master` (currently unset, so defaults apply)
 - [x] `mbsolve` and `obsolve` scripts crashed in 0.13.0 (not only `--help`): fixed in #312, with end-to-end tests, shipped in 0.13.1
-- [ ] Quarto API page titles come out lowercased (`mb_solve.mbsolve`); cosmetic
-- [ ] Release workflow attaches `default.gitignore` (uv writes `dist/.gitignore`); cosmetic: use `dist/*.whl dist/*.tar.gz` in `publish.yml`
-- [ ] quartodoc prints ~14 docstring warnings (parameters documented but not in the signature) in `ob_atom.py`, `hyperfine.py`, `spectral.py`
-- [ ] CHANGELOG has no entries between 0.9.0 and 0.12.0
+- [x] Quarto API page titles came out lowercased in the browser tab (`mb_solve.mbsolve`): fixed with `docs/_filters/pagetitle.lua`, which sets `pagetitle` from the first heading for pages without a title
+- [x] Release workflow attached `default.gitignore` (uv writes `dist/.gitignore`): `publish.yml` now lists `dist/*.whl`, `dist/*.tar.gz` and `dist/*.publish.attestation`. Takes effect, and can only be confirmed, at the next release
+- [x] quartodoc docstring warnings (16): fixed in `hyperfine.py`, `ob_atom.py`, `spectral.py` (docstrings and annotations only); `quartodoc build` is now silent
+- [x] CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 backfilled from the git history and API diffs; the 0.13.1 entry now says `obsolve` was broken since 0.10.0 and `mbsolve` since 0.11.0
 - [x] CI `bench` gate was flaky (50% tolerance vs measured run-to-run variance of up to +127% on identical code); widened to 200% in #306
 
 ## Open issues and risks

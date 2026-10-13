@@ -8,10 +8,11 @@ import numpy as np
 import plotly.graph_objects as go
 
 from clerq import spectral
+from clerq._deprecation import renamed_arg
 from clerq.plot import theme as _theme  # noqa: F401 — registers template
 
 if TYPE_CHECKING:
-    from clerq.mb_solve import MBSolve
+    from clerq.propagation import PropagationSolver
 
 _TEMPLATE = "clerq"
 
@@ -60,8 +61,9 @@ def _arcsinh_tick_layout(freqs: np.ndarray, arcsinh_scale: float) -> dict:
     )
 
 
+@renamed_arg("mbs", "solver")
 def spectrum(
-    mbs: MBSolve,
+    solver: PropagationSolver,
     field_idx: int = 0,
     *,
     z_idx: int = -1,
@@ -79,7 +81,7 @@ def spectrum(
     frequency-domain absorption at z position *z_idx*.
 
     Args:
-        mbs: A solved MBSolve instance. The probe field should be a weak
+        solver: A solved PropagationSolver instance. The probe field should be a weak
             pulse (so the linear-response approximation holds).
         field_idx: Index of the probe field.
         z_idx: z-step index at which to compute absorption.
@@ -101,12 +103,14 @@ def spectrum(
     Returns:
         plotly Figure.
     """
-    freqs = spectral.freq_list(mbs)
-    arrays = [spectral.absorption(mbs, field_idx, z_idx=z_idx, window=window)]
+    freqs = spectral.freq_list(solver)
+    arrays = [spectral.absorption(solver, field_idx, z_idx=z_idx, window=window)]
     if show_dispersion:
-        arrays.append(spectral.dispersion(mbs, field_idx, z_idx=z_idx, window=window))
+        arrays.append(
+            spectral.dispersion(solver, field_idx, z_idx=z_idx, window=window)
+        )
 
-    label = mbs.atom.fields[field_idx].label or f"field {field_idx}"
+    label = solver.system.fields[field_idx].label or f"field {field_idx}"
 
     x_plot, arrays, freqs_clipped = _apply_freq_options(
         freqs, arrays, freq_range, freq_scale, arcsinh_scale
@@ -154,8 +158,9 @@ def spectrum(
     return fig
 
 
+@renamed_arg("mbs_list", "solvers")
 def spectrum_overlay(
-    mbs_list: list[MBSolve],
+    solvers: list[PropagationSolver],
     field_idx: int = 0,
     *,
     z_idx: int = -1,
@@ -167,13 +172,13 @@ def spectrum_overlay(
     width: int = 900,
     height: int = 400,
 ) -> go.Figure:
-    """Overlay absorption spectra from multiple MBSolve results.
+    """Overlay absorption spectra from multiple PropagationSolver results.
 
     Args:
-        mbs_list: List of solved MBSolve instances.
+        solvers: List of solved PropagationSolver instances.
         field_idx: Field index to plot in each.
         z_idx: z-step index for absorption.
-        labels: Trace labels, one per element of mbs_list.
+        labels: Trace labels, one per element of solvers.
         freq_range: If given, only frequencies with |f| ≤ freq_range are shown.
             Clips the underlying data arrays, not just the axis view.
         freq_scale: ``"linear"`` (default) or ``"arcsinh"``. With ``"arcsinh"``
@@ -190,7 +195,7 @@ def spectrum_overlay(
         plotly Figure.
     """
     if labels is None:
-        labels = [f"run {i}" for i in range(len(mbs_list))]
+        labels = [f"run {i}" for i in range(len(solvers))]
 
     fig = go.Figure(
         layout=go.Layout(
@@ -204,9 +209,9 @@ def spectrum_overlay(
     )
     freqs_clipped_last = None
     x_plot_last = None
-    for mbs, lbl in zip(mbs_list, labels, strict=False):
-        freqs = spectral.freq_list(mbs)
-        absorp = spectral.absorption(mbs, field_idx, z_idx=z_idx, window=window)
+    for solver, lbl in zip(solvers, labels, strict=False):
+        freqs = spectral.freq_list(solver)
+        absorp = spectral.absorption(solver, field_idx, z_idx=z_idx, window=window)
         x_plot, (absorp,), freqs_clipped = _apply_freq_options(
             freqs, [absorp], freq_range, freq_scale, arcsinh_scale
         )

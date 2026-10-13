@@ -30,5 +30,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          # Explicit patterns: `dist/*` also matched dist/.gitignore, which uv build writes.
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/*.publish.attestation
           generate_release_notes: true

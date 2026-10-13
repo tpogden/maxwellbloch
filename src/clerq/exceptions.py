@@ -3,5 +3,5 @@ class CounterPropagatingDepletionError(RuntimeError):
 
     The forward-propagation solver is only equivalent to true counter-propagation
     when depletion is negligible. Pass ``check_counter_prop_depletion=False`` to
-    ``mbsolve()`` to suppress this check if you know what you are doing.
+    ``solve()`` to suppress this check if you know what you are doing.
     """

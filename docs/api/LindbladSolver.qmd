@@ -1,0 +1,177 @@
+# LindbladSolver { #clerq.LindbladSolver }
+
+```python
+LindbladSolver(
+    system=None,
+    t_min=0.0,
+    t_max=1.0,
+    t_steps=100,
+    method='mesolve',
+    opts=None,
+    savefile=None,
+    *,
+    atom=None,
+)
+```
+
+Time-domain master equation solver for a single spatial point.
+
+Wraps :func:`qutip.mesolve` to evolve the density matrix of a
+:class:`~clerq.system.System` over a user-defined time grid, and can
+save/load results to avoid recomputation.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type         | Description                                                                                                            | Default     |
+|----------|--------------|------------------------------------------------------------------------------------------------------------------------|-------------|
+| system   | dict \| None | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.              | `None`      |
+| t_min    | float        | Start time of the simulation.                                                                                          | `0.0`       |
+| t_max    | float        | End time of the simulation.                                                                                            | `1.0`       |
+| t_steps  | int          | Number of time steps.                                                                                                  | `100`       |
+| method   | str          | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                  | `'mesolve'` |
+| opts     | dict \| None | Dict of QuTiP solver options passed to ``qutip.Options``.                                                              | `None`      |
+| savefile | str \| None  | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching. | `None`      |
+| atom     | dict \| None | Deprecated name for ``system``.                                                                                        | `None`      |
+
+## Attributes
+
+| Name | Description |
+| --- | --- |
+| [atom](#clerq.LindbladSolver.atom) | Deprecated name for ``system``. |
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [build_opts](#clerq.LindbladSolver.build_opts) | Build the options dict to be passed into the QuTiP solver. |
+| [from_json](#clerq.LindbladSolver.from_json) | Initialise LindbladSolver from JSON file. |
+| [from_json_str](#clerq.LindbladSolver.from_json_str) | Initialise LindbladSolver from JSON string. |
+| [obsolve](#clerq.LindbladSolver.obsolve) | Deprecated name for :meth:`LindbladSolver.solve`. |
+| [savefile_exists](#clerq.LindbladSolver.savefile_exists) | Returns true if savefile (with appended extension .qu) exists. |
+| [set_field_rabi_freq_t_args](#clerq.LindbladSolver.set_field_rabi_freq_t_args) | Set the Rabi frequency time function arguments. To be used with |
+| [set_field_rabi_freq_t_func](#clerq.LindbladSolver.set_field_rabi_freq_t_func) | Set the Rabi frequency time function of a field to a new time |
+| [solve](#clerq.LindbladSolver.solve) | Solves the Lindblad master equation for the system. |
+
+### build_opts { #clerq.LindbladSolver.build_opts }
+
+```python
+LindbladSolver.build_opts(opts=None)
+```
+
+Build the options dict to be passed into the QuTiP solver.
+
+Any option available to the QuTiP solver is available here, we
+provide defaults for solving the optical Bloch equations. See [0]
+for details of all the available options.
+
+#### Notes {.doc-section .doc-section-notes}
+
+- For a stiff problem, it may help to set 'method' to
+    'bdf' instead of 'adams'.
+- If the solver times out, try more 'nsteps', though
+    this will take longer.
+- To speed up the solver, reduce atol and rtol, though this
+    will reduce accuracy.
+
+#### Warning {.doc-section .doc-section-warning}
+
+There is no validation checking here. If you pass in an option
+which is not known to QuTiP it will throw an exception.
+
+[0]: http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html
+
+### from_json { #clerq.LindbladSolver.from_json }
+
+```python
+LindbladSolver.from_json(file_path)
+```
+
+Initialise LindbladSolver from JSON file.
+
+### from_json_str { #clerq.LindbladSolver.from_json_str }
+
+```python
+LindbladSolver.from_json_str(json_str)
+```
+
+Initialise LindbladSolver from JSON string.
+
+### obsolve { #clerq.LindbladSolver.obsolve }
+
+```python
+LindbladSolver.obsolve(*args, **kwargs)
+```
+
+Deprecated name for :meth:`LindbladSolver.solve`.
+
+### savefile_exists { #clerq.LindbladSolver.savefile_exists }
+
+```python
+LindbladSolver.savefile_exists()
+```
+
+Returns true if savefile (with appended extension .qu) exists.
+
+### set_field_rabi_freq_t_args { #clerq.LindbladSolver.set_field_rabi_freq_t_args }
+
+```python
+LindbladSolver.set_field_rabi_freq_t_args(field_idx, t_args)
+```
+
+Set the Rabi frequency time function arguments. To be used with
+    set_field_rabi_freq_t_func
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                                          | Default    |
+|-----------|--------|------------------------------------------------------|------------|
+| field_idx | int    | The field for which to set the Rabi frequency t_args | _required_ |
+| t_args    | dict   | A dict representing the args to go with the t_func.  | _required_ |
+
+### set_field_rabi_freq_t_func { #clerq.LindbladSolver.set_field_rabi_freq_t_func }
+
+```python
+LindbladSolver.set_field_rabi_freq_t_func(field_idx, t_func)
+```
+
+Set the Rabi frequency time function of a field to a new time
+    function. This is useful when you want to set a custom function,
+    not one available in t_funcs.py
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                                          | Default    |
+|-----------|--------|------------------------------------------------------|------------|
+| field_idx | int    | The field for which to set the Rabi frequency t_func | _required_ |
+| t_func    | Any    | Rabi frequency as a function of time, f(t, args)     | _required_ |
+
+### solve { #clerq.LindbladSolver.solve }
+
+```python
+LindbladSolver.solve(
+    e_ops=None,
+    opts=None,
+    recalc=True,
+    show_pbar=False,
+    save=True,
+)
+```
+
+Solves the Lindblad master equation for the system.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type         | Description                                                   | Default   |
+|-----------|--------------|---------------------------------------------------------------|-----------|
+| e_ops     | list \| None | Expectation value operators passed to the QuTiP solver.       | `None`    |
+| opts      | dict \| None | QuTiP solver options, overriding those set at initialisation. | `None`    |
+| recalc    | bool         | Recalculate the solution even if a savefile exists?           | `True`    |
+| show_pbar | bool         | Show the QuTiP text progress bar.                             | `False`   |
+| save      | bool         | Save the result to ``savefile``, if one is set.               | `True`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                   |
+|--------|------------|-----------------------------------------------|
+|        | np.ndarray | The solved density matrix at each time, shape |
+|        | np.ndarray | (t_steps+1, num_states, num_states).          |
