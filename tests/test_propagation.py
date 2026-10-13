@@ -793,3 +793,53 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
     def test_linear_j12_to_j12(self):
         ratio, expected, _ = self._transmission(0.5, 0.5, "x", "ab")
         self.assertAlmostEqual(ratio, expected, delta=2e-3)
+
+    def test_energy_balance(self):
+        """Without decay, the field energy lost per unit length equals the
+        atoms' excited-state gain (a nonlinear pulse, many transitions):
+
+            d/dz int |Omega|^2 dt = -4 N g_ang dP_e,   g_ang = 2 pi g
+
+        This needs the source term to weight each coherence by the same
+        factor as the Hamiltonian. With factor**2 it fails by 25% to 80%
+        (or absorbs nothing at all for linear J=1 -> 2).
+        """
+        N, G, L = 1.0, 1.0, 0.3
+        for Jg, Je, pol in [(1.0, 2.0, "sigma+"), (1.0, 2.0, "x"), (0.5, 0.5, "x")]:
+            with self.subTest(Jg=Jg, Je=Je, pol=pol):
+                system, _, n_g = _j_to_j_system(Jg, Je, pol, rabi_freq=0.4, rate=0.0)
+                system["fields"][0]["rabi_freq_t_func"] = "gaussian"
+                system["fields"][0]["rabi_freq_t_args"] = {
+                    "ampl": 1.0,
+                    "centre": 1.0,
+                    "fwhm": 0.5,
+                }
+                mbs = PropagationSolver(
+                    system=system,
+                    t_min=0.0,
+                    t_max=2.0,
+                    t_steps=200,
+                    z_min=0.0,
+                    z_max=L,
+                    z_steps=120,
+                    z_steps_inner=1,
+                    num_density_z_func="square",
+                    num_density_z_args={"on": 0.0, "off": L, "ampl": N},
+                    interaction_strengths=[G],
+                )
+                mbs.solve(step="ab")
+
+                energy_zt = np.trapezoid(
+                    np.abs(mbs.Omegas_zt[0]) ** 2, mbs.tlist, axis=1
+                )
+                lost = energy_zt[0] - energy_zt[-1]
+                P_e = np.real(
+                    np.trace(mbs.states_zt[:, :, n_g:, n_g:], axis1=2, axis2=3)
+                )
+                gained = (
+                    4 * N * G * 2 * np.pi
+                    * np.trapezoid(P_e[:, -1] - P_e[:, 0], mbs.zlist)
+                )  # fmt: skip
+                self.assertGreater(lost, 0.1)
+                # The z-discretisation error is first order: about 1.5% here.
+                self.assertAlmostEqual(gained / lost, 1.0, delta=0.03)
