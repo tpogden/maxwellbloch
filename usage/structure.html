@@ -180,8 +180,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -280,7 +291,7 @@ window.Quarto = {
   <li><a href="#field-channels-and-factors" id="toc-field-channels-and-factors" class="nav-link" data-scroll-target="#field-channels-and-factors">Field Channels and Factors</a></li>
   <li><a href="#decay-channels-and-factors" id="toc-decay-channels-and-factors" class="nav-link" data-scroll-target="#decay-channels-and-factors">Decay Channels and Factors</a></li>
   <li><a href="#initial-state" id="toc-initial-state" class="nav-link" data-scroll-target="#initial-state">Initial State</a></li>
-  <li><a href="#putting-it-all-into-mbsolve" id="toc-putting-it-all-into-mbsolve" class="nav-link" data-scroll-target="#putting-it-all-into-mbsolve">Putting it all into MBSolve</a></li>
+  <li><a href="#putting-it-all-into-propagationsolver" id="toc-putting-it-all-into-propagationsolver" class="nav-link" data-scroll-target="#putting-it-all-into-propagationsolver">Putting it all into PropagationSolver</a></li>
   <li><a href="#output-1" id="toc-output-1" class="nav-link" data-scroll-target="#output-1">Output</a></li>
   <li><a href="#plotting-populations-and-coherences" id="toc-plotting-populations-and-coherences" class="nav-link" data-scroll-target="#plotting-populations-and-coherences">Plotting Populations and Coherences</a></li>
   </ul></li>
@@ -378,11 +389,11 @@ window.Quarto = {
 0.408248290463863</code></pre>
 </div>
 </div>
-<p>We’ll put those <code>channels</code> and their respective <code>factors</code> into the MBSolve object.</p>
+<p>We’ll put those <code>channels</code> and their respective <code>factors</code> into the PropagationSolver object.</p>
 <div id="cell-5" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "rate": 1.0,</span></span>
@@ -421,14 +432,14 @@ window.Quarto = {
 <span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-6" class="cell" data-execution_count="4">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-7" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve(recalc<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve(recalc<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to structure-1.qu</code></pre>
+<pre><code>Saving PropagationSolver to structure-1.qu</code></pre>
 </div>
 </div>
 <section id="output" class="level3">
@@ -522,7 +533,7 @@ window.Quarto = {
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>atom1e.add_F_level(Rb87_5s12_F2)</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>atom1e.add_F_level(Rb87_5p12_F1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>We now have everything we need to build our MBSolve object. First, the total number of states:</p>
+<p>We now have everything we need to build our PropagationSolver object. First, the total number of states:</p>
 <div id="cell-19" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>NUM_STATES <span class="op">=</span> atom1e.get_num_mF_levels()</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(NUM_STATES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -612,13 +623,13 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="putting-it-all-into-mbsolve" class="level3">
-<h3 class="anchored" data-anchor-id="putting-it-all-into-mbsolve">Putting it all into MBSolve</h3>
-<p>We now have everything we need to build the <code>MBSolve</code> object.</p>
+<section id="putting-it-all-into-propagationsolver" class="level3">
+<h3 class="anchored" data-anchor-id="putting-it-all-into-propagationsolver">Putting it all into PropagationSolver</h3>
+<p>We now have everything we need to build the <code>PropagationSolver</code> object.</p>
 <div id="cell-40" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="sc">{{</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": </span><span class="sc">{{</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": </span><span class="sc">{{</span></span>
 <span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [</span></span>
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="st">      </span><span class="sc">{{</span></span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "channels": </span><span class="sc">{decay_channels}</span><span class="st">,</span></span>
@@ -670,14 +681,14 @@ window.Quarto = {
 <span id="cb30-52"><a href="#cb30-52" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-41" class="cell" data-execution_count="20">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-42" class="cell" data-execution_count="21">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve(recalc<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve(recalc<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to structure-2.qu</code></pre>
+<pre><code>Saving PropagationSolver to structure-2.qu</code></pre>
 </div>
 </div>
 </section>

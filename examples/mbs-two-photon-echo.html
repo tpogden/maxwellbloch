@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -422,7 +433,7 @@ window.Quarto = {
 <div id="imports" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-04-27T07:24:47.155807Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-04-27T07:24:47.155684Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-04-27T07:24:47.989746Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-04-27T07:24:47.989181Z&quot;}}" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve, plot</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq.plot <span class="im">import</span> theme  <span class="co"># register Plotly template</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="solve-main" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-04-27T07:24:47.991479Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-04-27T07:24:47.991242Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-04-27T07:25:05.106168Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-04-27T07:25:05.105553Z&quot;}}" data-execution_count="2">
@@ -431,7 +442,7 @@ window.Quarto = {
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>mb_solve_json <span class="op">=</span> <span class="ss">f"""</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ss">    "decays": [</span></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ss">      </span><span class="ch">{{</span><span class="ss">"channels": [[0, 1]], "rate": 0.1</span><span class="ch">}}</span></span>
@@ -471,11 +482,11 @@ window.Quarto = {
 <span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json)</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>mbs.mbsolve(recalc<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>mbs.solve(recalc<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Done"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-two-photon-echo.qu
+<pre><code>Saving PropagationSolver to mbs-two-photon-echo.qu
 Done</code></pre>
 </div>
 </div>
@@ -636,7 +647,7 @@ T_2 = \frac{2}{\Gamma} = \frac{2}{2\pi\times{\rm rate}} \approx 3.18\,\gamma^{-1
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> tau_val <span class="kw">in</span> tau_values:</span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> <span class="ss">f"""</span></span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
 <span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="ss">    "decays": [</span><span class="ch">{{</span><span class="ss">"channels": [[0, 1]], "rate": </span><span class="sc">{</span>rate<span class="sc">}</span><span class="ch">}}</span><span class="ss">],</span></span>
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span></span>
@@ -662,8 +673,8 @@ T_2 = \frac{2}{\Gamma} = \frac{2}{2\pi\times{\rm rate}} \approx 3.18\,\gamma^{-1
 <span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="ss">  "savefile": "mbs-two-photon-echo-tau</span><span class="sc">{</span>tau_val<span class="sc">}</span><span class="ss">"</span></span>
 <span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> mb_solve.MBSolve().from_json_str(j)</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    m.mbsolve(recalc<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> PropagationSolver().from_json_str(j)</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    m.solve(recalc<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    t_arr <span class="op">=</span> m.tlist</span>
 <span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Echo amplitude from Im[ρ₁₀] at z=0 in a window around t=+τ</span></span>
 <span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    rho10 <span class="op">=</span> m.states_zt[<span class="dv">0</span>, :, <span class="dv">1</span>, <span class="dv">0</span>]</span>
@@ -672,15 +683,15 @@ T_2 = \frac{2}{\Gamma} = \frac{2}{2\pi\times{\rm rate}} \approx 3.18\,\gamma^{-1
 <span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    echo_amps.append(echo_amp)</span>
 <span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"τ = </span><span class="sc">{</span>tau_val<span class="sc">:.2f}</span><span class="ss"> γ⁻¹ — echo Im[ρ₁₀]: </span><span class="sc">{</span>echo_amp<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-two-photon-echo-tau0.5.qu
+<pre><code>Saving PropagationSolver to mbs-two-photon-echo-tau0.5.qu
 τ = 0.50 γ⁻¹ — echo Im[ρ₁₀]: 0.3284
-Saving MBSolve to mbs-two-photon-echo-tau0.75.qu
+Saving PropagationSolver to mbs-two-photon-echo-tau0.75.qu
 τ = 0.75 γ⁻¹ — echo Im[ρ₁₀]: 0.2813
-Saving MBSolve to mbs-two-photon-echo-tau1.0.qu
+Saving PropagationSolver to mbs-two-photon-echo-tau1.0.qu
 τ = 1.00 γ⁻¹ — echo Im[ρ₁₀]: 0.2326
-Saving MBSolve to mbs-two-photon-echo-tau1.25.qu
+Saving PropagationSolver to mbs-two-photon-echo-tau1.25.qu
 τ = 1.25 γ⁻¹ — echo Im[ρ₁₀]: 0.2015
-Saving MBSolve to mbs-two-photon-echo-tau1.5.qu
+Saving PropagationSolver to mbs-two-photon-echo-tau1.5.qu
 τ = 1.50 γ⁻¹ — echo Im[ρ₁₀]: 0.1756</code></pre>
 </div>
 </div>

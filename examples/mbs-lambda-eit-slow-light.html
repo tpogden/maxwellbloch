@@ -180,8 +180,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -350,7 +361,7 @@ window.Quarto = {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"darkgrid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -360,7 +371,7 @@ window.Quarto = {
 <div id="setup-no-coupling" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_no_coupling <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -395,10 +406,10 @@ window.Quarto = {
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>mbs_no_coupling <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_no_coupling)</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>mbs_no_coupling.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>mbs_no_coupling <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_no_coupling)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>mbs_no_coupling.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-lambda-weak-pulse-more-atoms-no-coupling.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-lambda-weak-pulse-more-atoms-no-coupling.qu</code></pre>
 </div>
 </div>
 <div id="plot-no-coupling" class="cell" data-execution_count="3">
@@ -442,7 +453,7 @@ window.Quarto = {
 <div id="setup-with-coupling" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_with_coupling <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -477,10 +488,10 @@ window.Quarto = {
 <span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>mbs_with_coupling <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_with_coupling)</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>mbs_with_coupling.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>mbs_with_coupling <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_with_coupling)</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>mbs_with_coupling.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-lambda-weak-pulse-more-atoms-with-coupling.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-lambda-weak-pulse-more-atoms-with-coupling.qu</code></pre>
 </div>
 </div>
 <div id="plot-with-coupling" class="cell" data-execution_count="5">
@@ -525,7 +536,7 @@ window.Quarto = {
 <div id="setup-cloud" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_cloud <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -562,7 +573,7 @@ window.Quarto = {
 <span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>mbs_cloud <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_cloud)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>mbs_cloud <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_cloud)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="plot-cloud-density" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">3</span>))</span>
@@ -580,9 +591,9 @@ window.Quarto = {
 </div>
 </div>
 <div id="solve-cloud" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mbs_cloud.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mbs_cloud.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-lambda-weak-pulse-cloud-atoms-some-coupling.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-lambda-weak-pulse-cloud-atoms-some-coupling.qu</code></pre>
 </div>
 </div>
 <div id="plot-cloud" class="cell" data-execution_count="9">
@@ -628,7 +639,7 @@ window.Quarto = {
 <div id="setup-store" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_store <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -664,10 +675,10 @@ window.Quarto = {
 <span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>mbs_store <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_store)</span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>mbs_store.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>mbs_store <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_store)</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>mbs_store.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-lambda-weak-pulse-cloud-atoms-some-coupling-store.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-lambda-weak-pulse-cloud-atoms-some-coupling-store.qu</code></pre>
 </div>
 </div>
 <div id="plot-store" class="cell" data-execution_count="11">

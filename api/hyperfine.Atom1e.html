@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>hyperfine.atom1e – clerq</title>
+<title>hyperfine.Atom1e – clerq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -150,8 +150,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -184,8 +195,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/field.Field.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">field.Field</span></a>
+  <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Field</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -208,20 +219,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/mb_solve.MBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mb_solve.MBSolve</span></a>
+  <a href="../api/LindbladSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LindbladSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/ob_atom.OBAtom.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_atom.OBAtom</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../api/ob_solve.OBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_solve.OBSolve</span></a>
+  <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PropagationSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -270,6 +275,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/spectral.voigt_two_linear_known.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">spectral.voigt_two_linear_known</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/System.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -398,11 +409,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td><a href="#clerq.hyperfine.Atom1e.get_clebsch_hf_factors">get_clebsch_hf_factors</a></td>
-<td>Returns a list of Clebsch-Gordan coefficients for the hyperfine</td>
+<td>Returns the Clebsch-Gordan coefficients for the hyperfine</td>
 </tr>
 <tr class="odd">
 <td><a href="#clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso">get_clebsch_hf_factors_iso</a></td>
-<td>Returns a list of Clebsch-Gordan coefficients for the hyperfine</td>
+<td>Returns the Clebsch-Gordan coefficients for the hyperfine</td>
 </tr>
 <tr class="even">
 <td><a href="#clerq.hyperfine.Atom1e.get_coupled_levels">get_coupled_levels</a></td>
@@ -410,7 +421,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><a href="#clerq.hyperfine.Atom1e.get_decay_factors">get_decay_factors</a></td>
-<td>Returns a list of factors for the collapse operators for each</td>
+<td>Returns the factors for the collapse operators of each hyperfine</td>
 </tr>
 <tr class="even">
 <td><a href="#clerq.hyperfine.Atom1e.get_energies">get_energies</a></td>
@@ -438,15 +449,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="clerq.hyperfine.Atom1e.get_clebsch_hf_factors" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_clebsch_hf_factors">get_clebsch_hf_factors</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_clebsch_hf_factors(F_level_idxs_a, F_level_idxs_b, q)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Returns a list of Clebsch-Gordan coefficients for the hyperfine transition dipole matrix elements for each coupled level pair.</p>
+<p>Returns the Clebsch-Gordan coefficients for the hyperfine transition dipole matrix elements of each coupled level pair.</p>
 <section id="parameters" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 17%">
-<col style="width: 9%">
-<col style="width: 58%">
-<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 12%">
+<col style="width: 60%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -458,15 +469,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>F_level_idx_a</td>
-<td>int</td>
-<td>F level the transition is from (lower level)</td>
+<td>F_level_idxs_a</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is from (lower level).</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>F_level_idx_b</td>
-<td>int</td>
-<td>F level the transition is to (upper level)</td>
+<td>F_level_idxs_b</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is to (upper level).</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
@@ -481,6 +492,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="returns" class="level4 doc-section doc-section-returns">
 <h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 76%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -491,8 +507,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>list</td>
-<td>factors, length of mF_list</td>
+<td>np.ndarray</td>
+<td>Array of factors, one for each pair from <code>get_coupled_levels</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -501,15 +517,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_clebsch_hf_factors_iso">get_clebsch_hf_factors_iso</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_clebsch_hf_factors_iso(F_level_idxs_a, F_level_idxs_b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Returns a list of Clebsch-Gordan coefficients for the hyperfine transition dipole matrix elements for each coupled level pair. for an isotropic field.</p>
+<p>Returns the Clebsch-Gordan coefficients for the hyperfine transition dipole matrix elements of each coupled level pair, for an isotropic field.</p>
 <section id="parameters-1" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 9%">
-<col style="width: 56%">
-<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 12%">
+<col style="width: 60%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -521,15 +537,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>F_level_idx_a</td>
-<td>int</td>
-<td>F level the transition is from (lower level)</td>
+<td>F_level_idxs_a</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is from (lower level).</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>F_level_idx_b</td>
-<td>int</td>
-<td>F level the transition is to (upper level)</td>
+<td>F_level_idxs_b</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is to (upper level).</td>
 <td><em>required</em></td>
 </tr>
 </tbody>
@@ -538,6 +554,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="returns-1" class="level4 doc-section doc-section-returns">
 <h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 76%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -548,8 +569,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>list</td>
-<td>factors, length of mF_list</td>
+<td>np.ndarray</td>
+<td>Array of factors, one for each pair from <code>get_coupled_levels</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -570,9 +591,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 9%">
-<col style="width: 58%">
+<col style="width: 17%">
+<col style="width: 14%">
+<col style="width: 54%">
 <col style="width: 13%">
 </colgroup>
 <thead>
@@ -586,13 +607,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>F_level_idxs_a</td>
-<td></td>
+<td>list[int]</td>
 <td>Indices into self.F_levels for the first group.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td>F_level_idxs_b</td>
-<td></td>
+<td>list[int]</td>
 <td>Indices into self.F_levels for the second group.</td>
 <td><em>required</em></td>
 </tr>
@@ -603,9 +624,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 10%">
-<col style="width: 10%">
-<col style="width: 79%">
+<col style="width: 8%">
+<col style="width: 23%">
+<col style="width: 68%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -617,12 +638,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td></td>
+<td>list[list[int]]</td>
 <td>List of [i, j] pairs where i is an mF index from group a and</td>
 </tr>
 <tr class="even">
 <td></td>
-<td></td>
+<td>list[list[int]]</td>
 <td>j is an mF index from group b.</td>
 </tr>
 </tbody>
@@ -636,15 +657,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="clerq.hyperfine.Atom1e.get_decay_factors" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_decay_factors">get_decay_factors</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_decay_factors(F_level_idxs_a, F_level_idxs_b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Returns a list of factors for the collapse operators for each hyperfine coupled level pair.</p>
+<p>Returns the factors for the collapse operators of each hyperfine coupled level pair.</p>
 <section id="parameters-3" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 9%">
-<col style="width: 56%">
-<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 12%">
+<col style="width: 60%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -656,24 +677,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>F_level_idx_a</td>
-<td>int</td>
-<td>F level the transition is from (lower level)</td>
+<td>F_level_idxs_a</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is from (lower level).</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>F_level_idx_b</td>
-<td>int</td>
-<td>F level the transition is to(upper level)</td>
+<td>F_level_idxs_b</td>
+<td>list[int]</td>
+<td>Indices of the F levels the transition is to (upper level).</td>
 <td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-3" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 76%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray</td>
+<td>Array of factors, one for each pair from <code>get_coupled_levels</code>.</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="notes-1" class="level4 doc-section doc-section-notes">
 <h4 class="doc-section doc-section-notes anchored" data-anchor-id="notes-1">Notes</h4>
-<p>This is equivalent to the clebsch_hf_factors for all polarisations as decay photons are of all polarisations. Note that for any coupled levels pair there will be only one n on-zero factor to sum.</p>
-<p>Returns: (list): factors, length of mF_list</p>
+<p>This is equivalent to the clebsch_hf_factors for all polarisations as decay photons are of all polarisations. Note that for any coupled levels pair there will be only one non-zero factor to sum.</p>
 </section>
 </section>
 <section id="clerq.hyperfine.Atom1e.get_energies" class="level3">

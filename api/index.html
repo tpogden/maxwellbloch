@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>index – clerq</title>
+<title>API reference – clerq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,8 +115,19 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -149,8 +160,8 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/field.Field.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">field.Field</span></a>
+  <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Field</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -173,20 +184,14 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/mb_solve.MBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mb_solve.MBSolve</span></a>
+  <a href="../api/LindbladSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LindbladSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/ob_atom.OBAtom.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_atom.OBAtom</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../api/ob_solve.OBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_solve.OBSolve</span></a>
+  <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PropagationSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -235,6 +240,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="../api/spectral.voigt_two_linear_known.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">spectral.voigt_two_linear_known</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/System.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -322,7 +333,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#api-reference" id="toc-api-reference" class="nav-link active" data-scroll-target="#api-reference">API reference</a>
   <ul class="collapse">
   <li><a href="#solvers" id="toc-solvers" class="nav-link" data-scroll-target="#solvers">Solvers</a></li>
-  <li><a href="#atoms-and-fields" id="toc-atoms-and-fields" class="nav-link" data-scroll-target="#atoms-and-fields">Atoms and fields</a></li>
+  <li><a href="#systems-and-fields" id="toc-systems-and-fields" class="nav-link" data-scroll-target="#systems-and-fields">Systems and fields</a></li>
   <li><a href="#time-functions" id="toc-time-functions" class="nav-link" data-scroll-target="#time-functions">Time functions</a></li>
   <li><a href="#spectral-analysis" id="toc-spectral-analysis" class="nav-link" data-scroll-target="#spectral-analysis">Spectral analysis</a></li>
   <li><a href="#hyperfine-structure" id="toc-hyperfine-structure" class="nav-link" data-scroll-target="#hyperfine-structure">Hyperfine structure</a></li>
@@ -345,27 +356,27 @@ ul.task-list li input[type="checkbox"] {
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
-<td><a href="../api/mb_solve.MBSolve.html#clerq.mb_solve.MBSolve">mb_solve.MBSolve</a></td>
-<td></td>
+<td><a href="../api/PropagationSolver.html#clerq.PropagationSolver">PropagationSolver</a></td>
+<td>Solver for the propagation of fields through a medium of systems.</td>
 </tr>
 <tr class="even">
-<td><a href="../api/ob_solve.OBSolve.html#clerq.ob_solve.OBSolve">ob_solve.OBSolve</a></td>
+<td><a href="../api/LindbladSolver.html#clerq.LindbladSolver">LindbladSolver</a></td>
 <td>Time-domain master equation solver for a single spatial point.</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="atoms-and-fields" class="level2">
-<h2 class="anchored" data-anchor-id="atoms-and-fields">Atoms and fields</h2>
+<section id="systems-and-fields" class="level2">
+<h2 class="anchored" data-anchor-id="systems-and-fields">Systems and fields</h2>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
-<td><a href="../api/ob_atom.OBAtom.html#clerq.ob_atom.OBAtom">ob_atom.OBAtom</a></td>
-<td></td>
+<td><a href="../api/System.html#clerq.System">System</a></td>
+<td>An open quantum system: its states, decays and the fields coupling them.</td>
 </tr>
 <tr class="even">
-<td><a href="../api/field.Field.html#clerq.field.Field">field.Field</a></td>
-<td>Field object to address the OBAtom object, describing the atomic levels</td>
+<td><a href="../api/Field.html#clerq.Field">Field</a></td>
+<td>Field object to address the System object, describing the atomic levels</td>
 </tr>
 </tbody>
 </table>

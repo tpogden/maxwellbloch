@@ -150,8 +150,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -184,8 +195,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/field.Field.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">field.Field</span></a>
+  <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Field</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -208,20 +219,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/mb_solve.MBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mb_solve.MBSolve</span></a>
+  <a href="../api/LindbladSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LindbladSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/ob_atom.OBAtom.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_atom.OBAtom</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../api/ob_solve.OBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_solve.OBSolve</span></a>
+  <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PropagationSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -270,6 +275,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/spectral.voigt_two_linear_known.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">spectral.voigt_two_linear_known</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/System.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -370,15 +381,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="clerq.spectral.dispersion" class="level1">
 <h1>spectral.dispersion</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>spectral.dispersion(mb_solve, field_idx, z_idx<span class="op">=-</span><span class="dv">1</span>, <span class="op">*</span>, window<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>spectral.dispersion(solver, field_idx, z_idx<span class="op">=-</span><span class="dv">1</span>, <span class="op">*</span>, window<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Field dispersion in the frequency domain.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 11%">
-<col style="width: 13%">
-<col style="width: 61%">
+<col style="width: 19%">
+<col style="width: 57%">
 <col style="width: 12%">
 </colgroup>
 <thead>
@@ -391,9 +402,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>mb_solve</td>
-<td>MBSolve</td>
-<td>An MBSolve object.</td>
+<td>solver</td>
+<td>PropagationSolver</td>
+<td>A PropagationSolver object.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">

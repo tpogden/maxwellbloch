@@ -180,8 +180,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -324,7 +335,7 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 <div id="cell-3" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "channels": [[0, 1]],</span></span>
@@ -365,9 +376,9 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-4" class="cell" data-execution_count="3">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, utility</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can check the set of velocity classes we’ve defined:</p>
 <div id="cell-6" class="cell" data-execution_count="4">
@@ -385,7 +396,7 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 </div>
 <p>And so we can plot the numerical approximation to the Gaussian Maxwell-Boltzmann distribution:</p>
 <div id="cell-10" class="cell" data-execution_count="6">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>maxboltz <span class="op">=</span> mb_solve.maxwell_boltzmann(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>maxboltz <span class="op">=</span> utility.maxwell_boltzmann(</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    mbs.thermal_delta_list, <span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> mbs.velocity_classes[<span class="st">"thermal_width"</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>plt.plot(mbs.thermal_delta_list, maxboltz, marker<span class="op">=</span><span class="st">"o"</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -406,9 +417,9 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 </div>
 <p>Now we can solve as before. Now at each <span class="math inline">\(z\)</span>-step, the system will be solved <code>thermal_delta_steps</code> times, once for each velocity class, and so the time taken to solve scales linearly.</p>
 <div id="cell-14" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve(recalc<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to velocity-classes.qu</code></pre>
+<pre><code>Saving PropagationSolver to velocity-classes.qu</code></pre>
 </div>
 </div>
 <section id="results-in-the-time-domain" class="level2">
@@ -447,7 +458,7 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 </div>
 <div id="cell-19" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>interaction_strength <span class="op">=</span> mbs.interaction_strengths[<span class="dv">0</span>]</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>decay_rate <span class="op">=</span> mbs.atom.decays[<span class="dv">0</span>][<span class="st">"rate"</span>]</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>decay_rate <span class="op">=</span> mbs.system.decays[<span class="dv">0</span>][<span class="st">"rate"</span>]</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>freq_list <span class="op">=</span> spectral.freq_list(mbs)</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>absorption_linear_known <span class="op">=</span> spectral.absorption_two_linear_known(</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    freq_list, interaction_strength, decay_rate</span>
@@ -568,7 +579,7 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 </div>
 </div>
 <div id="cell-25" class="cell" data-execution_count="15">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>maxboltz <span class="op">=</span> mb_solve.maxwell_boltzmann(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>maxboltz <span class="op">=</span> utility.maxwell_boltzmann(</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    mbs.thermal_delta_list, <span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> mbs.velocity_classes[<span class="st">"thermal_width"</span>]</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>plt.plot(mbs.thermal_delta_list, maxboltz, marker<span class="op">=</span><span class="st">"o"</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

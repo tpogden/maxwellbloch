@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -377,14 +388,14 @@ window.Quarto = {
 <p>Four coupling strengths are compared: <span class="math inline">\(\Omega_c = 0\)</span> (no coupling, single Lorentzian), 1, 2, and 5 <span class="math inline">\(\gamma\)</span>. The AT doublet emerges and widens linearly with <span class="math inline">\(\Omega_c\)</span>.</p>
 <div id="imports" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve, plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="json-template" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> at_json(omega_c, savefile):</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return an MBSolve JSON string for a given coupling Rabi frequency."""</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return a PropagationSolver JSON string for a given coupling Rabi frequency."""</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ss">f"""</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 3,</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ss">    "decays": [</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ss">      </span><span class="ch">{{</span><span class="ss">"channels": [[0, 1]], "rate": 1.0</span><span class="ch">}}</span><span class="ss">,</span></span>
@@ -424,20 +435,20 @@ window.Quarto = {
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>mbs_list <span class="op">=</span> []</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> omega_c <span class="kw">in</span> omega_c_values:</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    mbs <span class="op">=</span> PropagationSolver().from_json_str(</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        at_json(omega_c, <span class="ss">f"mbs-ladder-at-Oc</span><span class="sc">{</span>omega_c<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    mbs.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    mbs.solve(recalc<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    mbs_list.append(mbs)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Ω_c = </span><span class="sc">{</span>omega_c<span class="sc">}</span><span class="ss"> γ — solved"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-ladder-at-Oc0.0.qu
+<pre><code>Saving PropagationSolver to mbs-ladder-at-Oc0.0.qu
 Ω_c = 0.0 γ — solved
-Saving MBSolve to mbs-ladder-at-Oc1.0.qu
+Saving PropagationSolver to mbs-ladder-at-Oc1.0.qu
 Ω_c = 1.0 γ — solved
-Saving MBSolve to mbs-ladder-at-Oc2.0.qu
+Saving PropagationSolver to mbs-ladder-at-Oc2.0.qu
 Ω_c = 2.0 γ — solved
-Saving MBSolve to mbs-ladder-at-Oc5.0.qu
+Saving PropagationSolver to mbs-ladder-at-Oc5.0.qu
 Ω_c = 5.0 γ — solved</code></pre>
 </div>
 </div>

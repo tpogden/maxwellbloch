@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -322,7 +333,7 @@ window.Quarto = {
 </header>
 
 
-<p><code>clerq.plot</code> provides Plotly-based visualisation primitives for MBSolve and OBSolve results. Figures are interactive in the browser — hover to read values, drag to zoom, click the legend to toggle traces.</p>
+<p><code>clerq.plot</code> provides Plotly-based visualisation primitives for PropagationSolver and LindbladSolver results. Figures are interactive in the browser — hover to read values, drag to zoom, click the legend to toggle traces.</p>
 <section id="installation" class="level2">
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
 <p>The plotting module requires the optional <code>[plot]</code> dependencies:</p>
@@ -333,7 +344,7 @@ window.Quarto = {
 </section>
 <section id="usage-pattern" class="level2">
 <h2 class="anchored" data-anchor-id="usage-pattern">Usage pattern</h2>
-<p>All plot functions take a solved <code>MBSolve</code> instance as their first argument and return a <code>plotly.graph_objects.Figure</code>. They never call <code>.show()</code> internally — that is always your call:</p>
+<p>All plot functions take a solved <code>PropagationSolver</code> instance as their first argument and return a <code>plotly.graph_objects.Figure</code>. They never call <code>.show()</code> internally — that is always your call:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> plot</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plot.field_spacetime(mbs)         <span class="co"># returns a Figure</span></span>
@@ -344,11 +355,11 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="setup-solve-a-two-level-absorber">Setup: solve a two-level absorber</h2>
 <p>We use a weak Gaussian probe propagating through a two-level absorber. This is enough to demonstrate every primitive.</p>
 <div id="setup" class="cell" data-execution_count="1">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve, plot</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>mb_solve_json <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">    "num_states": 2,</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [{"channels": [[0, 1]], "rate": 1.0}],</span></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
@@ -373,10 +384,10 @@ window.Quarto = {
 <span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve.from_json_str(mb_solve_json)</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver.from_json_str(mb_solve_json)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to plotting-two-level.qu</code></pre>
+<pre><code>Saving PropagationSolver to plotting-two-level.qu</code></pre>
 </div>
 </div>
 </section>

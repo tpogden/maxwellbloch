@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -398,7 +409,7 @@ window.Quarto = {
 <p>This notebook demonstrates the full picture, starting from the fundamental SIT soliton and then exploring what the area theorem predicts for other input areas.</p>
 <div id="sit-setup" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:02.104177Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:02.103979Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:02.757305Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:02.756707Z&quot;}}" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve, plot</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq.utility <span class="im">import</span> SECH_FWHM_CONV</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>t_width <span class="op">=</span> <span class="fl">0.001</span></span>
@@ -416,9 +427,9 @@ window.Quarto = {
 <p>A sech pulse with area exactly <span class="math inline">\(2\pi\)</span> is the <strong>central object of self-induced transparency</strong>. It is an exact analytical solution of the Maxwell-Bloch equations: it propagates through the resonant medium without any attenuation, slowed relative to vacuum by a delay proportional to the optical depth. The medium absorbs energy from the leading edge and re-emits it coherently into the trailing edge — the two processes cancel exactly.</p>
 <p>This is the stable fixed point at <span class="math inline">\(\mathcal{A} = 2\pi\)</span>. All other inputs are understood in relation to it.</p>
 <div id="sit-2pi-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:02.759107Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:02.758948Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:02.766397Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:02.765964Z&quot;}}" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mbs_2pi <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mbs_2pi <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "sech",</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 2.0, "centre": 0.0, "width": </span><span class="sc">{</span>t_width<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -430,9 +441,9 @@ window.Quarto = {
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>mbs_2pi.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>mbs_2pi.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-2pi.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-2pi.qu</code></pre>
 </div>
 </div>
 <div id="sit-2pi-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:02.767829Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:02.767748Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.388435Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.387616Z&quot;}}" data-execution_count="3">
@@ -506,9 +517,9 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="π-absorbed">1π — absorbed</h2>
 <p>A sech pulse with area <span class="math inline">\(\mathcal{A} &lt; \pi\)</span> lies in the basin of attraction of the zero fixed point: it is simply absorbed. There is no coherent re-emission to balance the absorption, so the pulse decays monotonically as it propagates. The pulse area tracks the area theorem prediction, falling smoothly toward zero.</p>
 <div id="sit-1pi-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.412805Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.412696Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.420596Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.419764Z&quot;}}" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mbs_1pi <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mbs_1pi <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "sech",</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 1.0, "centre": 0.0, "width": </span><span class="sc">{</span>t_width<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -520,9 +531,9 @@ if (outputEl) {{
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>mbs_1pi.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>mbs_1pi.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-1pi.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-1pi.qu</code></pre>
 </div>
 </div>
 <div id="sit-1pi-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.422394Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.422271Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.447904Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.447368Z&quot;}}" data-execution_count="6">
@@ -596,9 +607,9 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="π-one-2π-soliton-emitted">3π — one 2π soliton emitted</h2>
 <p>The <span class="math inline">\(3\pi\)</span> fixed point is <strong>unstable</strong>: any perturbation drives the area away from it. Propagation tips a <span class="math inline">\(3\pi\)</span> input downward toward the nearest stable point at <span class="math inline">\(2\pi\)</span>. One <span class="math inline">\(2\pi\)</span> soliton forms and the remaining area (<span class="math inline">\(3\pi - 2\pi = \pi\)</span>) falls below the unstable fixed point at <span class="math inline">\(\pi\)</span> and is absorbed. The area plot shows the transition clearly.</p>
 <div id="sit-3pi-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.470850Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.470717Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.478048Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.477587Z&quot;}}" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mbs_3pi <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mbs_3pi <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "sech",</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 3.0, "centre": 0.0, "width": </span><span class="sc">{</span>t_width<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -610,9 +621,9 @@ if (outputEl) {{
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>mbs_3pi.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>mbs_3pi.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-3pi.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-3pi.qu</code></pre>
 </div>
 </div>
 <div id="sit-3pi-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.479923Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.479815Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.504522Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.503717Z&quot;}}" data-execution_count="9">
@@ -686,9 +697,9 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="shape-independence-gaussian-pulses">Shape independence — Gaussian pulses</h2>
 <p>The area theorem contains no information about pulse shape — only <span class="math inline">\(\mathcal{A}\)</span> appears in <span class="math inline">\(d\mathcal{A}/dz = -(\alpha/2)\sin\mathcal{A}\)</span>. A Gaussian, square, or any other envelope with the same area undergoes the same fate. A <span class="math inline">\(1.8\pi\)</span> Gaussian reshapes toward the <span class="math inline">\(2\pi\)</span> sech soliton, just as a <span class="math inline">\(1.8\pi\)</span> sech pulse would — the attractor depends only on the area, not the shape.</p>
 <div id="sit-g18-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.526206Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.526119Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.533999Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.533576Z&quot;}}" data-execution_count="11">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mbs_g18 <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mbs_g18 <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "gaussian",</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 1.8, "centre": 0.0, "fwhm": </span><span class="sc">{</span>gauss_fwhm<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -700,10 +711,10 @@ if (outputEl) {{
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>mbs_g18.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>mbs_g18.solve(recalc<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Input area: </span><span class="sc">{</span>np<span class="sc">.</span>trapezoid(mbs_g18.Omegas_zt[<span class="dv">0</span>, <span class="dv">0</span>, :].real, mbs_g18.tlist) <span class="op">/</span> np<span class="sc">.</span>pi<span class="sc">:.3f}</span><span class="ss">π"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-gauss-18pi.qu
+<pre><code>Saving PropagationSolver to mbs-sit-gauss-18pi.qu
 Input area: 1.800π</code></pre>
 </div>
 </div>
@@ -779,9 +790,9 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="π-two-solitons">4π — two solitons</h2>
 <p>A <span class="math inline">\(4\pi\)</span> input is near a second stable fixed point. It breaks into <strong>two</strong> <span class="math inline">\(2\pi\)</span> solitons, each carrying half the original area. The two solitons emerge with different widths and therefore different group velocities — the narrower soliton travels faster — so they separate as they propagate through the medium.</p>
 <div id="sit-4pi-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.581193Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.581102Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.588695Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.588185Z&quot;}}" data-execution_count="14">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>mbs_4pi <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>mbs_4pi <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "sech",</span></span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 4.0, "centre": 0.0, "width": </span><span class="sc">{</span>t_width<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -793,9 +804,9 @@ if (outputEl) {{
 <span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>mbs_4pi.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>mbs_4pi.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-4pi.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-4pi.qu</code></pre>
 </div>
 </div>
 <div id="sit-4pi-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.590206Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.590127Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.614213Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.613763Z&quot;}}" data-execution_count="15">
@@ -869,9 +880,9 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="π-three-solitons">6π — three solitons</h2>
 <p>A <span class="math inline">\(6\pi\)</span> input breaks into <strong>three</strong> <span class="math inline">\(2\pi\)</span> solitons. The general rule is clear: a <span class="math inline">\(2n\pi\)</span> input produces exactly <span class="math inline">\(n\)</span> solitons. The solitons again emerge with different widths and speeds, fanning out as they propagate.</p>
 <div id="sit-6pi-json" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.635164Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.635073Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.642326Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.641921Z&quot;}}" data-execution_count="17">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>mbs_6pi <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>mbs_6pi <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span></span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="ss">    "fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]], "rabi_freq_t_func": "sech",</span></span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="ss">      "rabi_freq_t_args": </span><span class="ch">{{</span><span class="ss">"n_pi": 6.0, "centre": 0.0, "width": </span><span class="sc">{</span>t_width<span class="sc">}</span><span class="ch">}}}}</span><span class="ss">],</span></span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="ss">    "num_states": 2,</span></span>
@@ -883,9 +894,9 @@ if (outputEl) {{
 <span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
 <span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>mbs_6pi.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>mbs_6pi.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-6pi.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-6pi.qu</code></pre>
 </div>
 </div>
 <div id="sit-6pi-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.643709Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.643633Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.668035Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.667406Z&quot;}}" data-execution_count="18">
@@ -963,9 +974,9 @@ if (outputEl) {{
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>t_width_narrow <span class="op">=</span> <span class="fl">1.0</span> <span class="op">*</span> t_width</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>t_max_col <span class="op">=</span> t_width <span class="op">*</span> <span class="dv">80</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>mbs_col <span class="op">=</span> mb_solve.MBSolve().from_json_str(<span class="ss">f"""</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>mbs_col <span class="op">=</span> PropagationSolver().from_json_str(<span class="ss">f"""</span></span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="ss">  "atom": </span><span class="ch">{{</span><span class="ss">"fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]]</span><span class="ch">}}</span><span class="ss">], "num_states": 2, "decays": [</span><span class="ch">{{</span><span class="ss">"channels": [[0, 1]], "rate": 1.0</span><span class="ch">}}</span><span class="ss">]</span><span class="ch">}}</span><span class="ss">,</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="ss">  "system": </span><span class="ch">{{</span><span class="ss">"fields": [</span><span class="ch">{{</span><span class="ss">"coupled_levels": [[0, 1]]</span><span class="ch">}}</span><span class="ss">], "num_states": 2, "decays": [</span><span class="ch">{{</span><span class="ss">"channels": [[0, 1]], "rate": 1.0</span><span class="ch">}}</span><span class="ss">]</span><span class="ch">}}</span><span class="ss">,</span></span>
 <span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="ss">  "t_min": </span><span class="sc">{</span>t_min<span class="sc">}</span><span class="ss">, "t_max": </span><span class="sc">{</span>t_max_col<span class="sc">}</span><span class="ss">, "t_steps": 500,</span></span>
 <span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="ss">  "z_min": -0.5, "z_max": 1.5, "z_steps": 200,</span></span>
 <span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="ss">  "interaction_strengths": [</span><span class="sc">{</span>interaction_strength<span class="sc">}</span><span class="ss">], "savefile": "mbs-sit-collision"</span></span>
@@ -976,17 +987,17 @@ if (outputEl) {{
 <div id="sit-collision-setup" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.694215Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.694106Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.700924Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.700508Z&quot;}}" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> t_funcs</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>probe <span class="op">=</span> mbs_col.atom.fields[<span class="dv">0</span>]</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>probe <span class="op">=</span> mbs_col.system.fields[<span class="dv">0</span>]</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>probe.rabi_freq_t_func <span class="op">=</span> <span class="kw">lambda</span> t, args: t_funcs.sech(<span class="dv">1</span>)(t, args) <span class="op">+</span> t_funcs.sech(<span class="dv">2</span>)(t, args)</span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>probe.rabi_freq_t_args <span class="op">=</span> {</span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"n_pi_1"</span>: <span class="fl">2.0</span>, <span class="st">"centre_1"</span>: <span class="fl">0.0</span>, <span class="st">"width_1"</span>: t_width_wide,</span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"n_pi_2"</span>: <span class="fl">2.0</span>, <span class="st">"centre_2"</span>: t_width <span class="op">*</span> <span class="dv">5</span>, <span class="st">"width_2"</span>: t_width_narrow,</span>
 <span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>mbs_col.atom.build_operators()</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>mbs_col.system.build_operators()</span>
 <span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>mbs_col.init_Omegas_zt()</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>mbs_col.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>mbs_col.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-sit-collision.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-sit-collision.qu</code></pre>
 </div>
 </div>
 <div id="sit-collision-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:14:03.702342Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:14:03.702242Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:14:03.725785Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:14:03.725213Z&quot;}}" data-execution_count="22">

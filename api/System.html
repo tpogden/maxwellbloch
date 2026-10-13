@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>ob_solve.obsolve – clerq</title>
+<title>System – clerq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -150,8 +150,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -164,7 +175,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/ob_solve.OBSolve.html">ob_solve.OBSolve</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/System.html">System</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -184,8 +195,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/field.Field.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">field.Field</span></a>
+  <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Field</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -208,20 +219,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/mb_solve.MBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mb_solve.MBSolve</span></a>
+  <a href="../api/LindbladSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LindbladSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/ob_atom.OBAtom.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_atom.OBAtom</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../api/ob_solve.OBSolve.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">ob_solve.OBSolve</span></a>
+  <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PropagationSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -270,6 +275,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/spectral.voigt_two_linear_known.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">spectral.voigt_two_linear_known</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/System.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">System</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -354,21 +365,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#clerq.ob_solve.OBSolve" id="toc-clerq.ob_solve.OBSolve" class="nav-link active" data-scroll-target="#clerq.ob_solve.OBSolve">ob_solve.OBSolve</a>
+  <li><a href="#clerq.System" id="toc-clerq.System" class="nav-link active" data-scroll-target="#clerq.System">System</a>
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
-  <li><a href="#clerq.ob_solve.OBSolve.build_opts" id="toc-clerq.ob_solve.OBSolve.build_opts" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.build_opts">build_opts</a></li>
-  <li><a href="#clerq.ob_solve.OBSolve.from_json" id="toc-clerq.ob_solve.OBSolve.from_json" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.from_json">from_json</a></li>
-  <li><a href="#clerq.ob_solve.OBSolve.from_json_str" id="toc-clerq.ob_solve.OBSolve.from_json_str" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.from_json_str">from_json_str</a></li>
-  <li><a href="#clerq.ob_solve.OBSolve.savefile_exists" id="toc-clerq.ob_solve.OBSolve.savefile_exists" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.savefile_exists">savefile_exists</a></li>
-  <li><a href="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args" id="toc-clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args">set_field_rabi_freq_t_args</a></li>
-  <li><a href="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func" id="toc-clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func" class="nav-link" data-scroll-target="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func">set_field_rabi_freq_t_func</a></li>
+  <li><a href="#clerq.System.add_field" id="toc-clerq.System.add_field" class="nav-link" data-scroll-target="#clerq.System.add_field">add_field</a></li>
+  <li><a href="#clerq.System.build_fields" id="toc-clerq.System.build_fields" class="nav-link" data-scroll-target="#clerq.System.build_fields">build_fields</a></li>
+  <li><a href="#clerq.System.build_initial_state" id="toc-clerq.System.build_initial_state" class="nav-link" data-scroll-target="#clerq.System.build_initial_state">build_initial_state</a></li>
+  <li><a href="#clerq.System.build_operators" id="toc-clerq.System.build_operators" class="nav-link" data-scroll-target="#clerq.System.build_operators">build_operators</a></li>
+  <li><a href="#clerq.System.get_detunings" id="toc-clerq.System.get_detunings" class="nav-link" data-scroll-target="#clerq.System.get_detunings">get_detunings</a></li>
+  <li><a href="#clerq.System.get_fields_sum_coherence" id="toc-clerq.System.get_fields_sum_coherence" class="nav-link" data-scroll-target="#clerq.System.get_fields_sum_coherence">get_fields_sum_coherence</a></li>
+  <li><a href="#clerq.System.set_H_Delta" id="toc-clerq.System.set_H_Delta" class="nav-link" data-scroll-target="#clerq.System.set_H_Delta">set_H_Delta</a></li>
+  <li><a href="#clerq.System.set_H_Omega" id="toc-clerq.System.set_H_Omega" class="nav-link" data-scroll-target="#clerq.System.set_H_Omega">set_H_Omega</a></li>
+  <li><a href="#clerq.System.to_json_str" id="toc-clerq.System.to_json_str" class="nav-link" data-scroll-target="#clerq.System.to_json_str">to_json_str</a></li>
   </ul></li>
   </ul></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/ob_solve.OBSolve.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/System.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
@@ -376,27 +390,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="clerq.ob_solve.OBSolve" class="level1">
-<h1>ob_solve.OBSolve</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    atom<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    t_min<span class="op">=</span><span class="fl">0.0</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    t_max<span class="op">=</span><span class="fl">1.0</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    t_steps<span class="op">=</span><span class="dv">100</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    method<span class="op">=</span><span class="st">'mesolve'</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    opts<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    savefile<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Time-domain master equation solver for a single spatial point.</p>
-<p>Wraps :func:<code>qutip.mesolve</code> to evolve an atomic density matrix described by an :class:<code>~clerq.ob_atom.OBAtom</code> over a user-defined time grid. Supports Doppler broadening via velocity classes and can save/load results to avoid recomputation.</p>
+<section id="clerq.System" class="level1">
+<h1>System</h1>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>System(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    num_states<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    energies<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    decays<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    initial_state<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    fields<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>An open quantum system: its states, decays and the fields coupling them.</p>
+<p>The system can be an atom or any other few-level quantum system, such as a quantum dot or a colour centre.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 6%">
-<col style="width: 8%">
-<col style="width: 76%">
-<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 78%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -408,45 +421,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>atom</td>
-<td>dict | None</td>
-<td>Dict (or empty dict for defaults) describing the atomic system; passed to :class:<code>~clerq.ob_atom.OBAtom</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>t_min</td>
-<td>float</td>
-<td>Start time of the simulation.</td>
-<td><code>0.0</code></td>
-</tr>
-<tr class="odd">
-<td>t_max</td>
-<td>float</td>
-<td>End time of the simulation.</td>
-<td><code>1.0</code></td>
-</tr>
-<tr class="even">
-<td>t_steps</td>
-<td>int</td>
-<td>Number of time steps.</td>
-<td><code>100</code></td>
-</tr>
-<tr class="odd">
-<td>method</td>
-<td>str</td>
-<td>Solver method — <code>'mesolve'</code> (Lindblad master equation) is the only supported value.</td>
-<td><code>'mesolve'</code></td>
-</tr>
-<tr class="even">
-<td>opts</td>
-<td>dict | None</td>
-<td>Dict of QuTiP solver options passed to <code>qutip.Options</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>savefile</td>
+<td>label</td>
 <td>str | None</td>
-<td>Path prefix for caching solved results (<code>'.qu'</code> extension appended automatically). Pass <code>None</code> to disable caching.</td>
+<td>string label describing the system.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>num_states</td>
+<td>int</td>
+<td>number of states.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>energies</td>
+<td>list[float] | None</td>
+<td>absolute or relative energy levels of the states.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>decays</td>
+<td>list[dict] | None</td>
+<td>list of dicts representing decays. e.g.&nbsp;[ { “rate”: 1.0, “channels”: [[0,1]], “factors”: [1.0] } { “rate”: 2.0, “channels”: [[2,1], [3,1]], “factors”: [0.707, 0.707] } ]</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>initial_state</td>
+<td>list[float] | None</td>
+<td>initial state, as a list or array</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>fields</td>
+<td>list[dict] | None</td>
+<td>list of dicts representing the fields that couple the system’s states.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -463,76 +470,66 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#clerq.ob_solve.OBSolve.build_opts">build_opts</a></td>
-<td>Build the options dict to be passed into the QuTiP solver.</td>
+<td><a href="#clerq.System.add_field">add_field</a></td>
+<td>Add a Field to the list given a dict representing the field.</td>
 </tr>
 <tr class="even">
-<td><a href="#clerq.ob_solve.OBSolve.from_json">from_json</a></td>
-<td>Initialise OBSolve from JSON file.</td>
+<td><a href="#clerq.System.build_fields">build_fields</a></td>
+<td>Build the field list given a list of dicts representing fields.</td>
 </tr>
 <tr class="odd">
-<td><a href="#clerq.ob_solve.OBSolve.from_json_str">from_json_str</a></td>
-<td>Initialise OBSolve from JSON string.</td>
+<td><a href="#clerq.System.build_initial_state">build_initial_state</a></td>
+<td>Build the initial density matrix for the system.</td>
 </tr>
 <tr class="even">
-<td><a href="#clerq.ob_solve.OBSolve.savefile_exists">savefile_exists</a></td>
-<td>Returns true if savefile (with appended extension .qu) exists.</td>
+<td><a href="#clerq.System.build_operators">build_operators</a></td>
+<td>Build the quantum operators representing the bare Hamiltonian,</td>
 </tr>
 <tr class="odd">
-<td><a href="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args">set_field_rabi_freq_t_args</a></td>
-<td>Set the Rabi frequency time function arguments. To be used with</td>
+<td><a href="#clerq.System.get_detunings">get_detunings</a></td>
+<td>Returns a list of detunings, one for each field in fields.</td>
 </tr>
 <tr class="even">
-<td><a href="#clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func">set_field_rabi_freq_t_func</a></td>
-<td>Set the Rabi frequency time function of a field to a new time</td>
+<td><a href="#clerq.System.get_fields_sum_coherence">get_fields_sum_coherence</a></td>
+<td>Returns the sum coherences of the system density matrix for each</td>
+</tr>
+<tr class="odd">
+<td><a href="#clerq.System.set_H_Delta">set_H_Delta</a></td>
+<td>Set the detuning part of the interaction Hamiltonian, H_Delta,</td>
+</tr>
+<tr class="even">
+<td><a href="#clerq.System.set_H_Omega">set_H_Omega</a></td>
+<td>Set the Rabi frequency part of the interaction Hamiltonian.</td>
+</tr>
+<tr class="odd">
+<td><a href="#clerq.System.to_json_str">to_json_str</a></td>
+<td>Return a JSON string representation of the System object.</td>
 </tr>
 </tbody>
 </table>
-<section id="clerq.ob_solve.OBSolve.build_opts" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.build_opts">build_opts</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.build_opts(opts<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Build the options dict to be passed into the QuTiP solver.</p>
-<p>Any option available to the QuTiP solver is available here, we provide defaults for solving the optical Bloch equations. See <a href="http://qutip.org/docs/4.2/guide/dynamics/dynamics-options.html">0</a> for details of all the available options.</p>
-<section id="notes" class="level4 doc-section doc-section-notes">
-<h4 class="doc-section doc-section-notes anchored" data-anchor-id="notes">Notes</h4>
-<ul>
-<li>For a stiff problem, it may help to set ‘method’ to ‘bdf’ instead of ‘adams’.</li>
-<li>If the solver times out, try more ‘nsteps’, though this will take longer.</li>
-<li>To speed up the solver, reduce atol and rtol, though this will reduce accuracy.</li>
-</ul>
+<section id="clerq.System.add_field" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.add_field">add_field</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>System.add_field(field_dict)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Add a Field to the list given a dict representing the field.</p>
 </section>
-<section id="warning" class="level4 doc-section doc-section-warning">
-<h4 class="doc-section doc-section-warning anchored" data-anchor-id="warning">Warning</h4>
-<p>There is no validation checking here. If you pass in an option which is not known to QuTiP it will throw an exception.</p>
+<section id="clerq.System.build_fields" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.build_fields">build_fields</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>System.build_fields(field_dicts)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Build the field list given a list of dicts representing fields.</p>
 </section>
-</section>
-<section id="clerq.ob_solve.OBSolve.from_json" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.from_json">from_json</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.from_json(file_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Initialise OBSolve from JSON file.</p>
-</section>
-<section id="clerq.ob_solve.OBSolve.from_json_str" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.from_json_str">from_json_str</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.from_json_str(json_str)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Initialise OBSolve from JSON string.</p>
-</section>
-<section id="clerq.ob_solve.OBSolve.savefile_exists" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.savefile_exists">savefile_exists</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.savefile_exists()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Returns true if savefile (with appended extension .qu) exists.</p>
-</section>
-<section id="clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.set_field_rabi_freq_t_args">set_field_rabi_freq_t_args</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.set_field_rabi_freq_t_args(field_idx, t_args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Set the Rabi frequency time function arguments. To be used with set_field_rabi_freq_t_func</p>
+<section id="clerq.System.build_initial_state" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.build_initial_state">build_initial_state</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>System.build_initial_state(initial_state<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Build the initial density matrix for the system.</p>
+<p>The default is for all of the population to be in <code>|0&gt;&lt;0|</code>.</p>
 <section id="parameters-1" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 12%">
 <col style="width: 9%">
-<col style="width: 63%">
-<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 67%">
+<col style="width: 7%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -544,33 +541,180 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>field_idx</td>
-<td>int</td>
-<td>The field for which to set the Rabi frequency t_args</td>
-<td><em>required</em></td>
+<td>initial_state</td>
+<td>list[float] | None</td>
+<td>a list or array of populations, length num_states. If not given, all the population starts in level 0.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 79%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>qu.Qobj</td>
+<td>The initial density matrix, diagonal with the given populations.</td>
 </tr>
 <tr class="even">
-<td>t_args</td>
-<td>dict</td>
-<td>A dict representing the args to go with the t_func.</td>
+<td></td>
+<td>qu.Qobj</td>
+<td>It is also stored as <code>self.initial_state</code> and <code>self.rho</code>.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="raises" class="level4 doc-section doc-section-raises">
+<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 79%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>ValueError</td>
+<td>If <code>initial_state</code> has the wrong length or its elements do not sum to 1.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="notes" class="level4 doc-section doc-section-notes">
+<h4 class="doc-section doc-section-notes anchored" data-anchor-id="notes">Notes</h4>
+<ul>
+<li>The elements must sum to 1 (as this will be the trace of the density matrix).</li>
+</ul>
+</section>
+</section>
+<section id="clerq.System.build_operators" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.build_operators">build_operators</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>System.build_operators()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Build the quantum operators representing the bare Hamiltonian, collapse operators and interaction Hamiltonian.</p>
+</section>
+<section id="clerq.System.get_detunings" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.get_detunings">get_detunings</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>System.get_detunings()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returns a list of detunings, one for each field in fields.</p>
+</section>
+<section id="clerq.System.get_fields_sum_coherence" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.get_fields_sum_coherence">get_fields_sum_coherence</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>System.get_fields_sum_coherence(states_t<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returns the sum coherences of the system density matrix for each field, including the relative strength factors.</p>
+<section id="parameters-2" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 18%">
+<col style="width: 62%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>states_t</td>
+<td>np.ndarray | None</td>
+<td>(optional) a states_t object. If not provided, use self.states_t()</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray</td>
+<td>np.ndarray of shape (num_fields, t_steps+1)</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="clerq.System.set_H_Delta" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.set_H_Delta">set_H_Delta</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Delta(detunings)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set the detuning part of the interaction Hamiltonian, H_Delta, given a list of detunings.</p>
+<section id="parameters-3" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 58%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>detunings</td>
+<td>list[float]</td>
+<td>list of floats: detunings of each field in the list</td>
 <td><em>required</em></td>
 </tr>
 </tbody>
 </table>
 </section>
 </section>
-<section id="clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.ob_solve.OBSolve.set_field_rabi_freq_t_func">set_field_rabi_freq_t_func</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ob_solve.OBSolve.set_field_rabi_freq_t_func(field_idx, t_func)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Set the Rabi frequency time function of a field to a new time function. This is useful when you want to set a custom function, not one available in t_funcs.py</p>
-<section id="parameters-2" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
+<section id="clerq.System.set_H_Omega" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.set_H_Omega">set_H_Omega</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set the Rabi frequency part of the interaction Hamiltonian.</p>
+<p>Updates each field’s Rabi frequency and time function, then rebuilds the Hamiltonian.</p>
+<section id="parameters-4" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-4">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 12%">
-<col style="width: 9%">
-<col style="width: 63%">
-<col style="width: 14%">
+<col style="width: 13%">
+<col style="width: 11%">
+<col style="width: 66%">
+<col style="width: 8%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -582,16 +726,70 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>field_idx</td>
-<td>int</td>
-<td>The field for which to set the Rabi frequency t_func</td>
+<td>rabi_freqs</td>
+<td>list[float]</td>
+<td>Rabi frequency for each field.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>t_func</td>
-<td>Any</td>
-<td>Rabi frequency as a function of time, f(t, args)</td>
+<td>rabi_freq_t_funcs</td>
+<td>list</td>
+<td>Name of the time function for each field, as in <code>clerq.t_funcs</code> (e.g.&nbsp;<code>"gaussian"</code>).</td>
 <td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>rabi_freq_t_args</td>
+<td>list[dict]</td>
+<td>Argument dict for each field’s time function.</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-2" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>list</td>
+<td>The list of Rabi frequency Hamiltonian terms, one for each field.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="clerq.System.to_json_str" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.to_json_str">to_json_str</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>System.to_json_str()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Return a JSON string representation of the System object.</p>
+<section id="returns-3" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>str</td>
+<td>(string) JSON representation of the System object.</td>
 </tr>
 </tbody>
 </table>
@@ -1008,4 +1206,4 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/ob_solve.OBSolve.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/System.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

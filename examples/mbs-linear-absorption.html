@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -392,7 +403,7 @@ I(z, \omega) = I_0(\omega)\,e^{-\alpha(\omega)\,z},
 <div id="imports" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:52.584721Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:52.584622Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:53.226272Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:53.225819Z&quot;}}" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve, plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="optically-thin-medium-ng-0.05" class="level2">
@@ -401,7 +412,7 @@ I(z, \omega) = I_0(\omega)\,e^{-\alpha(\omega)\,z},
 <div id="solve-low-od" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:53.228202Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:53.228051Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:53.299506Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:53.298768Z&quot;}}" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_ng005 <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -425,10 +436,10 @@ I(z, \omega) = I_0(\omega)\,e^{-\alpha(\omega)\,z},
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>mbs_ng005 <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_ng005)</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>mbs_ng005.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>mbs_ng005 <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_ng005)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>mbs_ng005.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-linear-absorption-ng005-decay.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-linear-absorption-ng005-decay.qu</code></pre>
 </div>
 </div>
 <div id="plot-low-od-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:53.301053Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:53.300927Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:53.916962Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:53.916298Z&quot;}}" data-execution_count="3">
@@ -471,7 +482,7 @@ if (outputEl) {{
 <div id="solve-mod-od" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:53.918703Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:53.918583Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.028013Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.027445Z&quot;}}" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_ng05 <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -496,10 +507,10 @@ if (outputEl) {{
 <span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>mbs_ng05 <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_ng05)</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>mbs_ng05.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>mbs_ng05 <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_ng05)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>mbs_ng05.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-linear-absorption-ng05-decay.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-linear-absorption-ng05-decay.qu</code></pre>
 </div>
 </div>
 <div id="plot-mod-od-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:54.029282Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:54.029199Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.046488Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.046107Z&quot;}}" data-execution_count="5">
@@ -542,7 +553,7 @@ if (outputEl) {{
 <div id="solve-high-od" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:54.048334Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:54.048211Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.589563Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.589120Z&quot;}}" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_ng5 <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "coupled_levels": [[0, 1]],</span></span>
@@ -567,10 +578,10 @@ if (outputEl) {{
 <span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>mbs_ng5 <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_ng5)</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>mbs_ng5.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>mbs_ng5 <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_ng5)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>mbs_ng5.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-linear-absorption-ng5-decay.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-linear-absorption-ng5-decay.qu</code></pre>
 </div>
 </div>
 <div id="plot-high-od-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:54.591299Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:54.591163Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.609617Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.609010Z&quot;}}" data-execution_count="7">
@@ -681,7 +692,7 @@ if (outputEl) {{
 <div id="solve-cw" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:54.631220Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:54.631109Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.635807Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.635232Z&quot;}}" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>mb_solve_json_cw <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [{"channels": [[0, 1]], "rate": 1.0}],</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="st">    "fields": [</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
@@ -705,10 +716,10 @@ if (outputEl) {{
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>mbs_cw <span class="op">=</span> mb_solve.MBSolve().from_json_str(mb_solve_json_cw)</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>mbs_cw.mbsolve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>mbs_cw <span class="op">=</span> PropagationSolver().from_json_str(mb_solve_json_cw)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>mbs_cw.solve(recalc<span class="op">=</span><span class="va">False</span>)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Saving MBSolve to mbs-linear-absorption-cw.qu</code></pre>
+<pre><code>Saving PropagationSolver to mbs-linear-absorption-cw.qu</code></pre>
 </div>
 </div>
 <div id="plot-cw-spacetime" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-05-05T15:16:54.637472Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-05-05T15:16:54.637372Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-05-05T15:16:54.654266Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-05-05T15:16:54.653794Z&quot;}}" data-execution_count="10">

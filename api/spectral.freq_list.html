@@ -150,8 +150,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -184,8 +195,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/field.Field.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">field.Field</span></a>
+  <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Field</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -208,20 +219,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/mb_solve.MBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mb_solve.MBSolve</span></a>
+  <a href="../api/LindbladSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LindbladSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/ob_atom.OBAtom.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_atom.OBAtom</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../api/ob_solve.OBSolve.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ob_solve.OBSolve</span></a>
+  <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PropagationSolver</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -270,6 +275,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/spectral.voigt_two_linear_known.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">spectral.voigt_two_linear_known</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/System.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -357,6 +368,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.spectral.freq_list" id="toc-clerq.spectral.freq_list" class="nav-link active" data-scroll-target="#clerq.spectral.freq_list">spectral.freq_list</a>
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
   </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/spectral.freq_list.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -369,16 +381,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="clerq.spectral.freq_list" class="level1">
 <h1>spectral.freq_list</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>spectral.freq_list(mb_solve)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>spectral.freq_list(solver)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Fourier transform of the tlist into the frequency domain for spectral analysis.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 13%">
 <col style="width: 11%">
-<col style="width: 59%">
-<col style="width: 15%">
+<col style="width: 27%">
+<col style="width: 42%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -390,16 +402,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>mb_solve</td>
-<td>MBSolve</td>
-<td>An MBSolve object.</td>
+<td>solver</td>
+<td>PropagationSolver</td>
+<td>A PropagationSolver object.</td>
 <td><em>required</em></td>
 </tr>
-<tr class="even">
-<td>Returns</td>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 15%">
+<col style="width: 74%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
 <td></td>
-<td>Array[num_time_points] of frequency values.</td>
-<td><em>required</em></td>
+<td>np.ndarray</td>
+<td>Array of frequency values, length <code>len(solver.tlist)</code>.</td>
 </tr>
 </tbody>
 </table>

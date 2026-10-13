@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>scripts – clerq</title>
+<title>Scripts for Making Movies – clerq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -150,8 +150,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -259,7 +270,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Scripts are provided for producing MP4 and GIF movies showing propagation.</p>
 <section id="make-mp4-fixed-frame.py" class="level3">
 <h3 class="anchored" data-anchor-id="make-mp4-fixed-frame.py"><code>make-mp4-fixed-frame.py</code></h3>
-<p>This Python script takes an MBSolve problem defined in a JSON file and outputs an MP4 video showing the propagation.</p>
+<p>This Python script takes a PropagationSolver problem defined in a JSON file and outputs an MP4 video showing the propagation.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">optional</span> arguments:</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-h,</span> <span class="at">--help</span>            show this help message and exit</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-f</span> FILE, <span class="at">--file</span> FILE  Path of input file.</span>

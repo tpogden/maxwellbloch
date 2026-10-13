@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="What changed in each version of clerq, and what you need to do about it.">
+
+<title>Release Notes – clerq</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-9ce5ae7ac05a2cb9bb4eec0b8cae176b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">clerq</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./installation.html"> 
+<span class="menu-text">Install</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./usage/two-level.html"> 
+<span class="menu-text">Usage</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./examples/index.html"> 
+<span class="menu-text">Examples</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./api/index.html"> 
+<span class="menu-text">API</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./release-notes.html" aria-current="page"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./support/troubleshooting.html"> 
+<span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">Unreleased</a></li>
+  <li><a href="#october-2026" id="toc-october-2026" class="nav-link" data-scroll-target="#october-2026">0.13.1 — 9 October 2026</a></li>
+  <li><a href="#october-2026-1" id="toc-october-2026-1" class="nav-link" data-scroll-target="#october-2026-1">0.13.0 — 9 October 2026</a></li>
+  <li><a href="#may-2026" id="toc-may-2026" class="nav-link" data-scroll-target="#may-2026">0.12.0 — 6 May 2026</a></li>
+  <li><a href="#may-2026-1" id="toc-may-2026-1" class="nav-link" data-scroll-target="#may-2026-1">0.11.0 — 3 May 2026</a></li>
+  <li><a href="#april-2026" id="toc-april-2026" class="nav-link" data-scroll-target="#april-2026">0.10.0 — 25 April 2026</a></li>
+  <li><a href="#april-2026-1" id="toc-april-2026-1" class="nav-link" data-scroll-target="#april-2026-1">0.9.0 — 24 April 2026</a></li>
+  <li><a href="#april-2026-2" id="toc-april-2026-2" class="nav-link" data-scroll-target="#april-2026-2">0.8.1 — 23 April 2026</a></li>
+  <li><a href="#april-2026-3" id="toc-april-2026-3" class="nav-link" data-scroll-target="#april-2026-3">0.8.0 — 15 April 2026</a></li>
+  <li><a href="#older-releases" id="toc-older-releases" class="nav-link" data-scroll-target="#older-releases">Older releases</a></li>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/tpogden/clerq/edit/main/release-notes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Release Notes</h1>
+</div>
+
+<div>
+  <div class="description">
+    What changed in each version of clerq, and what you need to do about it.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This page is the readable version of the <a href="https://github.com/tpogden/clerq/blob/master/CHANGELOG.md">CHANGELOG</a>, which has the full list of changes. Versions are newest first, and <a href="https://semver.org/">Semantic Versioning</a> applies: a minor version adds features, and anything marked <strong>breaking</strong> will need a change to your code or a recalculation of your results.</p>
+<p>Entries before 0.13.0 use the old package name, <code>maxwellbloch</code>, and its old class names, as they were at the time. See <a href="./news/rename.html">MaxwellBloch is now clerq</a> for the rename.</p>
+<section id="unreleased" class="level2">
+<h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
+<p>Not yet released; this is on the <code>next</code> branch.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Upgrading from 0.13.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Your code keeps working: the old names still run and raise a <code>DeprecationWarning</code>. Switching to the new names now will save you work when they are removed in a future release.</p>
+</div>
+</div>
+<p><strong>Clearer names, all available from <code>import clerq</code>.</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Before</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>clerq.mb_solve.MBSolve</code></td>
+<td><code>clerq.PropagationSolver</code></td>
+</tr>
+<tr class="even">
+<td><code>clerq.ob_solve.OBSolve</code></td>
+<td><code>clerq.LindbladSolver</code></td>
+</tr>
+<tr class="odd">
+<td><code>clerq.ob_atom.OBAtom</code></td>
+<td><code>clerq.System</code></td>
+</tr>
+<tr class="even">
+<td><code>clerq.field.Field</code></td>
+<td><code>clerq.Field</code></td>
+</tr>
+<tr class="odd">
+<td><code>mbsolve()</code>, <code>obsolve()</code></td>
+<td><code>solve()</code></td>
+</tr>
+<tr class="even">
+<td><code>atom</code> (argument, attribute, JSON key)</td>
+<td><code>system</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>“System” replaces “atom” because the solvers work for any few-level open quantum system, not only atoms.</li>
+<li>The modules are now <code>clerq.propagation</code>, <code>clerq.lindblad</code>, <code>clerq.system</code> and <code>clerq.system_base</code>.</li>
+<li>Helper functions that take a solver always call that argument <code>solver</code>. Before, it was <code>mb_solve</code> in <code>spectral</code>, <code>fixed</code> and <code>fileio</code>, and <code>mbs</code> in <code>plot</code>.</li>
+<li><code>mbsolve_euler()</code> and <code>mbsolve_ab()</code> are deprecated in favour of <code>solve(step=...)</code>.</li>
+<li>The <code>mbsolve</code> and <code>obsolve</code> command-line scripts keep their names.</li>
+</ul>
+<p><strong>Cached results.</strong> A <code>.qu</code> savefile made by an earlier version no longer matches its problem definition (which now has a <code>system</code> key), so it is solved again and overwritten the first time you use it.</p>
+<p><strong>Other changes</strong></p>
+<ul>
+<li><code>PropagationSolver</code> and <code>System</code> have class docstrings describing their arguments.</li>
+<li>The release assets on GitHub are now just the wheel, the sdist and their attestations.</li>
+<li>The documentation has correct API page titles, and several docstrings that disagreed with their signatures are fixed.</li>
+<li>The lockfile is updated to clear security alerts in documentation and development packages. The installed package is unaffected.</li>
+</ul>
+</section>
+<section id="october-2026" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026">0.13.1 — 9 October 2026</h2>
+<p>A fix-up release after the rename.</p>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>The <code>mbsolve</code> and <code>obsolve</code> command-line scripts work again. They had been broken since 0.10.0 and 0.11.0, and <code>mbsolve</code> also failed on Python 3.14. The unused <code>--pbarchunksize</code> option is removed.</li>
+<li>The example notebooks are recalibrated after the 0.13.0 factor-of-2 fix, so each example solves the physical problem it was designed for and gives the same results as in 0.12.0.</li>
+</ul>
+<p><strong>Added</strong></p>
+<ul>
+<li>The stimulated three-pulse photon echo example.</li>
+<li><code>CITATION.cff</code>, so GitHub’s “Cite this repository” works.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>clerq is described as classical Maxwell fields propagating through open quantum systems, not as a Maxwell–Bloch solver.</li>
+<li>The documentation outputs are regenerated cleanly, and there is a page explaining the new name.</li>
+</ul>
+</section>
+<section id="october-2026-1" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026-1">0.13.0 — 9 October 2026</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Breaking: results change
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The Maxwell propagation equation was missing a factor of 2, so the optical depth in earlier versions was <strong>half</strong> its physical value. Absorption and propagation results change, so recompute any cached <code>.qu</code> results and any figures made with earlier versions. The theory curves in <code>clerq.spectral</code> are updated to match.</p>
+</div>
+</div>
+<ul>
+<li><strong>Renamed from <code>maxwellbloch</code> to <code>clerq</code>.</strong> Change <code>import maxwellbloch</code> to <code>import clerq</code>. The PyPI name is also <code>clerq</code>, the Plotly theme is named <code>"clerq"</code>, and <code>.qu</code> files record the <code>clerq</code> version.</li>
+<li>The documentation moved from Sphinx and Read the Docs to Quarto, at <a href="https://clerq.org">clerq.org</a>.</li>
+</ul>
+</section>
+<section id="may-2026" class="level2">
+<h2 class="anchored" data-anchor-id="may-2026">0.12.0 — 6 May 2026</h2>
+<ul>
+<li><strong>Plotting:</strong> <code>plot.field_profile</code> and <code>plot.field_z_profile_anim</code>, a <code>show_z_bounds</code> option, and a <code>speed_of_light</code> option to plot in the fixed frame. <code>plot.spectrum</code> accepts x-axis bounds.</li>
+<li><strong>Faster:</strong> the number-density profile is computed once up front, and the inner loop over sigma operators is vectorised.</li>
+<li><strong>Examples:</strong> the SIT, linear absorption, V-system and Λ EIT/slow-light examples are each merged into one notebook.</li>
+</ul>
+</section>
+<section id="may-2026-1" class="level2">
+<h2 class="anchored" data-anchor-id="may-2026-1">0.11.0 — 3 May 2026</h2>
+<p><strong>New</strong></p>
+<ul>
+<li><strong>Counter-propagating fields:</strong> <code>Field(counter_propagating=True)</code> models a field travelling against the others. If the field has depleted so much that forward-only propagation is no longer valid, a <code>CounterPropagatingDepletionError</code> is raised (turn the check off with <code>check_counter_prop_depletion=False</code>).</li>
+<li><strong>Plotting module</strong> <code>plot</code>, built on Plotly with a shared theme: field space-time and envelope plots, spectra, populations, coherences and pulse area. Install it with the <code>plot</code> extra.</li>
+<li><strong>Spectral windows:</strong> the FFT functions in <code>spectral</code> accept a SciPy <code>window</code>, and <code>plot.spectrum</code> gains <code>freq_range</code>, an <code>arcsinh</code> frequency scale and <code>window</code>.</li>
+<li><strong>New examples:</strong> Autler–Townes splitting, CPT dark resonance, adiabatons, two-pulse photon echo, odd-π sech pulses and the Rb 87 D2 cycling transition, plus an examples gallery page.</li>
+</ul>
+<p><strong>Breaking</strong></p>
+<ul>
+<li>The printed progress reports of <code>MBSolve.mbsolve</code> and its <code>pbar_chunk_size</code> argument are replaced by a tqdm progress bar. Use <code>progress</code> (default <code>True</code>) and <code>progress_show_area</code> to control it, and remove any <code>pbar_chunk_size</code> argument.</li>
+</ul>
+</section>
+<section id="april-2026" class="level2">
+<h2 class="anchored" data-anchor-id="april-2026">0.10.0 — 25 April 2026</h2>
+<p><strong>Breaking</strong></p>
+<ul>
+<li><code>OBSolve.solve</code> is renamed <code>OBSolve.obsolve</code>.</li>
+</ul>
+<p><strong>New</strong></p>
+<ul>
+<li><strong>Savefile check:</strong> a <code>.qu</code> file stores a hash of its problem definition and the library versions. Loading a file built from a different problem raises <code>ValueError</code>, and older files load with a warning.</li>
+<li>Generated API reference pages.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>A missing savefile directory is created before the <code>.qu</code> file is written.</li>
+<li>An <code>IndexError</code> when fields are added to a system after construction.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li><code>maxwell_boltzmann</code> moved to <code>utility</code> and gained an <code>offset</code> parameter.</li>
+</ul>
+</section>
+<section id="april-2026-1" class="level2">
+<h2 class="anchored" data-anchor-id="april-2026-1">0.9.0 — 24 April 2026</h2>
+<ul>
+<li><strong>About 43× faster</strong> inner propagation loop, from building the field interpolation once per z-step with QuTiP 5.</li>
+<li><code>Field.upper_levels()</code> and <code>Field.lower_levels()</code> return the sorted level indices a field couples.</li>
+<li><code>LevelF</code> checks that <code>|J−I| ≤ F ≤ J+I</code> and raises <code>ValueError</code> for impossible hyperfine quantum numbers.</li>
+<li>Internal methods are renamed with a leading <code>_</code> to mark them as private (for example <code>build_H_0</code> is now <code>_build_H_0</code>). If you called any of these directly, update the name.</li>
+</ul>
+</section>
+<section id="april-2026-2" class="level2">
+<h2 class="anchored" data-anchor-id="april-2026-2">0.8.1 — 23 April 2026</h2>
+<p>Maintenance: type annotations throughout, mutable default arguments fixed, more tests, and a docs build in CI. <code>fixed.rabi_freq_abs</code> is removed; use <code>fixed.rabi_freq(..., part="abs")</code>.</p>
+</section>
+<section id="april-2026-3" class="level2">
+<h2 class="anchored" data-anchor-id="april-2026-3">0.8.0 — 15 April 2026</h2>
+<p>A modernisation release.</p>
+<ul>
+<li>Supports QuTiP 5, NumPy 2 and SciPy 1.14+.</li>
+<li><strong>Python 3.10 or later is required.</strong></li>
+<li>Packaging moved to <code>pyproject.toml</code>; uv is the main environment manager.</li>
+<li>CI moved to GitHub Actions with trusted publishing to PyPI.</li>
+</ul>
+</section>
+<section id="older-releases" class="level2">
+<h2 class="anchored" data-anchor-id="older-releases">Older releases</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Version</th>
+<th>Date</th>
+<th>Highlights</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.7.1</td>
+<td>10 Aug 2020</td>
+<td>Fixed a bug when adding multiple fields.</td>
+</tr>
+<tr class="even">
+<td>0.7.0</td>
+<td>11 Jul 2020</td>
+<td><code>mbsolve</code> and <code>obsolve</code> scripts; set sech pulse width by FWHM and sech/Gaussian amplitude by area in multiples of π; the default Rabi frequency of a field changed from 0.0 to 1.0; Structure, Angular Momentum and Examples docs.</td>
+</tr>
+<tr class="odd">
+<td>0.6.0</td>
+<td>17 May 2020</td>
+<td>Fixed Doppler broadening; Usage and Examples docs.</td>
+</tr>
+<tr class="even">
+<td>0.5.0</td>
+<td>7 Aug 2019</td>
+<td>Hyperfine structure: strength factors, Clebsch–Gordan coefficients, Wigner 3j and 6j symbols, isotropic fields; set the initial state; solver options; fixed the detuning term for fields coupling several upper levels.</td>
+</tr>
+<tr class="odd">
+<td>0.4.0</td>
+<td>28 Aug 2018</td>
+<td>Atom labels; empty velocity classes allowed; <code>ob_atom</code> renamed <code>atom</code>; fields default to a constant time function; MP4 script fixes.</td>
+</tr>
+<tr class="even">
+<td>0.3.0</td>
+<td>8 Jan 2018</td>
+<td>Spectral and fixed-frame modules; FFT analysis; custom input fields; run from the command line; MP4 and GIF tools; Travis CI.</td>
+</tr>
+<tr class="odd">
+<td>0.2.0</td>
+<td>27 Mar 2017</td>
+<td>First release: solves the Maxwell–Bloch equations.</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/clerq\.org");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/release-notes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

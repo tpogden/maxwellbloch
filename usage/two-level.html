@@ -189,8 +189,19 @@ window.Quarto = {
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../release-notes.html"> 
+<span class="menu-text">Release Notes</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../support/troubleshooting.html"> 
 <span class="menu-text">Support</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tpogden/clerq"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -341,7 +352,7 @@ ____ |0&gt;</code></pre>
 <section id="defining-the-field-and-atom" class="level2">
 <h2 class="anchored" data-anchor-id="defining-the-field-and-atom">Defining the Field and Atom</h2>
 <div id="cell-4" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> field, ob_atom</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> field, System</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>First we’ll define the field. The quantity we care about is the input Rabi frequency as a function of time, <span class="math inline">\(\Omega(t)\)</span>. Let’s say our input pulse has a max <span class="math inline">\(\Omega_0 = 2\pi \cdot 0.001 \mathrm{~ MHz}\)</span>, and is a Gaussian with a full-width at half-maximum (FWHM) of <span class="math inline">\(1 \mathrm{~ \mu s}\)</span>.</p>
 <div id="cell-6" class="cell" data-execution_count="3">
@@ -393,7 +404,7 @@ if (outputEl) {{
 <p>It’s a Gaussian-shaped pulse, centred at <span class="math inline">\(t=0\)</span>. Many more pre-defined profiles are defined in the <code>t_funcs</code> module, see [REF t_funcs doc] for details.</p>
 <p>So that’s the field. Now we need to define an atom to address. Here we just need to state that <code>num_states=2</code>. The atom also takes a list of fields, in this case we’ve only got one, <code>the_field</code>, so we’ll add that.</p>
 <div id="cell-10" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>the_atom <span class="op">=</span> ob_atom.OBAtom(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>the_atom <span class="op">=</span> System(</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    num_states<span class="op">=</span><span class="dv">2</span>,</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>the_atom.fields.append(the_field)</span>
@@ -404,10 +415,10 @@ if (outputEl) {{
 <h2 class="anchored" data-anchor-id="solving-the-maxwell-bloch-equations">Solving the Maxwell-Bloch Equations</h2>
 <p>Now we have everything required to solve the problem. We just need to define the space <span class="math inline">\(z\)</span> and time <span class="math inline">\(t\)</span> dimesions we want to solve the problem over. Let’s say that our medium is <span class="math inline">\(1 \mathrm{~ cm}\)</span> long and has constant number density, for example a vapour cell.</p>
 <div id="cell-13" class="cell" data-execution_count="6">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> mb_solve</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-14" class="cell" data-execution_count="7">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver(</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    t_min<span class="op">=-</span><span class="fl">2.0</span>,  <span class="co"># [μs]</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    t_max<span class="op">=</span><span class="fl">10.0</span>,  <span class="co"># [μs]</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    t_steps<span class="op">=</span><span class="dv">100</span>,</span>
@@ -416,7 +427,7 @@ if (outputEl) {{
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    z_steps<span class="op">=</span><span class="dv">10</span>,</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    interaction_strengths<span class="op">=</span>[<span class="fl">0.05</span>],  <span class="co"># [2π MHz /cm]</span></span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>mbs.atom <span class="op">=</span> the_atom</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>mbs.system <span class="op">=</span> the_atom</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Here we’ve set <code>z_min=-0.5</code> and <code>z_max=1.5</code> so that we can see how the pulse travels before and after it is in the medium, i.e.&nbsp;as it travels in vacuum.</p>
 <section id="interaction-strength" class="level3">
@@ -424,7 +435,7 @@ if (outputEl) {{
 <p>The interaction strength (<span class="math inline">\(Ng\)</span>) for each field describes the strength of the coupling of the field to the medium. You can think of it as the amount of absorption per unit length of medium, so in this system it has units of <span class="math inline">\(\mathrm{2\pi~MHz~/cm}\)</span>.</p>
 <p>Now we can solve the system.</p>
 <div id="cell-17" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The solver indicates progress as it goes, in 10% increments by default.</p>
 </section>
@@ -488,15 +499,15 @@ if (outputEl) {{
 </section>
 <section id="defining-the-system-with-json" class="level2">
 <h2 class="anchored" data-anchor-id="defining-the-system-with-json">Defining the System with JSON</h2>
-<p>We went through defining <code>Field</code>, <code>Atom</code> and <code>MBSolve</code> objects separately so I could introduce these concepts, but in practice it is rare that we will need to interact with these directly. The whole problem can be defined via a JSON file or string, and this is the approach used throughout the rest of the documentation.</p>
+<p>We went through defining <code>Field</code>, <code>Atom</code> and <code>PropagationSolver</code> objects separately so I could introduce these concepts, but in practice it is rare that we will need to interact with these directly. The whole problem can be defined via a JSON file or string, and this is the approach used throughout the rest of the documentation.</p>
 </section>
 <section id="spontaneous-decay" class="level2">
 <h2 class="anchored" data-anchor-id="spontaneous-decay">Spontaneous Decay</h2>
-<p>To include spontaneous decay in the Lindblad master equation we have to add collapse operators. We add a list of <code>decays</code> into the <code>atom</code>, each with a list of channels describing the decays (ordered <code>lower</code> then <code>upper</code>) and a decay rate in the same units as the Rabi frequency (in this case <span class="math inline">\(2\pi \mathrm{~ MHz}\)</span>). Here the decay rate is <span class="math inline">\(2\pi \cdot 1 \mathrm{~ MHz}\)</span>. We also increase <code>interaction_strength</code> to <span class="math inline">\(1.0\)</span> so that absorption is clearly visible in the analysis plots below.</p>
+<p>To include spontaneous decay in the Lindblad master equation we have to add collapse operators. We add a list of <code>decays</code> into the <code>system</code>, each with a list of channels describing the decays (ordered <code>lower</code> then <code>upper</code>) and a decay rate in the same units as the Rabi frequency (in this case <span class="math inline">\(2\pi \mathrm{~ MHz}\)</span>). Here the decay rate is <span class="math inline">\(2\pi \cdot 1 \mathrm{~ MHz}\)</span>. We also increase <code>interaction_strength</code> to <span class="math inline">\(1.0\)</span> so that absorption is clearly visible in the analysis plots below.</p>
 <div id="cell-30" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mbs_json <span class="op">=</span> <span class="st">"""</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "atom": {</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="st">  "system": {</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "decays": [</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="st">      {</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="st">        "channels": [[0, 1]],</span></span>
@@ -529,8 +540,8 @@ if (outputEl) {{
 <span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
 <span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> mb_solve.MBSolve().from_json_str(mbs_json)</span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.mbsolve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>mbs <span class="op">=</span> PropagationSolver().from_json_str(mbs_json)</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>Omegas_zt, states_zt <span class="op">=</span> mbs.solve()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-31" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plot.field_spacetime(mbs, show_z_bounds<span class="op">=</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>))</span>
