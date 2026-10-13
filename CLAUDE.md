@@ -93,45 +93,31 @@ Solved results are pickled by QuTiP into `.qu` files next to the script. Use `ma
 
 ## Git workflow
 
-All development uses feature branches and pull requests. The branch structure is:
+All development uses feature branches and pull requests. There is a single long-lived branch:
 
-- **`master`** — stable, released code. Only receives merges from `next` as part of a release.
-- **`next`** — the release branch. All PRs target this branch.
-- **feature branches** — cut from `next`, merged back via PR.
+- **`master`** — stable, released code. All PRs target this branch.
+- **feature branches** — cut from `master`, merged back via PR.
 
 ### Typical change
 
 ```bash
-git checkout next
+git checkout master
 git pull
 git checkout -b my-feature-branch
 # ... make changes, commit ...
-gh pr create --base next --title "..." --body "..."
+gh pr create --base master --title "..." --body "..."
 ```
-
-### Release Notes
-
-`docs/release-notes.qmd` is the user-readable version of `CHANGELOG.md`. When a PR adds a CHANGELOG entry, update the
-matching section of the release notes (the "Unreleased" section until a release is cut, then retitle it with the version
-and date).
 
 ### Release process
 
 ```bash
-# On next: bump version, commit, then merge to master and tag
+# On master: bump version, commit, tag, then push
 uv run bump-my-version bump patch   # or minor / major
-git checkout master
-git merge --no-ff next
 git push
 git push --tags
-git checkout next
 ```
 
 The `git push --tags` triggers the CI publish workflow to PyPI.
-
-### Worktrees
-
-Do all code changes in a dedicated git worktree cut from `next`, not in the main checkout. At the start of a task, use EnterWorktree with a branch name describing the change. Run `uv sync --extra dev` in the new worktree before running tests, since `.venv` and `.qu` caches are not shared.
 
 ## Environment
 
