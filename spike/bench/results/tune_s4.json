@@ -1,0 +1,244 @@
+[
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s2",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": null,
+  "chunk": null,
+  "compile_s": 2.726273875014158,
+  "temp_MiB": 276.8280715942383,
+  "run_s": 7.151182333996985,
+  "run_s_all": [
+   7.318613583018305,
+   7.151182333996985
+  ],
+  "peak_rss_MiB": 872.71875,
+  "grad_norm": 9.151438960342617,
+  "extra": []
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s3",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": null,
+  "chunk": null,
+  "compile_s": 3.1436092499934603,
+  "temp_MiB": 12.728843688964844,
+  "run_s": 8.640044458996272,
+  "run_s_all": [
+   8.654597290995298,
+   8.640044458996272
+  ],
+  "peak_rss_MiB": 654.984375,
+  "grad_norm": 9.151438960342617,
+  "extra": []
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s4",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": 4,
+  "chunk": null,
+  "compile_s": 3.15379350000876,
+  "temp_MiB": 2.1660995483398438,
+  "run_s": 17.02317995901103,
+  "run_s_all": [
+   17.02317995901103,
+   17.040284375019837
+  ],
+  "peak_rss_MiB": 644.421875,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--checkpoints",
+   "4"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s4",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": 8,
+  "chunk": null,
+  "compile_s": 3.193985457997769,
+  "temp_MiB": 2.3638534545898438,
+  "run_s": 12.905313708004542,
+  "run_s_all": [
+   14.457807667000452,
+   12.905313708004542
+  ],
+  "peak_rss_MiB": 656.890625,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--checkpoints",
+   "8"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s4",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": 16,
+  "chunk": null,
+  "compile_s": 3.10184562500217,
+  "temp_MiB": 2.7607040405273438,
+  "run_s": 11.239735875016777,
+  "run_s_all": [
+   11.239735875016777,
+   11.324040792009328
+  ],
+  "peak_rss_MiB": 628.921875,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--checkpoints",
+   "16"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s4",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": 32,
+  "chunk": null,
+  "compile_s": 3.1902425000153016,
+  "temp_MiB": 3.5917587280273438,
+  "run_s": 9.398855792009272,
+  "run_s_all": [
+   9.398855792009272,
+   9.479871500021545
+  ],
+  "peak_rss_MiB": 626.015625,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--checkpoints",
+   "32"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s4",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": 64,
+  "chunk": null,
+  "compile_s": 3.2769116669951472,
+  "temp_MiB": 5.537620544433594,
+  "run_s": 9.276470541983144,
+  "run_s_all": [
+   9.276470541983144,
+   9.282358332973672
+  ],
+  "peak_rss_MiB": 635.140625,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--checkpoints",
+   "64"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s5",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": null,
+  "chunk": 4,
+  "compile_s": 5.126629624981433,
+  "temp_MiB": 12.118553161621094,
+  "run_s": 9.90594733299804,
+  "run_s_all": [
+   9.94323499998427,
+   9.90594733299804
+  ],
+  "peak_rss_MiB": 776.65625,
+  "grad_norm": 9.151438960342613,
+  "extra": [
+   "--chunk",
+   "4"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s5",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": null,
+  "chunk": 8,
+  "compile_s": 4.931824333005352,
+  "temp_MiB": 12.103233337402344,
+  "run_s": 9.87348783298512,
+  "run_s_all": [
+   9.885805666010128,
+   9.87348783298512
+  ],
+  "peak_rss_MiB": 795.875,
+  "grad_norm": 9.151438960342613,
+  "extra": [
+   "--chunk",
+   "8"
+  ]
+ },
+ {
+  "system": "j1_2_res",
+  "n_z": 60,
+  "n_t": 500,
+  "n_v": 10,
+  "strategy": "s5",
+  "max_steps": 16384,
+  "rtol": 1e-06,
+  "checkpoints": null,
+  "chunk": 16,
+  "compile_s": 4.905983167001978,
+  "temp_MiB": 12.164451599121094,
+  "run_s": 9.744400625000708,
+  "run_s_all": [
+   9.744400625000708,
+   9.820046125008957
+  ],
+  "peak_rss_MiB": 799.015625,
+  "grad_norm": 9.151438960342617,
+  "extra": [
+   "--chunk",
+   "16"
+  ]
+ },
+ {
+  "strategy": "s5",
+  "error": "visionError: division by zero\n--------------------\nFor simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.\n",
+  "extra": [
+   "--chunk",
+   "60"
+  ]
+ }
+]

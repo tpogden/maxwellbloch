@@ -1,0 +1,194 @@
+[
+ {
+  "system": "two_level",
+  "rtol": 0.0001,
+  "solver": "Tsit5",
+  "steps": 191,
+  "rejected": 18,
+  "ms": 4.607875016517937
+ },
+ {
+  "system": "two_level",
+  "rtol": 0.0001,
+  "solver": "Dopri5",
+  "steps": 194,
+  "rejected": 15,
+  "ms": 5.439667002065107
+ },
+ {
+  "system": "two_level",
+  "rtol": 0.0001,
+  "solver": "Dopri8",
+  "steps": 117,
+  "rejected": 15,
+  "ms": 5.951875005848706
+ },
+ {
+  "system": "two_level",
+  "rtol": 0.0001,
+  "solver": "Bosh3",
+  "steps": 280,
+  "rejected": 41,
+  "ms": 4.021999979158863
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-06,
+  "solver": "Tsit5",
+  "steps": 253,
+  "rejected": 22,
+  "ms": 6.191749998833984
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-06,
+  "solver": "Dopri5",
+  "steps": 272,
+  "rejected": 23,
+  "ms": 6.525250006234273
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-06,
+  "solver": "Dopri8",
+  "steps": 148,
+  "rejected": 19,
+  "ms": 7.519291015341878
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-06,
+  "solver": "Bosh3",
+  "steps": 547,
+  "rejected": 40,
+  "ms": 6.719166995026171
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-08,
+  "solver": "Tsit5",
+  "steps": 438,
+  "rejected": 27,
+  "ms": 10.241417010547593
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-08,
+  "solver": "Dopri5",
+  "steps": 485,
+  "rejected": 30,
+  "ms": 11.332666996167973
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-08,
+  "solver": "Dopri8",
+  "steps": 200,
+  "rejected": 20,
+  "ms": 10.31650000368245
+ },
+ {
+  "system": "two_level",
+  "rtol": 1e-08,
+  "solver": "Bosh3",
+  "steps": 1928,
+  "rejected": 47,
+  "ms": 23.676333017647266
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 0.0001,
+  "solver": "Tsit5",
+  "steps": 182,
+  "rejected": 10,
+  "ms": 18.402208981569856
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 0.0001,
+  "solver": "Dopri5",
+  "steps": 193,
+  "rejected": 15,
+  "ms": 19.37125000404194
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 0.0001,
+  "solver": "Dopri8",
+  "steps": 112,
+  "rejected": 14,
+  "ms": 25.06312500918284
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 0.0001,
+  "solver": "Bosh3",
+  "steps": 256,
+  "rejected": 37,
+  "ms": 13.996458001201972
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-06,
+  "solver": "Tsit5",
+  "steps": 228,
+  "rejected": 20,
+  "ms": 22.831665992271155
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-06,
+  "solver": "Dopri5",
+  "steps": 245,
+  "rejected": 22,
+  "ms": 24.702082999283448
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-06,
+  "solver": "Dopri8",
+  "steps": 138,
+  "rejected": 18,
+  "ms": 30.215792008675635
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-06,
+  "solver": "Bosh3",
+  "steps": 433,
+  "rejected": 37,
+  "ms": 23.69620799436234
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-08,
+  "solver": "Tsit5",
+  "steps": 368,
+  "rejected": 25,
+  "ms": 36.71841599862091
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-08,
+  "solver": "Dopri5",
+  "steps": 404,
+  "rejected": 26,
+  "ms": 42.19212499447167
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-08,
+  "solver": "Dopri8",
+  "steps": 184,
+  "rejected": 20,
+  "ms": 40.33441600040533
+ },
+ {
+  "system": "j1_2_res",
+  "rtol": 1e-08,
+  "solver": "Bosh3",
+  "steps": 1395,
+  "rejected": 44,
+  "ms": 75.17441702657379
+ }
+]

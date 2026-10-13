@@ -129,7 +129,7 @@ def _chain_loss(name, *, strategy="s3", step="ab", n_steps=None, adjoint=None, n
     return loss, theta0
 
 
-@pytest.mark.parametrize("name", ["two_level", "j12_12"])
+@pytest.mark.parametrize("name", ["two_level", "j12_12", "j1_2_res", "j72_72"])
 def test_chain_grad_vs_fd(name):
     L_fixed, th = _chain_loss(name, n_steps=N_FIXED)
     g_fixed = np.asarray(jax.jit(jax.grad(L_fixed))(th))
@@ -154,3 +154,21 @@ def test_commensurate_fixed_step_is_rejected():
     th = _chain_loss("two_level", n_steps=1500)  # 25.0 steps per output interval
     with pytest.raises(ValueError, match="non-commensurate"):
         th[0](th[1])
+
+
+@pytest.mark.parametrize("name", ["two_level", "j12_12", "j1_2_res", "j72_72"])
+def test_sparse_dissipator_equals_dense(name):
+    from mbjax.propagate import _rhs_batched, TWO_PI as _  # noqa: F401
+    spec = _spec(name, 1.0)
+    m = build_propagation_model(spec)
+    assert "diss_a" in m, "all spike systems have single-element collapse operators"
+    m_dense = {k: v for k, v in m.items() if not k.startswith("diss_")}
+    rng = np.random.default_rng(0)
+    n = m["n"]
+    A = rng.normal(size=(3, n, n)) + 1j * rng.normal(size=(3, n, n))
+    rho = jnp.asarray(A @ A.conj().transpose(0, 2, 1))
+    gs = 1.37
+    deltas = jnp.array([-0.4, 0.0, 0.9])
+    args = lambda mm: (mm, lambda t: 0.8, deltas, mm["c"] * jnp.sqrt(gs), mm["cdc"] * gs, gs)
+    a = _rhs_batched(0.0, rho, args(m)); b = _rhs_batched(0.0, rho, args(m_dense))
+    assert np.abs(np.asarray(a - b)).max() < 1e-12 * max(1.0, float(np.abs(a).max()))

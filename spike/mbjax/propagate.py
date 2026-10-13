@@ -64,21 +64,44 @@ def build_propagation_model(spec: dict) -> dict:
     m["coh_rows"], m["coh_cols"] = jnp.asarray(rows), jnp.asarray(cols)
     m["coh_w2"] = jnp.asarray(np.array(facs, dtype=float) ** 2)
     m["detuning"] = float(f.get("detuning", 0.0))
+    # Sparse dissipator: if every collapse operator is a single element c_k = f_k |a_k><b_k|,
+    # then c rho c^+ = |f|^2 rho_bb |a><a| and sum_k c^+c is diagonal, so the dissipator is
+    # O(n^2) instead of O(k n^3). (All systems in this spike have this form.)
+    cs = np.asarray(m["c"])
+    nz = [np.argwhere(np.abs(c) > 0) for c in cs]
+    if len(cs) and all(len(z) == 1 for z in nz):
+        a = np.array([z[0][0] for z in nz]); b = np.array([z[0][1] for z in nz])
+        w = np.array([abs(c[tuple(z[0])]) ** 2 for c, z in zip(cs, nz)])
+        m["diss_a"], m["diss_b"], m["diss_w"] = jnp.asarray(a), jnp.asarray(b), jnp.asarray(w)
+        m["diss_r"] = jnp.asarray(np.bincount(b, weights=w, minlength=m["n"]))
     return m
 
 
 def _rhs_batched(t, rho, args):
-    """rho: (n_v, n, n). H_v = pi*Omega(t)*X - 2*pi*(Delta_v + Delta_0)*N."""
-    model, drive, deltas, c, cdc = args
+    """rho: (n_v, n, n). H_v = pi*Omega(t)*X - 2*pi*(Delta_v + Delta_0)*N.
+
+    Dissipator: dense  sum_k c_k rho c_k^+ - 1/2 {sum c^+c, rho}  (O(k n^3)), or, when every
+    collapse operator is a single element f|a><b| (``diss_*`` in the model), the equivalent
+    O(n^2) form: gain |a><a| (|f|^2 rho_bb) and damping -1/2 (r_i + r_j) rho_ij.
+    """
+    model, drive, deltas, c, cdc, gs = args
     X, N = model["X"][0], model["N"][0]
     H = jnp.pi * drive(t) * X[None] - TWO_PI * deltas[:, None, None] * N[None]
     d = -1j * (H @ rho - rho @ H)
+    if "diss_a" in model:
+        n = rho.shape[-1]
+        pop = rho[:, model["diss_b"], model["diss_b"]]  # (n_v, k)
+        gain = jnp.zeros(rho.shape[:2], rho.dtype).at[:, model["diss_a"]].add(
+            gs * model["diss_w"] * pop)
+        d = d + gain[:, :, None] * jnp.eye(n, dtype=rho.dtype)
+        r = gs * model["diss_r"]
+        return d - 0.5 * (r[:, None] + r[None, :]) * rho
     d = d + jnp.einsum("kij,vjl,kml->vim", c, rho, c.conj())
     return d - 0.5 * (cdc @ rho + rho @ cdc)
 
 
 def slice_coherence(model, drive, deltas, weights, ts, *, gamma_scale=1.0, rtol=1e-9,
-                    atol=1e-11, n_steps=None, adjoint=None, max_steps=1_000_000):
+                    atol=1e-11, n_steps=None, adjoint=None, max_steps=1_000_000, solver=None):
     """Velocity-averaged source coherence sum_k factor_k^2 rho_{a_k b_k}(t), shape (len(ts),)."""
     check_fixed_step(ts, n_steps)
     c = model["c"] * jnp.sqrt(gamma_scale)
@@ -92,9 +115,9 @@ def slice_coherence(model, drive, deltas, weights, ts, *, gamma_scale=1.0, rtol=
         return jnp.einsum("v,v->", weights.astype(coh.dtype), coh)
 
     sol = dfx.diffeqsolve(
-        dfx.ODETerm(_rhs_batched), dfx.Tsit5(), ts[0], ts[-1],
+        dfx.ODETerm(_rhs_batched), solver or dfx.Tsit5(), ts[0], ts[-1],
         (ts[-1] - ts[0]) / (n_steps or 1000), rho0,
-        args=(model, drive, deltas + model["detuning"], c, cdc),
+        args=(model, drive, deltas + model["detuning"], c, cdc, gamma_scale),
         saveat=dfx.SaveAt(ts=ts, fn=save),
         stepsize_controller=(dfx.ConstantStepSize() if n_steps
                              else dfx.PIDController(rtol=rtol, atol=atol)),
@@ -123,6 +146,8 @@ def propagate(
     n_steps=None,
     adjoint=None,
     chunk=None,
+    max_steps=1_000_000,
+    solver=None,
 ):
     """Return Omega_zt, shape (z_steps + 1, len(ts)), angular Rabi frequency (complex).
 
@@ -132,7 +157,8 @@ def propagate(
     N_z        : (z_steps,) number density at z_{j+1}.   g: cyclic interaction strength.
     """
     spline = CubicDrive(ts)
-    kw = dict(gamma_scale=gamma_scale, rtol=rtol, atol=atol, n_steps=n_steps, adjoint=adjoint)
+    kw = dict(gamma_scale=gamma_scale, rtol=rtol, atol=atol, n_steps=n_steps, adjoint=adjoint,
+              max_steps=max_steps, solver=solver)
     g_ang = TWO_PI * g
 
     def coh_of(drive):

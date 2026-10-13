@@ -1,0 +1,4 @@
+s4 {'compile_s': 3.0, 'temp_MiB': 65.5, 'run_s': 390.6, 'peak_rss_MiB': 991.6, 'grad_norm': 9.2}
+s3 {'compile_s': 3.3, 'temp_MiB': 74.6, 'run_s': 369.4, 'peak_rss_MiB': 950.6, 'grad_norm': 9.2}
+s1 {'compile_s': 1.0, 'temp_MiB': 16.3, 'run_s': 60.0, 'peak_rss_MiB': 659.3}
+s2 {'compile_s': 2.7, 'temp_MiB': 5645.3, 'run_s': 300.1, 'peak_rss_MiB': 6482.2, 'grad_norm': 9.2}

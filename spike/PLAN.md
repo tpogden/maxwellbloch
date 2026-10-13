@@ -432,3 +432,89 @@ preliminary: two-level only, one class, not repeated, N-scaling not yet measured
   trick from T0.2b (3x) has not been re-tried on the real Lindblad.
 - S5 and stretch-point memory/timing are still unmeasured on the *real* chain.
 - All timings single-run.
+
+## Phase 4 done: strategies, memory and timing (`mbjax/chain.py`, `bench/phase4*.py`, `bench/stretch.py`)
+
+Base config unless stated: j1_2_res (dim 9), n_z 200, n_t 1000, n_v 10, Tsit5 PID rtol 1e-6,
+`max_steps` 4096, loss = L2 distance of the output field, 7 parameters. Strategies:
+S1 forward only; S2 plain scan + `RecursiveCheckpointAdjoint`; S3 = S2 + `jax.checkpoint` on
+the scan body; S4 = S3 + 32 inner checkpoints; S5 = S3 + chunked (sqrt) scan; FWD = `jacfwd`
+with `ForwardMode`.
+
+### Optimisations found on the way (T4.4)
+- **Sparse dissipator: 2.8-3.2x faster everywhere.** Every collapse operator here is a single
+  element f|a><b|, so c rho c^+ = |f|^2 rho_bb |a><a| and sum c^+c is diagonal: O(n^2) per class
+  instead of O(k n^3). Equal to the dense path to 1e-12 (test). Generic fallback kept.
+- **Solver choice.** Tsit5 / Dopri5 / Dopri8 within ~25% in time (180-440 accepted steps per
+  slice at rtol 1e-6..1e-8); Bosh3 worse at tight tolerance; **Kvaerno5 unusable** (hits
+  max_steps; the problem is not stiff). Keep Tsit5.
+- **S4 checkpoints**: K=32 costs +9% time over S3 for 3.5x less memory; K=4 costs 2x time.
+  **S5 chunk size** is irrelevant at these n_z (memory ~ S3).
+- **Labelling bug fixed:** clerq's velocity grid adds an inner zero-detuning point, so
+  "n_v=10" was 11 classes; `make_chain` now yields exactly n_v.
+
+### Memory (compile-time XLA temp buffers, MiB; 96 compile-only cells, no errors)
+
+| n_z | S1 | S2 | S3 | S4 | S5 |
+|-|-|-|-|-|-|
+| 50 | 1.0 | 234 | 13.7 | 4.6 | 12.8 |
+| 200 | 3.3 | 913 | 20.6 | 13.1 | 15.6 |
+| 2000 | 30.8 | 9085 | 127 | 123 | 45 |
+
+| axis (S2 / S3 / S4 / S5 at base) | values |
+|-|-|
+| n_t 200 -> 5000 | S2 903->962 (flat); S3 13->58; S4 4->49; S5 12->33 |
+| dim 2 -> 16 | S2 63->2850; S3 12.5->45; S4 12.3->16; S5 4.9->40 |
+| n_v 1 -> 100 | S2 108->8984; S3 12.8->122; S4 12.4->30; S5 5.7->117 |
+
+- **S2's memory is a statement about `max_steps`, not the problem**: at the base config it is
+  234 / 328 / 463 / 913 MiB for max_steps 1024 / 2048 / 4096 / 16384 and equals DirectAdjoint
+  exactly (the default checkpoint count is `max_steps`). S3/S4 do not depend on it
+  (13-21 MiB). With a well-chosen `max_steps` the S2/S3 gap is ~17x, not ~45x.
+- S3/S4 cost ~60 KiB per slice (stored carry: Omega, previous coherence, output); S5 stores only
+  chunk boundaries. The stacked `Omega_zt` output (n_z x n_t x 16 B = 32 MiB at n_z=2000) is
+  itself a floor: return only the last slice when intermediate fields are not needed.
+
+### Timing at base config (best of 2; **machine was under load from other sessions**)
+
+| | fwd S1 | S2 | S3 | S4 | S5 | FWD (jacfwd, N=7) |
+|-|-|-|-|-|-|-|
+| s | 5.1 | 26.3 | 30.8 | 32.9 | 37.4 | 78.7 |
+| x fwd | 1.0 | 5.2 | 6.1 | 6.5 | 7.4 | 15.5 |
+| peak RSS MiB | 523 | 1130 | 710 | 730 | 863 | 592 |
+
+Forward mode is ~2.2x forward per parameter; reverse is ~5-6x flat, so the crossover is at
+N ~ 3 (extrapolated from one point).
+
+### Stretch point (n_z 500, n_t 2000, dim 9, n_v 50, executed once each, loaded machine)
+
+| | XLA temp MiB | peak RSS MiB | time | grad norm |
+|-|-|-|-|-|
+| S1 | 16 | 659 | 60 s | - |
+| S2 | 5645 | 6482 | 300 s (5.0x) | 9.150364603284336 |
+| S3 | 75 | 951 | 369 s (6.2x) | 9.150364603284332 |
+| S4 | 66 | 992 | 391 s (6.5x) | 9.150364603284332 |
+| S5 | 47 | - (compile only) | - | - |
+
+### Gate evaluation (Gates 1-3 and wall-clock; Gate 4 is Phase 5)
+
+| Gate | Criterion | Result | Verdict |
+|-|-|-|-|
+| 1 Fits | S4 fits stretch in <= 64 GB host | S4 992 MiB RSS; even naive S2 6.5 GiB | **PASS** (trivially) |
+| 2 Scales | mem(n_z=2000) <= 4x mem(200); no-go > 10x | S5 2.9x (slope 0.46); S3 6.1x (0.79); S4 9.4x (0.97); S2 10.0x (1.00) | **PASS for S5; S3/S4 between the bars** |
+| 3 Correct | AD vs FD <= 1e-5 (f64) | 1.7e-8 two_level; passes FD at all four systems; S2..S5 agree to 4e-16 at stretch | **PASS** |
+| wall-clock | backward/forward <= 10x | 5.2-7.4x base, 5.0-6.5x stretch | **PASS** |
+
+How to read Gate 2: S3/S4 are *linear* in n_z with a very small constant (127 MiB at
+n_z=2000, ~60 KiB/slice), so the ratio test is a poor fit for them; S5 is sublinear but is
+mostly the output array. The qualitative claim holds: checkpointing is 70x below plain scan at
+n_z=2000 (127 vs 9085 MiB) and is independent of `max_steps`. The honest summary is that
+**memory is not the bottleneck on this problem class at any size we tried**: the largest
+configuration (stretch) needs ~1 GB with S3/S4.
+
+### Caveats
+- All executed timings were taken while other sessions used the CPU (load average 5-6);
+  ratios are more trustworthy than absolute seconds. Single runs for stretch cells.
+- Memory numbers are XLA static allocations (and peak RSS for executed cells), CPU only.
+- Systems are sparse-collapse-only; the dense dissipator fallback is correct but ~3x slower.
+- n_params is 7 here; the N-scaling and FD comparison (Gate 4) are Phase 5.

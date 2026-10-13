@@ -1,0 +1,5 @@
+{"system": "j1_2_res", "n_z": 500, "n_t": 2000, "n_v": 50, "strategy": "s1", "max_steps": 4096, "rtol": 1e-06, "checkpoints": null, "chunk": null, "compile_s": 1.123865375004243, "temp_MiB": 16.305259704589844}
+{"system": "j1_2_res", "n_z": 500, "n_t": 2000, "n_v": 50, "strategy": "s2", "max_steps": 4096, "rtol": 1e-06, "checkpoints": null, "chunk": null, "compile_s": 2.844583166996017, "temp_MiB": 5645.330268859863}
+{"system": "j1_2_res", "n_z": 500, "n_t": 2000, "n_v": 50, "strategy": "s3", "max_steps": 4096, "rtol": 1e-06, "checkpoints": null, "chunk": null, "compile_s": 2.9631075840152334, "temp_MiB": 74.6164779663086}
+{"system": "j1_2_res", "n_z": 500, "n_t": 2000, "n_v": 50, "strategy": "s4", "max_steps": 4096, "rtol": 1e-06, "checkpoints": 32, "chunk": null, "compile_s": 3.0972303750168066, "temp_MiB": 65.4559555053711}
+{"system": "j1_2_res", "n_z": 500, "n_t": 2000, "n_v": 50, "strategy": "s5", "max_steps": 4096, "rtol": 1e-06, "checkpoints": null, "chunk": null, "compile_s": 4.691148291982245, "temp_MiB": 46.868675231933594}
