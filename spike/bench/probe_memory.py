@@ -4,7 +4,7 @@ Toy chain: for each z-slice, solve y' = (-g I + E(t) B + C) y for a dim^2-vector
 driven by a linearly interpolated field E(z, t); polarisation P(t) = y[0]; update
 E <- E + dz * kappa * P. Loss = sum(E_out^2).
 
-Strategies (inner is always Tsit5 + ConstantStepSize with n_t steps):
+Strategies (a 'fwd' variant with ForwardMode exists for jacfwd checks; inner is always Tsit5 + ConstantStepSize with n_t steps):
   direct    : DirectAdjoint (stores every step), plain scan
   s2        : RecursiveCheckpointAdjoint, plain scan
   s3        : RecursiveCheckpointAdjoint, jax.checkpoint on scan body
@@ -29,7 +29,7 @@ import jax.numpy as jnp
 jax.config.update("jax_enable_x64", True)
 
 
-def make_problem(n_z, n_t, dim, strategy, n_v=1, seed=0):
+def make_problem(n_z, n_t, dim, strategy, n_v=1, seed=0, adaptive=False, max_steps=None):
     n = dim * dim
     kB, kC = jax.random.split(jax.random.PRNGKey(seed))
     B = 0.3 * jax.random.normal(kB, (n, n))
@@ -39,11 +39,10 @@ def make_problem(n_z, n_t, dim, strategy, n_v=1, seed=0):
     y0 = jnp.zeros(n).at[0].set(1.0)
     dz, kappa = 1.0 / n_z, 0.5
 
-    adjoint = (
-        dfx.DirectAdjoint()
-        if strategy == "direct"
-        else dfx.RecursiveCheckpointAdjoint()
-    )
+    adjoint = {
+        "direct": dfx.DirectAdjoint(),
+        "fwd": dfx.ForwardMode(),  # for jax.jacfwd cross-checks only
+    }.get(strategy, dfx.RecursiveCheckpointAdjoint())
 
     deltas = jnp.linspace(-1.0, 1.0, n_v)  # per-velocity-class detuning
     D = 0.3 * jax.random.normal(jax.random.PRNGKey(seed + 1), (n, n))
@@ -62,9 +61,11 @@ def make_problem(n_z, n_t, dim, strategy, n_v=1, seed=0):
             1.0 / (n_t - 1),
             y0,
             saveat=dfx.SaveAt(ts=ts),
-            stepsize_controller=dfx.ConstantStepSize(),
+            stepsize_controller=(
+                dfx.PIDController(rtol=1e-6, atol=1e-8) if adaptive else dfx.ConstantStepSize()
+            ),
             adjoint=adjoint,
-            max_steps=n_t + 8,
+            max_steps=max_steps or (n_t + 8),
         )
         return sol.ys[:, 0]  # polarisation(t)
 
@@ -100,12 +101,13 @@ def make_problem(n_z, n_t, dim, strategy, n_v=1, seed=0):
         return jnp.sum(propagate(field0) ** 2)
 
     field0 = jnp.exp(-((ts - 0.5) ** 2) / 0.02)
-    return jax.value_and_grad(loss), field0
+    return loss, field0
 
 
 def run_cell(args):
-    vg, field0 = make_problem(args.n_z, args.n_t, args.dim, args.strategy, args.n_v)
-    vg = jax.jit(vg)
+    loss, field0 = make_problem(args.n_z, args.n_t, args.dim, args.strategy, args.n_v,
+                                 adaptive=args.adaptive, max_steps=args.max_steps)
+    vg = jax.jit(jax.value_and_grad(loss))
     t0 = time.perf_counter()
     compiled = vg.lower(field0).compile()
     t_compile = time.perf_counter() - t0
@@ -116,6 +118,8 @@ def run_cell(args):
         "n_t": args.n_t,
         "dim": args.dim,
         "n_v": args.n_v,
+        "adaptive": args.adaptive,
+        "max_steps": args.max_steps,
         "temp_MiB": ma.temp_size_in_bytes / 2**20,
         "arg_MiB": ma.argument_size_in_bytes / 2**20,
         "compile_s": t_compile,
@@ -141,6 +145,8 @@ def main():
     p.add_argument("--n_t", type=int, default=500)
     p.add_argument("--dim", type=int, default=4)
     p.add_argument("--n_v", type=int, default=1)
+    p.add_argument("--adaptive", action="store_true")
+    p.add_argument("--max_steps", type=int, default=None)
     p.add_argument("--strategy", default="s2", choices=["direct", "s2", "s3", "s5"])
     p.add_argument("--rss", action="store_true")
     p.add_argument("--sweep", action="store_true", help="run a grid in subprocesses")

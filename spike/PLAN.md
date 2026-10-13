@@ -107,7 +107,7 @@ phase's gate before proceeding.
 | 1 Fits | S4 or S5 completes stretch point in <= 64 GB host RAM; projected <= 32 GB device | OOM |
 | 2 Scales | Peak mem(n_z=2000) <= 4x mem(n_z=200) at memory-bound config, above floor | > 10x |
 | 3 Correct | AD vs fixed-step FD and vs jacfwd rel. err <= 1e-5 (f64) | > 1e-2 or unstable |
-| 4 Useful | AD >= 10x faster than FD at N=100, beats FD at N=50; backward/forward <= 10x | crossover above N=100 |
+| 4 Useful | AD >= 10x faster than FD at N=100, beats FD at N=50; backward/forward <= 10x. Report vs JAX-FD **and vs clerq (PropagationSolver) FD** (reference forward: 2.3 s) | crossover above N=100 |
 
 Decision rule unchanged: 4 pass -> build; 1 fail -> diagnose; >= 2 fail -> stop.
 
@@ -265,3 +265,38 @@ Developed against `origin/next` (178cb45): `MBSolve` -> `PropagationSolver`, `OB
 `system.py`. The branch was first cut from a stale master (295aa89) and fast-forwarded; the
 T0.4 reference output was regenerated on `next` and is bit-identical (max diff 0.0), so the
 conventions above are unchanged by the rename. Old names still work with a DeprecationWarning.
+
+### T0.5 done: FD harness and gradient correctness on the toy chain
+`mbjax/fd.py` (`central_fd`, `fd_step_scan`, `check_gradient`), `tests/test_gradients.py`.
+Toy chain, fixed-step Tsit5, gradient w.r.t. the input field samples through n_z=6
+interpolated-drive solves (n_t=60, dim 4):
+
+| check | result |
+|-|-|
+| AD vs central FD, S2/S3 (best step 1e-3..1e-4) | rel err ~1e-11 (1e-9 at h=1e-2, 1e-9 at 1e-6) |
+| reverse mode (S3) vs `jacfwd` + `ForwardMode` | 2e-16 |
+| direct / S2 / S3 / S5 gradients | agree to < 1e-10 |
+
+So gradients flow correctly through the scan, the interpolated drive and the checkpointing.
+Caveat: linear-in-state ODE with a quadratic loss; the real Lindblad problem (Phase 2/3)
+still needs its own check.
+
+### Adaptive-step memory (concern #2; `bench/adaptive_memory.py`, compile-time temp, MiB)
+
+| config | strategy | const step | PID default | max_steps 4096 | 16384 | 65536 |
+|-|-|-|-|-|-|-|
+| ref (200/1000/dim4/nv1) | S2 | 4.2 | 4.9 | 8.0 | 14.1 | 26.3 |
+| ref | S3 | 1.9 | 1.9 | 1.9 | 1.9 | 1.9 |
+| stretch (500/2000/dim9/nv50) | S2 | 2120 | 2180 | 3102 | 6067 | 12028 |
+| stretch | S3 | 198 | 142 | 144 | 150 | 162 |
+
+- With adaptive stepping S2's memory is set by `max_steps` (static checkpoint buffers), so
+  naive S2 only "fits in 2 GiB" if `max_steps` is small; S3 is flat at ~150 MiB regardless.
+- This restores a real argument for S3: robustness to `max_steps`, not just a 10x constant.
+- Caveat: static allocation, not touched pages; actual RSS may be lower (not measured).
+
+### Open concerns after phase 0
+1. Real-Lindblad gradient correctness not yet checked (Phase 2/3).
+2. All timings single-run and noisy; repeat before quoting ratios.
+3. Multi-level and velocity-class clerq references not yet generated (needed by T3.4).
+4. Stretch-point S5 timing never measured (killed).
