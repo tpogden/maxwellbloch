@@ -1,0 +1,30 @@
+1 fwd 0.212  
+1 ad_s2 1.02  
+1 ad_s3 1.195  
+1 jacfwd 0.517  
+1 fd_jax 0.462  
+1 fd_clerq 4.479 False 
+10 fwd 0.208  
+10 ad_s2 0.939  
+10 ad_s3 1.101  
+10 jacfwd 0.585  
+10 fd_jax 4.283  
+10 fd_clerq 45.822 False 
+50 fwd 0.23  
+50 ad_s2 1.009  
+50 ad_s3 1.305  
+50 jacfwd 1.253  
+50 fd_jax 22.954  
+50 fd_clerq 229.681 False 
+100 fwd 0.224  
+100 ad_s2 1.008  
+100 ad_s3 1.221  
+100 jacfwd 1.95  
+100 fd_jax 44.465  
+100 fd_clerq 455.457 False 
+500 fwd 0.222  
+500 ad_s2 1.016  
+500 ad_s3 1.195  
+500 jacfwd 7.79  
+500 fd_jax 223.43  
+500 fd_clerq 2442.76 True 

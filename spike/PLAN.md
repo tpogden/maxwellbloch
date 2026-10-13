@@ -518,3 +518,76 @@ configuration (stretch) needs ~1 GB with S3/S4.
 - Memory numbers are XLA static allocations (and peak RSS for executed cells), CPU only.
 - Systems are sparse-collapse-only; the dense dissipator fallback is correct but ~3x slower.
 - n_params is 7 here; the N-scaling and FD comparison (Gate 4) are Phase 5.
+
+## Phase 5 done: AD vs finite differences, and an inverse-design demo
+(`mbjax/chain.py::make_reference_chain`, `bench/phase5_*.py`, `figures/phase5.png`)
+
+Reference problem (two_level, n_z 200, n_t 1000, n_v 1, AB, PID rtol 1e-6), N pulse-basis
+coefficients, loss = L2 distance of the output field. One forward = **0.21 s** (JAX) vs
+**2.25 s** (clerq). Best of 3, run sequentially; machine load average ~4 on 10 cores
+(other sessions), so absolute seconds carry some noise.
+
+### Validity of the baselines
+The clerq-driven FD baseline computes the same function: loss agrees to 5e-7, and **the JAX
+reverse-mode gradient equals the finite-difference gradient of clerq's own PropagationSolver to
+1.3e-7** (N=5). (A first attempt compared different functions because `solve()` re-initialises
+the input field from the analytic t_func; fixed by giving clerq the pulse as a callable t_func.)
+
+### T5.1 Gate 4 scaling, seconds per gradient
+
+| N | forward | AD S2 | AD S3 | jacfwd | FD (JAX) | FD (clerq) |
+|-|-|-|-|-|-|-|
+| 1 | 0.21 | 1.02 | 1.20 | 0.52 | 0.46 | 4.5 |
+| 10 | 0.21 | 0.94 | 1.10 | 0.59 | 4.3 | 46 |
+| 50 | 0.23 | 1.01 | 1.31 | 1.25 | 23 | 230 |
+| 100 | 0.22 | 1.01 | 1.22 | 1.95 | 44 | 455 |
+| 500 | 0.22 | 1.02 | 1.20 | 7.8 | 223 | 2443 (extrapolated from the 2.45 s x 1000 forwards; N <= 100 measured) |
+
+Speedup of AD (S2) over each method:
+
+| N | vs FD (JAX) | vs FD (clerq) | vs jacfwd |
+|-|-|-|-|
+| 10 | 4.6x | 49x | 0.6x |
+| 50 | 23x | 228x | 1.2x |
+| 100 | 44x | 452x | 1.9x |
+| 500 | 220x | 2400x | 7.7x |
+
+- AD cost is flat in N (~4.5x forward for S2, ~5.4x for S3); the per-evaluation tax is
+  about the 3-5x the design assumed, and the speedup at N=100 is **44x vs JAX FD**
+  (the design guessed ~25x).
+- Crossovers: reverse-mode AD beats FD at N >= ~3, and beats `jacfwd` at N >= ~40.
+- **`jacfwd` is much better than expected on this problem**: forward mode is 0.5-0.6 s up
+  to N=10 because batching the tangents is nearly free for a 2x2 state (overhead-bound).
+  On a dim-9, n_v=10 system the per-tangent cost was ~2.2x forward (Phase 4), so there the
+  forward/reverse crossover is N ~ 3. The forward-mode advantage is problem-size dependent.
+- The JAX forward is itself ~10x faster than clerq's, so most of the "vs clerq" figure is
+  the compiled forward pass, not AD: **AD vs JAX-FD is the like-for-like AD comparison.**
+
+### T5.2 Inverse design (N = 20 coefficients, planted target, L-BFGS-B)
+
+| gradient source | iterations | gradient evaluations | final loss | wall-clock |
+|-|-|-|-|-|
+| reverse-mode AD | 37 | 43 | 2.6e-15 (from 5.6e-2) | **49 s** |
+| JAX finite differences | 35 | 40 | 5.9e-15 | 339 s (6.9x) |
+| clerq finite differences | - | 43 (projected) | - | **65 min projected (80x)** |
+
+Recovered coefficients differ from the planted ones by 7e-7 relative; output field matches
+to 5e-8 (initial guess 0.28). See `figures/phase5.png` (scaling, fields, loss vs time).
+Caveat: the target is reachable by construction and the landscape benign; this
+demonstrates gradient quality and cost, not a hard inverse problem.
+
+### Gate 4 verdict
+
+| Criterion | Result | Verdict |
+|-|-|-|
+| AD beats FD at N=50 | 23x (JAX FD), 228x (clerq FD) | **PASS** |
+| >= 10x at N=100 | 44x (JAX FD), 452x (clerq FD) | **PASS** |
+| backward/forward <= 10x | 4.5x (S2), 5.4x (S3) | **PASS** |
+| crossover below N=100 | ~3 (vs FD), ~40 (vs jacfwd) | **PASS** |
+
+### Caveats specific to Phase 5
+- Scaling measured on the two-level reference problem only (one class). Larger systems have a
+  different cost balance (see jacfwd note); AD/FD ratios at dim 9 / n_v 50 were not swept.
+- Single sweep, best-of-3, non-quiet machine; no confidence intervals.
+- clerq-FD at N=500 is extrapolated (linear in N, verified up to N=100).
+- The optimisation demo uses a planted target; no physical design objective yet.

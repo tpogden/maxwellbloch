@@ -1,0 +1,4 @@
+N=20  initial loss 5.585e-02
+ad      nit  37 grad evals  43  loss 2.598e-15 (2.1e+13x lower)  wall 49.3s
+fd_jax  nit  35 grad evals  40  loss 5.859e-15 (9.5e+12x lower)  wall 339.3s
+clerq-FD projected: 43 gradients x 40 forwards x 2.28s = 65.4 min
