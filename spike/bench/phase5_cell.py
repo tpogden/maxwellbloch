@@ -16,8 +16,12 @@ p.add_argument("--n", type=int, required=True)
 p.add_argument("--method", required=True)
 p.add_argument("--repeat", type=int, default=3)
 p.add_argument("--h", type=float, default=1e-5)
+p.add_argument("--system", default="two_level")
+p.add_argument("--n_z", type=int, default=200)
+p.add_argument("--n_v", type=int, default=1)
+p.add_argument("--real_fd_max", type=int, default=100, help="run real clerq FD only up to this N")
 a = p.parse_args()
-out = {"n": a.n, "method": a.method, "load_start": os.getloadavg()[0]}
+out = {"n": a.n, "method": a.method, "system": a.system, "n_v": a.n_v, "n_z": a.n_z, "load_start": os.getloadavg()[0]}
 
 def best(f, repeat):
     ts = []
@@ -27,42 +31,47 @@ def best(f, repeat):
 
 if a.method in ("fwd", "ad_s2", "ad_s3", "fd_jax", "jacfwd"):
     strategy = {"ad_s2": "s2", "ad_s3": "s3"}.get(a.method, "s2")
-    loss, th, aux = make_reference_chain(a.n, strategy=strategy, forward_mode=(a.method == "jacfwd"))
+    loss, th, aux = make_reference_chain(a.n, system=a.system, n_v=a.n_v, n_z=a.n_z, strategy=strategy, forward_mode=(a.method == "jacfwd"))
     jax.block_until_ready(jax.jit(aux["output"])(th))  # builds the target outside timing
     _ = loss(th)
     if a.method == "fwd":
         f = jax.jit(loss); jax.block_until_ready(f(th))
         out["s"], out["s_all"] = best(lambda: f(th), a.repeat)
     elif a.method in ("ad_s2", "ad_s3"):
-        f = jax.jit(jax.value_and_grad(loss))
-        t0 = time.perf_counter(); jax.block_until_ready(f(th)); out["compile_run_s"] = time.perf_counter() - t0
+        t0 = time.perf_counter(); f = jax.jit(jax.value_and_grad(loss)).lower(th).compile()
+        out["compile_s"] = time.perf_counter() - t0
         out["s"], out["s_all"] = best(lambda: f(th), a.repeat)
         out["grad_norm"] = float(jnp.linalg.norm(f(th)[1]))
     elif a.method == "jacfwd":
-        f = jax.jit(jax.jacfwd(loss))
-        t0 = time.perf_counter(); jax.block_until_ready(f(th)); out["compile_run_s"] = time.perf_counter() - t0
+        t0 = time.perf_counter(); f = jax.jit(jax.jacfwd(loss)).lower(th).compile()
+        out["compile_s"] = time.perf_counter() - t0
         out["s"], out["s_all"] = best(lambda: f(th), a.repeat)
         out["grad_norm"] = float(jnp.linalg.norm(f(th)))
     elif a.method == "fd_jax":
         f = jax.jit(loss); jax.block_until_ready(f(th))
         thn = np.asarray(th)
+        last = {}
         def fd():
             g = np.empty(a.n)
             for i in range(a.n):
                 e = np.zeros(a.n); e[i] = a.h
                 g[i] = (float(f(jnp.asarray(thn + e))) - float(f(jnp.asarray(thn - e)))) / (2 * a.h)
+            last["g"] = g
             return jnp.asarray(g)
         out["s"], out["s_all"] = best(fd, max(1, min(a.repeat, 3 if a.n <= 50 else 1)))
-        out["grad_norm"] = float(jnp.linalg.norm(fd()))
+        out["grad_norm"] = float(np.linalg.norm(last["g"]))
 elif a.method == "fd_clerq":
     import copy
     from clerq import PropagationSolver
     from mbjax.systems import make_system
     from mbjax.chain import SYSTEM_PARAMS, T_MIN, T_MAX
     from mbjax.lindblad import gaussian
-    loss, th, aux = make_reference_chain(a.n)
-    ampl, g = SYSTEM_PARAMS["two_level"]
-    spec = make_system("two_level")
+    loss, th, aux = make_reference_chain(a.n, system=a.system, n_v=a.n_v, n_z=a.n_z)
+    ampl, g = SYSTEM_PARAMS[a.system]
+    spec = make_system(a.system)
+    vc = None if a.n_v == 1 else {"thermal_delta_min": -1.0, "thermal_delta_max": 1.0,
+        "thermal_delta_steps": a.n_v - 1, "thermal_width": 0.7,
+        "thermal_delta_inner_min": -1.0, "thermal_delta_inner_max": -1.0}
     spec["fields"][0].update(rabi_freq=1.0, rabi_freq_t_func="gaussian",
                              rabi_freq_t_args={"ampl": ampl, "centre": 0.0, "fwhm": 1.0})
     basis = np.asarray(aux["basis"]); ts = np.asarray(aux["ts"])
@@ -71,8 +80,8 @@ elif a.method == "fd_clerq":
     dt = (T_MAX - T_MIN) / 1000
     def clerq_loss(theta):
         ps = PropagationSolver(system=copy.deepcopy(spec), t_min=T_MIN, t_max=T_MAX, t_steps=1000,
-                               z_min=0.0, z_max=1.0, z_steps=200, z_steps_inner=1,
-                               interaction_strengths=[g],
+                               z_min=0.0, z_max=1.0, z_steps=a.n_z, z_steps_inner=1,
+                               interaction_strengths=[g], velocity_classes=vc,
                                opts={"atol": 1e-8, "rtol": 1e-6, "method": "adams", "nsteps": 100000})
         th_np = np.asarray(theta)
         # give clerq the pulse as its analytic t_func (cyclic units; rabi_freq = 1)
@@ -86,13 +95,13 @@ elif a.method == "fd_clerq":
         return float(np.sum((ps.Omegas_zt[0, -1].real / (2 * np.pi) - target) ** 2) * dt), ps
     # one forward (the unit cost), and the equivalence check vs the JAX loss
     ts_f = []
-    for _ in range(2):
+    for _ in range(1 if a.n_v > 1 else 2):
         t0 = time.perf_counter(); lv, _ps = clerq_loss(np.asarray(th)); ts_f.append(time.perf_counter() - t0)
     out["fwd_s"] = min(ts_f)
     out["loss_clerq"] = lv; out["loss_jax"] = float(loss(th))
     out["s"] = 2 * a.n * min(ts_f)          # extrapolated: 2N forwards
     out["extrapolated"] = True
-    if a.n <= 100:                           # up to N=100: run the real FD
+    if a.n <= a.real_fd_max:                 # run the real FD
         thn = np.asarray(th); t0 = time.perf_counter()
         gg = np.empty(a.n)
         for i in range(a.n):
@@ -102,5 +111,8 @@ elif a.method == "fd_clerq":
         out["extrapolated"] = False
         out["s"] = out["s_measured"]
         out["grad_norm"] = float(np.linalg.norm(gg))
+        out["grad_clerq_fd"] = gg.tolist()
+        out["grad_ad"] = np.asarray(jax.jit(jax.grad(loss))(th)).tolist()
+        out["grad_rel_err_ad_vs_clerq_fd"] = float(np.linalg.norm(gg - np.asarray(out["grad_ad"])) / np.linalg.norm(gg))
 out["load_end"] = os.getloadavg()[0]
 print("RESULT " + json.dumps(out))
