@@ -12,13 +12,14 @@ Read the result as narrower than the design hoped in one respect and stronger in
 
 - **Memory is not the story.** The design expected naive reverse-mode AD to run out of memory
   without checkpointing. It does not: the largest configuration we tried needs about 1 GB
-  with checkpointing and 6.5 GB without. Checkpointing is worth having (10-70x less working
+  with checkpointing and 6.5 GB without. Checkpointing is worth having (17-75x less working
   memory, and independent of `max_steps`), but it is an engineering convenience, not what
   makes the problem tractable.
 - **Speed and gradient quality are the story.** One reverse-mode gradient costs about
   5-6 forward solves regardless of the number of parameters. At N = 100 parameters that is
   **40-44x faster than finite differences through the same JAX code** on both problems we
-  measured, and more than 1000x faster than finite differences through clerq as it stands.
+  measured, and faster than finite differences through clerq as it stands by about 450x
+  (two-level, measured) to several thousand x (dim 9 with 50 classes, extrapolated).
   The gradient is the exact gradient of the discretised solver and agrees with
   finite differences through clerq's own `PropagationSolver` to 1e-7 (two-level) and 5e-6
   (dim 9, 50 velocity classes), where 5e-6 is clerq's own FD noise floor.
@@ -44,7 +45,7 @@ non-single-element dissipators at scale, stiff regimes, anything beyond dim 16.
 |-|-|-|-|
 | 1 Fits | S4 fits the stretch point (n_z 500, n_t 2000, dim 9, n_v 50) in <= 64 GB host | 992 MiB peak RSS (S4); 6.5 GiB even for plain scan | **Pass**, trivially |
 | 2 Scales | peak memory at n_z = 2000 <= 4x that at n_z = 200; no-go if > 10x | S5 2.9x (slope 0.46); S3 6.1x (0.79); S4 9.4x (0.97); plain scan 10.0x (1.00) | **Pass for S5, between the bars for S3/S4** |
-| 3 Correct | AD vs finite differences <= 1e-5 (f64) | 1.7e-8 (fixed-step FD, 4 systems); 1.3e-7 vs clerq-FD (two-level); 5.1e-6 vs clerq-FD (dim 9, 50 classes) | **Pass** |
+| 3 Correct | AD vs finite differences <= 1e-5 (f64) | 1.7e-8 vs fixed-step FD (two-level chain; all four systems < 1e-5); 1.3e-7 vs clerq-FD (two-level); 5.1e-6 vs clerq-FD (dim 9, 50 classes) | **Pass** |
 | 4 Useful | AD beats FD at N = 50; >= 10x at N = 100; backward/forward <= 10x | two-level: 23x / 44x / 4.5x; dim 9, 50 classes: 20x / 40x / 5.0x (S2), 6.0x (S3) | **Pass** |
 
 How to read Gate 2: S3 and S4 grow linearly in n_z with a very small constant (about
@@ -81,8 +82,9 @@ n_z = 4 and 8). Seconds per gradient:
 | 50 | 107 | 130 | not finished after 71 min | 2140 (extrapolated) |
 | 100 | 107 | 128 | not run | 4280 (extrapolated) |
 
-Finite differences through clerq would take days at N = 50 and are not run; the 1.1x10^3
-speedup claim is an extrapolation from the measured per-slice cost.
+Finite differences through clerq at N = 50 would need 100 forwards of 30-50 minutes each
+(roughly 2-3.5 days) against 107 s for one AD gradient, a factor of about 1700-2800; this
+is extrapolated from the measured per-slice cost and was not run.
 
 ![dim 9 scaling](figures/scaling_large.png)
 

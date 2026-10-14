@@ -591,3 +591,24 @@ demonstrates gradient quality and cost, not a hard inverse problem.
 - Single sweep, best-of-3, non-quiet machine; no confidence intervals.
 - clerq-FD at N=500 is extrapolated (linear in N, verified up to N=100).
 - The optimisation demo uses a planted target; no physical design objective yet.
+
+## Phase 5b done: larger system (dim 9, 50 velocity classes, n_z 200, n_t 1000)
+
+Forward 21.4 s; reverse AD 107.5 s (S2, 5.0x) / 128.1 s (S3, 6.0x), flat in N; `jacfwd` 52 s
+(N=1), 284 s (N=10), not finished after 71 min at N=50; FD (JAX) 45 s (N=1), 419 s (N=10)
+measured, linear in N. AD speedup over JAX FD: 3.9x (N=10), 20x (N=50), 40x (N=100), 199x
+(N=500, extrapolated). clerq forward ~30-50 min (9-15 s per slice), so clerq-FD was not run
+beyond a validity check at n_z=4, N=5: loss agrees to 7e-9 and the AD gradient to 5.1e-6
+(clerq's own FD floor at rtol 1e-6). Gate 4 holds on this problem too.
+
+Operational note: the first attempt at the clerq-FD validity cell (N=2) was ill-conditioned
+(loss ~1e-16, below clerq's noise floor) and took > 1 h; the machine sleeping and the
+turn-scoped keep-awake lapsing between turns stretched wall-clock. Use `caffeinate -i` for
+long cells.
+
+## Phase 6 done: see [RESULTS.md](RESULTS.md)
+
+Decision: all four gates pass -> build the differentiable backend; scope and caveats in
+RESULTS.md. Follow-ups: merge the two clerq fixes (`fix/velocity-class-detuning-units`,
+`fix/source-term-dipole-weights`) and regenerate `refs/`; CUDA timing run; upstream diffrax
+report; a non-planted design objective.
