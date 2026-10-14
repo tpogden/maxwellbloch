@@ -612,3 +612,29 @@ Decision: all four gates pass -> build the differentiable backend; scope and cav
 RESULTS.md. Follow-ups: merge the two clerq fixes (`fix/velocity-class-detuning-units`,
 `fix/source-term-dipole-weights`) and regenerate `refs/`; CUDA timing run; upstream diffrax
 report; a non-planted design objective.
+
+## Post-fix verification: clerq master 74191f2 (Doppler + dipole-weight fixes)
+
+The two clerq defects found in phase 3 were fixed and merged to master (PRs #325, #326);
+this branch merged master as 8000ae2 and the spike now defaults to the corrected conventions
+(`velocity_classes(convention="physical")`, source weights `factor`); the legacy behaviours
+are kept behind `convention="legacy"` and `source_weight_power=2`, each with a guard test.
+
+| check | pre-fix clerq | fixed clerq |
+|-|-|-|
+| tests | 59 | **68 pass** |
+| forward match, rel L2 (two_level / j12_12 / j1_2_res / j1_2_res_x / j72_72) | 5e-11 / 1e-11 / 2e-11 / n.a. / 3e-11 | 1.0e-10 / 4.4e-11 / 5.2e-11 / 4.2e-11 / 1.5e-10 |
+| medium effect, peak out/in (same order) | 0.87 / 0.97 / 0.98 / vacuous / 0.98 | 0.75 / 0.90 / 0.95 / 0.96 / 0.92 |
+| chain gradient: AD vs fixed-step FD / PID vs fixed | 1.7e-8 / 1.8e-11 | 1.8e-8 / 1.9e-11 |
+| reference data (two_level, no classes, factors 1) | - | bit-identical (max diff 0.0) |
+| AD vs FD through clerq, dim 9, 50 classes (N=5, n_z=4) | 5.1e-6 (noise floor) | **1.1e-7**, loss 2.1e-7 |
+| dim 9, 50 classes: forward | 21.4 s | **9.8 s** |
+| dim 9, 50 classes: AD S2 / S3 (N=10) | 107 s / 124 s | **41.8 s / 49.8 s** (4.3x / 5.1x) |
+| dim 9, 50 classes: jacfwd (N=10) | 284 s (13.3x) | **147 s (15.0x)** |
+| dim 9, 50 classes: FD JAX (N=10) | 419 s (19.6 fwd) | **195 s (19.9 fwd)** |
+| clerq forward, dim 9, 50 classes | ~9-15 s per slice | ~8 s per slice (32.5 s at n_z=4) |
+
+Consequences: the AD speedup over JAX FD at N=100 on the larger problem is 47x (was 40x);
+the Doppler fix makes that problem ~2.2x cheaper because the detunings are 2 pi smaller.
+Only N=10 was re-timed after the fix; stretch-point times and base-config timings from
+phase 4 are pre-fix (memory is unaffected). `jacfwd` at N=50 was not re-run.

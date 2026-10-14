@@ -27,7 +27,7 @@ def _spec(name, ampl, fwhm=1.0, gamma=1.0, detuning=0.0):
 
 
 def _run_jax(spec, *, t_min, t_max, t_steps, z_steps, g, vc, ampl, fwhm=1.0, density=1.0,
-             convention="clerq", **kw):
+             convention="physical", **kw):
     model = build_propagation_model(spec)
     ts = jnp.linspace(t_min, t_max, t_steps + 1)
     h = 1.0 / z_steps
@@ -68,7 +68,7 @@ def test_reference_problem_matches_saved_clerq_output():
 VC = {"thermal_delta_min": -1.0, "thermal_delta_max": 1.0, "thermal_delta_steps": 4,
       "thermal_width": 0.7}
 CASES = [("two_level", 1.0, 0.4), ("j12_12", 1.5, 0.4), ("j1_2_res", 2.5, 0.4),
-         ("j72_72", 3.0, 1.5)]  # (system, pulse ampl, interaction strength g)
+         ("j1_2_res_x", 2.5, 0.4), ("j72_72", 3.0, 1.5)]  # (system, pulse ampl, interaction strength g)
 
 
 @pytest.mark.parametrize("name,ampl,g", CASES)
@@ -85,13 +85,33 @@ def test_velocity_classes_match_clerq(name, ampl, g):
     assert rel_err(np.asarray(got.imag), ref.imag) < 1e-5 or np.abs(ref.imag).max() < 1e-9
 
 
-def test_physical_convention_differs_from_clerq():
-    """Guard: the clerq Doppler convention is not an invisible choice."""
+def test_legacy_doppler_convention_differs():
+    """Guard: the pre-fix Doppler convention (clerq <= 0.13.1) is not an invisible choice."""
     spec = _spec("two_level", 1.0)
     kw = dict(t_min=-2.0, t_max=6.0, t_steps=120, z_steps=8, g=0.4, vc=VC, ampl=1.0)
-    a = _run_jax(spec, convention="clerq", **kw)
-    b = _run_jax(spec, convention="physical", **kw)
+    a = _run_jax(spec, convention="physical", **kw)
+    b = _run_jax(spec, convention="legacy", **kw)
     assert rel_err(np.asarray(a.real), np.asarray(b.real)) > 1e-3
+
+
+def test_legacy_source_weights_differ_for_nonunit_factors():
+    """Guard: factor vs factor**2 matters when factors != 1 (and not when they are all 1)."""
+    from mbjax.propagate import build_propagation_model as bpm
+    ts = jnp.linspace(-2.0, 6.0, 121)
+    out = {}
+    for name in ("two_level", "j12_12"):
+        spec = _spec(name, 1.5)
+        res = []
+        for p in (1, 2):
+            m = bpm(spec, source_weight_power=p)
+            deltas, w = velocity_classes(None)
+            pulse = gaussian(1.5, 0.0, 1.0)
+            om = propagate(m, TWO_PI * pulse(ts), ts, jnp.ones(6), 0.4, 1 / 6, deltas, w,
+                           drive0=lambda t: pulse(t))
+            res.append(np.asarray(om.real))
+        out[name] = rel_err(res[0], res[1])
+    assert out["two_level"] < 1e-12      # factors are all 1
+    assert out["j12_12"] > 1e-3
 
 
 # ---- T3.3: gradients through the chain ------------------------------------------------
@@ -109,7 +129,7 @@ def _chain_loss(name, *, strategy="s3", step="ab", n_steps=None, adjoint=None, n
     N_z = jnp.ones(N_Z)
     deltas, w = velocity_classes(
         {"thermal_delta_min": -0.8, "thermal_delta_max": 0.8,
-         "thermal_delta_steps": n_v - 1, "thermal_width": 0.6}, "clerq")
+         "thermal_delta_steps": n_v - 1, "thermal_width": 0.6}, "physical")
     basis = jnp.stack([jnp.exp(-((ts - c) ** 2) / 0.8) for c in BASIS_C])
     target = 0.5 * jnp.exp(-((ts - 1.0) ** 2) / 1.5)
     rng = np.random.default_rng(0)

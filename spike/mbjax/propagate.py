@@ -5,7 +5,7 @@ Reproduces clerq's ``PropagationSolver.solve(step="ab")`` for ``z_steps_inner = 
 * Omega is carried in angular units (complex); only Re(Omega) drives H (clerq's convention).
 * slice 0 is driven by the *analytic* input pulse (clerq builds H_Omega from the t_func
   there); slices j >= 1 are driven by the cubic not-a-knot spline of Omega_j.
-* source f_j = 2i * N(z_{j+1}) * (2 pi g) * sum_k factor_k^2 rho_{a_k b_k}, averaged over
+* source f_j = 2i * N(z_{j+1}) * (2 pi g) * sum_k factor_k rho_{a_k b_k}, averaged over
   velocity classes with clerq's Maxwell-Boltzmann weights.
 * Omega_{j+1} = Omega_j + h (1.5 f_j - 0.5 f_{j-1}), with N(z_{j+1}) used in both terms and a
   single Euler step (f_{-1} := f_0) for j = 0.
@@ -29,13 +29,13 @@ jax.config.update("jax_enable_x64", True)
 TWO_PI = 2.0 * np.pi
 
 
-def velocity_classes(vc: dict | None, convention: str = "clerq"):
+def velocity_classes(vc: dict | None, convention: str = "physical"):
     """Detunings (cyclic, as they enter H via -2*pi*Delta*N) and normalised weights.
 
-    convention="clerq": replicate clerq exactly. ``thermal_delta_list`` is built in
-    *angular* units (2*pi*x) and then passed to ``set_H_Delta``, which multiplies by 2*pi
-    again, so the Hamiltonian sees a cyclic detuning of 2*pi*x. (Suspected inconsistency in
-    clerq; see PLAN.md.)  convention="physical": cyclic detuning x, i.e. thermal_delta/(2 pi).
+    convention="physical" (default; clerq master from PR #325): cyclic detuning x, i.e.
+    ``thermal_delta_list / (2 pi)``.  convention="legacy": clerq <= 0.13.1, where
+    ``thermal_delta_list`` (angular, 2*pi*x) was passed to ``set_H_Delta``, which multiplies
+    by 2*pi again, so H saw a cyclic detuning of 2*pi*x. Kept to reproduce old results.
     """
     vc = {
         "thermal_delta_min": 0.0, "thermal_delta_max": 0.0, "thermal_delta_steps": 0,
@@ -50,19 +50,24 @@ def velocity_classes(vc: dict | None, convention: str = "clerq"):
     fwhm = TWO_PI * vc["thermal_width"]
     w = 1.0 / (fwhm * np.sqrt(np.pi)) * np.exp(-((delta_ang / fwhm) ** 2))
     w = w / w.sum()
-    eff = delta_ang if convention == "clerq" else delta_ang / TWO_PI
+    if convention not in ("physical", "legacy"):
+        raise ValueError(f"unknown Doppler convention {convention!r}")
+    eff = delta_ang if convention == "legacy" else delta_ang / TWO_PI
     return jnp.asarray(eff), jnp.asarray(w)
 
 
-def build_propagation_model(spec: dict) -> dict:
-    """Lindblad model plus the source-term index/weight arrays (field 0)."""
+def build_propagation_model(spec: dict, source_weight_power: int = 1) -> dict:
+    """Lindblad model plus the source-term index/weight arrays (field 0).
+
+    ``source_weight_power=1`` weights each coupled coherence by its signed factor, as clerq
+    master does (PR #326); ``2`` reproduces clerq <= 0.13.1 (factor**2)."""
     m = build_model(spec)
     f = spec["fields"][0]
     facs = f.get("factors") or [1.0] * len(f["coupled_levels"])
     rows = np.array([a for a, _ in f["coupled_levels"]])
     cols = np.array([b for _, b in f["coupled_levels"]])
     m["coh_rows"], m["coh_cols"] = jnp.asarray(rows), jnp.asarray(cols)
-    m["coh_w2"] = jnp.asarray(np.array(facs, dtype=float) ** 2)
+    m["coh_w"] = jnp.asarray(np.array(facs, dtype=float) ** source_weight_power)
     m["detuning"] = float(f.get("detuning", 0.0))
     # Sparse dissipator: if every collapse operator is a single element c_k = f_k |a_k><b_k|,
     # then c rho c^+ = |f|^2 rho_bb |a><a| and sum_k c^+c is diagonal, so the dissipator is
@@ -108,7 +113,7 @@ def slice_coherence(model, drive, deltas, weights, ts, *, gamma_scale=1.0, rtol=
     cdc = model["cdc"] * gamma_scale
     n_v = deltas.shape[0]
     rho0 = jnp.broadcast_to(model["rho0"], (n_v,) + model["rho0"].shape)
-    rows, cols, w2 = model["coh_rows"], model["coh_cols"], model["coh_w2"]
+    rows, cols, w2 = model["coh_rows"], model["coh_cols"], model["coh_w"]
 
     def save(t, y, a):
         coh = jnp.einsum("vk,k->v", y[:, rows, cols], w2)

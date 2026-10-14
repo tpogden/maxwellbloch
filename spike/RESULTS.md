@@ -1,6 +1,7 @@
 # Spike results: a differentiable Maxwell-Bloch backend for clerq
 
-Branch `spike/differentiable-backend` (cut from `next` @ 178cb45). Design: [DESIGN.md](DESIGN.md).
+Branch `spike/differentiable-backend` (cut from `next` @ 178cb45, merged with `master` @ 74191f2,
+which carries the two clerq fixes described below). Design: [DESIGN.md](DESIGN.md).
 Working log with every number and the dead ends: [PLAN.md](PLAN.md).
 
 ## Decision
@@ -16,20 +17,21 @@ Read the result as narrower than the design hoped in one respect and stronger in
   memory, and independent of `max_steps`), but it is an engineering convenience, not what
   makes the problem tractable.
 - **Speed and gradient quality are the story.** One reverse-mode gradient costs about
-  5-6 forward solves regardless of the number of parameters. At N = 100 parameters that is
-  **40-44x faster than finite differences through the same JAX code** on both problems we
-  measured, and faster than finite differences through clerq as it stands by about 450x
-  (two-level, measured) to several thousand x (dim 9 with 50 classes, extrapolated).
-  The gradient is the exact gradient of the discretised solver and agrees with
-  finite differences through clerq's own `PropagationSolver` to 1e-7 (two-level) and 5e-6
-  (dim 9, 50 velocity classes), where 5e-6 is clerq's own FD noise floor.
+  4.3-6 forward solves regardless of the number of parameters. At N = 100 parameters that is
+  **44-47x faster than finite differences through the same JAX code** on both problems we
+  measured, and faster than finite differences through clerq by about 450x (two-level,
+  measured) to several thousand x (dim 9 with 50 classes, extrapolated). The gradient is the
+  exact gradient of the discretised solver and agrees with finite differences through clerq's own
+  `PropagationSolver` (current master, with the Doppler and source-weight fixes) to 1.3e-7
+  (two-level) and 1.1e-7 (dim 9, 50 velocity classes).
 
 ## What was and was not established
 
 Established (CPU, float64, Apple M1 Max, one field, co-propagating):
 
-1. A JAX/diffrax `lax.scan`-over-z propagator reproduces `PropagationSolver` to ~1e-11 on four
-   systems (dim 2, 4, 9, 16) including velocity classes, with the same scheme and z_steps.
+1. A JAX/diffrax `lax.scan`-over-z propagator reproduces clerq master's `PropagationSolver` to 1e-10 or
+   better on five systems (dim 2, 4, 9, 9 with linear polarisation, 16) including velocity
+   classes, with the same scheme and z_steps.
 2. Its reverse-mode gradients are correct (vs fixed-step FD, vs forward mode, vs FD through clerq).
 3. Memory and time at sizes up to n_z = 500, n_t = 2000, dim 9, 50 velocity classes.
 4. AD vs finite differences vs forward mode for N = 1 ... 500 parameters on two problem sizes.
@@ -45,8 +47,8 @@ non-single-element dissipators at scale, stiff regimes, anything beyond dim 16.
 |-|-|-|-|
 | 1 Fits | S4 fits the stretch point (n_z 500, n_t 2000, dim 9, n_v 50) in <= 64 GB host | 992 MiB peak RSS (S4); 6.5 GiB even for plain scan | **Pass**, trivially |
 | 2 Scales | peak memory at n_z = 2000 <= 4x that at n_z = 200; no-go if > 10x | S5 2.9x (slope 0.46); S3 6.1x (0.79); S4 9.4x (0.97); plain scan 10.0x (1.00) | **Pass for S5, between the bars for S3/S4** |
-| 3 Correct | AD vs finite differences <= 1e-5 (f64) | 1.7e-8 vs fixed-step FD (two-level chain; all four systems < 1e-5); 1.3e-7 vs clerq-FD (two-level); 5.1e-6 vs clerq-FD (dim 9, 50 classes) | **Pass** |
-| 4 Useful | AD beats FD at N = 50; >= 10x at N = 100; backward/forward <= 10x | two-level: 23x / 44x / 4.5x; dim 9, 50 classes: 20x / 40x / 5.0x (S2), 6.0x (S3) | **Pass** |
+| 3 Correct | AD vs finite differences <= 1e-5 (f64) | 1.7e-8 vs fixed-step FD (two-level chain; all four systems < 1e-5); 1.3e-7 vs clerq-FD (two-level); 1.1e-7 vs clerq-FD (dim 9, 50 classes, fixed clerq) | **Pass** |
+| 4 Useful | AD beats FD at N = 50; >= 10x at N = 100; backward/forward <= 10x | two-level: 23x / 44x / 4.5x; dim 9, 50 classes (fixed clerq): 23x / 47x / 4.3x (S2), 5.1x (S3) | **Pass** |
 
 How to read Gate 2: S3 and S4 grow linearly in n_z with a very small constant (about
 60 KiB per slice, 127 MiB at n_z = 2000), so a ratio test is a poor fit for them. S5 is sublinear
@@ -71,37 +73,45 @@ Two-level reference problem (n_z 200, n_t 1000, one velocity class). One forward
 
 ![two-level scaling and inverse design](figures/phase5.png)
 
-Larger problem: j1_2_res (dim 9) with 50 velocity classes, n_z 200, n_t 1000. One forward solve
-takes 21.4 s in JAX and roughly 30-50 minutes in clerq (9-15 s per z-slice, measured at
-n_z = 4 and 8). Seconds per gradient:
+Larger problem: j1_2_res (dim 9) with 50 velocity classes, n_z 200, n_t 1000, against clerq
+master (corrected Doppler convention). One forward solve takes 9.8 s in JAX and about 27 minutes
+in clerq (8 s per z-slice, measured at n_z = 4). Seconds per gradient, N = 10 measured after the
+fix:
 
 | N | reverse AD (S2) | reverse AD (S3) | forward AD (`jacfwd`) | FD (JAX) |
 |-|-|-|-|-|
-| 1 | 109 | 131 | 52 | 45 (measured) |
-| 10 | 107 | 124 | 284 | 419 (measured) |
-| 50 | 107 | 130 | not finished after 71 min | 2140 (extrapolated) |
-| 100 | 107 | 128 | not run | 4280 (extrapolated) |
+| 10 | 41.8 | 49.8 | 147 | 195 (measured, 19.9 forwards) |
+| 50 | ~42 (flat) | ~50 (flat) | not re-run | 980 (extrapolated) |
+| 100 | ~42 (flat) | ~50 (flat) | not re-run | 1960 (extrapolated) |
 
-Finite differences through clerq at N = 50 would need 100 forwards of 30-50 minutes each
-(roughly 2-3.5 days) against 107 s for one AD gradient, a factor of about 1700-2800; this
+The full N sweep was run **before** the Doppler fix, when the forward solve took 21.4 s: AD cost
+107.5 s (S2) and 128.1 s (S3) at each of N = 1, 10, 50, 100 (spread under 3%), `jacfwd` 52 s
+(N = 1) and 284 s (N = 10) and not finished after 71 CPU-minutes at N = 50, FD 45 s (N = 1) and
+419 s (N = 10). The fix makes the problem about 2.2x cheaper (detunings are 2 pi smaller, so
+fewer solver steps) and the ratios agree within ~15%, which is why the flat rows above carry the
+pre-fix N-independence but the post-fix level.
+
+Finite differences through clerq at N = 50 would need 100 forwards of ~27 minutes each (about
+45 hours) against 42 s for one AD gradient, a factor of about 3900 (about 7700 at N = 100); this
 is extrapolated from the measured per-slice cost and was not run.
 
 ![dim 9 scaling](figures/scaling_large.png)
 
 Takeaways:
 
-- Reverse-mode cost is flat in N: 5.0x forward (S2) and 6.0x (S3) at dim 9, 4.5x and 5.4x at
-  dim 2. That is the per-evaluation tax the design assumed (3-5x), slightly above its range
-  for the checkpointed variant.
-- Speedup over JAX finite differences at N = 100: 44x (dim 2) and 40x (dim 9). The design
-  guessed 25x.
+- Reverse-mode cost is flat in N: 4.3x forward (S2) and 5.1x (S3) at dim 9 with the corrected
+  convention (5.0x and 6.0x before it), 4.5x and 5.4x at dim 2. That is the per-evaluation tax
+  the design assumed (3-5x), slightly above its range for the checkpointed variant.
+- Speedup over JAX finite differences at N = 100: 44x (dim 2) and 47x (dim 9, from the measured
+  19.9 forwards per N = 10 FD gradient). The design guessed 25x.
 - **Forward mode is strongly problem-size dependent.** On the two-level problem batching the
   tangents is almost free, and `jacfwd` beats reverse mode up to N of about 40. At dim 9 with
-  50 classes it costs 1.3-1.4 forwards per tangent at N = 10 and was far worse at N = 50
-  (not finished after 71 CPU-minutes, versus 107 s for reverse mode), so reverse mode wins from
-  N of about 3. A production backend should keep both modes and choose by problem size.
-- Most of the "vs clerq" factor is the compiled forward pass (10x on the two-level problem),
-  not AD. The like-for-like AD comparison is against JAX finite differences.
+  50 classes it costs 1.5 forwards per tangent at N = 10 (147 s vs 41.8 s for reverse mode) and
+  had not finished at N = 50 after 71 CPU-minutes (pre-fix), so reverse mode wins from N of
+  about 3. A production backend should keep both modes and choose by problem size.
+- Most of the "vs clerq" factor is the compiled forward pass (10x on the two-level problem,
+  about 165x at dim 9 with 50 classes), not AD. The like-for-like AD comparison is against JAX
+  finite differences.
 
 ### Memory
 
@@ -119,6 +129,11 @@ n_t 1000, n_v 10), 96 cells over four axes; executed peak RSS agrees where measu
 | stretch point (MiB) | 5645 | 75 | 66 | 47 |
 | stretch, peak RSS (MiB) | 6482 | 951 | 992 | not run |
 | stretch, time (grad) | 300 s | 369 s | 391 s | not run |
+
+The stretch-point times and peak RSS, and the base-configuration timings in PLAN.md, predate the
+Doppler fix (detunings 2 pi larger, more solver steps); working memory is statically allocated
+and unaffected, while wall-clock would be roughly 2x lower (inferred from the 2.2x forward-time
+change, not re-measured).
 
 Plain-scan memory is `max_steps` times the state size, not a property of the problem: at the
 base configuration it is 234 / 328 / 463 / 913 MiB for `max_steps` = 1024 / 2048 / 4096 /
@@ -144,7 +159,7 @@ design problem.
 
 | DESIGN.md said | Measured |
 |-|-|
-| ~25x faster than FD at N ~ 100 despite a 3-5x per-evaluation tax | 40-44x; tax 4.5-6.0x |
+| ~25x faster than FD at N ~ 100 despite a 3-5x per-evaluation tax | 44-47x; tax 4.3-5.8x |
 | Naive AD stores n_z x n_t x dim^2 and "OOMs by n_z = 500" | False. Plain scan needs 5.6 GiB at the stretch point; its memory is `max_steps`-driven |
 | `jax.checkpoint` on the scan body gives ~sqrt scaling | S3 is linear with a tiny constant (60 KiB/slice); sqrt needs the chunked scan (S5) |
 | Inner `RecursiveCheckpointAdjoint`, not `BacksolveAdjoint` | Not tested (we never used backsolve); `RecursiveCheckpointAdjoint` gave correct gradients throughout, with one caveat below |
@@ -172,21 +187,25 @@ error floors at about rtol / h (best 1.6e-6 at h = 1e-3, 1e-2 at h = 1e-7 in our
 Fixed-step AD matched fixed-step FD to 4e-9 and agreed with adaptive AD to 5+ digits. Anyone
 validating gradients against FD must use a fixed-step reference.
 
-### 3. clerq itself had two defects, now fixed on branches
+### 3. clerq itself had two defects, now fixed on master
 
-The spike found, verified, and handed off two inconsistencies in clerq, both confirmed and fixed
-by the follow-up sessions (branches in the main checkout, **not yet merged or pushed**):
+The spike found, verified, and handed off two inconsistencies in clerq. Both were confirmed,
+fixed, and merged (PRs #325 and #326, master 74191f2), and this branch is merged with master
+(8000ae2):
 
-| Branch | Defect |
+| PR | Defect |
 |-|-|
-| `fix/velocity-class-detuning-units` | Doppler detunings reached the Hamiltonian 2 pi too large relative to the Maxwell-Boltzmann weights (angular value passed to a cyclic-units function) |
-| `fix/source-term-dipole-weights` | The Maxwell source term weighted each coherence by `factor**2` while H used `factor`, so the response went as sum(factor^3); for linear polarisation on J = 1 -> 2 it vanished identically |
+| #325 `fix/velocity-class-detuning-units` | Doppler detunings reached the Hamiltonian 2 pi too large relative to the Maxwell-Boltzmann weights (angular value passed to a cyclic-units function) |
+| #326 `fix/source-term-dipole-weights` | The Maxwell source term weighted each coherence by `factor**2` while H used `factor`, so the response went as sum(factor^3); for linear polarisation on J = 1 -> 2 it vanished identically |
 
-**Dependency for the backend:** the spike reproduces clerq as of 178cb45, i.e. *with* these
-defects. Both fixes change results (every velocity-class problem; every multi-transition
-field). `velocity_classes(convention="physical")` already exists in the spike; the source weight
-needs a one-line switch. Build the production backend against the fixed conventions, and
-regenerate the reference data in `refs/`.
+The spike now defaults to the fixed conventions and keeps the old ones behind flags
+(`velocity_classes(convention="legacy")`, `build_propagation_model(source_weight_power=2)`),
+each with a guard test that they differ. Re-verified against the fixed clerq: 68 tests pass;
+forward match 4e-11 to 1.5e-10 on five systems (the new linear-polarisation J = 1 -> 2 system
+now has a real response); reference data unchanged (two-level, no velocity classes, all
+factors 1); AD vs clerq-FD at dim 9 with 50 classes 1.1e-7. The Doppler fix also changed
+costs: detunings are 2 pi smaller, so the dim 9 / 50-class forward solve dropped from 21.4 s
+to 9.8 s.
 
 ### 4. Other clerq conventions the spike had to reproduce
 
@@ -207,14 +226,16 @@ regenerate the reference data in `refs/`.
   confidence intervals. `perf_counter` measured CPU-bound work, but the machine was shared
   and at times asleep during waits, so wall-clock durations of long cells are unreliable and only
   the in-process timings are quoted.
+- **Mixed conventions in the large-system sweep.** N = 1, 50, 100 AD cells and the stretch point
+  were measured before the Doppler fix; N = 10 (forward, S2, S3, `jacfwd`, FD) and the clerq
+  validity check were re-measured after. Ratios agree within ~15%, absolute seconds do not.
 - **Extrapolations** are labelled: FD at N >= 50 on the large system and clerq forward time at
-  n_z = 200 (measured at n_z = 4 and 8, 9-15 s per slice). FD through JAX was verified linear in N
+  n_z = 200 (measured at n_z = 4: 8 s per slice). FD through JAX was verified linear in N
   (N = 1 and 10 measured at 2.1 and 19.6 forwards).
 - **Structure.** Every system here has single-element collapse operators, which the sparse
   dissipator (a ~3x win) exploits; a dense fallback exists and was verified equal but is slower.
 - **Fidelity.** AD is the gradient of clerq's *discretisation*, so it inherits clerq's modelling
-  (including the two defects above and its z-step error: n_z = 200 sits 2.2e-6 from the
-  converged solution).
+  and its z-step error (n_z = 200 sits 2.2e-6 from the converged solution).
 - **Convergence of the inverse problem** was tested on one benign planted target.
 
 ## Recommendations
@@ -232,7 +253,8 @@ For building the backend in clerq:
    medium must change the field by > 1%); a fixed-step FD harness; the clerq-match tests.
 5. **Performance:** keep the sparse dissipator; replace the dense n_t x n_t spline derivative
    operator with a banded solve before n_t gets large (200 MB at n_t = 5000).
-6. **Sequence:** merge the two clerq fixes first, regenerate references, then port.
+6. **Sequence:** the two clerq fixes are merged and the spike tracks master (references
+   regenerated and unchanged); the port can start from here.
 
 Follow-ups outside this spike:
 
@@ -247,7 +269,7 @@ Follow-ups outside this spike:
 ```bash
 cd spike
 uv sync --group dev --group ref          # jax, diffrax, clerq (+qutip)
-uv run pytest -q                         # 59 tests; ~10 min
+uv run pytest -q                         # 68 tests; ~7 min
 uv run python refs/make_reference.py convergence       # clerq references (~2 min)
 uv run python bench/phase4_sweep.py                    # memory matrix (compile-only, ~10 min)
 uv run python bench/phase5_scaling.py                  # two-level scaling (~1 h)
@@ -258,7 +280,7 @@ uv run python bench/phase5_optimise.py 20 2.28         # inverse design (~7 min)
 Long cells should be run under `caffeinate -i` on a laptop.
 
 Environment: Python 3.14.4, jax / jaxlib 0.11.2, diffrax 0.7.2, equinox 0.13.8, numpy 2.5.4,
-scipy 1.18.1, qutip 5.3.1, clerq 0.13.1 (next @ 178cb45); macOS (Darwin 25.6.0), Apple M1 Max,
+scipy 1.18.1, qutip 5.3.1, clerq 0.13.1 (master @ 74191f2); macOS (Darwin 25.6.0), Apple M1 Max,
 64 GB, CPU only, float64 / complex128.
 
 ## File map

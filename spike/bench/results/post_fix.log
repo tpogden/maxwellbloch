@@ -1,0 +1,5 @@
+pytest 0 431 68 passed, 44 warnings in 422.31s (0:07:02)
+validity_dim9 0 375 RESULT {"n": 5, "method": "fd_clerq", "system": "j1_2_res", "n_v": 50, "n_z": 4, "load_start": 5.857421875, "fwd_s": 32.51008554099826, "loss_clerq": 0.007145842508308237, "loss_jax": 0.00714584102955
+fwd_N10 0 65 RESULT {"n": 10, "method": "fwd", "system": "j1_2_res", "n_v": 50, "n_z": 200, "load_start": 4.2666015625, "s": 9.800438457983546, "s_all": [9.80466916700243, 9.800438457983546], "load_end": 4.0786132
+ad_s2_N10 0 163 RESULT {"n": 10, "method": "ad_s2", "system": "j1_2_res", "n_v": 50, "n_z": 200, "load_start": 3.9921875, "compile_s": 2.2401492499921005, "s": 41.79177599999821, "s_all": [41.79177599999821, 43.75936
+ad_s3_N10 0 186 RESULT {"n": 10, "method": "ad_s3", "system": "j1_2_res", "n_v": 50, "n_z": 200, "load_start": 4.18310546875, "compile_s": 2.524658834008733, "s": 49.81392912499723, "s_all": [49.81392912499723, 49.85

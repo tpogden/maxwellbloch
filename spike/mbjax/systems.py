@@ -128,8 +128,11 @@ SYSTEMS = {
     "j12_12": lambda **kw: _j_to_j(0.5, 0.5, "j12_12", **kw),
     "j1_2_res": lambda **kw: _j_to_j(1.0, 2.0, "j1_2_res", reservoir=0.1, pol="sigma+", **kw),
     "j72_72": lambda **kw: _j_to_j(3.5, 3.5, "j72_72", **kw),
+    # linear polarisation on J=1 -> 2: its factors are antisymmetric, so the response vanished
+    # under clerq <= 0.13.1 (factor**2 source weights); fine since the dipole-weight fix.
+    "j1_2_res_x": lambda **kw: _j_to_j(1.0, 2.0, "j1_2_res_x", reservoir=0.1, pol="x", **kw),
 }
-DIMS = {"two_level": 2, "j12_12": 4, "j1_2_res": 9, "j72_72": 16}
+DIMS = {"two_level": 2, "j12_12": 4, "j1_2_res": 9, "j72_72": 16, "j1_2_res_x": 9}
 
 
 def make_system(name: str, **kw) -> dict:
