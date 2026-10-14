@@ -30,9 +30,9 @@ supported precision.
 | # | Decision | Options | Recommendation |
 |-|-|-|-|
 | D1 | API shape | (a) new `AutodiffSolver` class repeating the constructor args; (b) `PropagationSolver.to_autodiff()` returning a pure-function object built from the same problem definition | **Decided: (b).** One problem definition, JSON files work unchanged, no argument-list drift |
-| D2 | Where it lives | `clerq.autodiff` subpackage (D6); `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | As stated; never imported by default so the core install stays QuTiP + NumPy + SciPy |
-| D3 | Number of fields in v1 | one / several co-propagating | **Several co-propagating**: the spike's operators already carry a field axis; the work is the per-field source and tests. If time-boxed, ship one and error clearly on more |
-| D4 | float64 policy | library enables `jax_enable_x64` globally on first use / requires the user to / raises if disabled | **Raise with a clear message if x64 is off**, never mutate global JAX config silently |
+| D2 | Where it lives | `clerq.autodiff` subpackage (D6); `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | **Decided: yes.** Never imported by default, so the core install stays QuTiP + NumPy + SciPy |
+| D3 | Number of fields in v1 | one / several co-propagating | **Decided: several co-propagating.** The spike's operators already carry a field axis; the work is the per-field source and tests (folded into M3) |
+| D4 | float64 policy | library enables `jax_enable_x64` globally on first use / requires the user to / raises if disabled | **Decided: raise** with a clear message if x64 is off; never mutate global JAX config silently |
 | D5 | Python floor | clerq declares >= 3.10 | **Verify** that the pinned JAX/diffrax support it; if not, the extra declares a higher floor |
 | D6 | Name | `clerq.autodiff` (chosen) | **Decided: `clerq.autodiff`** |
 
@@ -90,14 +90,13 @@ diverging.
 | M0 | Scaffolding: `clerq[jax]` extra, `clerq.autodiff` skeleton, version pins and Python floor (D5), CI job for the extra, x64 policy (D4) | `pip install clerq[jax]` works on CI; core install and tests unaffected | 1 d |
 | M1 | Operators from `System` | X_k, N_k, collapse operators equal `System.H_Omega_list`, `H_Delta`, `c_ops` to 1e-12 for clerq's fixtures | 1 d |
 | M2 | Slice solve + array drive | Matches `LindbladSolver` to 1e-8 with analytic and interpolated drive; gradients w.r.t. field samples vs fixed-step FD <= 1e-5 | 2 d |
-| M3 | Propagation scan (AB2/Euler, velocity classes, strategies) | Matches `PropagationSolver` on the fixture set in `tests/json/` to 1e-8 relative (same scheme, same z_steps) | 3-4 d |
+| M3 | Propagation scan (AB2/Euler, velocity classes, **several co-propagating fields**, strategies) | Matches `PropagationSolver` on the fixture set in `tests/json/` to 1e-8 relative (same scheme, same z_steps), including the multi-field fixtures | 4-5 d |
 | M4 | Differentiation API, parameter pytree, forward mode | Gradients vs fixed-step FD <= 1e-5; reverse vs forward <= 1e-8; strategies agree to 1e-9 | 2-3 d |
 | M5 | Hardening: guards (commensurate fixed step, non-vacuity), `max_steps` heuristic, clear errors for unsupported features (counter-propagating, ...), memory/time docs | Guard tests; unsupported inputs raise `NotImplementedError` with guidance | 2 d |
 | M6 | Docs and example: inverse-design notebook, API page, CHANGELOG + release notes, benchmark file | `make docs_html` clean; example runs in CI time budget | 2-3 d |
-| M7 (optional) | Multiple co-propagating fields (D3) if not in M3 | Matches `PropagationSolver` on the two-field fixtures | 2-3 d |
-| M8 (optional) | CUDA float64 validation and timing | One sweep on a GPU; documented speedups | 1 d + hardware |
+| M7 (optional) | CUDA float64 validation and timing | One sweep on a GPU; documented speedups | 1 d + hardware |
 
-Rough total for M0-M6: 2-3 weeks.
+Rough total for M0-M6: 2.5-3.5 weeks.
 
 ## 5. Test plan
 
