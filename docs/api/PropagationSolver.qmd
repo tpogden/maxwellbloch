@@ -30,24 +30,24 @@ each step (once per velocity class if the medium is Doppler broadened).
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name                  | Type                  | Description                                                                                                            | Default     |
-|-----------------------|-----------------------|------------------------------------------------------------------------------------------------------------------------|-------------|
-| system                | dict \| None          | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.              | `None`      |
-| t_min                 | float                 | Start time of the simulation.                                                                                          | `0.0`       |
-| t_max                 | float                 | End time of the simulation.                                                                                            | `1.0`       |
-| t_steps               | int                   | Number of time steps.                                                                                                  | `100`       |
-| method                | str                   | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                  | `'mesolve'` |
-| opts                  | dict \| None          | Dict of QuTiP solver options.                                                                                          | `None`      |
-| savefile              | str \| None           | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching. | `None`      |
-| z_min                 | float                 | The front of the medium.                                                                                               | `0.0`       |
-| z_max                 | float                 | The back of the medium.                                                                                                | `1.0`       |
-| z_steps               | int                   | Number of space steps at which the solution is recorded.                                                               | `10`        |
-| z_steps_inner         | int                   | Number of finite-difference steps made within each space step.                                                         | `2`         |
-| num_density_z_func    | str \| None           | Name of a function in ``clerq.t_funcs`` giving the number density profile over z. Square by default.                   | `None`      |
-| num_density_z_args    | dict \| None          | Dict of arguments for ``num_density_z_func``.                                                                          | `None`      |
-| interaction_strengths | list\[float\] \| None | Interaction strength of each field with the medium, one for each field.                                                | `None`      |
-| velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening.                              | `None`      |
-| atom                  | dict \| None          | Deprecated name for ``system``.                                                                                        | `None`      |
+| Name                  | Type                  | Description                                                                                                                                                                                                                                                                                     | Default     |
+|-----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| system                | dict \| None          | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.                                                                                                                                                                                       | `None`      |
+| t_min                 | float                 | Start time of the simulation.                                                                                                                                                                                                                                                                   | `0.0`       |
+| t_max                 | float                 | End time of the simulation.                                                                                                                                                                                                                                                                     | `1.0`       |
+| t_steps               | int                   | Number of time steps.                                                                                                                                                                                                                                                                           | `100`       |
+| method                | str                   | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                                                                                                                                                                                           | `'mesolve'` |
+| opts                  | dict \| None          | Dict of QuTiP solver options.                                                                                                                                                                                                                                                                   | `None`      |
+| savefile              | str \| None           | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching.                                                                                                                                                                          | `None`      |
+| z_min                 | float                 | The front of the medium.                                                                                                                                                                                                                                                                        | `0.0`       |
+| z_max                 | float                 | The back of the medium.                                                                                                                                                                                                                                                                         | `1.0`       |
+| z_steps               | int                   | Number of space steps at which the solution is recorded.                                                                                                                                                                                                                                        | `10`        |
+| z_steps_inner         | int                   | Number of finite-difference steps made within each space step.                                                                                                                                                                                                                                  | `2`         |
+| num_density_z_func    | str \| None           | Name of a function in ``clerq.t_funcs`` giving the number density profile over z. Square by default.                                                                                                                                                                                            | `None`      |
+| num_density_z_args    | dict \| None          | Dict of arguments for ``num_density_z_func``.                                                                                                                                                                                                                                                   | `None`      |
+| interaction_strengths | list\[float\] \| None | Interaction strength of each field with the medium, one for each field.                                                                                                                                                                                                                         | `None`      |
+| velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening. ``thermal_width`` and the ``thermal_delta_*`` values are cyclic frequencies, in the same units as ``decays`` rates and ``rabi_freq``. The weights are Gaussian, ``exp(-(delta / thermal_width)**2)``. | `None`      |
+| atom                  | dict \| None          | Deprecated name for ``system``.                                                                                                                                                                                                                                                                 | `None`      |
 
 ## Methods
 
@@ -223,16 +223,17 @@ Loads the solution from a QuTiP pickle file.
 
 #### Raises {.doc-section .doc-section-raises}
 
-| Name   | Type       | Description                                                                    |
-|--------|------------|--------------------------------------------------------------------------------|
-|        | ValueError | if the savefile was built from a different problem definition (hash mismatch). |
+| Name   | Type       | Description                                                                                                                                                                   |
+|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1. |
 
 #### Notes {.doc-section .doc-section-notes}
 
 - The path from which the results will be loaded is taken from
     self.savefile.
 - Old savefiles without metadata are loaded without integrity
-    checking, with a warning.
+    checking, with a warning, unless a field has factors other
+    than 1 (see Raises).
 
 ### mbsolve { #clerq.PropagationSolver.mbsolve }
 

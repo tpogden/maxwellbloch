@@ -5,6 +5,7 @@ Thomas Ogden <t@ogden.eu>
 
 """
 
+import json
 import os
 import unittest
 
@@ -229,6 +230,88 @@ class TestPropagationSolver(unittest.TestCase):
         # two-level systems is below a tolerance. The tolerance scales with
         # OD (doubled after fixing the Maxwell propagation factor-of-2 bug).
         self.assertTrue(np.max(np.abs(abs - voigt)) < 0.1)
+
+
+class TestVelocityClassUnits(unittest.TestCase):
+    """Pins the units of the velocity classes (Doppler broadening).
+
+    ``thermal_delta_*`` and ``thermal_width`` are cyclic frequencies, in the
+    same units as ``decay`` rates and Rabi frequencies. ``thermal_delta_list``
+    is stored in angular units, and the weights are
+    ``exp(-(Delta / (2 pi thermal_width))**2)``, so a velocity class with
+    ``thermal_delta = x`` must detune the Hamiltonian by a cyclic ``x``.
+    """
+
+    def test_hamiltonian_sees_cyclic_detuning(self):
+        """Each class sets H_Delta from a cyclic detuning equal to
+        thermal_delta_list / (2 pi), not thermal_delta_list itself."""
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.build_velocity_classes(
+            {
+                "thermal_delta_min": -1.0,
+                "thermal_delta_max": 1.0,
+                "thermal_delta_steps": 2,
+                "thermal_width": 1.0,
+            }
+        )
+        seen = []
+        orig = mbs.system.set_H_Delta
+
+        def spy(detunings):
+            seen.append(list(detunings))
+            return orig(detunings)
+
+        mbs.system.set_H_Delta = spy
+        mbs._solve_system = lambda opts=None, save=False: None
+        mbs.states_t = lambda: np.zeros(
+            (len(mbs.tlist), mbs.system.num_states, mbs.system.num_states),
+            dtype=complex,
+        )
+        mbs._solve_and_average_over_thermal_detunings()
+
+        fixed = mbs.system.get_detunings()[0]
+        # One call per velocity class, then one restoring the fixed detunings.
+        cyclic = [s[0] - fixed for s in seen[:-1]]
+        np.testing.assert_allclose(cyclic, [-1.0, 0.0, 1.0], atol=1e-12)
+
+    def test_absorption_matches_doppler_broadened_lorentzian(self):
+        """The weak-probe absorption of a two-level system is the Lorentzian
+        (HWHM rate/2) convolved with the Gaussian exp(-(f/w)**2) of the
+        cyclic thermal width w. The reference is a direct quadrature, not
+        spectral.voigt_two_linear_known."""
+        with open(os.path.join(JSON_DIR, "velocity-classes.json")) as fh:
+            problem = json.load(fh)
+        rate, width, g = 1.0, 0.3, 1.0
+        problem["z_steps"] = 10
+        problem["interaction_strengths"] = [g]
+        problem["velocity_classes"] = {
+            "thermal_delta_min": -1.5,
+            "thermal_delta_max": 1.5,
+            "thermal_delta_steps": 60,
+            "thermal_width": width,
+        }
+        mbs = PropagationSolver().from_json_str(json.dumps(problem))
+        mbs.solve()
+        freq_list = spectral.freq_list(mbs)
+        absorption = spectral.absorption(mbs, 0, -1)
+
+        x = np.linspace(-6.0, 6.0, 4001)
+        gauss = np.exp(-((x / width) ** 2)) / (width * np.sqrt(np.pi))
+        known = np.array(
+            [
+                np.trapezoid(
+                    gauss * g / (rate / 2) / (1 + ((f - x) / (rate / 2)) ** 2), x
+                )
+                for f in freq_list
+            ]
+        )
+
+        self.assertLess(np.max(np.abs(absorption - known)), 0.1)
+        # Peak height distinguishes the cyclic width from 2 pi times it.
+        self.assertAlmostEqual(absorption.max() / known.max(), 1.0, delta=0.05)
+        # The packaged Voigt profile agrees with the quadrature.
+        voigt = spectral.voigt_two_linear_known(freq_list, rate, width).imag
+        self.assertLess(np.max(np.abs(voigt * g - known)), 1e-3)
 
 
 class TestSaveLoad(unittest.TestCase):
@@ -681,3 +764,246 @@ class TestZStepFields(unittest.TestCase):
 
         sig = inspect.signature(self.mbs._z_step_fields_ab)
         self.assertNotIn("z_prev", sig.parameters)
+
+
+def _j_to_j_system(Jg, Je, pol, rabi_freq, rate=1.0):
+    """Jg -> Je manifold with unpolarised ground state, as a system dict.
+
+    pol "x": linear, q=+1 and q=-1 with factors -CG/sqrt(2) and +CG/sqrt(2).
+    pol "sigma+": circular, q=+1 with factors CG. Decays have branching CG**2.
+    """
+    from math import sqrt
+
+    from clerq.angmom import wigner_3j
+
+    def cg(mg, me, q):
+        if mg + q != me:
+            return 0.0
+        return (
+            (-1) ** (Jg - 1 + me) * sqrt(2 * Je + 1) * wigner_3j(Jg, 1, Je, mg, q, -me)
+        )
+
+    mgs = [-Jg + i for i in range(int(round(2 * Jg)) + 1)]
+    mes = [-Je + i for i in range(int(round(2 * Je)) + 1)]
+    n_g = len(mgs)
+    g_idx = {m: i for i, m in enumerate(mgs)}
+    e_idx = {m: n_g + i for i, m in enumerate(mes)}
+    qs = ((1, -1 / sqrt(2)), (-1, 1 / sqrt(2))) if pol == "x" else ((1, 1.0),)
+
+    coupled, factors = [], []
+    for mg in mgs:
+        for q, s in qs:
+            me = mg + q
+            if me in e_idx and abs(cg(mg, me, q)) > 1e-12:
+                coupled.append([g_idx[mg], e_idx[me]])
+                factors.append(s * cg(mg, me, q))
+    channels, decay_factors = [], []
+    for me in mes:
+        for mg in mgs:
+            if abs(me - mg) <= 1 and cg(mg, me, me - mg) ** 2 > 1e-12:
+                channels.append([g_idx[mg], e_idx[me]])
+                decay_factors.append(abs(cg(mg, me, me - mg)))
+
+    system = {
+        "num_states": n_g + len(mes),
+        "decays": [{"rate": rate, "channels": channels, "factors": decay_factors}],
+        "initial_state": [1.0 / n_g] * n_g + [0.0] * len(mes),
+        "fields": [
+            {
+                "coupled_levels": coupled,
+                "factors": factors,
+                "detuning": 0.0,
+                "rabi_freq": rabi_freq,
+                "rabi_freq_t_func": "square",
+                "rabi_freq_t_args": {"ampl": 1.0, "on": 0.0, "off": 1.0e9},
+            }
+        ],
+    }
+    return system, np.array(factors), n_g
+
+
+class TestMultiTransitionFieldSource(unittest.TestCase):
+    """The source term weights each pair's coherence by its factor, like the
+    Hamiltonian, so a weak resonant cw probe on a multi-transition field is
+    absorbed as
+
+        Omega(L) / Omega(0) = exp(-2 N g L sum_k(factor_k**2) / (n_g * rate))
+
+    with n_g unpolarised ground sublevels (each excited level decays at
+    2 pi rate), i.e. in proportion to the line strength sum(factor**2). It is
+    not sum(factor**3), which vanishes for linear polarisation on J=1 -> 2.
+    """
+
+    N, G, L = 1.0, 1.0, 0.1
+
+    def _transmission(self, Jg, Je, pol, step):
+        system, factors, n_g = _j_to_j_system(Jg, Je, pol, rabi_freq=1.0e-3)
+        mbs = PropagationSolver(
+            system=system,
+            t_min=0.0,
+            t_max=3.0,  # many excited-state lifetimes: steady state
+            t_steps=60,
+            z_min=0.0,
+            z_max=self.L,
+            z_steps=40,
+            z_steps_inner=1,
+            num_density_z_func="square",
+            num_density_z_args={"on": 0.0, "off": self.L, "ampl": self.N},
+            interaction_strengths=[self.G],
+        )
+        mbs.solve(step=step)
+        Omegas = mbs.Omegas_zt[0]
+        ratio = (Omegas[-1, -1] / Omegas[0, -1]).real
+        expected = np.exp(-2 * self.N * self.G * self.L * np.sum(factors**2) / n_g)
+        return ratio, expected, factors
+
+    def test_linear_j1_to_j2_absorbs(self):
+        """J=1 -> 2 linear: sum(factor**3) = 0, but the line strength is not."""
+        for step in ("euler", "ab"):
+            ratio, expected, factors = self._transmission(1.0, 2.0, "x", step)
+            self.assertAlmostEqual(np.sum(factors**3), 0.0, places=12)
+            self.assertLess(ratio, 0.99)
+            self.assertAlmostEqual(ratio, expected, delta=2e-3)
+
+    def test_sigma_plus_j1_to_j2(self):
+        """J=1 -> 2 sigma+: all factors positive, sum(f**2) != sum(f**3)."""
+        for step in ("euler", "ab"):
+            ratio, expected, factors = self._transmission(1.0, 2.0, "sigma+", step)
+            wrong = np.exp(-2 * self.N * self.G * self.L * np.sum(factors**3) / 3)
+            self.assertGreater(abs(wrong - expected), 1e-2)
+            self.assertAlmostEqual(ratio, expected, delta=2e-3)
+
+    def test_linear_j12_to_j12(self):
+        ratio, expected, _ = self._transmission(0.5, 0.5, "x", "ab")
+        self.assertAlmostEqual(ratio, expected, delta=2e-3)
+
+    def test_energy_balance(self):
+        """Without decay, the field energy lost per unit length equals the
+        atoms' excited-state gain (a nonlinear pulse, many transitions):
+
+            d/dz int |Omega|^2 dt = -4 N g_ang dP_e,   g_ang = 2 pi g
+
+        This needs the source term to weight each coherence by the same
+        factor as the Hamiltonian. With factor**2 it fails by 25% to 80%
+        (or absorbs nothing at all for linear J=1 -> 2).
+        """
+        N, G, L = 1.0, 1.0, 0.3
+        for Jg, Je, pol in [(1.0, 2.0, "sigma+"), (1.0, 2.0, "x"), (0.5, 0.5, "x")]:
+            with self.subTest(Jg=Jg, Je=Je, pol=pol):
+                system, _, n_g = _j_to_j_system(Jg, Je, pol, rabi_freq=0.4, rate=0.0)
+                system["fields"][0]["rabi_freq_t_func"] = "gaussian"
+                system["fields"][0]["rabi_freq_t_args"] = {
+                    "ampl": 1.0,
+                    "centre": 1.0,
+                    "fwhm": 0.5,
+                }
+                mbs = PropagationSolver(
+                    system=system,
+                    t_min=0.0,
+                    t_max=2.0,
+                    t_steps=200,
+                    z_min=0.0,
+                    z_max=L,
+                    z_steps=120,
+                    z_steps_inner=1,
+                    num_density_z_func="square",
+                    num_density_z_args={"on": 0.0, "off": L, "ampl": N},
+                    interaction_strengths=[G],
+                )
+                mbs.solve(step="ab")
+
+                energy_zt = np.trapezoid(
+                    np.abs(mbs.Omegas_zt[0]) ** 2, mbs.tlist, axis=1
+                )
+                lost = energy_zt[0] - energy_zt[-1]
+                P_e = np.real(
+                    np.trace(mbs.states_zt[:, :, n_g:, n_g:], axis1=2, axis2=3)
+                )
+                gained = (
+                    4 * N * G * 2 * np.pi
+                    * np.trapezoid(P_e[:, -1] - P_e[:, 0], mbs.zlist)
+                )  # fmt: skip
+                self.assertGreater(lost, 0.1)
+                # The z-discretisation error is first order: about 1.5% here.
+                self.assertAlmostEqual(gained / lost, 1.0, delta=0.03)
+
+
+class TestSourceWeightsSavefile(unittest.TestCase):
+    """Results solved with the old factor**2 source weights are stale unless
+    all the field factors are 1, so they are not loaded."""
+
+    def _solver(self, system, savefile):
+        mbs = PropagationSolver(
+            system=system,
+            t_min=0.0,
+            t_max=1.0,
+            t_steps=20,
+            z_min=0.0,
+            z_max=0.1,
+            z_steps=4,
+            z_steps_inner=1,
+            num_density_z_func="square",
+            num_density_z_args={"on": 0.0, "off": 0.1, "ampl": 1.0},
+            interaction_strengths=[1.0],
+            savefile=savefile,
+        )
+        return mbs
+
+    def _write_old_savefile(self, mbs, savefile, legacy):
+        import qutip as qu
+
+        mbs.solve()
+        if legacy:
+            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+        else:
+            meta = mbs._savefile_metadata()
+            del meta["source_weights"]  # as written before the weights changed
+            qu.qsave((mbs.Omegas_zt, mbs.states_zt, meta), savefile)
+
+    def test_current_savefile_loads(self):
+        import tempfile
+
+        system, _, _ = _j_to_j_system(0.5, 0.5, "x", rabi_freq=1.0e-3)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mbs = self._solver(system, os.path.join(tmpdir, "result"))
+            mbs.solve()
+            mbs.load_results()
+
+    def test_old_savefile_with_nonunit_factors_rejected(self):
+        import tempfile
+
+        system, factors, _ = _j_to_j_system(0.5, 0.5, "x", rabi_freq=1.0e-3)
+        self.assertTrue(np.any(factors != 1.0))
+        for legacy in (False, True):
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as tmpdir:
+                savefile = os.path.join(tmpdir, "result")
+                mbs = self._solver(system, savefile)
+                self._write_old_savefile(mbs, savefile, legacy)
+                with self.assertRaises(ValueError):
+                    mbs.load_results()
+                # solve() recalculates rather than using the stale results,
+                # and writes a savefile that loads.
+                mbs.solve(recalc=False)
+                mbs.load_results()
+
+    def test_old_savefile_with_unit_factors_loads(self):
+        import tempfile
+
+        system = {
+            "num_states": 2,
+            "decays": [{"rate": 1.0, "channels": [[0, 1]], "factors": [1.0]}],
+            "initial_state": [1.0, 0.0],
+            "fields": [
+                {
+                    "coupled_levels": [[0, 1]],
+                    "factors": [1.0],
+                    "detuning": 0.0,
+                    "rabi_freq": 1.0e-3,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            savefile = os.path.join(tmpdir, "result")
+            mbs = self._solver(system, savefile)
+            self._write_old_savefile(mbs, savefile, legacy=False)
+            mbs.load_results()
