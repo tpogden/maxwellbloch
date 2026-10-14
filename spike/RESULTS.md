@@ -220,7 +220,7 @@ to 9.8 s.
 
 ## Limitations of this evidence
 
-- **CPU only, one machine.** Absolute times will differ on a GPU; ratios (AD/forward, AD/FD)
+- **CPU only, one machine** (an attempt on the Apple GPU is documented in `notes/METAL.md`). Absolute times will differ on a GPU; ratios (AD/forward, AD/FD)
   are the portable part. The projection to a 32 GB device is an inference.
 - **Single runs.** Most cells are best-of-2 or best-of-3, the stretch cells one execution, with no
   confidence intervals. `perf_counter` measured CPU-bound work, but the machine was shared
@@ -258,7 +258,9 @@ For building the backend in clerq:
 
 Follow-ups outside this spike:
 
-- Run one CUDA timing sweep before making any GPU claim.
+- Run one CUDA timing sweep before making any GPU claim. The Apple GPU is **not** a stand-in:
+  `jax-metal` has no float64 or complex support, works only with jax 0.4.35 (where `diffrax`
+  cannot be imported), and its backward pass failed or stalled on our solver (`notes/METAL.md`).
 - Report the diffrax bug upstream with `notes/diffrax_commensurate_repro.py`.
 - A non-planted design objective (for example, maximum fidelity for a target output envelope) to
   stress the optimiser.

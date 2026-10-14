@@ -1,0 +1,144 @@
+# Implementation plan: a differentiable propagation backend for clerq
+
+Follows from the spike ([RESULTS.md](RESULTS.md), decision: build). This plan is a proposal for
+review; items marked **DECISION** need an answer before work starts. Effort figures are
+rough estimates for one person, not measurements.
+
+## 1. Goal and scope
+
+**Goal.** Let users compute exact gradients of a scalar loss of the propagated field with
+respect to problem parameters (input pulse, interaction strength, decay rates, detuning), by
+reverse-mode autodiff through the same Maxwell-Bloch scheme `PropagationSolver` uses, so that
+gradient-based design of pulses and media is tractable.
+
+**First cut (v1):**
+
+- Co-propagating propagation with the existing finite-difference scheme (Adams-Bashforth
+  default, Euler available) and velocity classes, for systems and fields as described by clerq's
+  `System` / `Field` objects and JSON problem files.
+- float64 on CPU (CUDA float64 is the intended GPU path; not yet validated).
+- Reverse mode (default) and forward mode.
+- Results are validated against `PropagationSolver` as a live oracle.
+
+**Non-goals for v1:** counter-propagating fields (needs a boundary-value iteration, not a scan),
+non-co-propagating geometries, replacing `PropagationSolver`, the Apple GPU (see
+`notes/METAL.md`: no float64/complex support and the plugin cannot run our stack), float32 as a
+supported precision.
+
+## 2. Decisions needed
+
+| # | Decision | Options | Recommendation |
+|-|-|-|-|
+| D1 | API shape | (a) new `DifferentiableSolver` class repeating the constructor args; (b) `PropagationSolver.to_differentiable()` returning a pure-function object built from the same problem definition | **(b)**: one problem definition, JSON files work unchanged, no argument-list drift |
+| D2 | Where it lives | `clerq.differentiable` subpackage; `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | As stated; never imported by default so the core install stays QuTiP + NumPy + SciPy |
+| D3 | Number of fields in v1 | one / several co-propagating | **Several co-propagating**: the spike's operators already carry a field axis; the work is the per-field source and tests. If time-boxed, ship one and error clearly on more |
+| D4 | float64 policy | library enables `jax_enable_x64` globally on first use / requires the user to / raises if disabled | **Raise with a clear message if x64 is off**, never mutate global JAX config silently |
+| D5 | Python floor | clerq declares >= 3.10 | **Verify** that the pinned JAX/diffrax support it; if not, the extra declares a higher floor |
+| D6 | Name | `clerq.differentiable` / `clerq.autodiff` / `clerq.jax` | `clerq.differentiable` (describes the capability, not the library) |
+
+## 3. Design
+
+### What is ported from the spike, and what is left behind
+
+| Spike module | Becomes | Change needed |
+|-|-|-|
+| `mbjax/systems.py::operators` | `clerq/differentiable/_operators.py` | Build X_k, N_k and collapse operators **from a `System` object** (not a spec dict); keep the single-element detection for the sparse dissipator, dense fallback |
+| `mbjax/lindblad.py` | `_lindblad.py` | Drop spec/clerq-import coupling; keep `check_fixed_step` |
+| `mbjax/drive.py` | `_drive.py` | Keep the not-a-knot spline; replace dense derivative operator by a banded solve before n_t grows |
+| `mbjax/propagate.py` | `_propagate.py` | Generalise from field 0 to a field axis; keep AB2/Euler, velocity batching, S2/S3/S4 |
+| `mbjax/chain.py`, `bench/` | `tests/bench_differentiable.py` | Benchmarks only |
+| `tests/` | `tests/test_differentiable.py` | Port, with the live-oracle design below |
+
+Left behind: the system specs (clerq has its own), the `legacy` Doppler / source-weight flags
+(master has the corrected conventions; carry the legacy ones only if someone needs old results),
+S5 chunked scan unless a use case appears (S3/S4 sufficed everywhere we measured).
+
+### Data flow
+
+```
+JSON / dict problem ──> PropagationSolver ──(.to_differentiable())──> Differentiable
+                                                                      │
+   params pytree {pulse, g_scale, gamma_scale, detuning, ...} ───────>│ propagate(params) -> Omega(z,t)
+                                                                      │ value_and_grad(loss, params)
+```
+
+- `params` is a plain pytree of JAX arrays; the object closes over everything static (operators,
+  grids, velocity classes, number density profile).
+- `propagate` is pure and `jit`-able, so users can compose it with `optax`, `jax.vmap` (batch of
+  problems) or their own losses.
+- Defaults from the spike: Tsit5 + PID control (rtol 1e-6 forward, tighter for gradient checks),
+  S3 checkpointed scan body, `max_steps` derived from the pulse and exposed, return only the last
+  slice unless `return_all=True`.
+
+### Conventions the port must reproduce (all verified in the spike against clerq master)
+
+- Only Re(Omega) drives H; Omega itself is complex.
+- Slice 0 uses the analytic pulse, later slices a cubic **not-a-knot** spline of the sampled field.
+- Source term weights each coupled coherence by its signed factor; N taken at the next z in both
+  Adams-Bashforth terms; one Euler step bootstraps AB.
+- Velocity-class detunings are cyclic `thermal_delta / (2 pi)`.
+- `states_zt` is **not** reproduced (off by one in clerq); only `Omegas_zt` is a contract.
+
+Because these have already changed twice, the test suite uses `PropagationSolver` as a live
+oracle (section 5): a future clerq convention change fails the tests instead of silently
+diverging.
+
+## 4. Milestones
+
+| M | Deliverable | Acceptance | Est. |
+|-|-|-|-|
+| M0 | Scaffolding: `clerq[jax]` extra, subpackage skeleton, version pins and Python floor (D5), CI job for the extra, x64 policy (D4) | `pip install clerq[jax]` works on CI; core install and tests unaffected | 1 d |
+| M1 | Operators from `System` | X_k, N_k, collapse operators equal `System.H_Omega_list`, `H_Delta`, `c_ops` to 1e-12 for clerq's fixtures | 1 d |
+| M2 | Slice solve + array drive | Matches `LindbladSolver` to 1e-8 with analytic and interpolated drive; gradients w.r.t. field samples vs fixed-step FD <= 1e-5 | 2 d |
+| M3 | Propagation scan (AB2/Euler, velocity classes, strategies) | Matches `PropagationSolver` on the fixture set in `tests/json/` to 1e-8 relative (same scheme, same z_steps) | 3-4 d |
+| M4 | Differentiation API, parameter pytree, forward mode | Gradients vs fixed-step FD <= 1e-5; reverse vs forward <= 1e-8; strategies agree to 1e-9 | 2-3 d |
+| M5 | Hardening: guards (commensurate fixed step, non-vacuity), `max_steps` heuristic, clear errors for unsupported features (counter-propagating, ...), memory/time docs | Guard tests; unsupported inputs raise `NotImplementedError` with guidance | 2 d |
+| M6 | Docs and example: inverse-design notebook, API page, CHANGELOG + release notes, benchmark file | `make docs_html` clean; example runs in CI time budget | 2-3 d |
+| M7 (optional) | Multiple co-propagating fields (D3) if not in M3 | Matches `PropagationSolver` on the two-field fixtures | 2-3 d |
+| M8 (optional) | CUDA float64 validation and timing | One sweep on a GPU; documented speedups | 1 d + hardware |
+
+Rough total for M0-M6: 2-3 weeks.
+
+## 5. Test plan
+
+- **Live oracle.** Each supported fixture in `tests/json/` is solved with `PropagationSolver`
+  at test time and compared (no stored golden arrays, so no stale references).
+- **Non-vacuity guard.** Every oracle comparison asserts the medium changes the field by more
+  than 1% in the oracle itself (the spike nearly shipped a "matches to 3e-16" test where both
+  sides returned zero).
+- **Gradient checks.** Central finite differences on a **fixed-step** solve with a step count
+  that is not commensurate with the output grid; adaptive-solver gradients are compared with the
+  fixed-step AD, never with adaptive FD (it is noise-limited).
+- **Strategy and mode agreement.** S2 / S3 / S4 and reverse / forward agree to 1e-9 / 1e-8.
+- **Guards.** The commensurate-step check raises; `x64` disabled raises.
+- **Markers and runtime.** `@pytest.mark.jax`, skipped when the extra is absent; problems sized
+  so the whole file stays within a few minutes (the spike suite is ~7 min at its sizes and can
+  be pruned).
+- **Benchmarks** in `tests/bench_differentiable.py` (the repo already has `bench_*.py`), not
+  part of the default run.
+
+## 6. Risks and mitigations
+
+| Risk | Evidence | Mitigation |
+|-|-|-|
+| JAX / diffrax API churn and version coupling | `jax-metal` forced jax 0.4.35 where `diffrax` could not even be imported; the spike pinned jax 0.11.2 / diffrax 0.7.2 | Pin a tested range in the extra; run CI against the lowest and highest; keep the surface that touches diffrax small |
+| A diffrax gradient bug on commensurate fixed steps | `notes/diffrax_commensurate_repro.py` | Guard in code; report upstream; test that the guard fires |
+| clerq conventions change again | two defects found and fixed during the spike | Live-oracle tests fail loudly; one place documents the contract |
+| First-call compile time | ~1-5 s per new shape | Document; `jit` once; keep shapes static |
+| Dense spline operator at large n_t | 200 MB at n_t = 5000 | Banded solve in M2/M5 |
+| Memory under adaptive stepping with plain scan | memory scales with `max_steps` | Default to the checkpointed body; derive and expose `max_steps` |
+| Scope creep to counter-propagation / dense dissipators / stiff regimes | all explicitly unmeasured in the spike | Non-goals for v1; raise clear errors |
+| GPU expectations | No CUDA numbers; Apple GPU not viable | State plainly in docs; M8 measures it |
+
+## 7. Open questions
+
+1. D1-D6 above.
+2. Which clerq fixtures should be the oracle set (all of `tests/json/`, or a curated subset that
+   runs quickly)?
+3. Should the backend accept the **same** `rabi_freq_t_func` names (`gaussian`, `sech`,
+   `square`) as JAX-traceable functions so that pulse parameters are differentiable, or only
+   sampled arrays in v1? (The spike used sampled arrays plus an analytic slice-0 pulse; making
+   `t_funcs` traceable is more work but gives users parameters like width and amplitude.)
+4. How do we want to expose the number-density profile (`num_density_z_func`) as a
+   differentiable parameter, if at all, in v1?
+5. Who validates the CUDA path, and on what hardware?
