@@ -29,7 +29,7 @@ supported precision.
 
 | # | Decision | Options | Recommendation |
 |-|-|-|-|
-| D1 | API shape | (a) new `AutodiffSolver` class repeating the constructor args; (b) `PropagationSolver.to_autodiff()` returning a pure-function object built from the same problem definition | **(b)**: one problem definition, JSON files work unchanged, no argument-list drift |
+| D1 | API shape | (a) new `AutodiffSolver` class repeating the constructor args; (b) `PropagationSolver.to_autodiff()` returning a pure-function object built from the same problem definition | **Decided: (b).** One problem definition, JSON files work unchanged, no argument-list drift |
 | D2 | Where it lives | `clerq.autodiff` subpackage (D6); `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | As stated; never imported by default so the core install stays QuTiP + NumPy + SciPy |
 | D3 | Number of fields in v1 | one / several co-propagating | **Several co-propagating**: the spike's operators already carry a field axis; the work is the per-field source and tests. If time-boxed, ship one and error clearly on more |
 | D4 | float64 policy | library enables `jax_enable_x64` globally on first use / requires the user to / raises if disabled | **Raise with a clear message if x64 is off**, never mutate global JAX config silently |
