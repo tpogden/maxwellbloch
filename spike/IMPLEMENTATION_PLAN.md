@@ -29,12 +29,12 @@ supported precision.
 
 | # | Decision | Options | Recommendation |
 |-|-|-|-|
-| D1 | API shape | (a) new `DifferentiableSolver` class repeating the constructor args; (b) `PropagationSolver.to_differentiable()` returning a pure-function object built from the same problem definition | **(b)**: one problem definition, JSON files work unchanged, no argument-list drift |
-| D2 | Where it lives | `clerq.differentiable` subpackage; `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | As stated; never imported by default so the core install stays QuTiP + NumPy + SciPy |
+| D1 | API shape | (a) new `AutodiffSolver` class repeating the constructor args; (b) `PropagationSolver.to_autodiff()` returning a pure-function object built from the same problem definition | **(b)**: one problem definition, JSON files work unchanged, no argument-list drift |
+| D2 | Where it lives | `clerq.autodiff` subpackage (D6); `jax`, `diffrax`, `equinox` as an optional extra `clerq[jax]` | As stated; never imported by default so the core install stays QuTiP + NumPy + SciPy |
 | D3 | Number of fields in v1 | one / several co-propagating | **Several co-propagating**: the spike's operators already carry a field axis; the work is the per-field source and tests. If time-boxed, ship one and error clearly on more |
 | D4 | float64 policy | library enables `jax_enable_x64` globally on first use / requires the user to / raises if disabled | **Raise with a clear message if x64 is off**, never mutate global JAX config silently |
 | D5 | Python floor | clerq declares >= 3.10 | **Verify** that the pinned JAX/diffrax support it; if not, the extra declares a higher floor |
-| D6 | Name | `clerq.differentiable` / `clerq.autodiff` / `clerq.jax` | `clerq.differentiable` (describes the capability, not the library) |
+| D6 | Name | `clerq.autodiff` (chosen) | **Decided: `clerq.autodiff`** |
 
 ## 3. Design
 
@@ -42,12 +42,12 @@ supported precision.
 
 | Spike module | Becomes | Change needed |
 |-|-|-|
-| `mbjax/systems.py::operators` | `clerq/differentiable/_operators.py` | Build X_k, N_k and collapse operators **from a `System` object** (not a spec dict); keep the single-element detection for the sparse dissipator, dense fallback |
+| `mbjax/systems.py::operators` | `clerq/autodiff/_operators.py` | Build X_k, N_k and collapse operators **from a `System` object** (not a spec dict); keep the single-element detection for the sparse dissipator, dense fallback |
 | `mbjax/lindblad.py` | `_lindblad.py` | Drop spec/clerq-import coupling; keep `check_fixed_step` |
 | `mbjax/drive.py` | `_drive.py` | Keep the not-a-knot spline; replace dense derivative operator by a banded solve before n_t grows |
 | `mbjax/propagate.py` | `_propagate.py` | Generalise from field 0 to a field axis; keep AB2/Euler, velocity batching, S2/S3/S4 |
-| `mbjax/chain.py`, `bench/` | `tests/bench_differentiable.py` | Benchmarks only |
-| `tests/` | `tests/test_differentiable.py` | Port, with the live-oracle design below |
+| `mbjax/chain.py`, `bench/` | `tests/bench_autodiff.py` | Benchmarks only |
+| `tests/` | `tests/test_autodiff.py` | Port, with the live-oracle design below |
 
 Left behind: the system specs (clerq has its own), the `legacy` Doppler / source-weight flags
 (master has the corrected conventions; carry the legacy ones only if someone needs old results),
@@ -56,7 +56,7 @@ S5 chunked scan unless a use case appears (S3/S4 sufficed everywhere we measured
 ### Data flow
 
 ```
-JSON / dict problem ──> PropagationSolver ──(.to_differentiable())──> Differentiable
+JSON / dict problem ──> PropagationSolver ──(.to_autodiff())──> AutodiffPropagation
                                                                       │
    params pytree {pulse, g_scale, gamma_scale, detuning, ...} ───────>│ propagate(params) -> Omega(z,t)
                                                                       │ value_and_grad(loss, params)
@@ -87,7 +87,7 @@ diverging.
 
 | M | Deliverable | Acceptance | Est. |
 |-|-|-|-|
-| M0 | Scaffolding: `clerq[jax]` extra, subpackage skeleton, version pins and Python floor (D5), CI job for the extra, x64 policy (D4) | `pip install clerq[jax]` works on CI; core install and tests unaffected | 1 d |
+| M0 | Scaffolding: `clerq[jax]` extra, `clerq.autodiff` skeleton, version pins and Python floor (D5), CI job for the extra, x64 policy (D4) | `pip install clerq[jax]` works on CI; core install and tests unaffected | 1 d |
 | M1 | Operators from `System` | X_k, N_k, collapse operators equal `System.H_Omega_list`, `H_Delta`, `c_ops` to 1e-12 for clerq's fixtures | 1 d |
 | M2 | Slice solve + array drive | Matches `LindbladSolver` to 1e-8 with analytic and interpolated drive; gradients w.r.t. field samples vs fixed-step FD <= 1e-5 | 2 d |
 | M3 | Propagation scan (AB2/Euler, velocity classes, strategies) | Matches `PropagationSolver` on the fixture set in `tests/json/` to 1e-8 relative (same scheme, same z_steps) | 3-4 d |
@@ -114,7 +114,7 @@ Rough total for M0-M6: 2-3 weeks.
 - **Markers and runtime.** `@pytest.mark.jax`, skipped when the extra is absent; problems sized
   so the whole file stays within a few minutes (the spike suite is ~7 min at its sizes and can
   be pruned).
-- **Benchmarks** in `tests/bench_differentiable.py` (the repo already has `bench_*.py`), not
+- **Benchmarks** in `tests/bench_autodiff.py` (the repo already has `bench_*.py`), not
   part of the default run.
 
 ## 6. Risks and mitigations
