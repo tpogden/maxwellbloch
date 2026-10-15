@@ -8,6 +8,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Automatic differentiation of field propagation (optional, experimental). `PropagationSolver.to_autodiff()` returns
+  a pure, `jit`-able function of a parameter pytree (pulse parameters, `rabi_freq`, interaction strengths,
+  detunings, decay scale, or sampled input fields) that reproduces `solve()`, with exact gradients of any scalar loss
+  of the propagated field in reverse or forward mode (`AutodiffPropagation.value_and_grad`). A gradient costs about
+  five to six propagations regardless of the number of parameters. Install with `pip install 'clerq[jax]'`; JAX must run
+  in float64 (`jax.config.update("jax_enable_x64", True)`). Supports several co-propagating fields, velocity
+  classes, bare energies and the `gaussian`, `sech`, `square` and `ramp_*` pulses; counter-propagating fields are
+  not supported. Importing `clerq` never imports JAX. Results are validated against `PropagationSolver`; one
+  deliberate difference is that Adams-Bashforth slices are at their nominal z when `z_steps_inner > 1`.
+
 ### Fixed
 - The source term of the Maxwell propagation equation weighted the coherence of each coupled pair by `factor**2`
   while the Hamiltonian coupled it with `factor`, so a field coupling several transitions with non-unit factors

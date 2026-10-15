@@ -124,6 +124,8 @@ def propagate_fields(
     setup: PropagationSetup,
     *,
     omega0=None,
+    pulse_args=None,
+    rabi_freqs=None,
     g=None,
     decay_scale=1.0,
     detunings=None,
@@ -144,6 +146,12 @@ def propagate_fields(
         omega0: input field samples at ``z_min``, shape ``(n_fields, n_t)``, in
             *angular* units. If given, the first slice is driven by their spline;
             default: the analytic input pulses of the fields.
+        pulse_args: per field, the (suffix-free) arguments of its analytic input
+            pulse (``ampl``, ``centre``, ``fwhm``, ...); default: the problem's.
+            Values may be traced, so pulse parameters are differentiable. Unused
+            when ``omega0`` is given.
+        rabi_freqs: cyclic ``rabi_freq`` multiplying each analytic pulse, shape
+            ``(n_fields,)``; default: the problem's.
         g: cyclic interaction strengths, shape ``(n_fields,)``; default: the
             problem's.
         decay_scale: multiplies every decay rate.
@@ -231,14 +239,31 @@ def propagate_fields(
 
     # input field and the drive of the first slice
     if omega0 is None:
-        pulses = [pulse_function(n, a) for n, a, _ in setup.pulses]
-        r0 = jnp.asarray([r for _, _, r in setup.pulses])
+        args = (
+            list(pulse_args)
+            if pulse_args is not None
+            else [a for _, a, _ in setup.pulses]
+        )
+        if len(args) != n_f:
+            raise ValueError(f"pulse_args has {len(args)} entries for {n_f} field(s).")
+        pulses = [
+            pulse_function(name, a)
+            for (name, _, _), a in zip(setup.pulses, args, strict=True)
+        ]
+        if rabi_freqs is None:
+            r0 = jnp.asarray([r for _, _, r in setup.pulses])
+        else:
+            r0 = jnp.asarray(rabi_freqs)
 
         def rabi0(t):
             return jnp.stack([r0[k] * pulses[k](t) for k in range(n_f)])
 
         omega_init = (TWO_PI * jax.vmap(rabi0)(ts).T).astype(jnp.complex128)
-        jumps = [x for n, a, _ in setup.pulses for x in jump_times(n, a)]
+        jumps = [
+            x
+            for (name, _, _), a in zip(setup.pulses, args, strict=True)
+            for x in jump_times(name, a)
+        ]
         jump_ts = jnp.sort(jnp.asarray(jumps, dtype=float)) if jumps else None
     else:
         omega_init = jnp.asarray(omega0, dtype=jnp.complex128)

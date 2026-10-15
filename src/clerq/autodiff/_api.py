@@ -1,0 +1,267 @@
+"""The user-facing object returned by ``PropagationSolver.to_autodiff()``."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+import diffrax as dfx
+import jax
+import numpy as np
+
+from clerq.autodiff._config import require_float64
+from clerq.autodiff._propagate import (
+    TWO_PI,
+    PropagationSetup,
+    propagate_fields,
+    setup_from_solver,
+)
+
+_PARAM_KEYS = (
+    "pulse_args",
+    "rabi_freq",
+    "interaction_strengths",
+    "detunings",
+    "decay_scale",
+    "omega0",
+)
+
+
+def _merge_pulse_args(default: dict, user: dict) -> dict:
+    """Overlay ``user`` on ``default``, keeping each alternative pair consistent.
+
+    A pulse takes either ``ampl`` or ``n_pi``, and a sech pulse either ``width`` or
+    ``fwhm``; supplying one must not leave the other from the defaults behind.
+    """
+    merged = {**default, **user}
+    for chosen, other in (("ampl", "n_pi"), ("n_pi", "ampl"), ("width", "fwhm")):
+        if chosen in user and other not in user:
+            merged.pop(other, None)
+    if "fwhm" in user and "width" not in user:
+        merged.pop("width", None)
+    return merged
+
+
+class AutodiffPropagation:
+    """A differentiable version of a :class:`~clerq.PropagationSolver` problem.
+
+    Build it with :meth:`clerq.PropagationSolver.to_autodiff`. It reproduces
+    ``PropagationSolver.solve`` as a pure function of a *parameter pytree*, so the
+    propagated field and any loss of it can be differentiated with respect to the
+    parameters, with reverse- or forward-mode autodiff, and composed with
+    ``jax.jit``, ``jax.vmap`` and optimisers.
+
+    Parameters are a ``dict``; every key is optional and defaults to the value
+    in the problem (see :meth:`default_params`):
+
+    ``pulse_args``
+        list, one dict per field, of the arguments of its analytic input pulse
+        (``ampl``, ``centre``, ``fwhm``/``width``, ``n_pi``, ``on``, ``off``).
+    ``rabi_freq``
+        array ``(n_fields,)``, cyclic ``rabi_freq`` multiplying each pulse.
+    ``interaction_strengths``
+        array ``(n_fields,)``, as the ``interaction_strengths`` argument.
+    ``detunings``
+        array ``(n_fields,)``, cyclic fixed detuning of each field.
+    ``decay_scale``
+        scalar multiplying every decay rate.
+    ``omega0``
+        array ``(n_fields, n_t)``, the input field samples in *angular* units.
+        If given, the first slice is driven by their cubic spline instead of the
+        analytic pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
+
+    The field is returned in the layout and units of
+    ``PropagationSolver.Omegas_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
+    complex, angular frequency.
+
+    Note:
+        One deliberate difference from ``PropagationSolver``: its Adams-Bashforth
+        path stores each slice one inner step early when ``z_steps_inner > 1``
+        (a defect, tracked separately). Here every slice is at its nominal z; the
+        two agree exactly for ``z_steps_inner == 1`` and for the Euler step.
+        Counter-propagating fields are not supported.
+
+    Args:
+        setup: the problem, from ``setup_from_solver``.
+        step: ``"ab"`` (Adams-Bashforth, default) or ``"euler"``.
+        strategy: ``"s3"`` (default) recomputes a slice on the backward pass;
+            ``"s2"`` stores every slice; ``"s4"`` additionally limits the
+            solver's inner checkpoints to ``checkpoints``.
+        checkpoints: inner checkpoint count for ``strategy="s4"``.
+        rtol, atol: adaptive step-size tolerances.
+        max_steps: step budget of the adaptive solver per slice.
+        n_steps: fixed-step solver with this many steps per slice (useful for
+            finite-difference reference gradients); must not be commensurate with
+            the time grid.
+        solver: a diffrax solver, default ``Tsit5``.
+    """
+
+    def __init__(
+        self,
+        setup: PropagationSetup,
+        *,
+        step: str = "ab",
+        strategy: str = "s3",
+        checkpoints: int | None = None,
+        rtol: float = 1e-8,
+        atol: float = 1e-10,
+        max_steps: int = 100_000,
+        n_steps: int | None = None,
+        solver=None,
+    ) -> None:
+        self.setup = setup
+        self._options = {
+            "step": step,
+            "strategy": strategy,
+            "checkpoints": checkpoints,
+            "rtol": rtol,
+            "atol": atol,
+            "max_steps": max_steps,
+            "n_steps": n_steps,
+            "solver": solver,
+        }
+        self._compiled: dict = {}
+
+    @classmethod
+    def from_solver(cls, solver, **options) -> AutodiffPropagation:
+        """Build from a :class:`~clerq.PropagationSolver` (see :class:`cls`)."""
+        return cls(setup_from_solver(solver), **options)
+
+    # ---- parameters ---------------------------------------------------------
+
+    @property
+    def num_fields(self) -> int:
+        return self.setup.ops.num_fields
+
+    @property
+    def tlist(self) -> np.ndarray:
+        return self.setup.tlist
+
+    def default_params(self) -> dict:
+        """The parameters of the problem this object was built from."""
+        s = self.setup
+        return {
+            "pulse_args": [dict(a) for _, a, _ in s.pulses],
+            "rabi_freq": np.array([r for _, _, r in s.pulses], dtype=float),
+            "interaction_strengths": np.asarray(s.g, dtype=float) / TWO_PI,
+            "detunings": np.asarray(s.ops.detunings, dtype=float).copy(),
+            "decay_scale": 1.0,
+        }
+
+    def _validate(self, params: dict) -> None:
+        unknown = set(params) - set(_PARAM_KEYS)
+        if unknown:
+            raise ValueError(
+                f"Unknown parameter(s) {sorted(unknown)}; valid: {list(_PARAM_KEYS)}."
+            )
+        n_f, n_t = self.num_fields, len(self.setup.tlist)
+        for key in ("rabi_freq", "interaction_strengths", "detunings"):
+            if key in params and np.shape(params[key]) != (n_f,):
+                raise ValueError(
+                    f"{key} must have shape ({n_f},), got {np.shape(params[key])}."
+                )
+        if "omega0" in params and np.shape(params["omega0"]) != (n_f, n_t):
+            raise ValueError(
+                f"omega0 must have shape ({n_f}, {n_t}), got "
+                f"{np.shape(params['omega0'])}."
+            )
+        if "pulse_args" in params and len(params["pulse_args"]) != n_f:
+            raise ValueError(
+                f"pulse_args must have one dict per field ({n_f}), got "
+                f"{len(params['pulse_args'])}."
+            )
+
+    # ---- propagation ----------------------------------------------------------
+
+    def _propagate(self, params: dict, **overrides):
+        defaults = self.default_params()
+        p = {**defaults, **params}
+        if "pulse_args" in params:  # per-field partial overrides of the pulse arguments
+            p["pulse_args"] = [
+                _merge_pulse_args(d, u)
+                for d, u in zip(
+                    defaults["pulse_args"], params["pulse_args"], strict=True
+                )
+            ]
+        return propagate_fields(
+            self.setup,
+            omega0=p.get("omega0"),
+            pulse_args=p["pulse_args"],
+            rabi_freqs=p["rabi_freq"],
+            g=p["interaction_strengths"],
+            detunings=p["detunings"],
+            decay_scale=p["decay_scale"],
+            **{**self._options, **overrides},
+        )
+
+    def propagate(self, params: dict | None = None):
+        """Propagate the fields; a pure, jit-compiled function of ``params``.
+
+        Args:
+            params: parameter pytree (see the class docstring); defaults to the
+                problem's.
+
+        Returns:
+            ``Omega(z, t)``, shape ``(n_fields, z_steps + 1, n_t)``, complex.
+
+        Raises:
+            RuntimeError: if JAX is not in 64-bit mode.
+            ValueError: for unknown keys or wrong shapes.
+        """
+        require_float64()
+        params = {} if params is None else params
+        self._validate(params)
+        if "propagate" not in self._compiled:
+            self._compiled["propagate"] = jax.jit(self._propagate)
+        return self._compiled["propagate"](params)
+
+    def value_and_grad(
+        self,
+        loss: Callable,
+        params: dict | None = None,
+        *,
+        mode: str = "reverse",
+    ):
+        """Value and gradient of ``loss(Omega_zt)`` with respect to ``params``.
+
+        Args:
+            loss: scalar-valued function of the propagated field ``Omega_zt``,
+                shape ``(n_fields, z_steps + 1, n_t)``, complex. Reuse the same
+                function object between calls to reuse the compiled program.
+            params: the parameters to differentiate (any subset of the keys; the
+                gradient has the same structure); defaults to ``default_params()``.
+            mode: ``"reverse"`` (cost ~5x one propagation regardless of the number
+                of parameters) or ``"forward"`` (cost grows with the number of
+                parameters; useful as a cross-check or for very few parameters).
+
+        Returns:
+            ``(value, grads)`` with ``grads`` of the same structure as ``params``.
+
+        Raises:
+            RuntimeError: if JAX is not in 64-bit mode.
+            ValueError: for an unknown ``mode``, unknown keys or wrong shapes.
+        """
+        require_float64()
+        if mode not in ("reverse", "forward"):
+            raise ValueError(f"Unknown mode {mode!r}; use 'reverse' or 'forward'.")
+        params = self.default_params() if params is None else params
+        self._validate(params)
+
+        key = (loss, mode)
+        if key not in self._compiled:
+            overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
+
+            def objective(p):
+                return loss(self._propagate(p, **overrides))
+
+            if mode == "reverse":
+                fn = jax.jit(jax.value_and_grad(objective))
+            else:
+
+                def with_aux(p):
+                    v = objective(p)
+                    return v, v
+
+                jac = jax.jacfwd(with_aux, has_aux=True)
+                fn = jax.jit(lambda p: (lambda g_v: (g_v[1], g_v[0]))(jac(p)))
+            self._compiled[key] = fn
+        return self._compiled[key](params)
