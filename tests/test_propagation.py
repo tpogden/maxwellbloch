@@ -7,6 +7,7 @@ Thomas Ogden <t@ogden.eu>
 
 import json
 import os
+import tempfile
 import unittest
 
 import numpy as np
@@ -702,6 +703,57 @@ class TestBuildThermalDeltaList(unittest.TestCase):
         )
         deltas = self.mbs._build_thermal_delta_list(vc)
         self.assertTrue(np.all(np.diff(deltas) > 0))
+
+
+class TestInnerSteps(unittest.TestCase):
+    """z_steps_inner subdivides each recorded z step; it must not shift slices.
+
+    Regression: with step="ab" the Euler bootstrap used to store slice 1 after a
+    single inner step, so every slice was one inner step (h_inner) early whenever
+    z_steps_inner > 1.
+
+    Splitting a step into inner steps is the same finite-difference scheme as
+    using a finer grid, so (z_steps=N, z_steps_inner=2) must reproduce
+    (z_steps=2N, z_steps_inner=1) at every shared z, for both Euler and AB (the
+    bootstrap is the same single Euler step in both cases).
+    """
+
+    N = 10
+
+    def _solve(self, step, z_steps, z_steps_inner):
+        with open(os.path.join(JSON_DIR, "mb_solve_01.json")) as f:
+            d = json.load(f)
+        d["z_steps"] = z_steps
+        d["z_steps_inner"] = z_steps_inner
+        # Strongly absorbing, nonlinear pulse over the whole medium, so that a
+        # one-inner-step offset in z is large compared with the tolerance below.
+        d["z_min"], d["z_max"] = 0.0, 1.0
+        d["t_min"], d["t_max"], d["t_steps"] = -0.5, 1.5, 100
+        d["interaction_strengths"] = [40.0]
+        d["opts"] = {"atol": 1e-11, "rtol": 1e-9}
+        field = d["system"]["fields"][0]
+        field["rabi_freq"] = 0.5
+        field["rabi_freq_t_args"] = {"ampl": 1.0, "centre": 0.0, "fwhm": 0.2}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "inner_steps.json")
+            with open(path, "w") as f:
+                json.dump(d, f)
+            mbs = PropagationSolver().from_json(path)
+        mbs.solve(step=step, progress=False)
+        return mbs
+
+    def test_inner_steps_match_finer_grid(self):
+        for step in ("euler", "ab"):
+            with self.subTest(step=step):
+                coarse = self._solve(step, self.N, 2)
+                fine = self._solve(step, 2 * self.N, 1)
+                np.testing.assert_allclose(coarse.zlist, fine.zlist[::2])
+                np.testing.assert_allclose(
+                    coarse.Omegas_zt, fine.Omegas_zt[:, ::2, :], rtol=0, atol=1e-10
+                )
+                np.testing.assert_allclose(
+                    coarse.states_zt, fine.states_zt[::2], rtol=0, atol=1e-10
+                )
 
 
 class TestZStepFields(unittest.TestCase):
