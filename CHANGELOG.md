@@ -9,6 +9,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Fixed
+- `PropagationSolver.solve(step="ab")` (the default) stored every output slice one inner step early whenever
+  `z_steps_inner > 1`: the Euler bootstrap recorded slice 1 after a single inner step instead of `z_steps_inner`
+  steps, and every later slice inherited the offset, so `Omegas_zt[:, j]` was at
+  `z_min + (j * z_steps_inner - 1) * h_inner` rather than at `zlist[j]`. The first slice now takes the Euler
+  bootstrap step followed by the remaining inner steps with Adams-Bashforth, and every slice is at its nominal z.
+  `z_steps_inner=1` and `step="euler"` are unchanged. The bug also read the number density one inner step ahead
+  (the second inner step's density was dropped), and the two errors cancel when the first two inner steps are in
+  vacuum, so a medium that starts a couple of inner steps after `z_min` (e.g. `z_min=-0.2` with the medium from
+  `z=0`) gave the same results before and after. **Results change when the medium (or a non-zero density)
+  reaches `z_min`**, with `z_steps_inner > 1`, which includes the default `z_steps_inner=2`; the error is first
+  order in the inner step.
 - The source term of the Maxwell propagation equation weighted the coherence of each coupled pair by `factor**2`
   while the Hamiltonian coupled it with `factor`, so a field coupling several transitions with non-unit factors
   responded as `sum(factor**3)` instead of the line strength `sum(factor**2)`. The weights are now the signed
