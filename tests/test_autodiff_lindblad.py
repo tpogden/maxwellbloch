@@ -10,6 +10,7 @@ import glob
 import json
 import math
 import os
+import zlib
 
 import numpy as np
 import pytest
@@ -30,7 +31,10 @@ from clerq.system import System  # noqa: E402
 pytestmark = pytest.mark.jax
 
 JSON_DIR = os.path.join(os.path.dirname(__file__), "json")
-TIGHT = {"atol": 1e-12, "rtol": 1e-10, "method": "adams", "nsteps": 1_000_000}
+# clerq's own solver error is what limits the comparison: at rtol 1e-10 it is ~5e-9
+# (and ~1e-8 on some platforms), at rtol 1e-12 it is ~2e-10, so the 1e-8 bar below
+# leaves a comfortable margin instead of a marginal one.
+TIGHT = {"atol": 1e-14, "rtol": 1e-12, "method": "adams", "nsteps": 1_000_000}
 TOL = 1e-8
 
 
@@ -195,7 +199,8 @@ def test_sampled_drive_matches_clerq_interpolation(name):
     sd, grid = ALL[name]
     n_f = len(sd["fields"])
     tlist = np.linspace(grid[0], grid[1], grid[2] + 1)
-    samples = _samples(n_f, tlist, seed=hash(name) % 1000)
+    # deterministic: str.__hash__ is randomised per process, which made this flaky
+    samples = _samples(n_f, tlist, seed=zlib.crc32(name.encode()) % 1000)
     t_ref, ref = _clerq_interpolated(sd, grid, samples)
     ops = build_operators(System(**copy.deepcopy(sd)))
     rabi = CubicDrive(t_ref)(jnp.asarray(samples))
