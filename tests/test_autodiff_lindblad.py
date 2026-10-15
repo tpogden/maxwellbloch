@@ -258,7 +258,7 @@ def test_observe_stores_only_the_reduction():
         rabi,
         ops.detunings,
         tlist,
-        observe=lambda rho: jnp.real(jnp.einsum("vii->v", rho)),
+        observe=lambda re, im: jnp.einsum("vii->v", re),
         rtol=1e-11,
         atol=1e-13,
     )
@@ -267,6 +267,63 @@ def test_observe_stores_only_the_reduction():
         np.asarray(pop)[:, 0], np.real(np.trace(np.asarray(full), axis1=1, axis2=2))
     )
     assert np.allclose(np.asarray(pop), 1.0, atol=1e-8)  # trace preserved
+
+
+def test_no_complex_dtype_warning_from_diffrax():
+    """The state is integrated as a real pair, so diffrax's complex-dtype warning
+    must not fire (it flags complex support as unreliable)."""
+    import warnings
+
+    sd, grid = CUSTOM
+    ops = build_operators(System(**copy.deepcopy(sd)))
+    rabi = lambda t: jnp.array([0.7, 0.4]) * jnp.exp(-((t - 1.2) ** 2))  # noqa: E731
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        solve_slice(ops, rabi, ops.detunings, np.linspace(grid[0], grid[1], 21))
+    assert not [w for w in caught if "omplex" in str(w.message)], [
+        str(w.message) for w in caught
+    ]
+
+
+def test_dense_complex_dissipator_matches_matrix_exponential():
+    """Non-single-element, complex collapse operators take the dense path; compare it
+    with an independent matrix exponential of the Liouvillian (constant drive)."""
+    from scipy.linalg import expm
+
+    sd, _ = FIXTURES["mb_solve_lamda.json"]
+    base = build_operators(System(**copy.deepcopy(sd)))
+    n = base.num_states
+    rng = np.random.default_rng(7)
+    c_ops = 0.4 * (
+        rng.normal(size=(2, n, n)) + 1j * rng.normal(size=(2, n, n))
+    )  # dense and complex
+    ops = dataclasses.replace(base, c_ops=c_ops, sparse=None)
+    rabi_const, det = np.array([0.35, 0.2]), np.array([0.1, -0.15])
+    times = np.array([0.0, 0.4, 1.1, 1.7])
+
+    h = ops.hamiltonian(rabi_const, det)
+    eye = np.eye(n)
+    liou = -1j * (np.kron(eye, h) - np.kron(h.T, eye))  # column-stacking vec
+    for c in c_ops:
+        cdc = c.conj().T @ c
+        liou += (
+            np.kron(c.conj(), c) - 0.5 * np.kron(eye, cdc) - 0.5 * np.kron(cdc.T, eye)
+        )
+    rho0 = ops.rho0
+    expected = np.array(
+        [
+            (expm(liou * t) @ rho0.reshape(-1, order="F")).reshape(n, n, order="F")
+            for t in times
+        ]
+    )
+
+    got = np.asarray(
+        solve_slice(
+            ops, lambda t: jnp.asarray(rabi_const), det, times, rtol=1e-12, atol=1e-14
+        )
+    )
+    assert np.abs(got - expected).max() < 1e-9, np.abs(got - expected).max()
+    assert np.abs(got[-1] - rho0).max() > 1e-2  # non-vacuous
 
 
 # ---- guards ---------------------------------------------------------------------

@@ -9,6 +9,12 @@ with the operators of a :class:`~clerq.autodiff._operators.SystemOperators`. The
 Rabi frequencies ``Omega_k(t)`` are cyclic and may be analytic or interpolated
 from samples; they and the detunings, decay scale and initial state are all
 differentiable.
+
+``H`` is real, so ``rho = A + iB`` is integrated as the real pair ``(A, B)``:
+
+    dA = [H, B] + Re D(rho),      dB = -[H, A] + Im D(rho).
+
+Nothing complex enters diffrax, which flags complex dtypes as unreliable.
 """
 
 from __future__ import annotations
@@ -77,8 +83,9 @@ def solve_slice(
         decay_scale: multiplies every decay rate.
         rho0: initial density matrices, ``(n, n)`` or ``(n_v, n, n)``; defaults to
             the system's initial state.
-        observe: optional ``observe(rho) -> array`` applied to the batch
-            ``(n_v, n, n)`` at each output time, so only a reduction is stored.
+        observe: optional ``observe(re, im) -> real array`` applied at each output
+            time to the real and imaginary parts of the batch ``(n_v, n, n)``, so
+            only a reduction is stored.
         rtol, atol: adaptive step-size tolerances (ignored with ``n_steps``).
         n_steps: use a fixed-step solver with this many steps (for finite-difference
             reference gradients); must not be commensurate with ``ts``.
@@ -87,7 +94,7 @@ def solve_slice(
         adjoint: a diffrax adjoint, default ``RecursiveCheckpointAdjoint``.
 
     Returns:
-        ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
+        Complex ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
         ``(len(ts), n_v, n, n)`` for a batch), or the stacked ``observe`` output.
 
     Raises:
@@ -108,37 +115,56 @@ def solve_slice(
     H_static = jnp.asarray(ops.H0)[None] - 2.0 * jnp.pi * jnp.einsum(
         "vk,kij->vij", det * jnp.asarray(ops.detuning_sign), jnp.asarray(ops.N)
     )
-    eye = jnp.eye(n, dtype=jnp.complex128)
+    eye = jnp.eye(n)
 
     sparse = ops.sparse
     if sparse is not None:
         a, b = jnp.asarray(sparse.a), jnp.asarray(sparse.b)
         w, r = jnp.asarray(sparse.w), jnp.asarray(sparse.r)
-    c = jnp.asarray(ops.c_ops)
-    cdc = jnp.einsum("kji,kjl->il", c.conj(), c) if len(ops.c_ops) else None
+    elif len(ops.c_ops):
+        # c = P + iQ; sum c^+ c = R + iS
+        P, Q = jnp.asarray(ops.c_ops.real), jnp.asarray(ops.c_ops.imag)
+        R = jnp.einsum("kji,kjl->il", P, P) + jnp.einsum("kji,kjl->il", Q, Q)
+        S = jnp.einsum("kji,kjl->il", P, Q) - jnp.einsum("kji,kjl->il", Q, P)
 
-    def rhs(t, rho, args):
+    def rhs(t, y, args):
         rabi_fn, scale, H_s = args
+        A, B = y[0], y[1]
         H = H_s + jnp.pi * jnp.einsum("k,kij->ij", rabi_fn(t), X)[None]
-        d = -1j * (H @ rho - rho @ H)
+        dA = H @ B - B @ H
+        dB = A @ H - H @ A
         if sparse is not None:
-            gain = jnp.zeros((n_v, n), rho.dtype).at[:, a].add(scale * w * rho[:, b, b])
-            d = d + gain[:, :, None] * eye
+            zero = jnp.zeros((n_v, n))
+            gain_a = zero.at[:, a].add(scale * w * A[:, b, b])
+            gain_b = zero.at[:, a].add(scale * w * B[:, b, b])
             rate = scale * r
-            return d - 0.5 * (rate[:, None] + rate[None, :]) * rho
-        if cdc is not None:
-            d = d + scale * jnp.einsum("kij,vjl,kml->vim", c, rho, c.conj())
-            d = d - 0.5 * scale * (cdc @ rho + rho @ cdc)
-        return d
+            damp = -0.5 * (rate[:, None] + rate[None, :])
+            dA = dA + gain_a[:, :, None] * eye + damp * A
+            dB = dB + gain_b[:, :, None] * eye + damp * B
+        elif len(ops.c_ops):
+            cr = jnp.einsum("kij,vjl->kvil", P, A) - jnp.einsum("kij,vjl->kvil", Q, B)
+            ci = jnp.einsum("kij,vjl->kvil", P, B) + jnp.einsum("kij,vjl->kvil", Q, A)
+            out_r = jnp.einsum("kvil,kml->vim", cr, P) + jnp.einsum(
+                "kvil,kml->vim", ci, Q
+            )
+            out_i = jnp.einsum("kvil,kml->vim", ci, P) - jnp.einsum(
+                "kvil,kml->vim", cr, Q
+            )
+            ac_r = R @ A - S @ B + A @ R - B @ S
+            ac_i = R @ B + S @ A + A @ S + B @ R
+            dA = dA + scale * (out_r - 0.5 * ac_r)
+            dB = dB + scale * (out_i - 0.5 * ac_i)
+        return jnp.stack([dA, dB])
 
     if rho0 is None:
-        rho0 = jnp.asarray(ops.rho0)
+        rho0 = ops.rho0
     rho0 = jnp.broadcast_to(jnp.asarray(rho0, dtype=jnp.complex128), (n_v, n, n))
+    y0 = jnp.stack([jnp.real(rho0), jnp.imag(rho0)])
 
     save = (
         dfx.SaveAt(ts=ts)
         if observe is None
-        else dfx.SaveAt(ts=ts, fn=lambda t, y, args: observe(y))
+        else dfx.SaveAt(ts=ts, fn=lambda t, y, args: observe(y[0], y[1]))
     )
     sol = dfx.diffeqsolve(
         dfx.ODETerm(rhs),
@@ -146,7 +172,7 @@ def solve_slice(
         ts[0],
         ts[-1],
         (ts[-1] - ts[0]) / (n_steps or 1000),
-        rho0,
+        y0,
         args=(rabi, jnp.asarray(decay_scale, dtype=jnp.float64), H_static),
         saveat=save,
         stepsize_controller=(
@@ -157,4 +183,7 @@ def solve_slice(
         adjoint=adjoint if adjoint is not None else dfx.RecursiveCheckpointAdjoint(),
         max_steps=(n_steps + 2) if n_steps else max_steps,
     )
-    return sol.ys[:, 0] if (single and observe is None) else sol.ys
+    if observe is not None:
+        return sol.ys
+    rho = sol.ys[:, 0] + 1j * sol.ys[:, 1]  # (n_t, n_v, n, n)
+    return rho[:, 0] if single else rho
