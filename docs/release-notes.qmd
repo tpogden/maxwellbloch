@@ -49,6 +49,17 @@ they are removed in a future release.
   `solve(step=...)`.
 - The `mbsolve` and `obsolve` command-line scripts keep their names.
 
+**Fixed: Adams-Bashforth output was one inner step early.** With the default
+`step="ab"` and `z_steps_inner > 1` (the default is 2), each stored slice of
+the field and the states was one inner step short of its nominal `z`. Slices are
+now at `zlist[j]`. Problems with `z_steps_inner=1`, and `step="euler"`, are
+unchanged, and so are problems whose medium starts a couple of inner steps
+after `z_min`, because a second error cancelled the first there. Problems
+where the medium reaches `z_min` (for example `z_min=0` with the medium from
+`z=0`) shift, by an amount first order in the inner step: re-run them and
+discard old `.qu` files. This is a correction; there is nothing to change in
+your code.
+
 **Cached results.** A `.qu` savefile made by an earlier version no longer
 matches its problem definition (which now has a `system` key), so it is solved
 again and overwritten the first time you use it.
