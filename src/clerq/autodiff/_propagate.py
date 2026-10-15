@@ -12,11 +12,11 @@ Reproduces ``PropagationSolver.solve`` (Adams-Bashforth by default, or Euler):
   the *next* z in both Adams-Bashforth terms.
 * Velocity class ``v`` shifts the detuning of field ``k`` by
   ``thermal_delta_v / (2 pi) * factor_doppler_shift_k`` (cyclic).
-
-One deliberate difference: ``PropagationSolver`` (as of clerq master) stores each
-Adams-Bashforth slice one inner step early when ``z_steps_inner > 1``. Here every
-stored slice is at its nominal z; the two agree exactly for ``z_steps_inner == 1``
-and for the Euler step at any ``z_steps_inner``.
+* The very first inner step is the Euler bootstrap (from the coherence at ``z_min``);
+  every later inner step is Adams-Bashforth, and the density of inner step ``i`` is
+  ``N(z_min + (i + 1) h)``. ``PropagationSolver`` did this wrongly for
+  ``z_steps_inner > 1`` (slices one inner step early, density one step ahead) until
+  clerq #328; the two now agree for every ``z_steps_inner``.
 """
 
 from __future__ import annotations

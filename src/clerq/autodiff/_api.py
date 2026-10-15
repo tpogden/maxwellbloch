@@ -113,11 +113,10 @@ class AutodiffPropagation:
     by ``2 * pi`` for the cyclic Rabi frequency.
 
     Note:
-        One deliberate difference from ``PropagationSolver``: its Adams-Bashforth
-        path stores each slice one inner step early when ``z_steps_inner > 1``
-        (a defect, tracked separately). Here every slice is at its nominal z; the
-        two agree exactly for ``z_steps_inner == 1`` and for the Euler step.
-        Counter-propagating fields are not supported.
+        Counter-propagating fields are not supported. The result matches
+        ``PropagationSolver`` for every ``z_steps_inner``; versions of clerq before
+        #328 stored Adams-Bashforth slices one inner step early when
+        ``z_steps_inner > 1`` and will not match there.
 
     Args:
         setup: the problem, from ``setup_from_solver``.

@@ -115,17 +115,12 @@ def _rel(a, b):
 
 
 def _reference(d, step, opts=TIGHT):
-    """clerq's own result for the scheme we implement.
+    """clerq's own result for the same problem and scheme.
 
-    ``PropagationSolver``'s Adams-Bashforth stores every slice one inner step early
-    when ``z_steps_inner > 1``; the consistent equivalent is the same scheme on the
-    grid with ``z_steps * inner`` steps and ``z_steps_inner = 1``, sampled every
-    ``inner`` steps. Euler is consistent as is.
+    Adams-Bashforth with ``z_steps_inner > 1`` stored every slice one inner step early
+    (and read the density one inner step ahead) until clerq #328; with that fix,
+    ``PropagationSolver`` and ``to_autodiff`` agree for every ``z_steps_inner``.
     """
-    inner = d.get("z_steps_inner", DEFAULT_INNER)
-    if step == "ab" and inner > 1:
-        fine = {**d, "z_steps": d["z_steps"] * inner, "z_steps_inner": 1}
-        return _clerq_omegas(fine, "ab", opts)[:, ::inner, :]
     return _clerq_omegas(d, step, opts)
 
 
@@ -239,16 +234,21 @@ def test_multi_field_velocity_classes_energies_doppler_factor(step, inner):
     assert setup.ops.num_fields == 2 and len(setup.shifts) == 5
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="clerq master stores each Adams-Bashforth slice one inner step early "
-    "when z_steps_inner > 1 (tracked separately); remove this once fixed upstream",
-)
-def test_documented_clerq_adams_bashforth_inner_step_offset():
-    d = {**CUSTOM, "z_steps_inner": 2}
-    setup = setup_from_solver(_solver(d))
-    got = np.asarray(propagate_fields(setup, step="ab", rtol=1e-11, atol=1e-13))
-    assert _rel(got, _clerq_omegas(d, "ab")) < TOL
+def test_slices_are_at_their_nominal_z_with_inner_steps():
+    """With inner steps, the stored slice j is the same scheme as slice j*inner of a
+    run that stores every inner step (the property clerq #328 restored): a problem
+    with z_steps=N, inner=2 equals the z_steps=2N, inner=1 run sampled every 2nd."""
+    d2 = {**CUSTOM, "z_steps": 3, "z_steps_inner": 2}
+    d1 = {**CUSTOM, "z_steps": 6, "z_steps_inner": 1}
+    setup2 = setup_from_solver(_solver(d2))
+    setup1 = setup_from_solver(_solver(d1))
+    a = np.asarray(propagate_fields(setup2, step="ab", rtol=1e-11, atol=1e-13))
+    b = np.asarray(propagate_fields(setup1, step="ab", rtol=1e-11, atol=1e-13))
+    assert _rel(a, b[:, ::2, :]) < TOL, _rel(a, b[:, ::2, :])
+    # and clerq itself agrees with the same property
+    ca = _clerq_omegas(d2, "ab")
+    cb = _clerq_omegas(d1, "ab")
+    assert _rel(ca, cb[:, ::2, :]) < TOL, _rel(ca, cb[:, ::2, :])
 
 
 # ---- guards ---------------------------------------------------------------------
