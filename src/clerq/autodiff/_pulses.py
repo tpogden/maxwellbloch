@@ -30,6 +30,13 @@ SUPPORTED = (
 )
 
 
+# Arguments whose gradient is not defined: they place a discontinuity, so the
+# derivative of the field with respect to them is a delta function that autodiff
+# cannot represent and would silently return as zero. (The ramp pulses are
+# continuous, so their ``on`` and ``off`` are fine.)
+NONDIFFERENTIABLE_ARGS = {"square": ("on", "off")}
+
+
 def pulse_name(t_func: Callable) -> str:
     """Name of a clerq pulse function, from its ``__name__`` (``"gaussian_0"``)."""
     return t_func.__name__.rsplit("_", 1)[0]

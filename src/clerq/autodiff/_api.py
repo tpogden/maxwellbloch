@@ -15,6 +15,7 @@ from clerq.autodiff._propagate import (
     propagate_fields,
     setup_from_solver,
 )
+from clerq.autodiff._pulses import NONDIFFERENTIABLE_ARGS
 
 _PARAM_KEYS = (
     "pulse_args",
@@ -41,6 +42,35 @@ def _merge_pulse_args(default: dict, user: dict) -> dict:
     return merged
 
 
+def _floatify(tree):
+    """Convert integer and boolean leaves to float64.
+
+    Problem definitions often use integer literals (``"centre": 1``); ``jax.grad``
+    rejects integer inputs, and the parameters are physical real quantities anyway.
+    """
+
+    def convert(x):
+        dtype = getattr(x, "dtype", None)
+        if dtype is None:
+            dtype = np.asarray(x).dtype
+        if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.bool_):
+            return jax.numpy.asarray(x, dtype=jax.numpy.float64)
+        return x
+
+    return jax.tree_util.tree_map(convert, tree)
+
+
+def _overlay(fixed: dict, params: dict) -> dict:
+    """``params`` over ``fixed``; per-field pulse arguments are merged."""
+    out = {**fixed, **params}
+    if "pulse_args" in fixed and "pulse_args" in params:
+        out["pulse_args"] = [
+            _merge_pulse_args(f, p)
+            for f, p in zip(fixed["pulse_args"], params["pulse_args"], strict=True)
+        ]
+    return out
+
+
 class AutodiffPropagation:
     """A differentiable version of a :class:`~clerq.PropagationSolver` problem.
 
@@ -56,6 +86,13 @@ class AutodiffPropagation:
     ``pulse_args``
         list, one dict per field, of the arguments of its analytic input pulse
         (``ampl``, ``centre``, ``fwhm``/``width``, ``n_pi``, ``on``, ``off``).
+        The ``on``/``off`` edge times of a ``square`` pulse can be set but not
+        differentiated (the field is discontinuous there, so its derivative is a
+        delta function that autodiff would return as 0); ``value_and_grad``
+        raises if asked, and holds them fixed by default. Calling
+        ``jax.grad`` yourself through :meth:`propagate` with those traced
+        gives exactly that silent 0, so keep them out of the differentiated
+        parameters.
     ``rabi_freq``
         array ``(n_fields,)``, cyclic ``rabi_freq`` multiplying each pulse.
     ``interaction_strengths``
@@ -137,15 +174,52 @@ class AutodiffPropagation:
         return self.setup.tlist
 
     def default_params(self) -> dict:
-        """The parameters of the problem this object was built from."""
+        """The parameters of the problem this object was built from.
+
+        Every value is a float, whatever literal the problem definition used.
+        """
         s = self.setup
         return {
-            "pulse_args": [dict(a) for _, a, _ in s.pulses],
+            "pulse_args": [{k: float(v) for k, v in a.items()} for _, a, _ in s.pulses],
             "rabi_freq": np.array([r for _, _, r in s.pulses], dtype=float),
             "interaction_strengths": np.asarray(s.g, dtype=float) / TWO_PI,
             "detunings": np.asarray(s.ops.detunings, dtype=float).copy(),
             "decay_scale": 1.0,
         }
+
+    def _differentiable_default_params(self) -> dict:
+        """``default_params()`` without the arguments that cannot be differentiated.
+
+        These stay at the problem's values (``_propagate`` fills them in).
+        """
+        params = self.default_params()
+        params["pulse_args"] = [
+            {
+                k: v
+                for k, v in a.items()
+                if k not in NONDIFFERENTIABLE_ARGS.get(name, ())
+            }
+            for (name, _, _), a in zip(
+                self.setup.pulses, params["pulse_args"], strict=True
+            )
+        ]
+        return params
+
+    def _reject_nondifferentiable(self, params: dict) -> None:
+        """Raise if ``params`` asks for the gradient of a discontinuity's location."""
+        for k, ((name, _, _), a) in enumerate(
+            zip(self.setup.pulses, params.get("pulse_args", []), strict=False)
+        ):
+            bad = [x for x in NONDIFFERENTIABLE_ARGS.get(name, ()) if x in a]
+            if bad:
+                raise ValueError(
+                    f"pulse_args[{k}] contains {bad}, which place the edges of a "
+                    f"{name!r} pulse. The field is discontinuous there, so its "
+                    "derivative with respect to them is a delta function that "
+                    "autodiff cannot represent (it would return 0). Hold them fixed "
+                    "by passing them in fixed=..., or use a continuous pulse such "
+                    "as 'ramp_onoff'."
+                )
 
     def _validate(self, params: dict) -> None:
         unknown = set(params) - set(_PARAM_KEYS)
@@ -208,7 +282,7 @@ class AutodiffPropagation:
             ValueError: for unknown keys or wrong shapes.
         """
         require_float64()
-        params = {} if params is None else params
+        params = {} if params is None else _floatify(params)
         self._validate(params)
         if "propagate" not in self._compiled:
             self._compiled["propagate"] = jax.jit(self._propagate)
@@ -219,6 +293,7 @@ class AutodiffPropagation:
         loss: Callable,
         params: dict | None = None,
         *,
+        fixed: dict | None = None,
         mode: str = "reverse",
     ):
         """Value and gradient of ``loss(Omega_zt)`` with respect to ``params``.
@@ -228,7 +303,15 @@ class AutodiffPropagation:
                 shape ``(n_fields, z_steps + 1, n_t)``, complex. Reuse the same
                 function object between calls to reuse the compiled program.
             params: the parameters to differentiate (any subset of the keys; the
-                gradient has the same structure); defaults to ``default_params()``.
+                gradient has the same structure). Default: every differentiable
+                parameter of the problem, i.e. ``default_params()`` without the
+                edge times (``on``, ``off``) of ``square`` pulses, which stay
+                fixed because the field's derivative with respect to a
+                discontinuity's location is not defined.
+            fixed: parameters held constant at the given values, with the same
+                structure as ``params`` (for example the ``on``/``off`` of a
+                square pulse, or a different target interaction strength). They
+                are not differentiated.
             mode: ``"reverse"`` (cost ~5x one propagation regardless of the number
                 of parameters) or ``"forward"`` (cost grows with the number of
                 parameters; useful as a cross-check or for very few parameters).
@@ -238,30 +321,38 @@ class AutodiffPropagation:
 
         Raises:
             RuntimeError: if JAX is not in 64-bit mode.
-            ValueError: for an unknown ``mode``, unknown keys or wrong shapes.
+            ValueError: for an unknown ``mode``, unknown keys, wrong shapes, or a
+                request for the gradient of a ``square`` pulse's edge times.
         """
         require_float64()
         if mode not in ("reverse", "forward"):
             raise ValueError(f"Unknown mode {mode!r}; use 'reverse' or 'forward'.")
-        params = self.default_params() if params is None else params
+        params = (
+            self._differentiable_default_params()
+            if params is None
+            else _floatify(params)
+        )
+        fixed = {} if fixed is None else _floatify(fixed)
         self._validate(params)
+        self._validate(fixed)
+        self._reject_nondifferentiable(params)
 
         key = (loss, mode)
         if key not in self._compiled:
             overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
 
-            def objective(p):
-                return loss(self._propagate(p, **overrides))
+            def objective(p, fx):
+                return loss(self._propagate(_overlay(fx, p), **overrides))
 
             if mode == "reverse":
                 fn = jax.jit(jax.value_and_grad(objective))
             else:
 
-                def with_aux(p):
-                    v = objective(p)
+                def with_aux(p, fx):
+                    v = objective(p, fx)
                     return v, v
 
                 jac = jax.jacfwd(with_aux, has_aux=True)
-                fn = jax.jit(lambda p: (lambda g_v: (g_v[1], g_v[0]))(jac(p)))
+                fn = jax.jit(lambda p, fx: (lambda g_v: (g_v[1], g_v[0]))(jac(p, fx)))
             self._compiled[key] = fn
-        return self._compiled[key](params)
+        return self._compiled[key](params, fixed)
