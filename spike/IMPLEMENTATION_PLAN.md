@@ -98,6 +98,30 @@ diverging.
 
 Rough total for M0-M6: 2.5-3.5 weeks.
 
+### Status and M5 checklist
+
+M0-M4 are implemented in PR tpogden/clerq#327 (`feature/autodiff-backend`), including the
+CHANGELOG and release-notes entries that were planned for M6. A code review of that PR
+(10 findings) produced the hardening list below; "done" items were fixed in the PR, the rest
+are M5 unless noted.
+
+| # | Item | Status | Notes |
+|-|-|-|-|
+| R1 | A `square` pulse's `on`/`off` have silently-zero gradients | **done** | `value_and_grad` holds them fixed by default, raises if they are requested, takes `fixed=...`; ramp pulses stay differentiable |
+| R2 | Integer literals in a problem definition break `value_and_grad(loss)` | **done** | `default_params()` returns floats; integer user parameters are converted |
+| R3 | `value_and_grad` compile cache is unbounded and keyed by the loss closure | M5 | Bound it (small LRU) or key on something stable; document reuse of the loss object |
+| R4 | Dense n_t x n_t spline operator (about 200 MB at n_t = 5000, quadratic) | M5 | Banded / tridiagonal-plus-corrections solve; already listed in the risk table |
+| R5 | Pulse ports re-implement `t_funcs`; `ramp_on`, `ramp_off`, `ramp_offon` and `sech(fwhm)` have no direct equivalence test | M5 | Add per-function tests against `clerq.t_funcs` on a time grid (or make `t_funcs` backend-agnostic) |
+| R6 | `strategy="s4"` accepted without `checkpoints`; default `max_steps=100_000` unrelated to memory | M5 | Validate `checkpoints` for s4; derive a `max_steps` default from the pulse and document the s2 memory coupling |
+| R7 | `omega0` is angular while every other parameter is cyclic | **decide before M5 ends** | Rename (for example `omega0_angular`), or accept cyclic and convert internally; must be settled before the API is public |
+| R8 | Problem with no fields crashes with an obscure `np.concatenate` error | M5 | Raise a clear message (or support the empty case) |
+| R9 | Pulse-argument exclusivity (ampl/n_pi, width/fwhm) encoded in two modules | M5, low | Declare the alternative groups once next to the pulse definitions |
+| R10 | Broken `:class:`cls`` docstring reference | M6 | Resolved when `clerq.autodiff` is added to the API docs |
+| R11 | True derivative w.r.t. a square pulse's edge times (about -3590 / +3058 on the example) | optional, after M5 | A feature rather than hardening: integrate slice 0 in segments with differentiable endpoints (diffrax differentiates integration limits); the sampled input field is piecewise constant in the edge times, so only slice 0 contributes |
+
+Findings that are guards, not behaviour, are covered by tests in the PR
+(`tests/test_autodiff_api_regressions.py` for R1 and R2).
+
 ## 5. Test plan
 
 - **Live oracle.** Each supported fixture in `tests/json/` is solved with `PropagationSolver`
