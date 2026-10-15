@@ -168,14 +168,25 @@ def test_gradient_of_a_subset_of_parameters():
 
 def test_input_field_samples_are_a_parameter():
     ad = _solver().to_autodiff(rtol=1e-10, atol=1e-12)
-    omega0 = np.asarray(ad.propagate()[:, 0, :]).real
     analytic = np.asarray(ad.propagate())
+    # omega0 is a *cyclic* Rabi frequency, like rabi_freq: the output field is
+    # angular (the layout and units of Omegas_zt), so divide by 2 pi
+    omega0 = analytic[:, 0, :].real / (2.0 * np.pi)
     sampled = np.asarray(ad.propagate({"omega0": omega0}))
     # the first slice is then driven by the spline of the samples, not the analytic pulse
     assert np.abs(sampled - analytic).max() / np.abs(analytic).max() < 1e-4
     _, g = ad.value_and_grad(loss, {"omega0": omega0})
     assert g["omega0"].shape == omega0.shape
     assert np.abs(np.asarray(g["omega0"])).max() > 1e-6
+
+
+def test_omega0_units_are_cyclic_not_angular():
+    """Guard: passing the angular samples (the output's units) is a 2 pi error."""
+    ad = _solver().to_autodiff(rtol=1e-10, atol=1e-12)
+    analytic = np.asarray(ad.propagate())
+    angular = analytic[:, 0, :].real
+    wrong = np.asarray(ad.propagate({"omega0": angular}))
+    assert np.abs(wrong - analytic).max() / np.abs(analytic).max() > 0.1
 
 
 # ---- validation and guards ----------------------------------------------------------

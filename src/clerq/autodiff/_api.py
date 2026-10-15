@@ -102,13 +102,15 @@ class AutodiffPropagation:
     ``decay_scale``
         scalar multiplying every decay rate.
     ``omega0``
-        array ``(n_fields, n_t)``, the input field samples in *angular* units.
-        If given, the first slice is driven by their cubic spline instead of the
-        analytic pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
+        array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
+        *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
+        first slice is driven by their cubic spline instead of the analytic
+        pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
 
-    The field is returned in the layout and units of
-    ``PropagationSolver.Omegas_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
-    complex, angular frequency.
+    All parameters are cyclic (like the problem definition). The propagated field
+    is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
+    shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
+    by ``2 * pi`` for the cyclic Rabi frequency.
 
     Note:
         One deliberate difference from ``PropagationSolver``: its Adams-Bashforth
@@ -256,9 +258,12 @@ class AutodiffPropagation:
                     defaults["pulse_args"], params["pulse_args"], strict=True
                 )
             ]
+        # omega0 is cyclic like every other parameter; the engine works in angular
+        # units (the layout of Omegas_zt).
+        omega0 = p.get("omega0")
         return propagate_fields(
             self.setup,
-            omega0=p.get("omega0"),
+            omega0=None if omega0 is None else TWO_PI * omega0,
             pulse_args=p["pulse_args"],
             rabi_freqs=p["rabi_freq"],
             g=p["interaction_strengths"],
