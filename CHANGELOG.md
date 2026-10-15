@@ -8,6 +8,18 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Automatic differentiation of field propagation (optional, experimental). `PropagationSolver.to_autodiff()` returns
+  a pure, `jit`-able function of a parameter pytree (pulse parameters, `rabi_freq`, interaction strengths,
+  detunings, decay scale, or sampled input fields) that reproduces `solve()`, with exact gradients of any scalar loss
+  of the propagated field in reverse or forward mode (`AutodiffPropagation.value_and_grad`). A gradient costs about
+  five to six propagations regardless of the number of parameters. Install with `pip install 'clerq[jax]'`; JAX must run
+  in float64 (`jax.config.update("jax_enable_x64", True)`). Supports several co-propagating fields, velocity
+  classes, bare energies and the `gaussian`, `sech`, `square` and `ramp_*` pulses (the `on`/`off` edge times of a
+  `square` pulse can be set but not differentiated, since the field is discontinuous there); counter-propagating
+  fields are not supported. Importing `clerq` never imports JAX. Results are validated against `PropagationSolver`
+  for both schemes and every `z_steps_inner`.
+
 ### Fixed
 - `PropagationSolver.solve(step="ab")` (the default) stored every output slice one inner step early whenever
   `z_steps_inner > 1`: the Euler bootstrap recorded slice 1 after a single inner step instead of `z_steps_inner`

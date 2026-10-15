@@ -20,6 +20,15 @@ class names, as they were at the time. See
 
 Not yet released; this is on the `next` branch.
 
+**Gradients through the propagation (optional, experimental).** With
+`pip install 'clerq[jax]'`, `solver.to_autodiff()` returns a differentiable
+version of a `PropagationSolver` problem: exact gradients of any loss of the
+propagated field with respect to pulse parameters, interaction strengths,
+detunings, decay rates or a sampled input field, for about the cost of five to six
+propagations however many parameters there are. It is meant for gradient-based
+design of pulses and media. `import clerq` itself never loads JAX. See
+`CHANGELOG.md` for the supported features and limits.
+
 ::: {.callout-note}
 ## Upgrading from 0.13.1
 Your code keeps working: the old names still run and raise a

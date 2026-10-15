@@ -6,6 +6,7 @@ import hashlib
 import importlib.metadata
 import os
 import warnings
+from typing import Any
 
 import numpy as np
 import qutip as qu
@@ -397,6 +398,36 @@ class PropagationSolver(LindbladSolver):
             )
 
         return self.Omegas_zt, self.states_zt
+
+    def to_autodiff(self, **options: Any) -> Any:
+        """Return a differentiable version of this problem.
+
+        The result reproduces :meth:`solve` as a pure function of a parameter
+        pytree (pulse parameters, interaction strengths, detunings, decay scale,
+        or sampled input fields), so the propagated field and any loss of it can
+        be differentiated exactly with JAX autodiff. Requires the ``jax`` extra
+        (``pip install 'clerq[jax]'``) and ``jax_enable_x64``.
+
+        Args:
+            **options: forwarded to
+                :class:`clerq.autodiff.AutodiffPropagation` (``step``,
+                ``strategy``, ``rtol``, ``atol``, ``max_steps``, ...).
+
+        Returns:
+            The differentiable problem, an ``AutodiffPropagation``.
+
+        Raises:
+            ImportError: if the ``jax`` extra is not installed.
+            NotImplementedError: for counter-propagating fields or pulse
+                functions the autodiff backend does not support.
+
+        Examples:
+            >>> ad = solver.to_autodiff()  # doctest: +SKIP
+            >>> value, grads = ad.value_and_grad(loss)  # doctest: +SKIP
+        """
+        from clerq.autodiff import AutodiffPropagation
+
+        return AutodiffPropagation.from_solver(self, **options)
 
     def mbsolve(self, *args, **kwargs) -> tuple[np.ndarray, np.ndarray]:
         """Deprecated name for :meth:`PropagationSolver.solve`."""

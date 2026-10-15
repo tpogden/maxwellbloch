@@ -26,7 +26,10 @@ docs = [
     "kaleido>=0.2",
 ]
 plot = ["plotly>=5.18", "kaleido>=0.2"]
-dev = ["clerq[test,docs,plot]", "ruff", "twine", "bump-my-version"]
+# Automatic differentiation backend (clerq.autodiff). CI tests the lowest (Python 3.10:
+# jax 0.6.2, diffrax 0.7.0) and highest supported versions.
+jax = ["jax>=0.6.2,<0.12", "diffrax>=0.7.0,<0.8"]
+dev = ["clerq[test,docs,plot,jax]", "ruff", "twine", "bump-my-version"]
 
 [tool.bumpversion]
 current_version = "0.13.1"
@@ -60,6 +63,7 @@ script-files = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["jax: needs the optional clerq[jax] extra (selected in CI with -m jax)"]
 
 [tool.ruff]
 line-length = 88
