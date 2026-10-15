@@ -377,10 +377,9 @@ be differentiated exactly with JAX autodiff. Requires the ``jax`` extra
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                                 |
-|--------|--------|-------------------------------------------------------------|
-|        | Any    | The differentiable problem, an ``AutodiffPropagation`` from |
-|        | Any    | ``clerq.autodiff``.                                         |
+| Name   | Type   | Description                                             |
+|--------|--------|---------------------------------------------------------|
+|        | Any    | The differentiable problem, an ``AutodiffPropagation``. |
 
 #### Raises {.doc-section .doc-section-raises}
 

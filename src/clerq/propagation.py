@@ -414,8 +414,7 @@ class PropagationSolver(LindbladSolver):
                 ``strategy``, ``rtol``, ``atol``, ``max_steps``, ...).
 
         Returns:
-            The differentiable problem, an ``AutodiffPropagation`` from
-            ``clerq.autodiff``.
+            The differentiable problem, an ``AutodiffPropagation``.
 
         Raises:
             ImportError: if the ``jax`` extra is not installed.
