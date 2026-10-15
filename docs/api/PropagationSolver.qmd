@@ -70,6 +70,7 @@ each step (once per velocity class if the medium is Doppler broadened).
 | [populations_field](#clerq.PropagationSolver.populations_field) | Gets the sum of populations for the upper (excited) level coupled by |
 | [save_results](#clerq.PropagationSolver.save_results) | Saves the solution to a QuTiP pickle file. |
 | [solve](#clerq.PropagationSolver.solve) | Solves the propagation of the fields through the medium. |
+| [to_autodiff](#clerq.PropagationSolver.to_autodiff) | Return a differentiable version of this problem. |
 | [z_step](#clerq.PropagationSolver.z_step) | Returns the distance from one space point to the next. |
 | [z_step_inner](#clerq.PropagationSolver.z_step_inner) | Returns the distance from one inner space point to the next. |
 
@@ -353,6 +354,47 @@ Solves the propagation of the fields through the medium.
 |--------|------------|----------------------------------------------------------------------------------------------|
 |        | np.ndarray | self.Omegas_zt: The solved field complex Rabi frequency at each point in space z and time t. |
 |        | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.               |
+
+### to_autodiff { #clerq.PropagationSolver.to_autodiff }
+
+```python
+PropagationSolver.to_autodiff(**options)
+```
+
+Return a differentiable version of this problem.
+
+The result reproduces :meth:`solve` as a pure function of a parameter
+pytree (pulse parameters, interaction strengths, detunings, decay scale,
+or sampled input fields), so the propagated field and any loss of it can
+be differentiated exactly with JAX autodiff. Requires the ``jax`` extra
+(``pip install 'clerq[jax]'``) and ``jax_enable_x64``.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                                                                                                                | Default   |
+|-----------|--------|----------------------------------------------------------------------------------------------------------------------------|-----------|
+| **options | Any    | forwarded to :class:`clerq.autodiff.AutodiffPropagation` (``step``, ``strategy``, ``rtol``, ``atol``, ``max_steps``, ...). | `{}`      |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                 |
+|--------|--------|-------------------------------------------------------------|
+|        | Any    | The differentiable problem, an ``AutodiffPropagation`` from |
+|        | Any    | ``clerq.autodiff``.                                         |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                | Description                                                                              |
+|--------|---------------------|------------------------------------------------------------------------------------------|
+|        | ImportError         | if the ``jax`` extra is not installed.                                                   |
+|        | NotImplementedError | for counter-propagating fields or pulse functions the autodiff backend does not support. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> ad = solver.to_autodiff()
+>>> value, grads = ad.value_and_grad(loss)
+```
 
 ### z_step { #clerq.PropagationSolver.z_step }
 
