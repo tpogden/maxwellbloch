@@ -246,6 +246,7 @@ ul.task-list li input[type="checkbox"] {
 <li><code>mbsolve_euler()</code> and <code>mbsolve_ab()</code> are deprecated in favour of <code>solve(step=...)</code>.</li>
 <li>The <code>mbsolve</code> and <code>obsolve</code> command-line scripts keep their names.</li>
 </ul>
+<p><strong>Fixed: Adams-Bashforth output was one inner step early.</strong> With the default <code>step="ab"</code> and <code>z_steps_inner &gt; 1</code> (the default is 2), each stored slice of the field and the states was one inner step short of its nominal <code>z</code>. Slices are now at <code>zlist[j]</code>. Problems with <code>z_steps_inner=1</code>, and <code>step="euler"</code>, are unchanged, and so are problems whose medium starts a couple of inner steps after <code>z_min</code>, because a second error cancelled the first there. Problems where the medium reaches <code>z_min</code> (for example <code>z_min=0</code> with the medium from <code>z=0</code>) shift, by an amount first order in the inner step: re-run them and discard old <code>.qu</code> files. This is a correction; there is nothing to change in your code.</p>
 <p><strong>Cached results.</strong> A <code>.qu</code> savefile made by an earlier version no longer matches its problem definition (which now has a <code>system</code> key), so it is solved again and overwritten the first time you use it.</p>
 <p><strong>Other changes</strong></p>
 <ul>
