@@ -71,6 +71,7 @@ def solve_slice(
     max_steps: int = 100_000,
     solver=None,
     adjoint=None,
+    jump_ts=None,
 ):
     """Solve the master equation at the times ``ts``.
 
@@ -92,6 +93,8 @@ def solve_slice(
         max_steps: step budget of the adaptive solver.
         solver: a diffrax solver, default ``Tsit5``.
         adjoint: a diffrax adjoint, default ``RecursiveCheckpointAdjoint``.
+        jump_ts: times at which the drive is discontinuous (e.g. a square pulse's
+            edges), so the adaptive solver steps exactly onto them.
 
     Returns:
         Complex ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
@@ -178,7 +181,7 @@ def solve_slice(
         stepsize_controller=(
             dfx.ConstantStepSize()
             if n_steps
-            else dfx.PIDController(rtol=rtol, atol=atol)
+            else dfx.PIDController(rtol=rtol, atol=atol, jump_ts=jump_ts)
         ),
         adjoint=adjoint if adjoint is not None else dfx.RecursiveCheckpointAdjoint(),
         max_steps=(n_steps + 2) if n_steps else max_steps,
