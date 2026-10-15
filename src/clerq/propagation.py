@@ -541,45 +541,33 @@ class PropagationSolver(LindbladSolver):
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.system.get_fields_sum_coherence(states_t=thermal_states_t)
         pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
-        # First z step: Euler bootstrap
-        j = 0
-        z_cur = self.z_min
-        z_next = z_cur + self.z_step_inner()
-        h = z_next - z_cur
-        N = self.num_density_z_func(z_next, self.num_density_z_args)
-        np.copyto(
-            self._Omegas_z_buf,
-            self._z_step_fields_euler(
-                h=h,
-                N=N_z[0],
-                Omegas_z_this=self.Omegas_zt[:, 0, :],
-                sum_coh_this=sum_coh_prev,
-            ),
-        )
-        self.system.H_Omega_list = self._build_intp_H_Omega_list(self._Omegas_z_buf)
-        self.states_zt[j + 1, :] = self.states_t()
-        self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
-        pbar.update(1)
-        pbar.set_postfix(self._pbar_postfix(progress_show_area))
-        # Remaining steps: Adams-Bashforth
-        for j, _z in enumerate(self.zlist[1:-1], start=1):
+        for j in range(self.z_steps):
             Omegas_z_this = self.Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
-                thermal_states_t = self._solve_and_average_over_thermal_detunings()
-                sum_coh_this = self.system.get_fields_sum_coherence(
-                    states_t=thermal_states_t
-                )
-                np.copyto(
-                    self._Omegas_z_buf,
-                    self._z_step_fields_ab(
+                if j == 0 and k == 0:
+                    # Very first inner step: Euler bootstrap (no previous
+                    # coherence yet), using the coherence at z_min.
+                    sum_coh_this = sum_coh_prev
+                    Omegas_z_next = self._z_step_fields_euler(
+                        h=h,
+                        N=N,
+                        Omegas_z_this=Omegas_z_this,
+                        sum_coh_this=sum_coh_this,
+                    )
+                else:
+                    thermal_states_t = self._solve_and_average_over_thermal_detunings()
+                    sum_coh_this = self.system.get_fields_sum_coherence(
+                        states_t=thermal_states_t
+                    )
+                    Omegas_z_next = self._z_step_fields_ab(
                         h=h,
                         N=N,
                         sum_coh_prev=sum_coh_prev,
                         sum_coh_this=sum_coh_this,
                         Omegas_z_this=Omegas_z_this,
-                    ),
-                )
+                    )
+                np.copyto(self._Omegas_z_buf, Omegas_z_next)
                 self.system.H_Omega_list = self._build_intp_H_Omega_list(
                     self._Omegas_z_buf
                 )
