@@ -78,10 +78,15 @@ def setup_from_solver(solver) -> PropagationSetup:
     Raises:
         NotImplementedError: if a field is counter-propagating or its pulse
             function is not supported.
-        ValueError: if the number of interaction strengths does not match the
-            number of fields.
+        ValueError: if the system has no fields, or the number of interaction
+            strengths does not match the number of fields.
     """
     solver.check()
+    if not solver.system.fields:
+        raise ValueError(
+            "to_autodiff needs a system with at least one coupled field to "
+            "propagate; this system has none."
+        )
     ops = build_operators(solver.system)
     h = solver.z_step_inner()
     n_steps = solver.z_steps * solver.z_steps_inner
@@ -162,8 +167,13 @@ def propagate_fields(
             checkpoints the scan body (recomputes a slice on the backward pass);
             ``"s4"`` additionally limits the solver's inner checkpoints to
             ``checkpoints``.
-        checkpoints: inner checkpoint count for ``strategy="s4"``.
-        rtol, atol, max_steps: adaptive step-size controls.
+        checkpoints: inner checkpoint count, required (a positive integer) for
+            ``strategy="s4"`` and not allowed with the other strategies.
+        rtol, atol: adaptive step-size tolerances.
+        max_steps: the most steps one slice solve may take; the solve errors if
+            it needs more. Reverse mode also sizes its default checkpoint
+            count from it (about its base-2 logarithm), so a smaller value
+            lowers memory use for large problems.
         n_steps: fixed-step solver with this many steps per slice (reference
             gradients); must not be commensurate with the time grid.
         solver: a diffrax solver, default ``Tsit5``.
@@ -183,6 +193,16 @@ def propagate_fields(
         raise ValueError(f"Unknown step {step!r}; use 'ab' or 'euler'.")
     if strategy not in ("s2", "s3", "s4"):
         raise ValueError(f"Unknown strategy {strategy!r}; use 's2', 's3' or 's4'.")
+    if strategy == "s4":
+        if checkpoints is None or int(checkpoints) != checkpoints or checkpoints < 1:
+            raise ValueError(
+                "strategy='s4' needs `checkpoints`, a positive integer; "
+                f"got {checkpoints!r}."
+            )
+    elif checkpoints is not None:
+        raise ValueError(
+            f"`checkpoints` only applies to strategy='s4', not {strategy!r}."
+        )
 
     ops = setup.ops
     n_f = ops.num_fields

@@ -124,9 +124,12 @@ class AutodiffPropagation:
         strategy: ``"s3"`` (default) recomputes a slice on the backward pass;
             ``"s2"`` stores every slice; ``"s4"`` additionally limits the
             solver's inner checkpoints to ``checkpoints``.
-        checkpoints: inner checkpoint count for ``strategy="s4"``.
+        checkpoints: inner checkpoint count, required (a positive integer) for
+            ``strategy="s4"`` and not allowed with the other strategies.
         rtol, atol: adaptive step-size tolerances.
-        max_steps: step budget of the adaptive solver per slice.
+        max_steps: the most steps one slice solve may take (the solve errors if
+            it needs more); reverse mode sizes its default checkpoint count from
+            it, so a smaller value lowers memory use for large problems.
         n_steps: fixed-step solver with this many steps per slice (useful for
             finite-difference reference gradients); must not be commensurate with
             the time grid.
