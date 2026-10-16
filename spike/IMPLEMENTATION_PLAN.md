@@ -100,10 +100,12 @@ Rough total for M0-M6: 2.5-3.5 weeks.
 
 ### Status and M5 checklist
 
-M0-M4 are implemented in PR tpogden/clerq#327 (`feature/autodiff-backend`), including the
-CHANGELOG and release-notes entries that were planned for M6. A code review of that PR
-(10 findings) produced the hardening list below; "done" items were fixed in the PR, the rest
-are M5 unless noted.
+M0-M4 are **merged to master** in PR tpogden/clerq#327 (merge commit 3c46011, 2026-10-15),
+including the CHANGELOG and release-notes entries that were planned for M6. The clerq
+Adams-Bashforth slice-offset defect found while porting was fixed separately in #328 and
+the tests now compare against `PropagationSolver` directly for every `z_steps_inner`. A code
+review of the PR (10 findings) produced the hardening list below; "done" items were fixed
+before the merge, the rest are M5 unless noted. M5 work continues on `feature/autodiff-m5`.
 
 | # | Item | Status | Notes |
 |-|-|-|-|
@@ -113,7 +115,7 @@ are M5 unless noted.
 | R4 | Dense n_t x n_t spline operator (about 200 MB at n_t = 5000, quadratic) | M5 | Banded / tridiagonal-plus-corrections solve; already listed in the risk table |
 | R5 | Pulse ports re-implement `t_funcs`; `ramp_on`, `ramp_off`, `ramp_offon` and `sech(fwhm)` have no direct equivalence test | M5 | Add per-function tests against `clerq.t_funcs` on a time grid (or make `t_funcs` backend-agnostic) |
 | R6 | `strategy="s4"` accepted without `checkpoints`; default `max_steps=100_000` unrelated to memory | M5 | Validate `checkpoints` for s4; derive a `max_steps` default from the pulse and document the s2 memory coupling |
-| R7 | `omega0` is angular while every other parameter is cyclic | **decide before M5 ends** | Rename (for example `omega0_angular`), or accept cyclic and convert internally; must be settled before the API is public |
+| R7 | `omega0` is angular while every other parameter is cyclic | **done** | Decided: cyclic, converted internally (x 2 pi); the returned field keeps the units of `Omegas_zt` (angular), stated in the docstring; guard test for the 2 pi error |
 | R8 | Problem with no fields crashes with an obscure `np.concatenate` error | M5 | Raise a clear message (or support the empty case) |
 | R9 | Pulse-argument exclusivity (ampl/n_pi, width/fwhm) encoded in two modules | M5, low | Declare the alternative groups once next to the pulse definitions |
 | R10 | Broken `:class:`cls`` docstring reference | M6 | Resolved when `clerq.autodiff` is added to the API docs |
