@@ -229,9 +229,39 @@ def test_requires_float64():
 def test_compiled_function_is_reused_for_the_same_loss():
     ad = _solver().to_autodiff(rtol=1e-8, atol=1e-10)
     ad.value_and_grad(loss)
-    n = len(ad._compiled)
+    assert len(ad._grad_cache) == 1  # non-vacuous: the program was cached
+    fn = next(iter(ad._grad_cache.values()))
     ad.value_and_grad(loss, {"decay_scale": 1.1})  # same loss, same compiled program
-    assert len(ad._compiled) == n
+    assert len(ad._grad_cache) == 1
+    assert next(iter(ad._grad_cache.values())) is fn
+
+
+def test_compiled_gradient_cache_is_bounded_and_least_recently_used():
+    ad = _solver().to_autodiff(rtol=1e-6, atol=1e-8)
+    ad.GRAD_CACHE_SIZE = 2
+    params = {"decay_scale": 1.0}
+
+    def make(k):
+        return lambda omega: k * loss(omega)
+
+    a, b, c = make(1.0), make(2.0), make(3.0)
+    ad.value_and_grad(a, params)
+    ad.value_and_grad(b, params)
+    ad.value_and_grad(a, params)  # a is now more recent than b
+    ad.value_and_grad(c, params)  # evicts b
+    assert [k[0] for k in ad._grad_cache] == [a, c]
+    assert len(ad._grad_cache) == 2
+
+
+def test_evicted_loss_still_gives_the_right_answer():
+    ad = _solver().to_autodiff(rtol=1e-6, atol=1e-8)
+    ad.GRAD_CACHE_SIZE = 1
+    params = {"decay_scale": 1.0}
+    v1, g1 = ad.value_and_grad(loss, params)
+    ad.value_and_grad(lambda omega: 2.0 * loss(omega), params)  # evicts `loss`
+    v2, g2 = ad.value_and_grad(loss, params)  # recompiled
+    assert float(v1) == float(v2)
+    assert float(g1["decay_scale"]) == float(g2["decay_scale"])
 
 
 def test_partial_pulse_args_are_merged_consistently():

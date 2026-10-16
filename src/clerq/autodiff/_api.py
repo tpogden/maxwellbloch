@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from collections.abc import Callable
 
 import diffrax as dfx
@@ -113,6 +114,10 @@ class AutodiffPropagation:
     shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
     by ``2 * pi`` for the cyclic Rabi frequency.
 
+    Attributes:
+        GRAD_CACHE_SIZE: how many compiled ``value_and_grad`` programs (one per
+            loss function and mode) are kept; the least recently used is dropped.
+
     Note:
         Counter-propagating fields are not supported. The result matches
         ``PropagationSolver`` for every ``z_steps_inner``; versions of clerq before
@@ -136,6 +141,8 @@ class AutodiffPropagation:
             the time grid.
         solver: a diffrax solver, default ``Tsit5``.
     """
+
+    GRAD_CACHE_SIZE = 8
 
     def __init__(
         self,
@@ -162,6 +169,8 @@ class AutodiffPropagation:
             "solver": solver,
         }
         self._compiled: dict = {}
+        # compiled value_and_grad functions, least recently used evicted first
+        self._grad_cache: OrderedDict = OrderedDict()
 
     @classmethod
     def from_solver(cls, solver, **options) -> AutodiffPropagation:
@@ -309,7 +318,10 @@ class AutodiffPropagation:
         Args:
             loss: scalar-valued function of the propagated field ``Omega_zt``,
                 shape ``(n_fields, z_steps + 1, n_t)``, complex. Reuse the same
-                function object between calls to reuse the compiled program.
+                function object between calls to reuse the compiled program: it
+                is compiled once per function object, and only the last
+                ``GRAD_CACHE_SIZE`` (8) are kept, so a new lambda on every call
+                recompiles every time.
             params: the parameters to differentiate (any subset of the keys; the
                 gradient has the same structure). Default: every differentiable
                 parameter of the problem, i.e. ``default_params()`` without the
@@ -346,7 +358,9 @@ class AutodiffPropagation:
         self._reject_nondifferentiable(params)
 
         key = (loss, mode)
-        if key not in self._compiled:
+        if key in self._grad_cache:
+            self._grad_cache.move_to_end(key)
+        else:
             overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
 
             def objective(p, fx):
@@ -362,5 +376,7 @@ class AutodiffPropagation:
 
                 jac = jax.jacfwd(with_aux, has_aux=True)
                 fn = jax.jit(lambda p, fx: (lambda g_v: (g_v[1], g_v[0]))(jac(p, fx)))
-            self._compiled[key] = fn
-        return self._compiled[key](params, fixed)
+            self._grad_cache[key] = fn
+            while len(self._grad_cache) > self.GRAD_CACHE_SIZE:
+                self._grad_cache.popitem(last=False)
+        return self._grad_cache[key](params, fixed)
