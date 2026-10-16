@@ -9,6 +9,14 @@ Time-domain and spatial-propagation solvers.
 | [PropagationSolver](PropagationSolver.qmd#clerq.PropagationSolver) | Solver for the propagation of fields through a medium of systems. |
 | [LindbladSolver](LindbladSolver.qmd#clerq.LindbladSolver) | Time-domain master equation solver for a single spatial point. |
 
+## Differentiable propagation
+
+Exact gradients through the propagation (needs the `jax` extra).
+
+| | |
+| --- | --- |
+| [autodiff.AutodiffPropagation](autodiff.AutodiffPropagation.qmd#clerq.autodiff.AutodiffPropagation) | A differentiable version of a :class:`~clerq.PropagationSolver` problem. |
+
 ## Systems and fields
 
 | | |

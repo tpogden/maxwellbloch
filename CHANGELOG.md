@@ -18,7 +18,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   classes, bare energies and the `gaussian`, `sech`, `square` and `ramp_*` pulses (the `on`/`off` edge times of a
   `square` pulse can be set but not differentiated, since the field is discontinuous there); counter-propagating
   fields are not supported. Importing `clerq` never imports JAX. Results are validated against `PropagationSolver`
-  for both schemes and every `z_steps_inner`.
+  for both schemes and every `z_steps_inner`. Documented in the API reference and in the example notebook
+  `autodiff-pulse-design`.
 
 ### Fixed
 - Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted

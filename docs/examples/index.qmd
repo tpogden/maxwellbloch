@@ -17,3 +17,4 @@ title: "Examples"
 | [mbs-Rb87_5s12_5p12_F11_q1-weak-pulse-decay](mbs-Rb87_5s12_5p12_F11_q1-weak-pulse-decay.ipynb) | Rb87 D1 | σ⁺ optical pumping, F=1→F'=1 |
 | [mbs-Rb87_5s12_5p12_F11_q1-sech-2pi](mbs-Rb87_5s12_5p12_F11_q1-sech-2pi.ipynb) | Rb87 D1 | SIT 2π soliton with hyperfine structure |
 | [mbs-Rb87_5s12_5p32_F23_q1-weak-pulse-decay](mbs-Rb87_5s12_5p32_F23_q1-weak-pulse-decay.ipynb) | Rb87 D2 | σ⁺ optical pumping, F=2→F'=3 cycling transition |
+| [autodiff-pulse-design](autodiff-pulse-design.ipynb) | 2-level | Gradient-based pulse design with automatic differentiation (needs `clerq[jax]`) |

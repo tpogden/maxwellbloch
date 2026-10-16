@@ -26,8 +26,10 @@ version of a `PropagationSolver` problem: exact gradients of any loss of the
 propagated field with respect to pulse parameters, interaction strengths,
 detunings, decay rates or a sampled input field, for about the cost of five to six
 propagations however many parameters there are. It is meant for gradient-based
-design of pulses and media. `import clerq` itself never loads JAX. See
-`CHANGELOG.md` for the supported features and limits.
+design of pulses and media. `import clerq` itself never loads JAX. See the
+[pulse design example](examples/autodiff-pulse-design.ipynb) and the
+[API reference](api/autodiff.AutodiffPropagation.qmd), and `CHANGELOG.md` for the
+supported features and limits.
 
 ::: {.callout-note}
 ## Upgrading from 0.13.1

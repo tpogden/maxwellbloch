@@ -110,6 +110,11 @@ gh pr create --base master --title "..." --body "..."
 
 ### Release process
 
+Before bumping, check the release against this list:
+
+- Move the `[Unreleased]` entries in `CHANGELOG.md` and the "Unreleased" section of `docs/release-notes.qmd` under the new version number and date.
+- Add the version to the docs of anything new in this release that was documented without one. For `clerq.autodiff` (first released in this version), add `.. versionadded:: <new version>` to the `AutodiffPropagation` class docstring and to `PropagationSolver.to_autodiff`, and "Requires clerq <new version> or later" to the top of `docs/examples/autodiff-pulse-design.ipynb`. After a docstring change, run `cd docs && uv run --extra docs quartodoc build` and commit the regenerated `docs/api`.
+
 ```bash
 # On master: bump version, commit, tag, then push
 uv run bump-my-version bump patch   # or minor / major

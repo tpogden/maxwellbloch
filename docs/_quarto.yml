@@ -68,6 +68,7 @@ website:
         - examples/mbs-Rb87_5s12_5p12_F11_q1-weak-pulse-decay.ipynb
         - examples/mbs-Rb87_5s12_5p12_F11_q1-sech-2pi.ipynb
         - examples/mbs-Rb87_5s12_5p32_F23_q1-weak-pulse-decay.ipynb
+        - examples/autodiff-pulse-design.ipynb
     - id: api
       title: API reference
       style: docked
@@ -87,6 +88,10 @@ quartodoc:
       contents:
         - PropagationSolver
         - LindbladSolver
+    - title: Differentiable propagation
+      desc: Exact gradients through the propagation (needs the `jax` extra).
+      contents:
+        - autodiff.AutodiffPropagation
     - title: Systems and fields
       contents:
         - System

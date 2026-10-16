@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Callable
+from typing import Any
 
 import diffrax as dfx
 import jax
@@ -99,7 +100,9 @@ class AutodiffPropagation:
         The ``on``/``off`` edge times of a ``square`` pulse can be set but not
         differentiated (the field is discontinuous there, so its derivative is a
         delta function that autodiff would return as 0); ``value_and_grad``
-        raises if asked, and holds them fixed by default. Calling
+        raises if asked, and holds them fixed by default. To differentiate
+        the edge times use a ramp pulse (``ramp_on``, ``ramp_off``,
+        ``ramp_onoff``, ``ramp_offon``), whose edges are smooth. Calling
         ``jax.grad`` yourself through :meth:`propagate` with those traced
         gives exactly that silent 0, so keep them out of the differentiated
         parameters.
@@ -140,7 +143,8 @@ class AutodiffPropagation:
             solver's inner checkpoints to ``checkpoints``.
         checkpoints: inner checkpoint count, required (a positive integer) for
             ``strategy="s4"`` and not allowed with the other strategies.
-        rtol, atol: adaptive step-size tolerances.
+        rtol: relative tolerance of the adaptive step-size control.
+        atol: absolute tolerance of the adaptive step-size control.
         max_steps: the most steps one slice solve may take (the solve errors if
             it needs more); reverse mode sizes its default checkpoint count from
             it, so a smaller value lowers memory use for large problems.
@@ -163,7 +167,7 @@ class AutodiffPropagation:
         atol: float = 1e-10,
         max_steps: int = 100_000,
         n_steps: int | None = None,
-        solver=None,
+        solver: Any = None,
     ) -> None:
         validate_options(step, strategy, checkpoints)
         self.setup = setup
@@ -189,8 +193,15 @@ class AutodiffPropagation:
         self._grad_cache.clear()
 
     @classmethod
-    def from_solver(cls, solver, **options) -> AutodiffPropagation:
-        """Build from a :class:`~clerq.PropagationSolver` (see :class:`cls`)."""
+    def from_solver(cls, solver: Any, **options: Any) -> AutodiffPropagation:
+        """Build from a :class:`~clerq.PropagationSolver`.
+
+        Args:
+            solver: the problem to differentiate.
+            **options: the constructor options of this class (``step``, ``strategy``,
+                ``checkpoints``, ``rtol``, ``atol``, ``max_steps``, ``n_steps``,
+                ``solver``).
+        """
         return cls(setup_from_solver(solver), **options)
 
     # ---- parameters ---------------------------------------------------------
@@ -247,8 +258,10 @@ class AutodiffPropagation:
                     f"{name!r} pulse. The field is discontinuous there, so its "
                     "derivative with respect to them is a delta function that "
                     "autodiff cannot represent (it would return 0). Hold them fixed "
-                    "by passing them in fixed=..., or use a continuous pulse such "
-                    "as 'ramp_onoff'."
+                    "by passing them in fixed=..., or use a ramp pulse "
+                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a "
+                    "square-like pulse with smooth edges whose on/off times are "
+                    "differentiable."
                 )
 
     def _validate(self, params: dict) -> None:
@@ -303,7 +316,7 @@ class AutodiffPropagation:
             **{**self._options, **overrides},
         )
 
-    def propagate(self, params: dict | None = None):
+    def propagate(self, params: dict | None = None) -> Any:
         """Propagate the fields; a pure, jit-compiled function of ``params``.
 
         Args:
@@ -331,7 +344,7 @@ class AutodiffPropagation:
         *,
         fixed: dict | None = None,
         mode: str = "reverse",
-    ):
+    ) -> tuple[Any, dict]:
         """Value and gradient of ``loss(Omega_zt)`` with respect to ``params``.
 
         Args:
