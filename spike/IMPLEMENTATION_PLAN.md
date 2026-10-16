@@ -121,7 +121,7 @@ Remaining: M6 (docs, R10), optional R11, optional M7, and the follow-ups listed 
 | R8 | Problem with no fields crashes with an obscure `np.concatenate` error | **done** (#329) | `to_autodiff()` raises a `ValueError` for a system with no fields |
 | R9 | Pulse-argument exclusivity (ampl/n_pi, width/fwhm) encoded in two modules | **done** (#329) | `EXCLUSIVE_ARGS` per pulse type in `_pulses.py`, used by the pulse builders and `_merge_pulse_args` (a gaussian ignores `width`, as `t_funcs` does) |
 | R10 | Broken `:class:`cls`` docstring reference | M6 | Resolved when `clerq.autodiff` is added to the API docs |
-| R11 | True derivative w.r.t. a square pulse's edge times (about -3590 / +3058 on the example) | optional, after M5 | A feature rather than hardening: integrate slice 0 in segments with differentiable endpoints (diffrax differentiates integration limits); the sampled input field is piecewise constant in the edge times, so only slice 0 contributes |
+| R11 | True derivative w.r.t. a square pulse's edge times (about -3590 / +3058 on the example) | **won't do** | Considered and rejected. The approach would be to integrate slice 0 in segments with differentiable endpoints (diffrax differentiates integration limits), but it needs a segmented `solve_slice`, cannot guard the fixed-step wrong-gradient hazard when segment lengths depend on the parameters, and still leaves a loss that jumps whenever an edge crosses a sample time. `square` keeps working with its edges held fixed (`value_and_grad` raises if they are requested); the error and docs point to the `ramp_*` pulses for differentiable edges |
 
 Findings that are guards, not behaviour, are covered by tests in the PRs
 (`tests/test_autodiff_api_regressions.py` for R1 and R2).
