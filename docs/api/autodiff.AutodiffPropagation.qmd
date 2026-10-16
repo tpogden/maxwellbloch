@@ -1,0 +1,190 @@
+# autodiff.AutodiffPropagation { #clerq.autodiff.AutodiffPropagation }
+
+```python
+autodiff.AutodiffPropagation(
+    setup,
+    *,
+    step='ab',
+    strategy='s3',
+    checkpoints=None,
+    rtol=1e-08,
+    atol=1e-10,
+    max_steps=100000,
+    n_steps=None,
+    solver=None,
+)
+```
+
+A differentiable version of a :class:`~clerq.PropagationSolver` problem.
+
+Build it with :meth:`clerq.PropagationSolver.to_autodiff`. It reproduces
+``PropagationSolver.solve`` as a pure function of a *parameter pytree*, so the
+propagated field and any loss of it can be differentiated with respect to the
+parameters, with reverse- or forward-mode autodiff, and composed with
+``jax.jit``, ``jax.vmap`` and optimisers.
+
+Parameters are a ``dict``; every key is optional and defaults to the value
+in the problem (see :meth:`default_params`):
+
+``pulse_args``
+    list, one dict per field, of the arguments of its analytic input pulse
+    (``ampl``, ``centre``, ``fwhm``/``width``, ``n_pi``, ``on``, ``off``).
+    The ``on``/``off`` edge times of a ``square`` pulse can be set but not
+    differentiated (the field is discontinuous there, so its derivative is a
+    delta function that autodiff would return as 0); ``value_and_grad``
+    raises if asked, and holds them fixed by default. Calling
+    ``jax.grad`` yourself through :meth:`propagate` with those traced
+    gives exactly that silent 0, so keep them out of the differentiated
+    parameters.
+``rabi_freq``
+    array ``(n_fields,)``, cyclic ``rabi_freq`` multiplying each pulse.
+``interaction_strengths``
+    array ``(n_fields,)``, as the ``interaction_strengths`` argument.
+``detunings``
+    array ``(n_fields,)``, cyclic fixed detuning of each field.
+``decay_scale``
+    scalar multiplying every decay rate.
+``omega0``
+    array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
+    *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
+    first slice is driven by their cubic spline instead of the analytic
+    pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
+
+All parameters are cyclic (like the problem definition). The propagated field
+is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
+shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
+by ``2 * pi`` for the cyclic Rabi frequency.
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name            | Type   | Description                                                                                                                  |
+|-----------------|--------|------------------------------------------------------------------------------------------------------------------------------|
+| GRAD_CACHE_SIZE |        | how many compiled ``value_and_grad`` programs (one per loss function and mode) are kept; the least recently used is dropped. |
+
+## Note {.doc-section .doc-section-note}
+
+Counter-propagating fields are not supported. The result matches
+``PropagationSolver`` for every ``z_steps_inner``; versions of clerq before
+#328 stored Adams-Bashforth slices one inner step early when
+``z_steps_inner > 1`` and will not match there.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type             | Description                                                                                                                                                                                    | Default    |
+|-------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| setup       | PropagationSetup | the problem, from ``setup_from_solver``.                                                                                                                                                       | _required_ |
+| step        | str              | ``"ab"`` (Adams-Bashforth, default) or ``"euler"``.                                                                                                                                            | `'ab'`     |
+| strategy    | str              | ``"s3"`` (default) recomputes a slice on the backward pass; ``"s2"`` stores every slice; ``"s4"`` additionally limits the solver's inner checkpoints to ``checkpoints``.                       | `'s3'`     |
+| checkpoints | int \| None      | inner checkpoint count, required (a positive integer) for ``strategy="s4"`` and not allowed with the other strategies.                                                                         | `None`     |
+| rtol        | float            | relative tolerance of the adaptive step-size control.                                                                                                                                          | `1e-08`    |
+| atol        | float            | absolute tolerance of the adaptive step-size control.                                                                                                                                          | `1e-10`    |
+| max_steps   | int              | the most steps one slice solve may take (the solve errors if it needs more); reverse mode sizes its default checkpoint count from it, so a smaller value lowers memory use for large problems. | `100000`   |
+| n_steps     | int \| None      | fixed-step solver with this many steps per slice (useful for finite-difference reference gradients); must not be commensurate with the time grid.                                              | `None`     |
+| solver      | Any              | a diffrax solver, default ``Tsit5``.                                                                                                                                                           | `None`     |
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [clear_cache](#clerq.autodiff.AutodiffPropagation.clear_cache) | Drop the compiled programs, releasing the loss functions (and the arrays |
+| [default_params](#clerq.autodiff.AutodiffPropagation.default_params) | The parameters of the problem this object was built from. |
+| [from_solver](#clerq.autodiff.AutodiffPropagation.from_solver) | Build from a :class:`~clerq.PropagationSolver`. |
+| [propagate](#clerq.autodiff.AutodiffPropagation.propagate) | Propagate the fields; a pure, jit-compiled function of ``params``. |
+| [value_and_grad](#clerq.autodiff.AutodiffPropagation.value_and_grad) | Value and gradient of ``loss(Omega_zt)`` with respect to ``params``. |
+
+### clear_cache { #clerq.autodiff.AutodiffPropagation.clear_cache }
+
+```python
+autodiff.AutodiffPropagation.clear_cache()
+```
+
+Drop the compiled programs, releasing the loss functions (and the arrays
+they capture) that ``value_and_grad`` keeps alive.
+
+### default_params { #clerq.autodiff.AutodiffPropagation.default_params }
+
+```python
+autodiff.AutodiffPropagation.default_params()
+```
+
+The parameters of the problem this object was built from.
+
+Every value is a float, whatever literal the problem definition used.
+
+### from_solver { #clerq.autodiff.AutodiffPropagation.from_solver }
+
+```python
+autodiff.AutodiffPropagation.from_solver(solver, **options)
+```
+
+Build from a :class:`~clerq.PropagationSolver`.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type   | Description                                                                                                                                  | Default    |
+|-----------|--------|----------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| solver    | Any    | the problem to differentiate.                                                                                                                | _required_ |
+| **options | Any    | the constructor options of this class (``step``, ``strategy``, ``checkpoints``, ``rtol``, ``atol``, ``max_steps``, ``n_steps``, ``solver``). | `{}`       |
+
+### propagate { #clerq.autodiff.AutodiffPropagation.propagate }
+
+```python
+autodiff.AutodiffPropagation.propagate(params=None)
+```
+
+Propagate the fields; a pure, jit-compiled function of ``params``.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type         | Description                                                            | Default   |
+|--------|--------------|------------------------------------------------------------------------|-----------|
+| params | dict \| None | parameter pytree (see the class docstring); defaults to the problem's. | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                       |
+|--------|--------|-------------------------------------------------------------------|
+|        | Any    | ``Omega(z, t)``, shape ``(n_fields, z_steps + 1, n_t)``, complex. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type         | Description                       |
+|--------|--------------|-----------------------------------|
+|        | RuntimeError | if JAX is not in 64-bit mode.     |
+|        | ValueError   | for unknown keys or wrong shapes. |
+
+### value_and_grad { #clerq.autodiff.AutodiffPropagation.value_and_grad }
+
+```python
+autodiff.AutodiffPropagation.value_and_grad(
+    loss,
+    params=None,
+    *,
+    fixed=None,
+    mode='reverse',
+)
+```
+
+Value and gradient of ``loss(Omega_zt)`` with respect to ``params``.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type         | Description                                                                                                                                                                                                                                                                                                                                                | Default     |
+|--------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| loss   | Callable     | scalar-valued function of the propagated field ``Omega_zt``, shape ``(n_fields, z_steps + 1, n_t)``, complex. Reuse the same function object between calls to reuse the compiled program: it is compiled once per function object, and only the last ``GRAD_CACHE_SIZE`` (8) are kept, so a new lambda on every call recompiles every time.                | _required_  |
+| params | dict \| None | the parameters to differentiate (any subset of the keys; the gradient has the same structure). Default: every differentiable parameter of the problem, i.e. ``default_params()`` without the edge times (``on``, ``off``) of ``square`` pulses, which stay fixed because the field's derivative with respect to a discontinuity's location is not defined. | `None`      |
+| fixed  | dict \| None | parameters held constant at the given values, with the same structure as ``params`` (for example the ``on``/``off`` of a square pulse, or a different target interaction strength). They are not differentiated.                                                                                                                                           | `None`      |
+| mode   | str          | ``"reverse"`` (cost ~5x one propagation regardless of the number of parameters) or ``"forward"`` (cost grows with the number of parameters; useful as a cross-check or for very few parameters).                                                                                                                                                           | `'reverse'` |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type               | Description                                                            |
+|--------|--------------------|------------------------------------------------------------------------|
+|        | tuple\[Any, dict\] | ``(value, grads)`` with ``grads`` of the same structure as ``params``. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type         | Description                                                                                                            |
+|--------|--------------|------------------------------------------------------------------------------------------------------------------------|
+|        | RuntimeError | if JAX is not in 64-bit mode.                                                                                          |
+|        | ValueError   | for an unknown ``mode``, unknown keys, wrong shapes, or a request for the gradient of a ``square`` pulse's edge times. |
