@@ -67,3 +67,47 @@ def test_differs_from_linear_interpolation():
 def test_invalid_grids_are_rejected(ts):
     with pytest.raises(ValueError):
         CubicDrive(ts)
+
+
+def _grid(n, seed):
+    """Strictly increasing, non-uniform grid of ``n`` times."""
+    rng = np.random.default_rng(seed)
+    return np.cumsum(rng.uniform(0.2, 1.8, n)) - 3.0
+
+
+@pytest.mark.parametrize("n", [4, 5, 6, 17, 400])
+def test_knot_derivatives_equal_the_dense_scipy_operator(n):
+    """Banded solve == the dense SciPy reference, on non-uniform grids of any length."""
+    from clerq.autodiff._drive import not_a_knot_derivative_matrix
+
+    ts = _grid(n, seed=n)
+    y = np.random.default_rng(n).normal(size=(3, n))
+    got = np.asarray(CubicDrive(ts).knot_derivatives(jnp.asarray(y)))
+    ref = y @ not_a_knot_derivative_matrix(ts).T
+    assert np.abs(got - ref).max() < 1e-10 * max(1.0, np.abs(ref).max())
+    assert np.abs(ref).max() > 0.1  # non-vacuous
+
+
+@pytest.mark.parametrize("n", [4, 5, 40])
+def test_non_uniform_grid_matches_scipy_spline_and_gradient(n):
+    ts = _grid(n, seed=100 + n)
+    y = np.random.default_rng(n).normal(size=n)
+    drive = CubicDrive(ts)
+    t = np.random.default_rng(7).uniform(ts[0], ts[-1], 200)
+    ref = make_interp_spline(ts, y, k=3, bc_type=None)(t)
+    got = np.asarray(jax.vmap(drive(jnp.asarray(y)))(jnp.asarray(t)))
+    assert np.abs(got - ref).max() < 1e-10
+    t0 = float(t[0])
+    g = np.asarray(jax.grad(lambda yy: drive(yy)(t0))(jnp.asarray(y)))
+    basis = make_interp_spline(ts, np.eye(n), k=3, bc_type=None)(t0)
+    assert np.abs(g - basis).max() < 1e-10
+
+
+def test_long_grid_is_linear_in_memory():
+    """A dense operator for 20 000 samples would be 3.2 GB; this builds instantly."""
+    ts = np.linspace(0.0, 1.0, 20_000)
+    y = np.sin(40 * ts)
+    drive = CubicDrive(ts)
+    t = np.array([0.1234, 0.5, 0.98765])
+    got = np.asarray(jax.vmap(drive(jnp.asarray(y)))(jnp.asarray(t)))
+    assert np.abs(got - np.sin(40 * t)).max() < 1e-8
