@@ -365,6 +365,11 @@ class PropagationSolver(LindbladSolver):
         self.check()
         self.init_Omegas_zt()
         self.init_states_zt()
+        # The z-stepping below replaces system.H_Omega_list with interpolated
+        # coefficients. Start from the analytic pulses (picking up any edits to
+        # the fields' t_func or t_args) and restore them afterwards, so that
+        # solve() is repeatable.
+        self.system._build_H_Omega()
 
         def _do_solve() -> None:
             if step == "euler":
@@ -383,14 +388,18 @@ class PropagationSolver(LindbladSolver):
                 )
             self.save_results()
 
-        # Should we recalculate or load a savefile?
-        if recalc or not self.savefile_exists():
-            _do_solve()
-        else:
-            try:
-                self.load_results()
-            except ValueError:
+        try:
+            # Should we recalculate or load a savefile?
+            if recalc or not self.savefile_exists():
                 _do_solve()
+            else:
+                try:
+                    self.load_results()
+                except ValueError:
+                    self.system._build_H_Omega()
+                    _do_solve()
+        finally:
+            self.system._build_H_Omega()
 
         if check_counter_prop_depletion:
             self._check_counter_prop_depletion(

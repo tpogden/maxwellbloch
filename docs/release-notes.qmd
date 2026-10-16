@@ -58,6 +58,12 @@ they are removed in a future release.
   `solve(step=...)`.
 - The `mbsolve` and `obsolve` command-line scripts keep their names.
 
+**Fixed: solving twice gave different results.** Calling `solver.solve()` again on
+the same `PropagationSolver` (or editing a field's `rabi_freq_t_args` and
+solving again) started from the last solve's leftover field instead of the
+pulse you defined, so the second and later results were wrong. Repeated solves
+now match a fresh solver. If you re-solved the same object, recalculate.
+
 **Fixed: Adams-Bashforth output was one inner step early.** With the default
 `step="ab"` and `z_steps_inner > 1` (the default is 2), each stored slice of
 the field and the states was one inner step short of its nominal `z`. Slices are

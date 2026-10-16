@@ -21,6 +21,12 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   for both schemes and every `z_steps_inner`.
 
 ### Fixed
+- Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted
+  energy fractions of 0.96848, 0.95962, 0.95950, ... for a sech pulse), and editing a field's `rabi_freq_t_args`
+  between solves was not picked up correctly. The z-stepping replaced `system.H_Omega_list` with the last slice's
+  interpolated coefficients and never restored it, so the next solve drove slice 0 with stale data instead of the
+  analytic pulse. `solve()` (and the deprecated `mbsolve()`) now rebuilds the analytic `H_Omega_list` before and after
+  solving, so repeated solves are identical to a fresh solver.
 - `PropagationSolver.solve(step="ab")` (the default) stored every output slice one inner step early whenever
   `z_steps_inner > 1`: the Euler bootstrap recorded slice 1 after a single inner step instead of `z_steps_inner`
   steps, and every later slice inherited the offset, so `Omegas_zt[:, j]` was at
