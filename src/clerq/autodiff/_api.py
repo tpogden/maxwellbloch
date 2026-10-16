@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from collections.abc import Callable
 
 import diffrax as dfx
@@ -14,8 +15,9 @@ from clerq.autodiff._propagate import (
     PropagationSetup,
     propagate_fields,
     setup_from_solver,
+    validate_options,
 )
-from clerq.autodiff._pulses import NONDIFFERENTIABLE_ARGS
+from clerq.autodiff._pulses import NONDIFFERENTIABLE_ARGS, exclusive_groups
 
 _PARAM_KEYS = (
     "pulse_args",
@@ -27,18 +29,20 @@ _PARAM_KEYS = (
 )
 
 
-def _merge_pulse_args(default: dict, user: dict) -> dict:
+def _merge_pulse_args(default: dict, user: dict, name: str | None = None) -> dict:
     """Overlay ``user`` on ``default``, keeping each alternative pair consistent.
 
-    A pulse takes either ``ampl`` or ``n_pi``, and a sech pulse either ``width`` or
-    ``fwhm``; supplying one must not leave the other from the defaults behind.
+    Of each group of alternatives that pulse ``name`` has in ``EXCLUSIVE_ARGS``
+    (``ampl``/``n_pi``, and for a sech ``width``/``fwhm``) a pulse takes one;
+    supplying one must not leave the other from the defaults behind. With no
+    ``name``, every known group applies.
     """
     merged = {**default, **user}
-    for chosen, other in (("ampl", "n_pi"), ("n_pi", "ampl"), ("width", "fwhm")):
-        if chosen in user and other not in user:
-            merged.pop(other, None)
-    if "fwhm" in user and "width" not in user:
-        merged.pop("width", None)
+    for group in exclusive_groups(name):
+        if any(k in user for k in group):
+            for k in group:
+                if k not in user:
+                    merged.pop(k, None)
     return merged
 
 
@@ -60,13 +64,19 @@ def _floatify(tree):
     return jax.tree_util.tree_map(convert, tree)
 
 
-def _overlay(fixed: dict, params: dict) -> dict:
-    """``params`` over ``fixed``; per-field pulse arguments are merged."""
+def _overlay(fixed: dict, params: dict, names=None) -> dict:
+    """``params`` over ``fixed``; per-field pulse arguments are merged.
+
+    ``names`` optionally gives each field's pulse name (see ``_merge_pulse_args``).
+    """
     out = {**fixed, **params}
     if "pulse_args" in fixed and "pulse_args" in params:
+        names = names or [None] * len(params["pulse_args"])
         out["pulse_args"] = [
-            _merge_pulse_args(f, p)
-            for f, p in zip(fixed["pulse_args"], params["pulse_args"], strict=True)
+            _merge_pulse_args(f, p, n)
+            for f, p, n in zip(
+                fixed["pulse_args"], params["pulse_args"], names, strict=True
+            )
         ]
     return out
 
@@ -112,6 +122,10 @@ class AutodiffPropagation:
     shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
     by ``2 * pi`` for the cyclic Rabi frequency.
 
+    Attributes:
+        GRAD_CACHE_SIZE: how many compiled ``value_and_grad`` programs (one per
+            loss function and mode) are kept; the least recently used is dropped.
+
     Note:
         Counter-propagating fields are not supported. The result matches
         ``PropagationSolver`` for every ``z_steps_inner``; versions of clerq before
@@ -124,14 +138,19 @@ class AutodiffPropagation:
         strategy: ``"s3"`` (default) recomputes a slice on the backward pass;
             ``"s2"`` stores every slice; ``"s4"`` additionally limits the
             solver's inner checkpoints to ``checkpoints``.
-        checkpoints: inner checkpoint count for ``strategy="s4"``.
+        checkpoints: inner checkpoint count, required (a positive integer) for
+            ``strategy="s4"`` and not allowed with the other strategies.
         rtol, atol: adaptive step-size tolerances.
-        max_steps: step budget of the adaptive solver per slice.
+        max_steps: the most steps one slice solve may take (the solve errors if
+            it needs more); reverse mode sizes its default checkpoint count from
+            it, so a smaller value lowers memory use for large problems.
         n_steps: fixed-step solver with this many steps per slice (useful for
             finite-difference reference gradients); must not be commensurate with
             the time grid.
         solver: a diffrax solver, default ``Tsit5``.
     """
+
+    GRAD_CACHE_SIZE = 8
 
     def __init__(
         self,
@@ -146,7 +165,9 @@ class AutodiffPropagation:
         n_steps: int | None = None,
         solver=None,
     ) -> None:
+        validate_options(step, strategy, checkpoints)
         self.setup = setup
+        self._pulse_names = [name for name, _, _ in setup.pulses]
         self._options = {
             "step": step,
             "strategy": strategy,
@@ -158,6 +179,14 @@ class AutodiffPropagation:
             "solver": solver,
         }
         self._compiled: dict = {}
+        # compiled value_and_grad functions, least recently used evicted first
+        self._grad_cache: OrderedDict = OrderedDict()
+
+    def clear_cache(self) -> None:
+        """Drop the compiled programs, releasing the loss functions (and the arrays
+        they capture) that ``value_and_grad`` keeps alive."""
+        self._compiled.clear()
+        self._grad_cache.clear()
 
     @classmethod
     def from_solver(cls, solver, **options) -> AutodiffPropagation:
@@ -252,9 +281,12 @@ class AutodiffPropagation:
         p = {**defaults, **params}
         if "pulse_args" in params:  # per-field partial overrides of the pulse arguments
             p["pulse_args"] = [
-                _merge_pulse_args(d, u)
-                for d, u in zip(
-                    defaults["pulse_args"], params["pulse_args"], strict=True
+                _merge_pulse_args(d, u, n)
+                for d, u, n in zip(
+                    defaults["pulse_args"],
+                    params["pulse_args"],
+                    self._pulse_names,
+                    strict=True,
                 )
             ]
         # omega0 is cyclic like every other parameter; the engine works in angular
@@ -305,7 +337,10 @@ class AutodiffPropagation:
         Args:
             loss: scalar-valued function of the propagated field ``Omega_zt``,
                 shape ``(n_fields, z_steps + 1, n_t)``, complex. Reuse the same
-                function object between calls to reuse the compiled program.
+                function object between calls to reuse the compiled program: it
+                is compiled once per function object, and only the last
+                ``GRAD_CACHE_SIZE`` (8) are kept, so a new lambda on every call
+                recompiles every time.
             params: the parameters to differentiate (any subset of the keys; the
                 gradient has the same structure). Default: every differentiable
                 parameter of the problem, i.e. ``default_params()`` without the
@@ -342,11 +377,14 @@ class AutodiffPropagation:
         self._reject_nondifferentiable(params)
 
         key = (loss, mode)
-        if key not in self._compiled:
+        if key in self._grad_cache:
+            self._grad_cache.move_to_end(key)
+        else:
             overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
 
             def objective(p, fx):
-                return loss(self._propagate(_overlay(fx, p), **overrides))
+                over = _overlay(fx, p, self._pulse_names)
+                return loss(self._propagate(over, **overrides))
 
             if mode == "reverse":
                 fn = jax.jit(jax.value_and_grad(objective))
@@ -358,5 +396,7 @@ class AutodiffPropagation:
 
                 jac = jax.jacfwd(with_aux, has_aux=True)
                 fn = jax.jit(lambda p, fx: (lambda g_v: (g_v[1], g_v[0]))(jac(p, fx)))
-            self._compiled[key] = fn
-        return self._compiled[key](params, fixed)
+            self._grad_cache[key] = fn
+            while len(self._grad_cache) > self.GRAD_CACHE_SIZE:
+                self._grad_cache.popitem(last=False)
+        return self._grad_cache[key](params, fixed)

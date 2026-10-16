@@ -22,6 +22,7 @@ Reproduces ``PropagationSolver.solve`` (Adams-Bashforth by default, or Euler):
 from __future__ import annotations
 
 import math
+import numbers
 from dataclasses import dataclass
 
 import diffrax as dfx
@@ -78,10 +79,15 @@ def setup_from_solver(solver) -> PropagationSetup:
     Raises:
         NotImplementedError: if a field is counter-propagating or its pulse
             function is not supported.
-        ValueError: if the number of interaction strengths does not match the
-            number of fields.
+        ValueError: if the system has no fields, or the number of interaction
+            strengths does not match the number of fields.
     """
     solver.check()
+    if not solver.system.fields:
+        raise ValueError(
+            "to_autodiff needs a system with at least one coupled field to "
+            "propagate; this system has none."
+        )
     ops = build_operators(solver.system)
     h = solver.z_step_inner()
     n_steps = solver.z_steps * solver.z_steps_inner
@@ -118,6 +124,35 @@ def setup_from_solver(solver) -> PropagationSetup:
         weights=weights / weights.sum(),
         pulses=pulses,
     )
+
+
+def validate_options(step, strategy, checkpoints) -> None:
+    """Check the scheme options; called when the problem is built and when it runs.
+
+    Raises:
+        ValueError: for an unknown ``step`` or ``strategy``, ``checkpoints``
+            missing or not a positive integer for ``"s4"``, or given for any
+            other strategy.
+    """
+    if step not in ("ab", "euler"):
+        raise ValueError(f"Unknown step {step!r}; use 'ab' or 'euler'.")
+    if strategy not in ("s2", "s3", "s4"):
+        raise ValueError(f"Unknown strategy {strategy!r}; use 's2', 's3' or 's4'.")
+    if strategy == "s4":
+        ok = (
+            isinstance(checkpoints, numbers.Integral)
+            and not isinstance(checkpoints, bool)
+            and checkpoints >= 1
+        )
+        if not ok:
+            raise ValueError(
+                "strategy='s4' needs `checkpoints`, a positive integer; "
+                f"got {checkpoints!r}."
+            )
+    elif checkpoints is not None:
+        raise ValueError(
+            f"`checkpoints` only applies to strategy='s4', not {strategy!r}."
+        )
 
 
 def propagate_fields(
@@ -162,8 +197,13 @@ def propagate_fields(
             checkpoints the scan body (recomputes a slice on the backward pass);
             ``"s4"`` additionally limits the solver's inner checkpoints to
             ``checkpoints``.
-        checkpoints: inner checkpoint count for ``strategy="s4"``.
-        rtol, atol, max_steps: adaptive step-size controls.
+        checkpoints: inner checkpoint count, required (a positive integer) for
+            ``strategy="s4"`` and not allowed with the other strategies.
+        rtol, atol: adaptive step-size tolerances.
+        max_steps: the most steps one slice solve may take; the solve errors if
+            it needs more. Reverse mode also sizes its default checkpoint
+            count from it (about its base-2 logarithm), so a smaller value
+            lowers memory use for large problems.
         n_steps: fixed-step solver with this many steps per slice (reference
             gradients); must not be commensurate with the time grid.
         solver: a diffrax solver, default ``Tsit5``.
@@ -179,10 +219,7 @@ def propagate_fields(
         ValueError: for an unknown ``step`` or ``strategy``.
     """
     require_float64()
-    if step not in ("ab", "euler"):
-        raise ValueError(f"Unknown step {step!r}; use 'ab' or 'euler'.")
-    if strategy not in ("s2", "s3", "s4"):
-        raise ValueError(f"Unknown strategy {strategy!r}; use 's2', 's3' or 's4'.")
+    validate_options(step, strategy, checkpoints)
 
     ops = setup.ops
     n_f = ops.num_fields
