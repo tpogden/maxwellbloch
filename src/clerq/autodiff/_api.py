@@ -100,7 +100,9 @@ class AutodiffPropagation:
         The ``on``/``off`` edge times of a ``square`` pulse can be set but not
         differentiated (the field is discontinuous there, so its derivative is a
         delta function that autodiff would return as 0); ``value_and_grad``
-        raises if asked, and holds them fixed by default. Calling
+        raises if asked, and holds them fixed by default. To differentiate
+        the edge times use a ramp pulse (``ramp_on``, ``ramp_off``,
+        ``ramp_onoff``, ``ramp_offon``), whose edges are smooth. Calling
         ``jax.grad`` yourself through :meth:`propagate` with those traced
         gives exactly that silent 0, so keep them out of the differentiated
         parameters.
@@ -256,8 +258,10 @@ class AutodiffPropagation:
                     f"{name!r} pulse. The field is discontinuous there, so its "
                     "derivative with respect to them is a delta function that "
                     "autodiff cannot represent (it would return 0). Hold them fixed "
-                    "by passing them in fixed=..., or use a continuous pulse such "
-                    "as 'ramp_onoff'."
+                    "by passing them in fixed=..., or use a ramp pulse "
+                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a "
+                    "square-like pulse with smooth edges whose on/off times are "
+                    "differentiable."
                 )
 
     def _validate(self, params: dict) -> None:
