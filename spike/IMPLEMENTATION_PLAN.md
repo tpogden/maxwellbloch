@@ -92,7 +92,7 @@ diverging.
 | M2 | Slice solve + array drive | Matches `LindbladSolver` to 1e-8 with analytic and interpolated drive; gradients w.r.t. field samples vs fixed-step FD <= 1e-5 | 2 d |
 | M3 | Propagation scan (AB2/Euler, velocity classes, **several co-propagating fields**, strategies) | Matches `PropagationSolver` on the fixture set in `tests/json/` to 1e-8 relative (same scheme, same z_steps), including the multi-field fixtures | 4-5 d |
 | M4 | Differentiation API, parameter pytree, forward mode | Gradients vs fixed-step FD <= 1e-5; reverse vs forward <= 1e-8; strategies agree to 1e-9 | 2-3 d |
-| M5 | Hardening: guards (commensurate fixed step, non-vacuity), `max_steps` heuristic, clear errors for unsupported features (counter-propagating, ...), memory/time docs | Guard tests; unsupported inputs raise `NotImplementedError` with guidance | 2 d |
+| M5 (merged, #329) | Hardening: guards (commensurate fixed step, non-vacuity), `max_steps` heuristic, clear errors for unsupported features (counter-propagating, ...), memory/time docs | Guard tests; unsupported inputs raise `NotImplementedError` with guidance | 2 d |
 | M6 | Docs and example: inverse-design notebook, API page, CHANGELOG + release notes, benchmark file | `make docs_html` clean; example runs in CI time budget | 2-3 d |
 | M7 (optional) | CUDA float64 validation and timing | One sweep on a GPU; documented speedups | 1 d + hardware |
 
@@ -104,25 +104,35 @@ M0-M4 are **merged to master** in PR tpogden/clerq#327 (merge commit 3c46011, 20
 including the CHANGELOG and release-notes entries that were planned for M6. The clerq
 Adams-Bashforth slice-offset defect found while porting was fixed separately in #328 and
 the tests now compare against `PropagationSolver` directly for every `z_steps_inner`. A code
-review of the PR (10 findings) produced the hardening list below; "done" items were fixed
-before the merge, the rest are M5 unless noted. M5 work continues on `feature/autodiff-m5`.
+review of the PR (10 findings) produced the hardening list below. M5 hardening (R3-R9) is
+**merged** in PR tpogden/clerq#329; a code review of that PR was also fixed in it
+(per-pulse exclusivity groups, options validated in `to_autodiff()`, `clear_cache()`).
+Remaining: M6 (docs, R10), optional R11, optional M7, and the follow-ups listed after the table.
 
 | # | Item | Status | Notes |
 |-|-|-|-|
 | R1 | A `square` pulse's `on`/`off` have silently-zero gradients | **done** | `value_and_grad` holds them fixed by default, raises if they are requested, takes `fixed=...`; ramp pulses stay differentiable |
 | R2 | Integer literals in a problem definition break `value_and_grad(loss)` | **done** | `default_params()` returns floats; integer user parameters are converted |
-| R3 | `value_and_grad` compile cache is unbounded and keyed by the loss closure | M5 | Bound it (small LRU) or key on something stable; document reuse of the loss object |
-| R4 | Dense n_t x n_t spline operator (about 200 MB at n_t = 5000, quadratic) | M5 | Banded / tridiagonal-plus-corrections solve; already listed in the risk table |
-| R5 | Pulse ports re-implement `t_funcs`; `ramp_on`, `ramp_off`, `ramp_offon` and `sech(fwhm)` have no direct equivalence test | M5 | Add per-function tests against `clerq.t_funcs` on a time grid (or make `t_funcs` backend-agnostic) |
-| R6 | `strategy="s4"` accepted without `checkpoints`; default `max_steps=100_000` unrelated to memory | M5 | Validate `checkpoints` for s4; derive a `max_steps` default from the pulse and document the s2 memory coupling |
+| R3 | `value_and_grad` compile cache is unbounded and keyed by the loss closure | **done** (#329) | LRU of `GRAD_CACHE_SIZE` = 8 programs; docstring says to reuse the loss object; `clear_cache()` releases the retained closures |
+| R4 | Dense n_t x n_t spline operator (about 200 MB at n_t = 5000, quadratic) | **done** (#329) | SciPy's not-a-knot system is already tridiagonal; solved with `jax.lax.linalg.tridiagonal_solve`, O(n_t); tested against the dense SciPy operator on non-uniform grids and at n_t = 20 000. GPU accuracy of the unpivoted solve is untested (M7) |
+| R5 | Pulse ports re-implement `t_funcs`; `ramp_on`, `ramp_off`, `ramp_offon` and `sech(fwhm)` have no direct equivalence test | **done** (#329) | `tests/test_autodiff_pulses.py`: every port against `t_funcs` to 1e-13 (mutation-checked); it found that `sech` accepted `ampl` + `n_pi` where `t_funcs` raises (fixed with R9) |
+| R6 | `strategy="s4"` accepted without `checkpoints`; default `max_steps=100_000` unrelated to memory | **partly done** (#329) | `checkpoints` validated at construction (required for s4, rejected otherwise); `max_steps` documented as the step budget that also sizes the default checkpoint count. Not done: deriving a `max_steps` default from the pulse (left at 100 000) |
 | R7 | `omega0` is angular while every other parameter is cyclic | **done** | Decided: cyclic, converted internally (x 2 pi); the returned field keeps the units of `Omegas_zt` (angular), stated in the docstring; guard test for the 2 pi error |
-| R8 | Problem with no fields crashes with an obscure `np.concatenate` error | M5 | Raise a clear message (or support the empty case) |
-| R9 | Pulse-argument exclusivity (ampl/n_pi, width/fwhm) encoded in two modules | M5, low | Declare the alternative groups once next to the pulse definitions |
+| R8 | Problem with no fields crashes with an obscure `np.concatenate` error | **done** (#329) | `to_autodiff()` raises a `ValueError` for a system with no fields |
+| R9 | Pulse-argument exclusivity (ampl/n_pi, width/fwhm) encoded in two modules | **done** (#329) | `EXCLUSIVE_ARGS` per pulse type in `_pulses.py`, used by the pulse builders and `_merge_pulse_args` (a gaussian ignores `width`, as `t_funcs` does) |
 | R10 | Broken `:class:`cls`` docstring reference | M6 | Resolved when `clerq.autodiff` is added to the API docs |
 | R11 | True derivative w.r.t. a square pulse's edge times (about -3590 / +3058 on the example) | optional, after M5 | A feature rather than hardening: integrate slice 0 in segments with differentiable endpoints (diffrax differentiates integration limits); the sampled input field is piecewise constant in the edge times, so only slice 0 contributes |
 
-Findings that are guards, not behaviour, are covered by tests in the PR
+Findings that are guards, not behaviour, are covered by tests in the PRs
 (`tests/test_autodiff_api_regressions.py` for R1 and R2).
+
+Follow-ups not yet scheduled:
+
+- GPU accuracy of the tridiagonal spline solve (the first and last rows are not diagonally
+  dominant and GPU solvers may not pivot): include a strongly non-uniform grid in M7.
+- Deriving a `max_steps` default from the pulse (the unfinished half of R6).
+- Open questions 4 and 5 below.
+- A docs-only PR for the spike results, and deciding the fate of the spike branch.
 
 ## 5. Test plan
 
