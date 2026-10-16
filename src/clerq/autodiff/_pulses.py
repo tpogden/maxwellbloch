@@ -37,6 +37,20 @@ SUPPORTED = (
 NONDIFFERENTIABLE_ARGS = {"square": ("on", "off")}
 
 
+# Alternative ways of giving the same quantity: a pulse takes at most one argument of
+# each group (the amplitude as ``ampl`` or ``n_pi``; a sech's width as ``width`` or
+# ``fwhm``). The single source of these rules, used both when a pulse is built and
+# when user parameters are merged over the problem's defaults.
+EXCLUSIVE_ARGS = (("ampl", "n_pi"), ("width", "fwhm"))
+
+
+def check_exclusive(args: dict) -> None:
+    """Raise ``KeyError`` if ``args`` holds two alternatives of the same quantity."""
+    for group in EXCLUSIVE_ARGS:
+        if sum(k in args for k in group) > 1:
+            raise KeyError(f"t_args can contain {' or '.join(group)}, not both.")
+
+
 def pulse_name(t_func: Callable) -> str:
     """Name of a clerq pulse function, from its ``__name__`` (``"gaussian_0"``)."""
     return t_func.__name__.rsplit("_", 1)[0]
@@ -55,8 +69,6 @@ def _need(args: dict, name: str, *keys: str):
 
 def _gaussian_amplitude(args: dict):
     if "ampl" in args:
-        if "n_pi" in args:
-            raise KeyError("t_args can contain ampl or n_pi, not both.")
         return args["ampl"]
     _need(args, "gaussian", "n_pi")
     return (
@@ -81,6 +93,8 @@ def pulse_function(name: str, args: dict) -> Callable:
         ValueError: if a required parameter is missing.
     """
     k4 = 4.0 * math.log(2.0)
+    if name in ("gaussian", "sech"):
+        check_exclusive(args)
 
     if name == "gaussian":
         _need(args, name, "fwhm", "centre")
@@ -92,8 +106,6 @@ def pulse_function(name: str, args: dict) -> Callable:
     if name == "sech":
         _need(args, name, "centre")
         if "width" in args:
-            if "fwhm" in args:
-                raise KeyError("t_args can contain width or fwhm, not both.")
             width = args["width"]
         else:
             _need(args, name, "fwhm")

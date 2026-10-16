@@ -15,7 +15,7 @@ from clerq.autodiff._propagate import (
     propagate_fields,
     setup_from_solver,
 )
-from clerq.autodiff._pulses import NONDIFFERENTIABLE_ARGS
+from clerq.autodiff._pulses import EXCLUSIVE_ARGS, NONDIFFERENTIABLE_ARGS
 
 _PARAM_KEYS = (
     "pulse_args",
@@ -30,15 +30,16 @@ _PARAM_KEYS = (
 def _merge_pulse_args(default: dict, user: dict) -> dict:
     """Overlay ``user`` on ``default``, keeping each alternative pair consistent.
 
-    A pulse takes either ``ampl`` or ``n_pi``, and a sech pulse either ``width`` or
-    ``fwhm``; supplying one must not leave the other from the defaults behind.
+    Of each group of alternatives in ``EXCLUSIVE_ARGS`` (``ampl``/``n_pi``,
+    ``width``/``fwhm``) a pulse takes one; supplying one must not leave the other from
+    the defaults behind.
     """
     merged = {**default, **user}
-    for chosen, other in (("ampl", "n_pi"), ("n_pi", "ampl"), ("width", "fwhm")):
-        if chosen in user and other not in user:
-            merged.pop(other, None)
-    if "fwhm" in user and "width" not in user:
-        merged.pop("width", None)
+    for group in EXCLUSIVE_ARGS:
+        if any(k in user for k in group):
+            for k in group:
+                if k not in user:
+                    merged.pop(k, None)
     return merged
 
 

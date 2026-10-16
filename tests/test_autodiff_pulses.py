@@ -82,6 +82,39 @@ def test_strip_index_and_pulse_name_round_trip():
     }
 
 
+@pytest.mark.parametrize(
+    "name, args",
+    [
+        ("gaussian", {**GAUSSIAN, "ampl": 1.0, "n_pi": 1.0}),
+        ("sech", {**SECH, "width": 0.3, "fwhm": 0.5, "ampl": 1.0}),
+        ("sech", {**SECH, "width": 0.3, "ampl": 1.0, "n_pi": 1.0}),
+    ],
+)
+def test_conflicting_alternatives_are_rejected_like_t_func(name, args):
+    full = {k + "_0": v for k, v in args.items()}
+    with pytest.raises(KeyError, match="not both"):
+        getattr(t_funcs, name)(0)(T, full)
+    with pytest.raises(KeyError, match="not both"):
+        pulse_function(name, args)
+
+
+def test_merge_keeps_one_of_each_alternative():
+    from clerq.autodiff._api import _merge_pulse_args
+
+    default = {"centre": 0.0, "width": 0.3, "ampl": 1.0}
+    assert _merge_pulse_args(default, {"n_pi": 2.0}) == {
+        "centre": 0.0,
+        "width": 0.3,
+        "n_pi": 2.0,
+    }
+    assert _merge_pulse_args(default, {"fwhm": 0.5}) == {
+        "centre": 0.0,
+        "fwhm": 0.5,
+        "ampl": 1.0,
+    }
+    assert _merge_pulse_args(default, {"ampl": 3.0}) == {**default, "ampl": 3.0}
+
+
 def test_nondifferentiable_arguments_are_exactly_the_square_edges():
     """Only a discontinuous pulse's edge times are excluded; ramps stay differentiable."""
     assert NONDIFFERENTIABLE_ARGS == {"square": ("on", "off")}
