@@ -50,23 +50,35 @@ def test_system_without_fields_is_rejected_clearly():
 
 
 def test_s4_requires_checkpoints():
-    ad = _solver().to_autodiff(strategy="s4")
     with pytest.raises(ValueError, match="needs `checkpoints`"):
-        ad.propagate(ad.default_params())
+        _solver().to_autodiff(strategy="s4")
 
 
-@pytest.mark.parametrize("bad", [0, -3, 2.5])
-def test_s4_rejects_a_non_positive_or_fractional_checkpoint_count(bad):
-    ad = _solver().to_autodiff(strategy="s4", checkpoints=bad)
+@pytest.mark.parametrize("bad", [0, -3, 2.5, True, float("nan"), "8"])
+def test_s4_rejects_an_invalid_checkpoint_count(bad):
     with pytest.raises(ValueError, match="positive integer"):
-        ad.propagate(ad.default_params())
+        _solver().to_autodiff(strategy="s4", checkpoints=bad)
 
 
 @pytest.mark.parametrize("strategy", ["s2", "s3"])
 def test_checkpoints_is_rejected_for_the_other_strategies(strategy):
-    ad = _solver().to_autodiff(strategy=strategy, checkpoints=8)
     with pytest.raises(ValueError, match="only applies to strategy='s4'"):
-        ad.propagate(ad.default_params())
+        _solver().to_autodiff(strategy=strategy, checkpoints=8)
+
+
+@pytest.mark.parametrize(
+    "options, match",
+    [({"step": "rk4"}, "Unknown step"), ({"strategy": "s9"}, "Unknown strategy")],
+)
+def test_unknown_options_fail_at_construction(options, match):
+    with pytest.raises(ValueError, match=match):
+        _solver().to_autodiff(**options)
+
+
+def test_numpy_integer_checkpoints_are_accepted():
+    import numpy as np
+
+    _solver().to_autodiff(strategy="s4", checkpoints=np.int64(8))
 
 
 def test_s4_with_checkpoints_runs():

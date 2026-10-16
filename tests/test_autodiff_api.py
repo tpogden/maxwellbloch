@@ -253,6 +253,26 @@ def test_compiled_gradient_cache_is_bounded_and_least_recently_used():
     assert len(ad._grad_cache) == 2
 
 
+def test_clear_cache_releases_the_loss():
+    import gc
+    import weakref
+
+    ad = _solver().to_autodiff(rtol=1e-6, atol=1e-8)
+
+    def make():
+        return lambda omega: loss(omega)
+
+    fn = make()
+    ref = weakref.ref(fn)
+    ad.value_and_grad(fn, {"decay_scale": 1.0})
+    del fn
+    gc.collect()
+    assert ref() is not None  # the cache keeps it alive
+    ad.clear_cache()
+    gc.collect()
+    assert ref() is None
+
+
 def test_evicted_loss_still_gives_the_right_answer():
     ad = _solver().to_autodiff(rtol=1e-6, atol=1e-8)
     ad.GRAD_CACHE_SIZE = 1

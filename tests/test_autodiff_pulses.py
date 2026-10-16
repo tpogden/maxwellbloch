@@ -98,6 +98,30 @@ def test_conflicting_alternatives_are_rejected_like_t_func(name, args):
         pulse_function(name, args)
 
 
+def test_gaussian_ignores_width_like_t_func():
+    """width/fwhm is a sech alternative only; a gaussian reads fwhm and ignores width."""
+    args = {**GAUSSIAN, "ampl": 1.7, "width": 9.0}
+    full = {k + "_0": v for k, v in args.items()}
+    ref = t_funcs.gaussian(0)(T, full)
+    got = np.asarray(jax.vmap(pulse_function("gaussian", args))(T))
+    assert np.abs(got - ref).max() < 1e-13
+
+
+def test_merge_is_per_pulse_type():
+    from clerq.autodiff._api import _merge_pulse_args
+
+    default = {"centre": 0.0, "fwhm": 1.0, "ampl": 1.0}
+    # a gaussian keeps its required fwhm when an (ignored) width is supplied
+    assert _merge_pulse_args(default, {"width": 0.3}, "gaussian")["fwhm"] == 1.0
+    # a sech swaps fwhm for width
+    assert "fwhm" not in _merge_pulse_args(default, {"width": 0.3}, "sech")
+    # pulses without alternatives merge plainly
+    assert _merge_pulse_args(default, {"n_pi": 1.0}, "square") == {
+        **default,
+        "n_pi": 1.0,
+    }
+
+
 def test_merge_keeps_one_of_each_alternative():
     from clerq.autodiff._api import _merge_pulse_args
 

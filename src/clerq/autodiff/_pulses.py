@@ -41,12 +41,22 @@ NONDIFFERENTIABLE_ARGS = {"square": ("on", "off")}
 # each group (the amplitude as ``ampl`` or ``n_pi``; a sech's width as ``width`` or
 # ``fwhm``). The single source of these rules, used both when a pulse is built and
 # when user parameters are merged over the problem's defaults.
-EXCLUSIVE_ARGS = (("ampl", "n_pi"), ("width", "fwhm"))
+EXCLUSIVE_ARGS = {
+    "gaussian": (("ampl", "n_pi"),),
+    "sech": (("ampl", "n_pi"), ("width", "fwhm")),
+}
 
 
-def check_exclusive(args: dict) -> None:
+def exclusive_groups(name: str | None) -> tuple:
+    """The alternative groups of pulse ``name`` (all known groups if ``None``)."""
+    if name is None:
+        return tuple(dict.fromkeys(g for gs in EXCLUSIVE_ARGS.values() for g in gs))
+    return EXCLUSIVE_ARGS.get(name, ())
+
+
+def check_exclusive(name: str, args: dict) -> None:
     """Raise ``KeyError`` if ``args`` holds two alternatives of the same quantity."""
-    for group in EXCLUSIVE_ARGS:
+    for group in exclusive_groups(name):
         if sum(k in args for k in group) > 1:
             raise KeyError(f"t_args can contain {' or '.join(group)}, not both.")
 
@@ -93,8 +103,7 @@ def pulse_function(name: str, args: dict) -> Callable:
         ValueError: if a required parameter is missing.
     """
     k4 = 4.0 * math.log(2.0)
-    if name in ("gaussian", "sech"):
-        check_exclusive(args)
+    check_exclusive(name, args)
 
     if name == "gaussian":
         _need(args, name, "fwhm", "centre")

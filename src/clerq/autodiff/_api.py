@@ -15,8 +15,9 @@ from clerq.autodiff._propagate import (
     PropagationSetup,
     propagate_fields,
     setup_from_solver,
+    validate_options,
 )
-from clerq.autodiff._pulses import EXCLUSIVE_ARGS, NONDIFFERENTIABLE_ARGS
+from clerq.autodiff._pulses import NONDIFFERENTIABLE_ARGS, exclusive_groups
 
 _PARAM_KEYS = (
     "pulse_args",
@@ -28,15 +29,16 @@ _PARAM_KEYS = (
 )
 
 
-def _merge_pulse_args(default: dict, user: dict) -> dict:
+def _merge_pulse_args(default: dict, user: dict, name: str | None = None) -> dict:
     """Overlay ``user`` on ``default``, keeping each alternative pair consistent.
 
-    Of each group of alternatives in ``EXCLUSIVE_ARGS`` (``ampl``/``n_pi``,
-    ``width``/``fwhm``) a pulse takes one; supplying one must not leave the other from
-    the defaults behind.
+    Of each group of alternatives that pulse ``name`` has in ``EXCLUSIVE_ARGS``
+    (``ampl``/``n_pi``, and for a sech ``width``/``fwhm``) a pulse takes one;
+    supplying one must not leave the other from the defaults behind. With no
+    ``name``, every known group applies.
     """
     merged = {**default, **user}
-    for group in EXCLUSIVE_ARGS:
+    for group in exclusive_groups(name):
         if any(k in user for k in group):
             for k in group:
                 if k not in user:
@@ -62,13 +64,19 @@ def _floatify(tree):
     return jax.tree_util.tree_map(convert, tree)
 
 
-def _overlay(fixed: dict, params: dict) -> dict:
-    """``params`` over ``fixed``; per-field pulse arguments are merged."""
+def _overlay(fixed: dict, params: dict, names=None) -> dict:
+    """``params`` over ``fixed``; per-field pulse arguments are merged.
+
+    ``names`` optionally gives each field's pulse name (see ``_merge_pulse_args``).
+    """
     out = {**fixed, **params}
     if "pulse_args" in fixed and "pulse_args" in params:
+        names = names or [None] * len(params["pulse_args"])
         out["pulse_args"] = [
-            _merge_pulse_args(f, p)
-            for f, p in zip(fixed["pulse_args"], params["pulse_args"], strict=True)
+            _merge_pulse_args(f, p, n)
+            for f, p, n in zip(
+                fixed["pulse_args"], params["pulse_args"], names, strict=True
+            )
         ]
     return out
 
@@ -157,7 +165,9 @@ class AutodiffPropagation:
         n_steps: int | None = None,
         solver=None,
     ) -> None:
+        validate_options(step, strategy, checkpoints)
         self.setup = setup
+        self._pulse_names = [name for name, _, _ in setup.pulses]
         self._options = {
             "step": step,
             "strategy": strategy,
@@ -171,6 +181,12 @@ class AutodiffPropagation:
         self._compiled: dict = {}
         # compiled value_and_grad functions, least recently used evicted first
         self._grad_cache: OrderedDict = OrderedDict()
+
+    def clear_cache(self) -> None:
+        """Drop the compiled programs, releasing the loss functions (and the arrays
+        they capture) that ``value_and_grad`` keeps alive."""
+        self._compiled.clear()
+        self._grad_cache.clear()
 
     @classmethod
     def from_solver(cls, solver, **options) -> AutodiffPropagation:
@@ -265,9 +281,12 @@ class AutodiffPropagation:
         p = {**defaults, **params}
         if "pulse_args" in params:  # per-field partial overrides of the pulse arguments
             p["pulse_args"] = [
-                _merge_pulse_args(d, u)
-                for d, u in zip(
-                    defaults["pulse_args"], params["pulse_args"], strict=True
+                _merge_pulse_args(d, u, n)
+                for d, u, n in zip(
+                    defaults["pulse_args"],
+                    params["pulse_args"],
+                    self._pulse_names,
+                    strict=True,
                 )
             ]
         # omega0 is cyclic like every other parameter; the engine works in angular
@@ -364,7 +383,8 @@ class AutodiffPropagation:
             overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
 
             def objective(p, fx):
-                return loss(self._propagate(_overlay(fx, p), **overrides))
+                over = _overlay(fx, p, self._pulse_names)
+                return loss(self._propagate(over, **overrides))
 
             if mode == "reverse":
                 fn = jax.jit(jax.value_and_grad(objective))

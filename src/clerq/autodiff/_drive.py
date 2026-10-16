@@ -33,9 +33,12 @@ def not_a_knot_derivative_matrix(ts: np.ndarray) -> np.ndarray:
 def _not_a_knot_tridiagonal(ts: np.ndarray):
     """The tridiagonal system ``A m = b`` for the knot derivatives ``m``.
 
-    Returns ``(lower, diag, upper, c0, c1)``: the three bands of ``A`` (``lower[i]``
-    is ``A[i+1, i]``, ``upper[i]`` is ``A[i, i+1]``) and the weights of the first
-    and last right-hand sides in terms of the slopes. This is the system SciPy's
+    Returns ``(lower, diag, upper, first, last)``: the three bands of ``A``
+    (``lower[i]`` is ``A[i+1, i]``, ``upper[i]`` is ``A[i, i+1]``), and the weights
+    ``first = (w0, w1)`` and ``last = (w_-2, w_-1)`` such that ``b[0] = w0 * slope[0]
+    + w1 * slope[1]`` and ``b[-1] = w_-2 * slope[-2] + w_-1 * slope[-1]``. The
+    interior right-hand sides are ``3 (dx[i] slope[i-1] + dx[i-1] slope[i])``.
+    This is the system SciPy's
     ``CubicSpline(bc_type="not-a-knot")`` solves, where the end conditions have
     been eliminated down to two terms so that the matrix stays tridiagonal.
     """

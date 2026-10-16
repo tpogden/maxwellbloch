@@ -22,6 +22,7 @@ Reproduces ``PropagationSolver.solve`` (Adams-Bashforth by default, or Euler):
 from __future__ import annotations
 
 import math
+import numbers
 from dataclasses import dataclass
 
 import diffrax as dfx
@@ -125,6 +126,35 @@ def setup_from_solver(solver) -> PropagationSetup:
     )
 
 
+def validate_options(step, strategy, checkpoints) -> None:
+    """Check the scheme options; called when the problem is built and when it runs.
+
+    Raises:
+        ValueError: for an unknown ``step`` or ``strategy``, ``checkpoints``
+            missing or not a positive integer for ``"s4"``, or given for any
+            other strategy.
+    """
+    if step not in ("ab", "euler"):
+        raise ValueError(f"Unknown step {step!r}; use 'ab' or 'euler'.")
+    if strategy not in ("s2", "s3", "s4"):
+        raise ValueError(f"Unknown strategy {strategy!r}; use 's2', 's3' or 's4'.")
+    if strategy == "s4":
+        ok = (
+            isinstance(checkpoints, numbers.Integral)
+            and not isinstance(checkpoints, bool)
+            and checkpoints >= 1
+        )
+        if not ok:
+            raise ValueError(
+                "strategy='s4' needs `checkpoints`, a positive integer; "
+                f"got {checkpoints!r}."
+            )
+    elif checkpoints is not None:
+        raise ValueError(
+            f"`checkpoints` only applies to strategy='s4', not {strategy!r}."
+        )
+
+
 def propagate_fields(
     setup: PropagationSetup,
     *,
@@ -189,20 +219,7 @@ def propagate_fields(
         ValueError: for an unknown ``step`` or ``strategy``.
     """
     require_float64()
-    if step not in ("ab", "euler"):
-        raise ValueError(f"Unknown step {step!r}; use 'ab' or 'euler'.")
-    if strategy not in ("s2", "s3", "s4"):
-        raise ValueError(f"Unknown strategy {strategy!r}; use 's2', 's3' or 's4'.")
-    if strategy == "s4":
-        if checkpoints is None or int(checkpoints) != checkpoints or checkpoints < 1:
-            raise ValueError(
-                "strategy='s4' needs `checkpoints`, a positive integer; "
-                f"got {checkpoints!r}."
-            )
-    elif checkpoints is not None:
-        raise ValueError(
-            f"`checkpoints` only applies to strategy='s4', not {strategy!r}."
-        )
+    validate_options(step, strategy, checkpoints)
 
     ops = setup.ops
     n_f = ops.num_fields
