@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 import diffrax as dfx
 import jax
 import numpy as np
+from jax.flatten_util import ravel_pytree
 
 from clerq.autodiff._config import require_float64
 from clerq.autodiff._propagate import (
@@ -65,6 +67,11 @@ def _floatify(tree):
     return jax.tree_util.tree_map(convert, tree)
 
 
+def _norm(tree) -> float:
+    """The Euclidean norm of all the leaves of ``tree``."""
+    return float(jax.numpy.linalg.norm(ravel_pytree(tree)[0]))
+
+
 def _overlay(fixed: dict, params: dict, names=None) -> dict:
     """``params`` over ``fixed``; per-field pulse arguments are merged.
 
@@ -80,6 +87,27 @@ def _overlay(fixed: dict, params: dict, names=None) -> dict:
             )
         ]
     return out
+
+
+@dataclass
+class OptimizeResult:
+    """The outcome of :meth:`AutodiffPropagation.minimize`.
+
+    Attributes:
+        params: the optimised parameters, same structure as the ones passed in.
+        value: the loss at ``params``.
+        losses: the loss at the starting point and after each update, a 1-D array
+            of length ``n_steps + 1``; its last entry is ``value``.
+        n_steps: the number of updates taken (fewer than requested if ``gtol``
+            was reached).
+        converged: whether the gradient norm fell below ``gtol``.
+    """
+
+    params: dict
+    value: float
+    losses: np.ndarray
+    n_steps: int
+    converged: bool
 
 
 class AutodiffPropagation:
@@ -185,12 +213,14 @@ class AutodiffPropagation:
         self._compiled: dict = {}
         # compiled value_and_grad functions, least recently used evicted first
         self._grad_cache: OrderedDict = OrderedDict()
+        self._default_optimizers: dict = {}
 
     def clear_cache(self) -> None:
         """Drop the compiled programs, releasing the loss functions (and the arrays
         they capture) that ``value_and_grad`` keeps alive."""
         self._compiled.clear()
         self._grad_cache.clear()
+        self._default_optimizers.clear()
 
     @classmethod
     def from_solver(cls, solver: Any, **options: Any) -> AutodiffPropagation:
@@ -394,10 +424,7 @@ class AutodiffPropagation:
             self._grad_cache.move_to_end(key)
         else:
             overrides = {"adjoint": dfx.ForwardMode()} if mode == "forward" else {}
-
-            def objective(p, fx):
-                over = _overlay(fx, p, self._pulse_names)
-                return loss(self._propagate(over, **overrides))
+            objective = self._objective(loss, overrides)
 
             if mode == "reverse":
                 fn = jax.jit(jax.value_and_grad(objective))
@@ -413,3 +440,146 @@ class AutodiffPropagation:
             while len(self._grad_cache) > self.GRAD_CACHE_SIZE:
                 self._grad_cache.popitem(last=False)
         return self._grad_cache[key](params, fixed)
+
+    def _objective(self, loss: Callable, overrides: dict) -> Callable:
+        """``objective(params, fixed)``: ``loss`` of the propagated field."""
+
+        def objective(p, fx):
+            over = _overlay(fx, p, self._pulse_names)
+            return loss(self._propagate(over, **overrides))
+
+        return objective
+
+    def _update_fn(self, opt: Any, key: Any, loss: Callable) -> Callable:
+        """A compiled optimiser update, cached like the ``value_and_grad`` programs.
+
+        ``opt`` is wrapped so that optimisers which take the loss value, the
+        gradient and the loss itself (for example ``optax.lbfgs``, which line
+        searches on it) get them; the others ignore them.
+        """
+        import optax
+
+        cache_key = ("update", key, loss)
+        if cache_key in self._grad_cache:
+            self._grad_cache.move_to_end(cache_key)
+        else:
+            opt = optax.with_extra_args_support(opt)
+            objective = self._objective(loss, {})
+
+            def update(grads, state, p, value, fx):
+                return opt.update(
+                    grads,
+                    state,
+                    p,
+                    value=value,
+                    grad=grads,
+                    value_fn=lambda q: objective(q, fx),
+                )
+
+            self._grad_cache[cache_key] = jax.jit(update)
+            while len(self._grad_cache) > self.GRAD_CACHE_SIZE:
+                self._grad_cache.popitem(last=False)
+        return self._grad_cache[cache_key]
+
+    def minimize(
+        self,
+        loss: Callable,
+        params: dict | None = None,
+        *,
+        fixed: dict | None = None,
+        optimizer: Any = None,
+        learning_rate: float | None = None,
+        steps: int = 100,
+        gtol: float | None = None,
+    ) -> OptimizeResult:
+        """Minimise ``loss(Omega_zt)`` over ``params`` with an optax optimiser.
+
+        Each step is one :meth:`value_and_grad` call and one optimiser update, so
+        the loss is compiled once, on the first step (plus one final evaluation). Needs ``optax``, which the
+        ``jax`` extra installs.
+
+        Args:
+            loss: scalar-valued function of the propagated field, as for
+                :meth:`value_and_grad`; reuse one function object.
+            params: starting point and the parameters to optimise (any subset of
+                the keys). Default: every differentiable parameter of the problem.
+            fixed: parameters held constant, as for :meth:`value_and_grad`.
+            optimizer: an ``optax.GradientTransformation`` (for example
+                ``optax.adam(1e-2)`` or ``optax.lbfgs()``). Pass the same object
+                to reuse its compiled update between calls. Default
+                ``optax.adam(learning_rate)``. Parameters differ in scale (a
+                pulse area is of order 1, an interaction strength of order
+                ``1e3``), so the right ``learning_rate`` depends on what is being
+                optimised; rescale the parameters inside ``loss`` if needed.
+            learning_rate: step size of the default Adam optimiser (0.05 if not
+                given); not allowed together with ``optimizer``.
+            steps: the most updates to take.
+            gtol: stop when the gradient's global norm is below this (default:
+                always take ``steps`` updates).
+
+        Returns:
+            The An :class:`~clerq.autodiff.OptimizeResult`, at the last point reached. That is the
+            best one for a descending optimiser but need not be for one that
+            overshoots; ``losses`` shows the path.
+
+        Raises:
+            ImportError: if ``optax`` is not installed.
+            RuntimeError: if JAX is not in 64-bit mode.
+            ValueError: as for :meth:`value_and_grad`, or if ``steps`` is not a
+                positive integer, or both ``optimizer`` and ``learning_rate`` are
+                given.
+        """
+        try:
+            import optax
+        except ImportError as e:
+            raise ImportError(
+                "minimize() needs optax: pip install 'clerq[jax]' (or pip install "
+                "optax)"
+            ) from e
+        if not isinstance(steps, int) or steps < 1:
+            raise ValueError(f"steps must be a positive integer, got {steps!r}.")
+        if optimizer is not None and learning_rate is not None:
+            raise ValueError(
+                "Give either optimizer or learning_rate, not both: learning_rate "
+                "only sets the step size of the default Adam optimiser."
+            )
+        require_float64()
+        if optimizer is None:
+            lr = 0.05 if learning_rate is None else learning_rate
+            opt = self._default_optimizers.setdefault(lr, optax.adam(lr))
+        else:
+            opt = optimizer
+        x = (
+            self._differentiable_default_params()
+            if params is None
+            else _floatify(params)
+        )
+        fx = {} if fixed is None else _floatify(fixed)
+        update = self._update_fn(opt, opt, loss)
+        state = opt.init(x)
+        values, converged = [], False
+        for _ in range(steps):
+            value, grads = self.value_and_grad(loss, x, fixed=fx)
+            values.append(value)
+            if gtol is not None and _norm(grads) < gtol:
+                converged = True
+                break
+            updates, state = update(grads, state, x, value, fx)
+            x = optax.apply_updates(x, updates)
+        if not converged:
+            # The loss at the point reached; the gradient there is only needed to
+            # test gtol.
+            if gtol is None:
+                value = loss(self.propagate(_overlay(fx, x, self._pulse_names)))
+            else:
+                value, grads = self.value_and_grad(loss, x, fixed=fx)
+                converged = _norm(grads) < gtol
+            values.append(value)
+        losses = np.array(jax.device_get(values), dtype=float)
+        return OptimizeResult(
+            params=x,
+            value=float(losses[-1]),
+            losses=losses,
+            n_steps=len(losses) - 1,
+            converged=converged,
+        )

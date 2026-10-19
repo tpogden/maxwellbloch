@@ -1,0 +1,17 @@
+# autodiff.OptimizeResult { #clerq.autodiff.OptimizeResult }
+
+```python
+autodiff.OptimizeResult(params, value, losses, n_steps, converged)
+```
+
+The outcome of :meth:`AutodiffPropagation.minimize`.
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name      | Type       | Description                                                                                                               |
+|-----------|------------|---------------------------------------------------------------------------------------------------------------------------|
+| params    | dict       | the optimised parameters, same structure as the ones passed in.                                                           |
+| value     | float      | the loss at ``params``.                                                                                                   |
+| losses    | np.ndarray | the loss at the starting point and after each update, a 1-D array of length ``n_steps + 1``; its last entry is ``value``. |
+| n_steps   | int        | the number of updates taken (fewer than requested if ``gtol`` was reached).                                               |
+| converged | bool       | whether the gradient norm fell below ``gtol``.                                                                            |

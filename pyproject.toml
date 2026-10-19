@@ -28,7 +28,7 @@ docs = [
 plot = ["plotly>=5.18", "kaleido>=0.2"]
 # Automatic differentiation backend (clerq.autodiff). CI tests the lowest (Python 3.10:
 # jax 0.6.2, diffrax 0.7.0) and highest supported versions.
-jax = ["jax>=0.6.2,<0.12", "diffrax>=0.7.0,<0.8"]
+jax = ["jax>=0.6.2,<0.12", "diffrax>=0.7.0,<0.8", "optax>=0.2.4"]
 dev = ["clerq[test,docs,plot,jax]", "ruff", "twine", "bump-my-version"]
 
 [tool.bumpversion]

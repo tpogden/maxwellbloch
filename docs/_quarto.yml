@@ -92,6 +92,7 @@ quartodoc:
       desc: Exact gradients through the propagation (needs the `jax` extra).
       contents:
         - autodiff.AutodiffPropagation
+        - autodiff.OptimizeResult
     - title: Systems and fields
       contents:
         - System
