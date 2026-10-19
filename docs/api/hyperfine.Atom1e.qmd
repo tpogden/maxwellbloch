@@ -16,9 +16,11 @@ Represents an atom object and contains a list of J levels.
 | [get_coupled_levels](#clerq.hyperfine.Atom1e.get_coupled_levels) | Return all mF-level index pairs between two sets of F levels. |
 | [get_decay_factors](#clerq.hyperfine.Atom1e.get_decay_factors) | Returns the factors for the collapse operators of each hyperfine |
 | [get_energies](#clerq.hyperfine.Atom1e.get_energies) | Returns a list of energies for each mF level in all J levels. |
+| [get_g_F_list](#clerq.hyperfine.Atom1e.get_g_F_list) | Returns the g_F factor of each mF level, in units of mu_B. |
 | [get_mF_list](#clerq.hyperfine.Atom1e.get_mF_list) | Unnests the mF levels into a single list of dicts. |
 | [get_num_mF_levels](#clerq.hyperfine.Atom1e.get_num_mF_levels) | Returns the total number of mF levels in all J levels. |
 | [get_strength_factor](#clerq.hyperfine.Atom1e.get_strength_factor) | Relative hyperfine transition strength factors. |
+| [get_zeeman_levels](#clerq.hyperfine.Atom1e.get_zeeman_levels) | Returns the per-level ``g_F`` and ``m_F`` lists for a ``b_field``. |
 
 ### get_F_level_idx_map { #clerq.hyperfine.Atom1e.get_F_level_idx_map }
 
@@ -147,6 +149,20 @@ hyperfine.Atom1e.get_energies()
 
 Returns a list of energies for each mF level in all J levels.
 
+### get_g_F_list { #clerq.hyperfine.Atom1e.get_g_F_list }
+
+```python
+hyperfine.Atom1e.get_g_F_list()
+```
+
+Returns the g_F factor of each mF level, in units of mu_B.
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type       | Description                                                                                     |
+|--------|------------|-------------------------------------------------------------------------------------------------|
+|        | ValueError | if an F level has no g_F (give its ``g_F``, ``g_J`` or ``L`` when constructing the ``LevelF``). |
+
 ### get_mF_list { #clerq.hyperfine.Atom1e.get_mF_list }
 
 ```python
@@ -187,3 +203,14 @@ Relative hyperfine transition strength factors.
 #### Refs {.doc-section .doc-section-refs}
 
 [0]: https://steck.us/alkalidata/rubidium87numbers.pdf
+
+### get_zeeman_levels { #clerq.hyperfine.Atom1e.get_zeeman_levels }
+
+```python
+hyperfine.Atom1e.get_zeeman_levels()
+```
+
+Returns the per-level ``g_F`` and ``m_F`` lists for a ``b_field``.
+
+Merge into the system's ``b_field`` block, e.g.
+``{"magnitude": 1.0, **atom.get_zeeman_levels()}``.

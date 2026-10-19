@@ -1,7 +1,17 @@
 # hyperfine.LevelF { #clerq.hyperfine.LevelF }
 
 ```python
-hyperfine.LevelF(I, J, F, energy=0.0, mF_energies=None)
+hyperfine.LevelF(
+    I,
+    J,
+    F,
+    energy=0.0,
+    mF_energies=None,
+    g_F=None,
+    g_J=None,
+    g_I=0.0,
+    L=None,
+)
 ```
 
 Represents an F hyperfine structure level and holds its magnetic
