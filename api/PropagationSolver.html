@@ -380,6 +380,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.PropagationSolver" id="toc-clerq.PropagationSolver" class="nav-link active" data-scroll-target="#clerq.PropagationSolver">PropagationSolver</a>
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
   <li><a href="#clerq.PropagationSolver.build_velocity_classes" id="toc-clerq.PropagationSolver.build_velocity_classes" class="nav-link" data-scroll-target="#clerq.PropagationSolver.build_velocity_classes">build_velocity_classes</a></li>
@@ -549,6 +550,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>dict | None</td>
 <td>Deprecated name for <code>system</code>.</td>
 <td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes" class="level2">
+<h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#clerq.PropagationSolver.rabi_freqs_zt">rabi_freqs_zt</a></td>
+<td>The solved complex Rabi frequency of each field, as a cyclic frequency.</td>
 </tr>
 </tbody>
 </table>
@@ -892,7 +910,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.init_Omegas_zt">init_Omegas_zt</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.init_Omegas_zt()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Inits the Rabi frequency array.</p>
-<p>Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first. states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first. These are inconsistent; correcting either is a breaking API change, deferred to a future major version.</p>
+<p>_Omegas_zt is the internal angular-frequency field array; <code>rabi_freqs_zt</code> is its public cyclic view.</p>
+<p>_Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first. states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first. These are inconsistent; correcting either is a breaking API change, deferred to a future major version.</p>
 </section>
 <section id="clerq.PropagationSolver.init_states_zt" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.init_states_zt">init_states_zt</h3>
@@ -1153,9 +1172,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-5">Returns</h4>
 <table class="caption-top table">
 <colgroup>
+<col style="width: 6%">
 <col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 82%">
+<col style="width: 86%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1166,9 +1185,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td></td>
+<td>Omegas_zt</td>
 <td>np.ndarray</td>
-<td>self.Omegas_zt: The solved field complex Rabi frequency at each point in space z and time t.</td>
+<td>The solved field complex Rabi frequency at each point in space z and time t, as an <em>angular</em> frequency (<code>rabi_freqs_zt</code> times <code>2 * pi</code>).</td>
 </tr>
 <tr class="even">
 <td></td>

@@ -423,7 +423,7 @@ window.Quarto = {
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">211</span>)</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_no_coupling.tlist, mbs_no_coupling.zlist,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_no_coupling.Omegas_zt[<span class="dv">0</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_no_coupling.rabi_freqs_zt[<span class="dv">0</span>]),</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">1.0e-3</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Blues)</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="vs">r"Rabi Frequency </span><span class="kw">(</span><span class="dv">$\G</span><span class="vs">amma / 2</span><span class="er">\</span><span class="vs">pi</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -434,7 +434,7 @@ window.Quarto = {
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">212</span>)</span>
 <span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_no_coupling.tlist, mbs_no_coupling.zlist,</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_no_coupling.Omegas_zt[<span class="dv">1</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_no_coupling.rabi_freqs_zt[<span class="dv">1</span>]),</span>
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">10.0</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Greens)</span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"Time </span><span class="kw">(</span><span class="dv">$</span><span class="vs">1/</span><span class="dv">\G</span><span class="vs">amma</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -505,7 +505,7 @@ window.Quarto = {
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">211</span>)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_with_coupling.tlist, mbs_with_coupling.zlist,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_with_coupling.Omegas_zt[<span class="dv">0</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_with_coupling.rabi_freqs_zt[<span class="dv">0</span>]),</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">1.0e-3</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Blues)</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="vs">r"Rabi Frequency </span><span class="kw">(</span><span class="dv">$\G</span><span class="vs">amma / 2</span><span class="er">\</span><span class="vs">pi</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -516,7 +516,7 @@ window.Quarto = {
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">212</span>)</span>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_with_coupling.tlist, mbs_with_coupling.zlist,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_with_coupling.Omegas_zt[<span class="dv">1</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_with_coupling.rabi_freqs_zt[<span class="dv">1</span>]),</span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">10.0</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Greens)</span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"Time </span><span class="kw">(</span><span class="dv">$</span><span class="vs">1/</span><span class="dv">\G</span><span class="vs">amma</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -607,7 +607,7 @@ window.Quarto = {
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">211</span>)</span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_cloud.tlist, mbs_cloud.zlist,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_cloud.Omegas_zt[<span class="dv">0</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_cloud.rabi_freqs_zt[<span class="dv">0</span>]),</span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">1.0e-3</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Blues)</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="vs">r"Rabi Frequency </span><span class="kw">(</span><span class="dv">$\G</span><span class="vs">amma / 2</span><span class="er">\</span><span class="vs">pi</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -616,7 +616,7 @@ window.Quarto = {
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">212</span>)</span>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_cloud.tlist, mbs_cloud.zlist,</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_cloud.Omegas_zt[<span class="dv">1</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_cloud.rabi_freqs_zt[<span class="dv">1</span>]),</span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">8.0</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Greens)</span>
 <span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"Time </span><span class="kw">(</span><span class="dv">$</span><span class="vs">1/</span><span class="dv">\G</span><span class="vs">amma</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -692,7 +692,7 @@ window.Quarto = {
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">211</span>)</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_store.tlist, mbs_store.zlist,</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_store.Omegas_zt[<span class="dv">0</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_store.rabi_freqs_zt[<span class="dv">0</span>]),</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">1.0e-3</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Blues)</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="vs">r"Rabi Frequency </span><span class="kw">(</span><span class="dv">$\G</span><span class="vs">amma / 2</span><span class="er">\</span><span class="vs">pi</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>
@@ -701,7 +701,7 @@ window.Quarto = {
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">212</span>)</span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(mbs_store.tlist, mbs_store.zlist,</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_store.Omegas_zt[<span class="dv">1</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>                 np.<span class="bu">abs</span>(mbs_store.rabi_freqs_zt[<span class="dv">1</span>]),</span>
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>                 np.linspace(<span class="fl">0.0</span>, <span class="fl">8.0</span>, <span class="dv">11</span>), cmap<span class="op">=</span>plt.cm.Greens)</span>
 <span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"Time </span><span class="kw">(</span><span class="dv">$</span><span class="vs">1/</span><span class="dv">\G</span><span class="vs">amma</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)</span>
 <span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Distance ($L$)"</span>)</span>

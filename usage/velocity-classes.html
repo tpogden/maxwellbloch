@@ -437,7 +437,7 @@ f(v) = \frac{1}{u\sqrt{\pi}} \mathrm{e}^{-(kv/u)^2}
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>cf <span class="op">=</span> ax.contourf(</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    mbs.tlist,</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    mbs.zlist,</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    np.<span class="bu">abs</span>(mbs.Omegas_zt[<span class="dv">0</span>] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)),</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    np.<span class="bu">abs</span>(mbs.rabi_freqs_zt[<span class="dv">0</span>]),</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    cmap_range,</span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span>plt.cm.Blues,</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>)</span>

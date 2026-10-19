@@ -718,7 +718,7 @@ if (outputEl) {{
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>mbs_g18.solve(recalc<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Input area: </span><span class="sc">{</span>np<span class="sc">.</span>trapezoid(mbs_g18.Omegas_zt[<span class="dv">0</span>, <span class="dv">0</span>, :].real, mbs_g18.tlist) <span class="op">/</span> np<span class="sc">.</span>pi<span class="sc">:.3f}</span><span class="ss">π"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Input area: </span><span class="sc">{</span><span class="dv">2</span> <span class="op">*</span> np<span class="sc">.</span>trapezoid(mbs_g18.rabi_freqs_zt[<span class="dv">0</span>, <span class="dv">0</span>, :].real, mbs_g18.tlist)<span class="sc">:.3f}</span><span class="ss">π"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Saving PropagationSolver to mbs-sit-gauss-18pi.qu
 Input area: 1.800π</code></pre>

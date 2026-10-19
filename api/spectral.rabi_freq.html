@@ -438,9 +438,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 13%">
-<col style="width: 77%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 78%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -453,7 +453,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td>np.ndarray</td>
-<td>Array[num_z_steps, num_t_steps] Field result in frequency domain.</td>
+<td>Array[num_z_steps, num_t_steps] Field result in frequency domain, of the</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>np.ndarray</td>
+<td><em>angular</em> field (<code>2 * pi</code> times the cyclic <code>rabi_freqs_zt</code>).</td>
 </tr>
 </tbody>
 </table>

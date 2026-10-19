@@ -633,7 +633,7 @@ if (outputEl) {{
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># input (same for all runs — use Ng=0.05 z=0 as reference)</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>fig.add_trace(go.Scatter(</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>mbs_ng005.tlist,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>np.<span class="bu">abs</span>(mbs_ng005.Omegas_zt[<span class="dv">0</span>, <span class="dv">0</span>, :]),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>np.<span class="bu">abs</span>(mbs_ng005.rabi_freqs_zt[<span class="dv">0</span>, <span class="dv">0</span>, :]),</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">=</span><span class="st">"lines"</span>,</span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"input"</span>,</span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    line<span class="op">=</span><span class="bu">dict</span>(dash<span class="op">=</span><span class="st">"dash"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
@@ -646,7 +646,7 @@ if (outputEl) {{
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>]:</span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    fig.add_trace(go.Scatter(</span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span>mbs.tlist,</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span>np.<span class="bu">abs</span>(mbs.Omegas_zt[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>, :]),</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span>np.<span class="bu">abs</span>(mbs.rabi_freqs_zt[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>, :]),</span>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        mode<span class="op">=</span><span class="st">"lines"</span>,</span>
 <span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span>label,</span>
 <span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        line<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>color),</span>
@@ -655,7 +655,7 @@ if (outputEl) {{
 <span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
 <span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Output pulse envelope |Ω(z=1, t)| vs optical depth"</span>,</span>
 <span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    xaxis_title<span class="op">=</span><span class="st">"t (γ⁻¹)"</span>,</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">"|Ω| (γ)"</span>,</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">"|Ω|/2π (γ)"</span>,</span>
 <span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    template<span class="op">=</span><span class="st">"clerq"</span>,</span>
 <span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">700</span>,</span>
 <span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>,</span>
@@ -770,7 +770,7 @@ if (outputEl) {{
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>i_t5 <span class="op">=</span> np.argmin(np.<span class="bu">abs</span>(mbs_cw.tlist <span class="op">-</span> <span class="fl">5.0</span>))</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># CW amplitude vs z at steady state</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Omega_cw_z <span class="op">=</span> np.<span class="bu">abs</span>(mbs_cw.Omegas_zt[<span class="dv">0</span>, :, i_t5])</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Omega_cw_z <span class="op">=</span> np.<span class="bu">abs</span>(mbs_cw.rabi_freqs_zt[<span class="dv">0</span>, :, i_t5])</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Reference amplitude before the medium (z &lt; 0, vacuum region)</span></span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>Omega_0 <span class="op">=</span> Omega_cw_z[<span class="dv">0</span>]   <span class="co"># at z = z_min = -0.2</span></span>
@@ -795,7 +795,7 @@ if (outputEl) {{
 <span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
 <span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'CW steady-state spatial profile vs Beer–Lambert (Ng = 5, Γ = 1)'</span>,</span>
 <span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    xaxis_title<span class="op">=</span><span class="st">'z'</span>,</span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">'|Ω| (γ)'</span>,</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">'|Ω|/2π (γ)'</span>,</span>
 <span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    yaxis_type<span class="op">=</span><span class="st">'log'</span>,</span>
 <span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    template<span class="op">=</span><span class="st">'clerq'</span>,</span>
 <span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">700</span>,</span>
