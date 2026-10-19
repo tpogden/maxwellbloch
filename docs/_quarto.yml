@@ -8,6 +8,7 @@ project:
     - installation.qmd
     - usage/*.ipynb
     - usage/scripts.md
+    - usage/autodiff-performance.qmd
     - examples/index.qmd
     - examples/*.ipynb
     - "!examples/mbs-ladder-rydberg-eit-counter.ipynb"  # draft
@@ -49,6 +50,7 @@ website:
         - usage/counter-propagating.ipynb
         - usage/plotting.ipynb
         - usage/built-in-time-functions.ipynb
+        - usage/autodiff-performance.qmd
         - usage/scripts.md
     - id: examples
       title: Examples
