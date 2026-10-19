@@ -11,10 +11,14 @@ from typing import Any
 import numpy as np
 import qutip as qu
 import tqdm
+from qutip.solver.integrator.integrator import IntegratorException
 
 from clerq import t_funcs
 from clerq._deprecation import resolve_system_arg, warn_deprecated
-from clerq.exceptions import CounterPropagatingDepletionError
+from clerq.exceptions import (
+    CounterPropagatingDepletionError,
+    PropagationInstabilityError,
+)
 from clerq.lindblad import LindbladSolver
 from clerq.utility import maxwell_boltzmann
 
@@ -46,7 +50,9 @@ class PropagationSolver(LindbladSolver):
         z_max: The back of the medium.
         z_steps: Number of space steps at which the solution is recorded.
         z_steps_inner: Number of finite-difference steps made within each
-            space step.
+            space step. Pass ``"auto"`` to start from 2 and let ``solve()``
+            raise it until the estimated step error is below ``step_error_warn``
+            (see :meth:`solve`).
         num_density_z_func: Name of a function in ``clerq.t_funcs`` giving
             the number density profile over z. Square by default.
         num_density_z_args: Dict of arguments for ``num_density_z_func``.
@@ -72,7 +78,7 @@ class PropagationSolver(LindbladSolver):
         z_min: float = 0.0,
         z_max: float = 1.0,
         z_steps: int = 10,
-        z_steps_inner: int = 2,
+        z_steps_inner: int | str = 2,
         num_density_z_func: str | None = None,
         num_density_z_args: dict | None = None,
         interaction_strengths: list[float] | None = None,
@@ -96,6 +102,10 @@ class PropagationSolver(LindbladSolver):
             savefile=savefile,
         )
 
+        self._auto_z_steps_inner = z_steps_inner == "auto"
+        if self._auto_z_steps_inner:
+            z_steps_inner = 2
+
         self.build_zlist(
             z_min=z_min, z_max=z_max, z_steps=z_steps, z_steps_inner=z_steps_inner
         )
@@ -107,6 +117,9 @@ class PropagationSolver(LindbladSolver):
         )
 
         self.build_velocity_classes(velocity_classes=velocity_classes)
+
+        self._stability = None
+        self.step_error_estimate = 0.0
 
         self.init_Omegas_zt()
         self.init_states_zt()
@@ -369,6 +382,10 @@ class PropagationSolver(LindbladSolver):
         check_counter_prop_depletion: bool = True,
         depletion_warn: float = 0.01,
         depletion_error: float = 0.10,
+        check_stability: bool = True,
+        blowup_factor: float = 1e3,
+        step_error_warn: float = 0.1,
+        max_z_steps_inner: int = 512,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the propagation of the fields through the medium.
 
@@ -385,6 +402,23 @@ class PropagationSolver(LindbladSolver):
             depletion_warn: Depletion fraction that triggers a UserWarning.
             depletion_error: Depletion fraction that raises
                 CounterPropagatingDepletionError.
+            check_stability: Stop with :class:`PropagationInstabilityError` as
+                soon as the solution blows up (non-finite field, field larger
+                than ``blowup_factor`` times its initial peak, or a failed
+                master-equation integration), and warn if the z-step looks too
+                coarse. Set False to suppress.
+            blowup_factor: Growth of the peak field, relative to its peak at
+                ``z_min``, treated as a blow-up. Raise it for media with
+                genuine gain.
+            step_error_warn: Estimated accumulated relative error (from the
+                differences of dOmega/dz between z-steps, relative to the peak
+                field) above which a UserWarning is issued
+                suggesting a larger ``z_steps_inner``. The largest value seen
+                is kept in ``self.step_error_estimate``. With
+                ``z_steps_inner="auto"`` this is also the tolerance: the solve
+                is repeated with more inner steps until the estimate is below
+                it, or ``max_z_steps_inner`` is reached.
+            max_z_steps_inner: Upper limit for ``z_steps_inner="auto"``.
 
         Returns:
             Omegas_zt: The solved field complex Rabi frequency at each point in
@@ -394,6 +428,18 @@ class PropagationSolver(LindbladSolver):
                 and time t.
         """
         self.check()
+        self._stability = (
+            {
+                "blowup_factor": blowup_factor,
+                "tol": step_error_warn,
+                "ref": None,
+                "err": 0.0,
+                "order": 1,
+            }
+            if check_stability
+            else None
+        )
+        self.step_error_estimate = 0.0
         self.init_Omegas_zt()
         self.init_states_zt()
         # The z-stepping below replaces system.H_Omega_list with interpolated
@@ -418,11 +464,17 @@ class PropagationSolver(LindbladSolver):
                     progress_show_area=progress_show_area,
                 )
             self.save_results()
+            if self._stability is not None:
+                self.step_error_estimate = self._stability["err"]
+                self._warn_step_error(step_error_warn)
 
         try:
             # Should we recalculate or load a savefile?
             if recalc or not self.savefile_exists():
-                _do_solve()
+                if self._auto_z_steps_inner and self._stability is not None:
+                    self._solve_auto(_do_solve, step_error_warn, max_z_steps_inner)
+                else:
+                    _do_solve()
             else:
                 try:
                     self.load_results()
@@ -515,30 +567,38 @@ class PropagationSolver(LindbladSolver):
                 for i in range(self.z_steps * self.z_steps_inner)
             ]
         )
-        self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
+        self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings(
+            z=self.z_min
+        )
         pbar = tqdm.tqdm(
             enumerate(self.zlist[:-1]),
             total=self.z_steps,
             disable=not progress,
             unit="z",
         )
+        f_hist: list[np.ndarray] = []
         for j, _z in pbar:
             Omegas_z_this = self._Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
-                thermal_states_t = self._solve_and_average_over_thermal_detunings()
+                thermal_states_t = self._solve_and_average_over_thermal_detunings(
+                    z=_z + k * h
+                )
                 sum_coh_this = self.system.get_fields_sum_coherence(
                     states_t=thermal_states_t
                 )
-                np.copyto(
-                    self._Omegas_z_buf,
-                    self._z_step_fields_euler(
-                        h=h,
-                        N=N,
-                        Omegas_z_this=Omegas_z_this,
-                        sum_coh_this=sum_coh_this,
-                    ),
+                Omegas_z_next = self._z_step_fields_euler(
+                    h=h,
+                    N=N,
+                    Omegas_z_this=Omegas_z_this,
+                    sum_coh_this=sum_coh_this,
                 )
+                f_hist.insert(0, 2.0j * N * self.g[:, None] * sum_coh_this)
+                del f_hist[2:]
+                self._check_stability_step(
+                    Omegas_z_next, z=_z + (k + 1) * h, f_hist=f_hist, h=h, order=1
+                )
+                np.copyto(self._Omegas_z_buf, Omegas_z_next)
                 self.system.H_Omega_list = self._build_intp_H_Omega_list(
                     self._Omegas_z_buf
                 )
@@ -579,10 +639,11 @@ class PropagationSolver(LindbladSolver):
                 for i in range(self.z_steps * self.z_steps_inner)
             ]
         )
-        thermal_states_t = self._solve_and_average_over_thermal_detunings()
+        thermal_states_t = self._solve_and_average_over_thermal_detunings(z=self.z_min)
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.system.get_fields_sum_coherence(states_t=thermal_states_t)
         pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
+        f_hist: list[np.ndarray] = []
         for j in range(self.z_steps):
             Omegas_z_this = self._Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
@@ -598,7 +659,9 @@ class PropagationSolver(LindbladSolver):
                         sum_coh_this=sum_coh_this,
                     )
                 else:
-                    thermal_states_t = self._solve_and_average_over_thermal_detunings()
+                    thermal_states_t = self._solve_and_average_over_thermal_detunings(
+                        z=self.zlist[j] + k * h
+                    )
                     sum_coh_this = self.system.get_fields_sum_coherence(
                         states_t=thermal_states_t
                     )
@@ -609,6 +672,16 @@ class PropagationSolver(LindbladSolver):
                         sum_coh_this=sum_coh_this,
                         Omegas_z_this=Omegas_z_this,
                     )
+                if not (j == 0 and k == 0):
+                    f_hist.insert(0, 2.0j * N * self.g[:, None] * sum_coh_this)
+                    del f_hist[3:]
+                self._check_stability_step(
+                    Omegas_z_next,
+                    z=self.zlist[j] + (k + 1) * h,
+                    f_hist=f_hist,
+                    h=h,
+                    order=2,
+                )
                 np.copyto(self._Omegas_z_buf, Omegas_z_next)
                 self.system.H_Omega_list = self._build_intp_H_Omega_list(
                     self._Omegas_z_buf
@@ -621,6 +694,111 @@ class PropagationSolver(LindbladSolver):
             pbar.set_postfix(self._pbar_postfix(progress_show_area))
         pbar.close()
         return self._Omegas_zt, self.states_zt
+
+    def _solve_auto(self, do_solve, tol: float, max_inner: int) -> None:
+        """Repeat do_solve with a larger z_steps_inner until it is stable."""
+        while True:
+            self._stability["err"] = 0.0
+            self._stability["ref"] = None
+            try:
+                do_solve()
+            except PropagationInstabilityError as e:
+                nxt = e.suggested_z_steps_inner
+            else:
+                if self._stability["err"] <= tol:
+                    return
+                nxt = self._suggest_inner(self._stability["err"], tol)
+            if self.z_steps_inner >= max_inner:
+                raise PropagationInstabilityError(
+                    f"z_steps_inner='auto' reached max_z_steps_inner="
+                    f"{max_inner} without a stable solution; reduce the "
+                    f"z extent or density, or raise t_steps.",
+                    z=None,
+                    suggested_z_steps_inner=nxt,
+                )
+            self.z_steps_inner = min(max(nxt, self.z_steps_inner + 1), max_inner)
+            self.init_Omegas_zt()
+            self.init_states_zt()
+            self.system._build_H_Omega()
+
+    def _check_stability_step(
+        self,
+        Omegas_next: np.ndarray,
+        z: float,
+        f_hist: list[np.ndarray],
+        h: float,
+        order: int,
+    ) -> None:
+        """Stop the solve if the field has blown up; accumulate the step error.
+
+        ``f_hist`` holds dOmega/dz at the current and previous steps, newest
+        first. The local error is estimated from the differences of f,
+        ``h|f0 - f1|/2`` for Euler (order 1) and ``5h|f0 - 2 f1 + f2|/12`` for
+        Adams-Bashforth (order 2), relative to each field's peak amplitude, and
+        summed over steps to give the accumulated relative error.
+        """
+        st = self._stability
+        if st is None:
+            return
+        peaks = np.max(np.abs(Omegas_next), axis=1)
+        if not np.all(np.isfinite(peaks)):
+            self._raise_instability(z, "the field became non-finite")
+        if st["ref"] is None:
+            st["ref"] = float(np.max(np.abs(self._Omegas_zt[:, 0, :])))
+        ref = st["ref"]
+        if ref > 0.0 and peaks.max() > st["blowup_factor"] * ref:
+            self._raise_instability(
+                z,
+                f"the peak field grew to {peaks.max():.3g}, over "
+                f"{st['blowup_factor']:g} times its initial peak {ref:.3g}",
+            )
+        st["order"] = order
+        if order == 1 and len(f_hist) >= 2:
+            diff = 0.5 * h * np.abs(f_hist[0] - f_hist[1])
+        elif order == 2 and len(f_hist) >= 3:
+            diff = 5.0 / 12.0 * h * np.abs(f_hist[0] - 2 * f_hist[1] + f_hist[2])
+        else:
+            return
+        scale = np.maximum(peaks, 1e-12 * max(peaks.max(), 1e-300))
+        st["err"] += float((np.max(diff, axis=1) / scale).max())
+
+    def _raise_instability(self, z: float, reason: str) -> None:
+        err = self._stability["err"]
+        suggest = (
+            self._suggest_inner(err, self._stability["tol"])
+            if err > 0
+            else self.z_steps_inner * 2
+        )
+        raise PropagationInstabilityError(
+            f"Propagation became unstable at z={z:.6g}: {reason}. The z-step "
+            f"is probably too coarse for this medium; try z_steps_inner="
+            f"{suggest} (currently {self.z_steps_inner}), z_steps_inner='auto', "
+            f"or more t_steps. Pass check_stability=False to solve() to "
+            f"suppress this check.",
+            z=z,
+            suggested_z_steps_inner=suggest,
+        )
+
+    def _suggest_inner(self, err: float, tol: float) -> int:
+        """z_steps_inner expected to bring the accumulated error down to tol.
+
+        The accumulated error scales as h**order.
+        """
+        order = (self._stability or {}).get("order", 1)
+        factor = max((max(err, tol) / tol) ** (1.0 / order), 2.0)
+        return int(np.ceil(self.z_steps_inner * factor))
+
+    def _warn_step_error(self, tol: float) -> None:
+        err = self.step_error_estimate
+        if err > tol and not self._auto_z_steps_inner:
+            warnings.warn(
+                f"The z-step may be too coarse: estimated accumulated relative "
+                f"error is {err:.1%} (tolerance {tol:.1%}). Try z_steps_inner="
+                f"{self._suggest_inner(err, tol)} (currently "
+                f"{self.z_steps_inner}) or z_steps_inner='auto'.",
+                UserWarning,
+                stacklevel=4,
+            )
 
     def _z_step_fields_euler(
         self,
@@ -704,7 +882,9 @@ class PropagationSolver(LindbladSolver):
             H_Omega_list.append([H_Omega, coeff])
         return H_Omega_list
 
-    def _solve_and_average_over_thermal_detunings(self) -> np.ndarray:
+    def _solve_and_average_over_thermal_detunings(
+        self, z: float | None = None
+    ) -> np.ndarray:
         """Solves the Lindblad equation for the System over a range of
             detuning shifts for velocity classes.
 
@@ -737,7 +917,14 @@ class PropagationSolver(LindbladSolver):
                 ]
             )
             # We don't want the single-point solve to save.
-            self._solve_system(opts=None, save=False)
+            try:
+                self._solve_system(opts=None, save=False)
+            except IntegratorException as e:
+                if self._stability is None or z is None:
+                    raise
+                self._raise_instability(
+                    z, f"the master-equation integrator failed ({e})"
+                )
             states_t_Delta[Delta_i] = self.states_t()
         # Restore fixed detunings
         self.system.set_H_Delta(fixed_detunings)
