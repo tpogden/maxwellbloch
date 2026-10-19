@@ -47,6 +47,7 @@ website:
         - usage/spectral-analysis.ipynb
         - usage/velocity-classes.ipynb
         - usage/counter-propagating.ipynb
+        - usage/numerical-stability.ipynb
         - usage/plotting.ipynb
         - usage/built-in-time-functions.ipynb
         - usage/autodiff-recipes.ipynb
@@ -94,6 +95,11 @@ quartodoc:
       contents:
         - autodiff.AutodiffPropagation
         - autodiff.OptimizeResult
+    - title: Exceptions
+      desc: Raised by `PropagationSolver.solve()`.
+      contents:
+        - exceptions.PropagationInstabilityError
+        - exceptions.CounterPropagatingDepletionError
     - title: Systems and fields
       contents:
         - System
