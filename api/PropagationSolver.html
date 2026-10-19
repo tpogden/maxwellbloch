@@ -517,8 +517,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td>z_steps_inner</td>
-<td>int</td>
-<td>Number of finite-difference steps made within each space step.</td>
+<td>int | str</td>
+<td>Number of finite-difference steps made within each space step. Pass <code>"auto"</code> to start from 2 and let <code>solve()</code> raise it until the estimated step error is below <code>step_error_warn</code> (see :meth:<code>solve</code>).</td>
 <td><code>2</code></td>
 </tr>
 <tr class="even">
@@ -1097,16 +1097,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    check_counter_prop_depletion<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    depletion_warn<span class="op">=</span><span class="fl">0.01</span>,</span>
 <span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    depletion_error<span class="op">=</span><span class="fl">0.1</span>,</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    check_stability<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    blowup_factor<span class="op">=</span><span class="fl">1000.0</span>,</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    step_error_warn<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    max_z_steps_inner<span class="op">=</span><span class="dv">512</span>,</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Solves the propagation of the fields through the medium.</p>
 <section id="parameters-7" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-7">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 4%">
-<col style="width: 70%">
 <col style="width: 6%">
+<col style="width: 1%">
+<col style="width: 89%">
+<col style="width: 2%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1164,6 +1168,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>float</td>
 <td>Depletion fraction that raises CounterPropagatingDepletionError.</td>
 <td><code>0.1</code></td>
+</tr>
+<tr class="odd">
+<td>check_stability</td>
+<td>bool</td>
+<td>Stop with :class:<code>PropagationInstabilityError</code> as soon as the solution blows up (non-finite field, field larger than <code>blowup_factor</code> times its initial peak, or a failed master-equation integration), and warn if the z-step looks too coarse. Set False to suppress.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td>blowup_factor</td>
+<td>float</td>
+<td>Growth of the peak field, relative to its peak at <code>z_min</code>, treated as a blow-up. Raise it for media with genuine gain.</td>
+<td><code>1000.0</code></td>
+</tr>
+<tr class="odd">
+<td>step_error_warn</td>
+<td>float</td>
+<td>Estimated accumulated relative error (from the differences of dOmega/dz between z-steps, relative to the peak field) above which a UserWarning is issued suggesting a larger <code>z_steps_inner</code>. The largest value seen is kept in <code>self.step_error_estimate</code>. With <code>z_steps_inner="auto"</code> this is also the tolerance: the solve is repeated with more inner steps until the estimate is below it, or <code>max_z_steps_inner</code> is reached.</td>
+<td><code>0.1</code></td>
+</tr>
+<tr class="even">
+<td>max_z_steps_inner</td>
+<td>int</td>
+<td>Upper limit for <code>z_steps_inner="auto"</code>.</td>
+<td><code>512</code></td>
 </tr>
 </tbody>
 </table>
