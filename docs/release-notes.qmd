@@ -26,6 +26,11 @@ the difference between the Euler and Adams-Bashforth predictions, available as
 `solver.step_error_estimate`). Pass `z_steps_inner="auto"` to refine the step
 automatically, or `check_stability=False` to switch the checks off.
 
+**Time-grid checks.** `solve()` also warns when `t_steps` is too coarse to
+resolve the fields and coherences, or when the time window cuts off a pulse or
+its ringing, and `suggest_t_steps()` estimates a grid from the problem's
+frequency scales before you solve.
+
 **Gradients through the propagation (optional, experimental).** With
 `pip install 'clerq[jax]'`, `solver.to_autodiff()` returns a differentiable
 version of a `PropagationSolver` problem: exact gradients of any loss of the
