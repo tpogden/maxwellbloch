@@ -72,6 +72,7 @@ def solve_slice(
     solver=None,
     adjoint=None,
     jump_ts=None,
+    b_field=None,
 ):
     """Solve the master equation at the times ``ts``.
 
@@ -95,6 +96,8 @@ def solve_slice(
         adjoint: a diffrax adjoint, default ``RecursiveCheckpointAdjoint``.
         jump_ts: times at which the drive is discontinuous (e.g. a square pulse's
             edges), so the adaptive solver steps exactly onto them.
+        b_field: cyclic DC B-field in natural units, replacing the system's
+            (``H_0 = H_base + 2 pi B Z``); default: the system's. May be traced.
 
     Returns:
         Complex ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
@@ -118,6 +121,10 @@ def solve_slice(
     H_static = jnp.asarray(ops.H0)[None] - 2.0 * jnp.pi * jnp.einsum(
         "vk,kij->vij", det * jnp.asarray(ops.detuning_sign), jnp.asarray(ops.N)
     )
+    if b_field is not None:
+        H_static = H_static + (
+            2.0 * jnp.pi * (b_field - ops.b_field) * jnp.asarray(ops.Z)
+        )
     eye = jnp.eye(n)
 
     sparse = ops.sparse

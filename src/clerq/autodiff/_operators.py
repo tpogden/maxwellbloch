@@ -77,6 +77,9 @@ class SystemOperators:
         sparse: the O(n^2) form of the dissipator if every collapse operator is a
             single element, else ``None``.
         rho0: initial density matrix, shape ``(n, n)``.
+        Z: Zeeman operator ``diag(g_F m_F)``, shape ``(n, n)``; the Zeeman part
+            of ``H0`` is ``2 pi b_field Z``.
+        b_field: the system's cyclic B-field in natural units (already in ``H0``).
     """
 
     num_states: int
@@ -91,6 +94,8 @@ class SystemOperators:
     c_ops: np.ndarray
     sparse: SparseDissipator | None
     rho0: np.ndarray
+    Z: np.ndarray
+    b_field: float
 
     @property
     def num_fields(self) -> int:
@@ -194,4 +199,6 @@ def build_operators(system: System) -> SystemOperators:
         c_ops=c_ops,
         sparse=_sparse_dissipator(c_ops, n),
         rho0=np.asarray(system.initial_state.full()),
+        Z=np.diag(system.zeeman_coeffs),
+        b_field=float(system.b_field_natural),
     )

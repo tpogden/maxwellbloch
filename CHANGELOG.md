@@ -9,6 +9,16 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- DC magnetic field (Zeeman shift). A `System` (JSON key `b_field` on the system) takes `{"magnitude": B, "units":
+  "natural" | "gauss", "g_F": [...], "m_F": [...]}`, a scalar field along the quantisation axis that adds
+  `g_F * m_F * B` to each level's energy (`H_0 += 2 pi g_F m_F B`). Natural units are `mu_B B / h` in the unit of
+  `energies`; `"gauss"` assumes energies in MHz. The sign convention is Steck's (`E = +g_F m_F mu_B B`; Rb87 5S1/2
+  F=2 has `g_F = +1/2`). Without a `b_field` block, or with `magnitude` 0, nothing changes. In
+  `clerq.hyperfine`, `LevelF` takes `g_F`, or `g_J`/`L` and `g_I` to compute it, and `Atom1e.get_zeeman_levels()`
+  returns the `g_F` and `m_F` lists for `b_field`; `lande_g_J`, `lande_g_F` and `gauss_to_natural` are new helpers.
+  Transverse fields, an arbitrary quantisation axis and the Breit-Rabi regime are not included. `clerq.autodiff`
+  picks the shift up from `H_0`, and `b_field` is a new differentiable parameter of `AutodiffPropagation`. See the
+  usage page `b-field`.
 - Time-grid checks in `PropagationSolver.solve()` (with `check_stability`). It warns if the fields or summed coherences
   are not resolved by `t_steps` (the error of rebuilding them from every other time sample, from a cubic spline like
   QuTiP's, is above `t_step_error_warn`; the suggested `t_steps` uses the convergence order measured between strides

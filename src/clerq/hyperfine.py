@@ -7,6 +7,59 @@ import numpy as np
 
 from clerq.angmom import calc_clebsch_hf
 
+# Zeeman conventions. The shift of a sublevel in a DC field B along the
+# quantisation axis is  E = +g_F * m_F * mu_B * B  (the convention of Steck's
+# alkali data), where g_F is dimensionless and positive for an electron-like
+# moment: the stretched state m_F = +F of Rb87 5S1/2 F=2 (g_F = +1/2) moves UP
+# in energy with B > 0. This is the sign used in Steck's tables; some other
+# references (e.g. Budker et al.) define the magnetic moment as -g_F mu_B m_F,
+# giving g_F of the opposite sign, so check the convention when importing values.
+MU_B_OVER_H_MHZ_PER_GAUSS = 1.399624493
+"""Bohr magneton over Planck's constant, in MHz per gauss (CODATA 2018)."""
+
+G_S = 2.00231930436
+"""Electron spin g-factor (CODATA 2018)."""
+
+
+def gauss_to_natural(b_gauss: float) -> float:
+    """Convert a field in gauss to natural units, ``mu_B * B / h`` in MHz.
+
+    Natural units are those in which a sublevel's shift is
+    ``g_F * m_F * B`` in the same (cyclic) frequency unit as the system's
+    ``energies``. Use this helper when the energies are in MHz (time in
+    microseconds).
+    """
+
+    return b_gauss * MU_B_OVER_H_MHZ_PER_GAUSS
+
+
+def lande_g_J(L: float, J: float, S: float = 0.5, g_L: float = 1.0, g_S: float = G_S):
+    """Lande g-factor g_J of a fine-structure level, in units of mu_B."""
+
+    if J == 0:
+        return 0.0
+    ls = J * (J + 1)
+    return g_L * (ls - S * (S + 1) + L * (L + 1)) / (2 * ls) + g_S * (
+        ls + S * (S + 1) - L * (L + 1)
+    ) / (2 * ls)
+
+
+def lande_g_F(I: float, J: float, F: float, g_J: float, g_I: float = 0.0):  # noqa: E741
+    """Hyperfine g-factor g_F of an F level, in units of mu_B.
+
+    ``g_F = g_J [F(F+1) - I(I+1) + J(J+1)] / (2F(F+1))
+    + g_I [F(F+1) + I(I+1) - J(J+1)] / (2F(F+1))``, with ``g_I`` the (small)
+    nuclear g-factor already expressed in units of mu_B, as tabulated by Steck
+    (e.g. -0.000995 for Rb87).
+    """
+
+    if F == 0:
+        return 0.0
+    ff = F * (F + 1)
+    return (
+        g_J * (ff - I * (I + 1) + J * (J + 1)) + g_I * (ff + I * (I + 1) - J * (J + 1))
+    ) / (2 * ff)
+
 
 class _JsonMixin:
     """Mixin that provides to_json_str() for classes with get_json_dict()."""
@@ -63,6 +116,36 @@ class Atom1e(_JsonMixin):
                     }
                 )
         return mF_list
+
+    def get_g_F_list(self) -> list[float]:
+        """Returns the g_F factor of each mF level, in units of mu_B.
+
+        Raises:
+            ValueError: if an F level has no g_F (give its ``g_F``, ``g_J`` or
+                ``L`` when constructing the ``LevelF``).
+        """
+
+        g_F_list = []
+        for i, F_level in enumerate(self.F_levels):
+            if F_level.g_F is None:
+                raise ValueError(
+                    f"F level {i} (J={F_level.J}, F={F_level.F}) has no g_F. Give "
+                    "g_F, g_J or L to its LevelF."
+                )
+            g_F_list.extend([F_level.g_F] * len(F_level.mF_levels))
+        return g_F_list
+
+    def get_zeeman_levels(self) -> dict[str, list[float]]:
+        """Returns the per-level ``g_F`` and ``m_F`` lists for a ``b_field``.
+
+        Merge into the system's ``b_field`` block, e.g.
+        ``{"magnitude": 1.0, **atom.get_zeeman_levels()}``.
+        """
+
+        return {
+            "g_F": self.get_g_F_list(),
+            "m_F": [float(m["mF"]) for m in self.get_mF_list()],
+        }
 
     def get_num_mF_levels(self):
         """Returns the total number of mF levels in all J levels."""
@@ -262,13 +345,33 @@ class LevelF(_JsonMixin):
         - The mF_energies are set _relative_ to the F level energy.
     """
 
-    def __init__(self, I, J, F, energy=0.0, mF_energies=None):  # noqa: E741
+    def __init__(
+        self,
+        I,  # noqa: E741
+        J,
+        F,
+        energy=0.0,
+        mF_energies=None,
+        g_F=None,
+        g_J=None,
+        g_I=0.0,
+        L=None,
+    ):
         """
         Args:
             F (float): Total atomic angular momentum number F.
             energy (float): Energy of the level.
             mf_energies (list(LevelMF), length 2F+1): List of 2F+1 hyperfine
             sublevels.
+            g_F (float): The level's g-factor in units of mu_B. If not given
+                it is calculated from ``g_J`` (or from ``L``) and ``g_I``;
+                if none of these is given it stays ``None``, and the level
+                cannot be used with a B-field.
+            g_J (float): Fine-structure Lande factor. Calculated from ``L``
+                (with S = 1/2) if not given.
+            g_I (float): Nuclear g-factor in units of mu_B (Steck's
+                convention, e.g. -0.000995 for Rb87).
+            L (float): Orbital angular momentum, for calculating ``g_J``.
         """
 
         self.I = I
@@ -283,6 +386,13 @@ class LevelF(_JsonMixin):
                 f"F={F} is outside the allowed range |J-I| <= F <= J+I "
                 f"(|{J}-{I}| = {F_min:.1f}, {J}+{I} = {F_max:.1f})."
             )
+
+        if g_F is None:
+            if g_J is None and L is not None:
+                g_J = lande_g_J(L=L, J=J)
+            if g_J is not None:
+                g_F = lande_g_F(I=I, J=J, F=F, g_J=g_J, g_I=g_I)
+        self.g_F = g_F
 
         self.build_mF_levels(mF_energies)
 
@@ -325,6 +435,8 @@ class LevelF(_JsonMixin):
             "energy": self.energy,
             "mF_levels": [mF.__dict__ for mF in self.mF_levels],
         }
+        if self.g_F is not None:
+            json_dict["g_F"] = self.g_F
         return json_dict
 
 

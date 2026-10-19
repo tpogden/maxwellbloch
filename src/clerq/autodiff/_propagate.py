@@ -164,6 +164,7 @@ def propagate_fields(
     g=None,
     decay_scale=1.0,
     detunings=None,
+    b_field=None,
     step: str = "ab",
     strategy: str = "s3",
     checkpoints: int | None = None,
@@ -192,6 +193,7 @@ def propagate_fields(
         decay_scale: multiplies every decay rate.
         detunings: cyclic fixed detunings of the fields, shape ``(n_fields,)``;
             default: the problem's.
+        b_field: cyclic DC B-field in natural units; default: the problem's.
         step: ``"ab"`` (Adams-Bashforth, default) or ``"euler"``.
         strategy: ``"s2"`` stores every slice's residuals; ``"s3"`` (default)
             checkpoints the scan body (recomputes a slice on the backward pass);
@@ -267,6 +269,7 @@ def propagate_fields(
             solver=solver,
             adjoint=adjoint,
             jump_ts=jump_ts,
+            b_field=b_field,
         )  # (n_t, 2, n_f)
         return (ys[:, 0, :] + 1j * ys[:, 1, :]).T  # (n_f, n_t)
 
