@@ -298,3 +298,38 @@ def test_partial_pulse_args_are_merged_consistently():
         "fwhm": 1.0,
     }
     assert _merge_pulse_args(sech_width, {"centre": 0.5})["width"] == 0.3
+
+
+class TestMinimize:
+    """``AutodiffPropagation.minimize`` wraps an optax optimiser."""
+
+    @pytest.fixture(scope="class")
+    def ad(self):
+        return PropagationSolver.from_json_str(json.dumps(PROBLEM)).to_autodiff()
+
+    @staticmethod
+    def loss(omegas):
+        return jnp.abs(omegas[0, -1, -1]) ** 2
+
+    def test_descends_and_matches_final_value(self, ad):
+        optax = pytest.importorskip("optax")
+        params = {"interaction_strengths": ad.default_params()["interaction_strengths"]}
+        res = ad.minimize(self.loss, params, steps=5, learning_rate=1e-2)
+        assert res.n_steps == 5 and len(res.losses) == 6
+        assert res.losses[-1] < res.losses[0]
+        assert res.value == res.losses[-1]
+        assert set(res.params) == set(params)
+        v, _ = ad.value_and_grad(self.loss, res.params)
+        assert float(v) == pytest.approx(res.value)
+        custom = ad.minimize(self.loss, params, steps=2, optimizer=optax.sgd(1e-3))
+        assert custom.n_steps == 2
+
+    def test_gtol_stops_immediately(self, ad):
+        pytest.importorskip("optax")
+        res = ad.minimize(self.loss, steps=10, gtol=1e12)
+        assert res.converged and res.n_steps == 0 and len(res.losses) == 1
+
+    def test_bad_steps(self, ad):
+        pytest.importorskip("optax")
+        with pytest.raises(ValueError, match="steps"):
+            ad.minimize(self.loss, steps=0)

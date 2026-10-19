@@ -20,6 +20,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   fields are not supported. Importing `clerq` never imports JAX. Results are validated against `PropagationSolver`
   for both schemes and every `z_steps_inner`. Documented in the API reference and in the example notebook
   `autodiff-pulse-design`.
+- `AutodiffPropagation.minimize()` runs an optax optimiser (Adam by default, or any `optax` transformation) on a loss of
+  the propagated field and returns an `OptimizeResult`. `optax` is now part of the `jax` extra.
 
 ### Fixed
 - Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted

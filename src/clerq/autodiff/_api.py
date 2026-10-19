@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 import diffrax as dfx
@@ -80,6 +81,27 @@ def _overlay(fixed: dict, params: dict, names=None) -> dict:
             )
         ]
     return out
+
+
+@dataclass
+class OptimizeResult:
+    """The outcome of :meth:`AutodiffPropagation.minimize`.
+
+    Attributes:
+        params: the optimised parameters, same structure as the ones passed in.
+        value: the loss at ``params``.
+        losses: the loss at the starting point and after each update, a 1-D array
+            of length ``n_steps + 1``; its last entry is ``value``.
+        n_steps: the number of updates taken (fewer than requested if ``gtol``
+            was reached).
+        converged: whether the gradient norm fell below ``gtol``.
+    """
+
+    params: dict
+    value: float
+    losses: np.ndarray
+    n_steps: int
+    converged: bool
 
 
 class AutodiffPropagation:
@@ -413,3 +435,96 @@ class AutodiffPropagation:
             while len(self._grad_cache) > self.GRAD_CACHE_SIZE:
                 self._grad_cache.popitem(last=False)
         return self._grad_cache[key](params, fixed)
+
+    @staticmethod
+    def _global_norm(tree) -> float:
+        return float(
+            sum(
+                jax.numpy.sum(jax.numpy.abs(x) ** 2)
+                for x in jax.tree_util.tree_leaves(tree)
+            )
+            ** 0.5
+        )
+
+    def minimize(
+        self,
+        loss: Callable,
+        params: dict | None = None,
+        *,
+        fixed: dict | None = None,
+        optimizer: Any = None,
+        learning_rate: float = 0.05,
+        steps: int = 100,
+        gtol: float | None = None,
+    ) -> OptimizeResult:
+        """Minimise ``loss(Omega_zt)`` over ``params`` with an optax optimiser.
+
+        Each step is one :meth:`value_and_grad` call and one optimiser update, so
+        the loss is compiled once, on the first step (plus one final evaluation). Needs ``optax``, which the
+        ``jax`` extra installs.
+
+        Args:
+            loss: scalar-valued function of the propagated field, as for
+                :meth:`value_and_grad`; reuse one function object.
+            params: starting point and the parameters to optimise (any subset of
+                the keys). Default: every differentiable parameter of the problem.
+            fixed: parameters held constant, as for :meth:`value_and_grad`.
+            optimizer: an ``optax.GradientTransformation`` (for example
+                ``optax.adam(1e-2)`` or ``optax.lbfgs()``). Default
+                ``optax.adam(learning_rate)``. Parameters differ in scale (a
+                pulse area is of order 1, an interaction strength of order
+                ``1e3``), so the right ``learning_rate`` depends on what is being
+                optimised; rescale the parameters inside ``loss`` if needed.
+            learning_rate: step size of the default Adam optimiser; ignored if
+                ``optimizer`` is given.
+            steps: the most updates to take.
+            gtol: stop when the gradient's global norm is below this (default:
+                always take ``steps`` updates).
+
+        Returns:
+            The :class:`OptimizeResult`, at the last point reached. That is the
+            best one for a descending optimiser but need not be for one that
+            overshoots; ``losses`` shows the path.
+
+        Raises:
+            ImportError: if ``optax`` is not installed.
+            RuntimeError: if JAX is not in 64-bit mode.
+            ValueError: as for :meth:`value_and_grad`, or if ``steps`` is not a
+                positive integer.
+        """
+        try:
+            import optax
+        except ImportError as e:
+            raise ImportError(
+                "minimize() needs optax: pip install 'clerq[jax]' (or pip install "
+                "optax)"
+            ) from e
+        if not isinstance(steps, int) or steps < 1:
+            raise ValueError(f"steps must be a positive integer, got {steps!r}.")
+        require_float64()
+        opt = optax.adam(learning_rate) if optimizer is None else optimizer
+        x = (
+            self._differentiable_default_params()
+            if params is None
+            else _floatify(params)
+        )
+        state = opt.init(x)
+        update = jax.jit(opt.update)
+        losses, converged = [], False
+        value = None
+        for i in range(steps + 1):
+            value, grads = self.value_and_grad(loss, x, fixed=fixed)
+            losses.append(float(value))
+            if gtol is not None and self._global_norm(grads) < gtol:
+                converged = True
+            if converged or i == steps:
+                break
+            updates, state = update(grads, state, x)
+            x = optax.apply_updates(x, updates)
+        return OptimizeResult(
+            params=x,
+            value=float(value),
+            losses=np.array(losses),
+            n_steps=len(losses) - 1,
+            converged=converged,
+        )
