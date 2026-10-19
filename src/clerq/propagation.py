@@ -51,7 +51,7 @@ class PropagationSolver(LindbladSolver):
         z_steps: Number of space steps at which the solution is recorded.
         z_steps_inner: Number of finite-difference steps made within each
             space step. Pass ``"auto"`` to start from 2 and let ``solve()``
-            raise it until the estimated step error is below ``step_error_tol``
+            raise it until the estimated step error is below ``step_error_warn``
             (see :meth:`solve`).
         num_density_z_func: Name of a function in ``clerq.t_funcs`` giving
             the number density profile over z. Square by default.
@@ -535,7 +535,9 @@ class PropagationSolver(LindbladSolver):
                 for i in range(self.z_steps * self.z_steps_inner)
             ]
         )
-        self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings()
+        self.states_zt[0, :] = self._solve_and_average_over_thermal_detunings(
+            z=self.z_min
+        )
         pbar = tqdm.tqdm(
             enumerate(self.zlist[:-1]),
             total=self.z_steps,
@@ -604,7 +606,7 @@ class PropagationSolver(LindbladSolver):
                 for i in range(self.z_steps * self.z_steps_inner)
             ]
         )
-        thermal_states_t = self._solve_and_average_over_thermal_detunings()
+        thermal_states_t = self._solve_and_average_over_thermal_detunings(z=self.z_min)
         self.states_zt[0, :] = thermal_states_t
         sum_coh_prev = self.system.get_fields_sum_coherence(states_t=thermal_states_t)
         pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
