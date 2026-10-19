@@ -1629,20 +1629,6 @@
     ]
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "clerq",
-    "section": "",
-    "text": "clerq solves the propagation of classical electromagnetic fields through media of open quantum systems, using Maxwell’s equations coupled to the Lindblad master equation. It is used for near-resonant light in thermal atomic vapours, with two-, three- and many-level atoms, spontaneous decay, dephasing and Doppler broadening.\nclerq is used for theoretical research, for modelling experiments and for undergraduate and graduate teaching. It can model two, three or many-level systems with physical effects including:\nModules are also available for:\nSome phenomena that can be demonstrated:\nSee the Examples for details."
-  },
-  {
-    "objectID": "index.html#source-code",
-    "href": "index.html#source-code",
-    "title": "clerq",
-    "section": "Source code",
-    "text": "Source code\nclerq is open source. The code, issue tracker and releases are on GitHub: github.com/tpogden/clerq."
-  },
-  {
     "objectID": "installation.html",
     "href": "installation.html",
     "title": "Installation",
@@ -1669,6 +1655,108 @@
     "title": "Installation",
     "section": "Using Conda",
     "text": "Using Conda\nYou can create and activate a Conda environment with the required dependencies:\nconda create --name mb -c conda-forge python=3.11 qutip\nconda activate mb\npip install clerq\nAlternatively you can manually download and install any release."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "clerq",
+    "section": "",
+    "text": "clerq solves the propagation of classical electromagnetic fields through media of open quantum systems, using Maxwell’s equations coupled to the Lindblad master equation. It is used for near-resonant light in thermal atomic vapours, with two-, three- and many-level atoms, spontaneous decay, dephasing and Doppler broadening.\nclerq is used for theoretical research, for modelling experiments and for undergraduate and graduate teaching. It can model two, three or many-level systems with physical effects including:\nModules are also available for:\nSome phenomena that can be demonstrated:\nSee the Examples for details."
+  },
+  {
+    "objectID": "index.html#source-code",
+    "href": "index.html#source-code",
+    "title": "clerq",
+    "section": "Source code",
+    "text": "Source code\nclerq is open source. The code, issue tracker and releases are on GitHub: github.com/tpogden/clerq."
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html",
+    "href": "usage/autodiff-recipes.html",
+    "title": "Autodiff recipes",
+    "section": "",
+    "text": "PropagationSolver.to_autodiff() returns a differentiable copy of a propagation problem: the propagated field becomes a pure function of a dictionary of parameters, so any loss of the field can be differentiated exactly with JAX. This page is a set of short recipes for the parts of the API you will reach for most. It needs the jax extra:",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#setup-64-bit-precision",
+    "href": "usage/autodiff-recipes.html#setup-64-bit-precision",
+    "title": "Autodiff recipes",
+    "section": "Setup: 64-bit precision",
+    "text": "Setup: 64-bit precision\nJAX computes in 32-bit by default, which is not enough for the master equation. clerq never changes JAX’s global configuration for you; it raises a RuntimeError if 64-bit mode is off. Enable it before creating any JAX arrays:\nimport jax\njax.config.update(\"jax_enable_x64\", True)\nor set the environment variable JAX_ENABLE_X64=1.\n\nimport json\n\nimport jax\nimport jax.numpy as jnp\nimport numpy as np\n\njax.config.update(\"jax_enable_x64\", True)\n\nfrom clerq import PropagationSolver\n\nWe’ll use a small ladder problem with two fields: a weak Gaussian probe on \\(|0\\rangle \\leftrightarrow |1\\rangle\\) and a square coupling pulse on \\(|1\\rangle \\leftrightarrow |2\\rangle\\).\n\nproblem = {\n    \"system\": {\n        \"num_states\": 3,\n        \"energies\": [0.0, 0.0, 0.0],\n        \"decays\": [{\"channels\": [[0, 1]], \"rate\": 1.0}],\n        \"fields\": [\n            {\n                \"coupled_levels\": [[0, 1]],\n                \"rabi_freq\": 0.5,\n                \"rabi_freq_t_func\": \"gaussian\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"centre\": 0.0, \"fwhm\": 0.5},\n            },\n            {\n                \"coupled_levels\": [[1, 2]],\n                \"rabi_freq\": 1.0,\n                \"rabi_freq_t_func\": \"square\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"on\": -1.0, \"off\": 1.0},\n            },\n        ],\n        \"initial_state\": [1.0, 0.0, 0.0],\n    },\n    \"t_min\": -2.0,\n    \"t_max\": 2.0,\n    \"t_steps\": 80,\n    \"z_min\": 0.0,\n    \"z_max\": 1.0,\n    \"z_steps\": 20,\n    \"interaction_strengths\": [10.0, 10.0],\n}\n\nsolver = PropagationSolver.from_json_str(json.dumps(problem))\nad = solver.to_autodiff()\n\nad is an AutodiffPropagation. Options such as step, strategy, rtol and max_steps are passed to to_autodiff() and are covered below.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#the-parameter-dictionary",
+    "href": "usage/autodiff-recipes.html#the-parameter-dictionary",
+    "title": "Autodiff recipes",
+    "section": "The parameter dictionary",
+    "text": "The parameter dictionary\nParameters are a dictionary; every key is optional and defaults to the value in the problem. default_params() shows them:\n\nad.default_params()\n\n{'pulse_args': [{'ampl': 1.0, 'centre': 0.0, 'fwhm': 0.5},\n  {'ampl': 1.0, 'on': -1.0, 'off': 1.0}],\n 'rabi_freq': array([0.5, 1. ]),\n 'interaction_strengths': array([10., 10.]),\n 'detunings': array([0., 0.]),\n 'decay_scale': 1.0}\n\n\n\n\n\n\n\n\n\n\nKey\nShape\nMeaning\n\n\n\n\npulse_args\nlist, one dict per field\narguments of each field’s analytic pulse (ampl, centre, fwhm/width, n_pi, on, off)\n\n\nrabi_freq\n(n_fields,)\nthe rabi_freq multiplying each pulse\n\n\ninteraction_strengths\n(n_fields,)\nthe coupling strength of each field to the medium\n\n\ndetunings\n(n_fields,)\nthe fixed detuning of each field\n\n\ndecay_scale\nscalar\nmultiplies every decay rate\n\n\nomega0\n(n_fields, n_t)\nsampled input fields on tlist, used instead of the analytic pulses\n\n\n\n\nPropagating\npropagate(params) returns the field \\(\\Omega(z, t)\\) with shape (n_fields, z_steps + 1, n_t). Pass nothing for the problem’s own parameters, or any subset of keys to override them; everything else keeps its default.\n\nomega = ad.propagate()\nomega_strong = ad.propagate({\"rabi_freq\": jnp.array([0.5, 2.0])})\nprint(omega.shape, omega.dtype)\n\n(2, 21, 81) complex128\n\n\nPulse arguments are merged per field, so you only name the ones you change. A field’s alternative arguments replace one another: giving n_pi drops the default ampl.\n\nwider = ad.propagate({\"pulse_args\": [{\"fwhm\": 1.0}, {}]})\n\n\n\nGradients with respect to any subset\nvalue_and_grad(loss, params) differentiates loss(Omega_zt) with respect to the parameters you pass, and returns gradients with the same structure. Here, the gradient of the output probe intensity with respect to the coupling rabi_freq and the probe interaction_strengths only:\n\ndef loss(omega):\n    \"\"\"Negative probe energy at the end of the medium.\"\"\"\n    return -jnp.sum(jnp.abs(omega[0, -1]) ** 2)\n\n\nparams = {\n    \"rabi_freq\": jnp.array([0.5, 1.0]),\n    \"interaction_strengths\": jnp.array([10.0, 10.0]),\n}\nvalue, grads = ad.value_and_grad(loss, params)\nprint(value)\ngrads\n\n-0.09651633408235306\n\n\n{'interaction_strengths': Array([0.01786184, 0.00017319], dtype=float64),\n 'rabi_freq': Array([-0.36828985, -0.31595014], dtype=float64)}\n\n\nWith no params, every differentiable parameter of the problem is used.\n\n\nHolding values constant with fixed\nfixed= takes parameters with the same structure but does not differentiate them. Use it to evaluate at a different operating point, or to hold a parameter the optimiser should not touch:\n\nvalue, grads = ad.value_and_grad(\n    loss,\n    {\"rabi_freq\": jnp.array([0.5, 1.0])},\n    fixed={\"detunings\": jnp.array([0.0, 0.3]), \"decay_scale\": 2.0},\n)\nprint(value)\ngrads\n\n-27.538834865877007\n\n\n{'rabi_freq': Array([-104.8820873 ,  -72.64311402], dtype=float64)}",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#units",
+    "href": "usage/autodiff-recipes.html#units",
+    "title": "Autodiff recipes",
+    "section": "Units",
+    "text": "Units\nAll parameters are cyclic, exactly as in the problem definition (rabi_freq in \\(2\\pi\\,\\mathrm{MHz}\\) means you pass the cyclic number, and detunings and omega0 follow suit). The returned field is in the layout and units of PropagationSolver.Omegas_zt: angular frequency. Divide by \\(2\\pi\\) to get the cyclic Rabi frequency:\n\nsolver.solve()\nprint(np.abs(omega - solver.Omegas_zt).max() / np.abs(solver.Omegas_zt).max())  # agrees with solve() to solver tolerance\nrabi_cyclic = omega / (2 * np.pi)\n\n7.76819321747668e-07",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#reverse-and-forward-mode",
+    "href": "usage/autodiff-recipes.html#reverse-and-forward-mode",
+    "title": "Autodiff recipes",
+    "section": "Reverse and forward mode",
+    "text": "Reverse and forward mode\nThe default mode=\"reverse\" costs roughly five propagations however many parameters you differentiate. mode=\"forward\" costs more as parameters are added, so it is mainly useful as a cross-check or when there are very few parameters.\n\nv_rev, g_rev = ad.value_and_grad(loss, params, mode=\"reverse\")\nv_fwd, g_fwd = ad.value_and_grad(loss, params, mode=\"forward\")\nprint(np.allclose(g_rev[\"rabi_freq\"], g_fwd[\"rabi_freq\"]))\n\nTrue",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#memory-strategies",
+    "href": "usage/autodiff-recipes.html#memory-strategies",
+    "title": "Autodiff recipes",
+    "section": "Memory strategies",
+    "text": "Memory strategies\nReverse mode has to remember something about the forward pass. The strategy option, given to to_autodiff(), trades memory for recomputation:\n\n\n\n\n\n\n\n\nstrategy\nStores\nCost\n\n\n\n\n\"s2\"\nevery \\(z\\)-slice’s residuals\nleast recomputation, most memory\n\n\n\"s3\" (default)\nslice boundaries; recomputes inside a slice on the backward pass\na moderate recomputation overhead\n\n\n\"s4\"\nas s3, and limits the ODE solver’s inner checkpoints to checkpoints\nleast memory; needs checkpoints=N\n\n\n\nmax_steps is the most steps one slice solve may take: the solve raises if it needs more. In reverse mode the default checkpoint count is sized from it, so a smaller max_steps lowers memory use on large problems.\n\nad_s2 = solver.to_autodiff(strategy=\"s2\")\nad_s4 = solver.to_autodiff(strategy=\"s4\", checkpoints=16, max_steps=2000)\n\ng_s2 = ad_s2.value_and_grad(loss, params)[1]\ng_s4 = ad_s4.value_and_grad(loss, params)[1]\nprint(np.allclose(g_s2[\"rabi_freq\"], g_s4[\"rabi_freq\"]))\n\nTrue\n\n\nAll strategies give the same gradients; only the memory and run time differ. checkpoints is an error with any strategy other than \"s4\".",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
+    "href": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
+    "title": "Autodiff recipes",
+    "section": "jax.jit and reusing the loss function",
+    "text": "jax.jit and reusing the loss function\npropagate and value_and_grad are already jit-compiled, and compose with jax.jit, jax.vmap and optimisers such as Optax. Two things to know:\n\nvalue_and_grad compiles once per loss function object (and mode). Define the loss once and reuse it. Only the last 8 are kept (an LRU, AutodiffPropagation.GRAD_CACHE_SIZE), so a new lambda on every call recompiles every time.\nCaptured arrays stay alive as long as the compiled function does. Call ad.clear_cache() to drop the compiled programs and release them.\n\n\n# A loss with a captured target is compiled once, then reused for every step.\ntarget = jnp.abs(omega[0, -1]) ** 2\n\n\ndef make_loss(target):\n    def mismatch(omega):\n        return jnp.sum((jnp.abs(omega[0, -1]) ** 2 - target) ** 2)\n\n    return mismatch\n\n\nmismatch = make_loss(target)  # build once...\nfor rabi in (0.8, 0.9, 1.0):  # ...and reuse\n    p = {\"rabi_freq\": jnp.array([0.5, rabi])}\n    v, _ = ad.value_and_grad(mismatch, p)\n    print(rabi, float(v))\n\nad.clear_cache()\n\n0.8 0.00048150204918500565\n0.9 0.00015390985971960178\n1.0 1.5212166504500135e-18\n\n\nA gradient step is then a short loop around value_and_grad.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#limits",
+    "href": "usage/autodiff-recipes.html#limits",
+    "title": "Autodiff recipes",
+    "section": "Limits",
+    "text": "Limits\n\nCo-propagating fields only. to_autodiff() raises NotImplementedError for a problem with counter-propagating fields.\nsquare edge times are held fixed. The field is discontinuous at on and off, so its derivative with respect to them is a delta function that autodiff would silently return as 0. value_and_grad refuses to differentiate them: pass them in fixed=, or use a continuous pulse. The ramp_on, ramp_off, ramp_onoff and ramp_offon pulses are continuous, so their on and off can be differentiated.\nSupported pulses are those ported to JAX; others raise NotImplementedError from to_autodiff().\nFloat64 is required (see above).\n\nFor example, asking for a square pulse’s edge gives a clear error rather than a silent zero:\n\ntry:\n    ad.value_and_grad(loss, {\"pulse_args\": [{}, {\"on\": -1.0}]})\nexcept ValueError as e:\n    print(e)\n\npulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a continuous pulse such as 'ramp_onoff'.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
   },
   {
     "objectID": "usage/counter-propagating.html",
