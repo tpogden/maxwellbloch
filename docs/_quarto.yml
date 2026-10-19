@@ -137,7 +137,9 @@ format:
       dark: [cosmo, theme-dark.scss]
     highlight-style: github
     respect-user-color-scheme: true
-    include-in-header: _fonts.html
+    include-in-header:
+      - _fonts.html
+      - _plotly-theme.html
     toc: true
     code-copy: true
     code-overflow: wrap
