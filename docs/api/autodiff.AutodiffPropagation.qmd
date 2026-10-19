@@ -52,10 +52,11 @@ in the problem (see :meth:`default_params`):
     first slice is driven by their cubic spline instead of the analytic
     pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
 
-All parameters are cyclic (like the problem definition). The propagated field
-is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
-shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
-by ``2 * pi`` for the cyclic Rabi frequency.
+All parameters are cyclic (like the problem definition), and so is the
+propagated field. It is returned in the layout and units of
+``PropagationSolver.rabi_freqs_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
+complex, *cyclic* Rabi frequency, the same unit as ``rabi_freq`` and
+``omega0``.
 
 ## Attributes {.doc-section .doc-section-attributes}
 

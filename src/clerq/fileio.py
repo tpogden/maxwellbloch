@@ -23,7 +23,7 @@ def save_csv_rabi_freq(solver, field_idx=0, filename=None):
     if not filename:
         filename = solver.savefile + "_rabi_freq_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, solver.Omegas_zt[field_idx], delimiter=",")
+    np.savetxt(filename, solver._Omegas_zt[field_idx], delimiter=",")
 
 
 @renamed_arg("mb_solve", "solver")
@@ -43,4 +43,4 @@ def save_csv_rabi_freq_abs(solver, field_idx=0, filename=None):
     if not filename:
         filename = solver.savefile + "_rabi_freq_abs_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, np.abs(solver.Omegas_zt[field_idx]), delimiter=",")
+    np.savetxt(filename, np.abs(solver._Omegas_zt[field_idx]), delimiter=",")

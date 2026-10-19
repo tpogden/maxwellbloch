@@ -172,7 +172,7 @@ class TestRegression(unittest.TestCase):
         mbs_cp.solve(recalc=True, check_counter_prop_depletion=False)
         mbs_no_cp.solve(recalc=True, check_counter_prop_depletion=False)
 
-        np.testing.assert_array_equal(mbs_cp.Omegas_zt, mbs_no_cp.Omegas_zt)
+        np.testing.assert_array_equal(mbs_cp._Omegas_zt, mbs_no_cp._Omegas_zt)
         np.testing.assert_array_equal(mbs_cp.states_zt, mbs_no_cp.states_zt)
 
 
@@ -235,7 +235,7 @@ class TestDepletionCheckUndepleted(unittest.TestCase):
         self.assertEqual(len(depletion_warnings), 0)
 
         # Confirm depletion really is < 1%
-        Omega = mbs.Omegas_zt[0]
+        Omega = mbs._Omegas_zt[0]
         peak_zmin = np.max(np.abs(Omega[0]))
         peak_zmax = np.max(np.abs(Omega[-1]))
         depletion = 1.0 - peak_zmax / peak_zmin
@@ -263,7 +263,7 @@ class TestDepletionCheckModerate(unittest.TestCase):
         )
 
         # Confirm depletion is in the 1–10% band
-        Omega = mbs.Omegas_zt[0]
+        Omega = mbs._Omegas_zt[0]
         peak_zmin = np.max(np.abs(Omega[0]))
         peak_zmax = np.max(np.abs(Omega[-1]))
         depletion = 1.0 - peak_zmax / peak_zmin
@@ -368,7 +368,7 @@ class TestDopplerSignCorrectness(unittest.TestCase):
         mbs_cp.solve(recalc=True, check_counter_prop_depletion=False)
 
         def _depletion(mbs: PropagationSolver) -> float:
-            Omega = mbs.Omegas_zt[0]
+            Omega = mbs._Omegas_zt[0]
             peak_zmin = np.max(np.abs(Omega[0]))
             peak_zmax = np.max(np.abs(Omega[-1]))
             return 1.0 - peak_zmax / peak_zmin

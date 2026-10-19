@@ -54,5 +54,5 @@ class TestRabiFreqAbs(unittest.TestCase):
 
         # The max of the the field in both frames should be the same
         self.assertAlmostEqual(
-            np.max(rabi_freq_abs_fixed), np.max(mb_solve_01.Omegas_zt), places=0
+            np.max(rabi_freq_abs_fixed), np.max(mb_solve_01._Omegas_zt), places=0
         )

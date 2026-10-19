@@ -50,7 +50,7 @@ def rabi_freq(
 
     """
 
-    data = solver.Omegas_zt[field_idx]
+    data = solver._Omegas_zt[field_idx]
     if window is not None:
         from scipy.signal import windows as _sig_windows
 

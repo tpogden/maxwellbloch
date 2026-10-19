@@ -11,7 +11,7 @@ Build the differentiable object from an ordinary solver and differentiate::
 
     ad = solver.to_autodiff()             # solver is a clerq.PropagationSolver
     params = ad.default_params()
-    omegas = ad.propagate(params)         # same layout as solver.Omegas_zt
+    omegas = ad.propagate(params)         # same layout and units as solver.rabi_freqs_zt
 
     def loss(omegas_zt):                  # any scalar function of the field
         return -abs(omegas_zt[0, -1]).max()
