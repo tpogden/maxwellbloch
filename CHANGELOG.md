@@ -9,6 +9,13 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Time-grid checks in `PropagationSolver.solve()` (with `check_stability`). It warns if the fields or summed coherences
+  are not resolved by `t_steps` (the error of rebuilding them from every other time sample, from a cubic spline like
+  QuTiP's, is above `t_step_error_warn`; the suggested `t_steps` uses the convergence order measured between strides
+  2 and 4, kept in `solver.t_step_error_estimate`), and if a field is still changing near the edge of the time window
+  by more than `window_edge_warn` of its peak, so a pulse or its ringing is probably cut off
+  (`solver.window_edge_estimate`). `suggest_t_steps()` estimates a grid before solving, from the input bandwidth, Rabi
+  frequencies, detunings and Doppler width.
 - Numerical-stability checks in `PropagationSolver.solve()`. A blow-up (non-finite field, peak field more than
   `blowup_factor` times its input, or a failed master-equation integration) now stops the run with
   `PropagationInstabilityError`, giving the z reached and a suggested `z_steps_inner`. The Euler/Adams-Bashforth

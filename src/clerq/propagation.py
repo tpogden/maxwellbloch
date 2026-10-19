@@ -12,6 +12,7 @@ import numpy as np
 import qutip as qu
 import tqdm
 from qutip.solver.integrator.integrator import IntegratorException
+from scipy.interpolate import CubicSpline
 
 from clerq import t_funcs
 from clerq._deprecation import resolve_system_arg, warn_deprecated
@@ -120,6 +121,8 @@ class PropagationSolver(LindbladSolver):
 
         self._stability = None
         self.step_error_estimate = 0.0
+        self.t_step_error_estimate = 0.0
+        self.window_edge_estimate = 0.0
 
         self.init_Omegas_zt()
         self.init_states_zt()
@@ -386,6 +389,9 @@ class PropagationSolver(LindbladSolver):
         blowup_factor: float = 1e3,
         step_error_warn: float = 0.1,
         max_z_steps_inner: int = 512,
+        t_step_error_warn: float = 0.1,
+        window_edge_warn: float = 0.2,
+        window_edge_frac: float = 0.05,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the propagation of the fields through the medium.
 
@@ -419,6 +425,21 @@ class PropagationSolver(LindbladSolver):
                 is repeated with more inner steps until the estimate is below
                 it, or ``max_z_steps_inner`` is reached.
             max_z_steps_inner: Upper limit for ``z_steps_inner="auto"``.
+            t_step_error_warn: With ``check_stability``, warn if the time grid
+                is too coarse to represent the fields and coherences: the
+                relative error (to the peak) of interpolating them from every
+                other time sample, ``self.t_step_error_estimate``, exceeds this.
+                The error of the full grid is smaller, by about a factor of 16
+                once the grid resolves the signal (a cubic spline), and by
+                less on a coarser grid.
+            window_edge_warn: With ``check_stability``, warn if a field is still
+                changing near the edge of the time window (the first or last 5%
+                of it) by more than this fraction of its peak, so that a pulse
+                or its ringing is probably cut off. Kept in
+                ``self.window_edge_estimate``.
+            window_edge_frac: Fraction of the time window at each end that
+                ``window_edge_warn`` looks at. Reduce it if the window
+                deliberately starts or ends in the middle of a pulse.
 
         Returns:
             Omegas_zt: The solved field complex Rabi frequency at each point in
@@ -440,6 +461,8 @@ class PropagationSolver(LindbladSolver):
             else None
         )
         self.step_error_estimate = 0.0
+        self.t_step_error_estimate = 0.0
+        self.window_edge_estimate = 0.0
         self.init_Omegas_zt()
         self.init_states_zt()
         # The z-stepping below replaces system.H_Omega_list with interpolated
@@ -483,6 +506,11 @@ class PropagationSolver(LindbladSolver):
                     _do_solve()
         finally:
             self.system._build_H_Omega()
+
+        if check_stability:
+            self._check_time_resolution(
+                t_step_error_warn, window_edge_warn, window_edge_frac
+            )
 
         if check_counter_prop_depletion:
             self._check_counter_prop_depletion(
@@ -787,6 +815,159 @@ class PropagationSolver(LindbladSolver):
         order = (self._stability or {}).get("order", 1)
         factor = max((max(err, tol) / tol) ** (1.0 / order), 2.0)
         return int(np.ceil(self.z_steps_inner * factor))
+
+    # The time grid is used through a cubic spline (QuTiP's array coefficient),
+    # whose interpolation error falls as dt**4 once the grid resolves the
+    # signal; coarser than that it falls more slowly, so the order is measured.
+    _T_ORDER = 4
+
+    @staticmethod
+    def _decimation_error(y: np.ndarray, peak: np.ndarray, stride: int = 2) -> float:
+        """Relative error of rebuilding time samples from every ``stride``-th one.
+
+        Interpolates with the same not-a-knot cubic spline that QuTiP uses for
+        array coefficients and compares at the samples left out. ``y`` has time
+        on the last axis; ``peak`` broadcasts against ``y[..., 0]``. With
+        ``stride=2`` the error of the full grid is smaller by ``2**order``,
+        with the order up to 4 for a grid that resolves the signal and lower
+        for a coarser one. Only samples between the first and last knot are
+        compared, so nothing is extrapolated.
+        """
+        n = y.shape[-1]
+        if n < 3 * stride + 1:
+            return 0.0
+        t = np.arange(n, dtype=float)
+        spline = CubicSpline(
+            t[::stride], y[..., ::stride], axis=-1, bc_type="not-a-knot"
+        )
+        # Compare only between the first and last knot: the samples after the
+        # last knot (when n - 1 is not a multiple of the stride) would be
+        # extrapolated.
+        last = (n - 1) // stride * stride
+        rest = np.ones(n, dtype=bool)
+        rest[::stride] = False
+        rest[last + 1 :] = False
+        err = np.max(np.abs(spline(t[rest]) - y[..., rest]), axis=-1)
+        return float(np.max(err / peak))
+
+    def _check_time_resolution(
+        self, tol: float, edge_tol: float, edge_frac: float
+    ) -> None:
+        """Warn if the time grid is too coarse, or the window cuts off a field.
+
+        Sets ``t_step_error_estimate`` (decimation error of the fields and
+        summed coherences, relative to each field's peak) and
+        ``window_edge_estimate`` (largest change of a field, relative to its
+        peak, over the first or last ``edge_frac`` of the window).
+        """
+        Omegas = self._Omegas_zt  # (num_fields, z, t)
+        peak_O = np.max(np.abs(Omegas), axis=(1, 2))
+        if not np.all(np.isfinite(peak_O)) or not np.any(peak_O > 0.0):
+            return
+        peak_O = np.where(peak_O > 0.0, peak_O, np.inf)
+        err = self._decimation_error(Omegas, peak_O[:, None])
+        err4 = self._decimation_error(Omegas, peak_O[:, None], stride=4)
+        n_z, n_t = self.states_zt.shape[:2]
+        sum_coh = self.system.get_fields_sum_coherence(
+            states_t=self.states_zt.reshape(n_z * n_t, *self.states_zt.shape[2:])
+        ).reshape(-1, n_z, n_t)  # (num_fields, z, t)
+        peak_c = np.max(np.abs(sum_coh), axis=(1, 2))
+        if np.all(np.isfinite(peak_c)):
+            # Coherences near the integrator's absolute tolerance are noise,
+            # not structure the grid should resolve: normalise to at least this.
+            floor = 1e3 * (self.opts or {}).get("atol", 1e-8)
+            peak = np.maximum(peak_c, floor)[:, None]
+            err_c = self._decimation_error(sum_coh, peak)
+            if err_c > err:
+                # Take the order from the same quantity as the error.
+                err, err4 = err_c, self._decimation_error(sum_coh, peak, stride=4)
+        self.t_step_error_estimate = err
+
+        m = max(1, int((Omegas.shape[-1] - 1) * edge_frac))
+        change = np.maximum(
+            np.abs(Omegas[..., m] - Omegas[..., 0]),
+            np.abs(Omegas[..., -1] - Omegas[..., -1 - m]),
+        )
+        self.window_edge_estimate = float(np.max(np.max(change, axis=1) / peak_O))
+
+        if err > tol:
+            # Order of convergence seen between the two strides, 1 to 4.
+            order = self._T_ORDER
+            if err > 0.0 and err4 > err:
+                order = float(np.clip(np.log2(err4 / err), 1.0, self._T_ORDER))
+            factor = max((err / tol) ** (1.0 / order), 1.5)
+            warnings.warn(
+                f"The time grid may be too coarse: the fields or coherences "
+                f"are interpolated from every other time sample with a relative "
+                f"error of {err:.1%} (tolerance {tol:.1%}). Try "
+                f"t_steps={int(np.ceil(self.t_steps * factor))} (currently "
+                f"{self.t_steps}), and repeat if the warning remains; "
+                f"suggest_t_steps() gives an estimate from the problem's "
+                f"frequency scales.",
+                UserWarning,
+                stacklevel=3,
+            )
+        if self.window_edge_estimate > edge_tol:
+            warnings.warn(
+                f"A field is still changing near the edge of the time window "
+                f"(by {self.window_edge_estimate:.1%} of its peak), so a pulse "
+                f"or its ringing may be cut off. Try widening t_min and t_max.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+    def suggest_t_steps(
+        self, points_per_period: float = 10.0, bandwidth_fraction: float = 0.99
+    ) -> int:
+        """Estimate the ``t_steps`` needed to resolve the problem's frequencies.
+
+        Finds the largest frequency scale (cyclic, in the units of the problem)
+        and returns enough steps over ``[t_min, t_max]`` for
+        ``points_per_period`` samples per period of it. The scales are the
+        bandwidth of the input fields (``bandwidth_fraction`` of their power), their peak Rabi
+        frequencies combined with the detunings and the Doppler width.
+
+        This is an estimate from the input fields: the medium can add structure
+        (sidebands, ringing), so check the solved result too; ``solve()`` warns
+        if the grid turns out to be too coarse.
+
+        Args:
+            points_per_period: Time samples per period of the fastest scale.
+            bandwidth_fraction: Fraction of an input field's spectral power
+                that its bandwidth must contain. Lower it for sharp-edged
+                pulses, whose slowly decaying tails would otherwise dominate.
+
+        Returns:
+            The suggested number of time steps; compare it with ``t_steps``.
+        """
+        # The input fields as they are now, not as last built: the fields may
+        # have been edited since. Cyclic, as in the problem definition.
+        Omegas = np.array(
+            [
+                f.rabi_freq * f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
+                for f in self.system.fields
+            ],
+            dtype=complex,
+        ).reshape(len(self.system.fields), len(self.tlist))
+        dt = self.tlist[1] - self.tlist[0]
+        rabi = float(np.max(np.abs(Omegas))) if Omegas.size else 0.0
+        detuning = max(
+            (abs(d) for d in self.system.get_detunings()), default=0.0
+        ) + float(np.max(np.abs(self.thermal_delta_list)) / (2 * np.pi))
+        f_max = float(np.hypot(rabi, detuning))
+        # The envelope is complex, so its spectrum is two-sided: order by |f|.
+        freqs = np.abs(np.fft.fftfreq(Omegas.shape[-1], d=dt))
+        order = np.argsort(freqs)
+        for field in Omegas:
+            power = np.abs(np.fft.fft(field - field[0])) ** 2
+            total = power.sum()
+            if total > 0.0:
+                cum = np.cumsum(power[order]) / total
+                f_max = max(
+                    f_max, float(freqs[order][np.searchsorted(cum, bandwidth_fraction)])
+                )
+        span = self.t_max - self.t_min
+        return max(int(np.ceil(points_per_period * f_max * span)), 1)
 
     def _warn_step_error(self, tol: float) -> None:
         err = self.step_error_estimate
