@@ -132,7 +132,12 @@ quartodoc:
 
 format:
   html:
-    theme: cosmo
+    theme:
+      light: [cosmo, theme-light.scss]
+      dark: [cosmo, theme-dark.scss]
+    highlight-style: github
+    respect-user-color-scheme: true
+    include-in-header: _fonts.html
     toc: true
     code-copy: true
     code-overflow: wrap
