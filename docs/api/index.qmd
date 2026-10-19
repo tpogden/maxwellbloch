@@ -16,6 +16,7 @@ Exact gradients through the propagation (needs the `jax` extra).
 | | |
 | --- | --- |
 | [autodiff.AutodiffPropagation](autodiff.AutodiffPropagation.qmd#clerq.autodiff.AutodiffPropagation) | A differentiable version of a :class:`~clerq.PropagationSolver` problem. |
+| [autodiff.OptimizeResult](autodiff.OptimizeResult.qmd#clerq.autodiff.OptimizeResult) | The outcome of :meth:`AutodiffPropagation.minimize`. |
 
 ## Systems and fields
 
