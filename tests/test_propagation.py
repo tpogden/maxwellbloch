@@ -55,12 +55,12 @@ class TestPropagationSolver(unittest.TestCase):
 
         mbs.solve(step="euler")
 
-        self.assertEqual(mbs.Omegas_zt.shape, (1, 5, 101))
+        self.assertEqual(mbs._Omegas_zt.shape, (1, 5, 101))
 
         # Check that the field at the end of the medium matches the field
         # at the start of the medium.
         self.assertTrue(
-            np.allclose(mbs.Omegas_zt[:, 0, :], mbs.Omegas_zt[:, -1, :], rtol=1.0e-6)
+            np.allclose(mbs._Omegas_zt[:, 0, :], mbs._Omegas_zt[:, -1, :], rtol=1.0e-6)
         )
 
     def test_no_atoms_ab(self):
@@ -75,7 +75,7 @@ class TestPropagationSolver(unittest.TestCase):
         # Check that the field at the end of the medium matches the field
         # at the start of the medium.
         self.assertTrue(
-            np.allclose(mbs.Omegas_zt[:, 0, :], mbs.Omegas_zt[:, -1, :], rtol=1.0e-6)
+            np.allclose(mbs._Omegas_zt[:, 0, :], mbs._Omegas_zt[:, -1, :], rtol=1.0e-6)
         )
 
     def test_no_decays(self):
@@ -334,12 +334,12 @@ class TestSaveLoad(unittest.TestCase):
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
             mb_solve_01.save_results()
 
-            mb_solve_01.Omegas_zt = None
+            mb_solve_01._Omegas_zt = None
             mb_solve_01.states_zt = None
 
             mb_solve_01.load_results()
 
-        Omegas_zt_loaded = mb_solve_01.Omegas_zt
+        Omegas_zt_loaded = mb_solve_01._Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
@@ -357,12 +357,12 @@ class TestSaveLoad(unittest.TestCase):
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
             mb_solve_01.save_results()
 
-            mb_solve_01.Omegas_zt = None
+            mb_solve_01._Omegas_zt = None
             mb_solve_01.states_zt = None
 
             Omegas_zt, states_zt = mb_solve_01.solve(recalc=False)
 
-        Omegas_zt_loaded = mb_solve_01.Omegas_zt
+        Omegas_zt_loaded = mb_solve_01._Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
@@ -447,9 +447,9 @@ class TestSaveLoad(unittest.TestCase):
             savefile = os.path.join(tmpdir, "result")
             mbs.savefile = savefile
             # Write old-format 2-tuple directly.
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt), savefile)
 
-            mbs.Omegas_zt = None
+            mbs._Omegas_zt = None
             mbs.states_zt = None
 
             with warnings.catch_warnings(record=True) as caught:
@@ -457,7 +457,7 @@ class TestSaveLoad(unittest.TestCase):
                 mbs.load_results()
 
         self.assertTrue(any("no integrity metadata" in str(w.message) for w in caught))
-        self.assertIsNotNone(mbs.Omegas_zt)
+        self.assertIsNotNone(mbs._Omegas_zt)
 
 
 class TestBuildZlist(unittest.TestCase):
@@ -499,7 +499,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mbs = PropagationSolver().from_json(json_path)
-        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
         self.assertEqual(len(result), 1)
@@ -513,7 +513,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
         """Returns one pair per field."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
         mbs = PropagationSolver().from_json(json_path)
-        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
         self.assertEqual(len(result), 2)
@@ -524,7 +524,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
         mbs = PropagationSolver().from_json(json_path)
         # Use a non-trivial field profile
         mbs.solve()
-        Omegas_z = mbs.Omegas_zt[:, -1, :]
+        Omegas_z = mbs._Omegas_zt[:, -1, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
         _H_op, coeff = result[0]
         # Check a few time points
@@ -749,7 +749,7 @@ class TestInnerSteps(unittest.TestCase):
                 fine = self._solve(step, 2 * self.N, 1)
                 np.testing.assert_allclose(coarse.zlist, fine.zlist[::2])
                 np.testing.assert_allclose(
-                    coarse.Omegas_zt, fine.Omegas_zt[:, ::2, :], rtol=0, atol=1e-10
+                    coarse._Omegas_zt, fine._Omegas_zt[:, ::2, :], rtol=0, atol=1e-10
                 )
                 np.testing.assert_allclose(
                     coarse.states_zt, fine.states_zt[::2], rtol=0, atol=1e-10
@@ -904,7 +904,7 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
             interaction_strengths=[self.G],
         )
         mbs.solve(step=step)
-        Omegas = mbs.Omegas_zt[0]
+        Omegas = mbs._Omegas_zt[0]
         ratio = (Omegas[-1, -1] / Omegas[0, -1]).real
         expected = np.exp(-2 * self.N * self.G * self.L * np.sum(factors**2) / n_g)
         return ratio, expected, factors
@@ -965,7 +965,7 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
                 mbs.solve(step="ab")
 
                 energy_zt = np.trapezoid(
-                    np.abs(mbs.Omegas_zt[0]) ** 2, mbs.tlist, axis=1
+                    np.abs(mbs._Omegas_zt[0]) ** 2, mbs.tlist, axis=1
                 )
                 lost = energy_zt[0] - energy_zt[-1]
                 P_e = np.real(
@@ -1006,11 +1006,11 @@ class TestSourceWeightsSavefile(unittest.TestCase):
 
         mbs.solve()
         if legacy:
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt), savefile)
         else:
             meta = mbs._savefile_metadata()
             del meta["source_weights"]  # as written before the weights changed
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt, meta), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt, meta), savefile)
 
     def test_current_savefile_loads(self):
         import tempfile
@@ -1059,3 +1059,22 @@ class TestSourceWeightsSavefile(unittest.TestCase):
             mbs = self._solver(system, savefile)
             self._write_old_savefile(mbs, savefile, legacy=False)
             mbs.load_results()
+
+
+class TestRabiFreqsZt(unittest.TestCase):
+    """rabi_freqs_zt is the public cyclic view of the internal angular field."""
+
+    def _solver(self):
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.solve(recalc=True, progress=False)
+        return mbs
+
+    def test_cyclic_view_of_angular_field(self):
+        mbs = self._solver()
+        np.testing.assert_allclose(mbs.rabi_freqs_zt, mbs._Omegas_zt / (2 * np.pi))
+
+    def test_input_slice_is_the_problem_rabi_freq(self):
+        mbs = self._solver()
+        f = mbs.system.fields[0]
+        expected = f.rabi_freq * f.rabi_freq_t_func(mbs.tlist, f.rabi_freq_t_args)
+        np.testing.assert_allclose(mbs.rabi_freqs_zt[0, 0], expected)

@@ -32,6 +32,12 @@ with an optax optimiser (Adam by default). `import clerq` itself never loads JAX
 [API reference](api/autodiff.AutodiffPropagation.qmd), and `CHANGELOG.md` for the
 supported features and limits.
 
+**Cyclic field accessor.** `solver.rabi_freqs_zt` is the solved field as a cyclic
+Rabi frequency, the same unit as `rabi_freq` in the problem definition, so you no
+longer divide by $2\pi$. `solver.Omegas_zt` (angular) is deprecated but still works,
+and the arrays returned by `solve()` are unchanged. The output of `to_autodiff()`
+is cyclic too, so it compares directly with `rabi_freqs_zt`.
+
 ::: {.callout-note}
 ## Upgrading from 0.13.1
 Your code keeps working: the old names still run and raise a

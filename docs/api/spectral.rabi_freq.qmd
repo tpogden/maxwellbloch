@@ -16,6 +16,7 @@ Fourier transform of the field result of field index.
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                                       |
-|--------|------------|-------------------------------------------------------------------|
-|        | np.ndarray | Array[num_z_steps, num_t_steps] Field result in frequency domain. |
+| Name   | Type       | Description                                                              |
+|--------|------------|--------------------------------------------------------------------------|
+|        | np.ndarray | Array[num_z_steps, num_t_steps] Field result in frequency domain, of the |
+|        | np.ndarray | *angular* field (``2 * pi`` times the cyclic ``rabi_freqs_zt``).         |

@@ -19,7 +19,7 @@ def omega_abs(solver: PropagationSolver, field_idx: int = 0) -> np.ndarray:
     Returns:
         Array of shape (z_steps+1, t_steps+1).
     """
-    return np.abs(solver.Omegas_zt[field_idx])
+    return np.abs(solver._Omegas_zt[field_idx])
 
 
 # TODO: make this a method of PropagationSolver

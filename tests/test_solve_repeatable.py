@@ -75,7 +75,7 @@ def _solve(s, **kw):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         s.solve(recalc=True, progress=False, **kw)
-    return s.Omegas_zt.copy(), s.states_zt.copy()
+    return s._Omegas_zt.copy(), s.states_zt.copy()
 
 
 @pytest.mark.parametrize("step", ["ab", "euler"])
@@ -120,4 +120,4 @@ def test_deprecated_mbsolve_alias_repeatable():
         s.mbsolve(recalc=True, progress=False)
     with pytest.warns(DeprecationWarning):
         s.mbsolve(recalc=True, progress=False)
-    np.testing.assert_array_equal(s.Omegas_zt, ref)
+    np.testing.assert_array_equal(s._Omegas_zt, ref)

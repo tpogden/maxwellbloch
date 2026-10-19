@@ -107,7 +107,7 @@ def _clerq_omegas(d, step, opts=TIGHT):
     ps = PropagationSolver.from_json_str(json.dumps(d))
     ps.build_opts(opts)
     ps.solve(step=step, recalc=True, progress=False)
-    return ps.Omegas_zt
+    return ps._Omegas_zt
 
 
 def _rel(a, b):

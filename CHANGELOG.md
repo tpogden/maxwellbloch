@@ -23,6 +23,21 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - `AutodiffPropagation.minimize()` runs an optax optimiser (Adam by default, or any `optax` transformation) on a loss of
   the propagated field and returns an `OptimizeResult`. `optax` is now part of the `jax` extra.
 
+- `PropagationSolver.rabi_freqs_zt`: the solved field as a *cyclic* Rabi frequency, the same unit as `rabi_freq` in the
+  problem definition. Shape `(num_fields, z_steps+1, t_steps+1)`.
+
+### Changed
+- `AutodiffPropagation.propagate()` (and so the argument of every loss function) returns the field as a cyclic Rabi
+  frequency in the units of `rabi_freq` and `omega0`, equal to `PropagationSolver.rabi_freqs_zt`. Previously it was
+  angular, so `propagate()` output could not be passed straight back as `omega0`. This feature is unreleased, so
+  nothing outside this branch is affected.
+
+### Deprecated
+- `PropagationSolver.Omegas_zt` (the field as an *angular* frequency, which needed `/ (2 * np.pi)` to compare with
+  `rabi_freq`) is deprecated in favour of `rabi_freqs_zt`. It still works and raises a `DeprecationWarning`. The
+  arrays returned by `solve()`, and what `fields_area()` and the `clerq.spectral`, `clerq.fixed`, `clerq.fileio` and
+  `clerq.plot` helpers compute from them, are unchanged and still angular.
+
 ### Fixed
 - Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted
   energy fractions of 0.96848, 0.95962, 0.95950, ... for a sech pulse), and editing a field's `rabi_freq_t_args`

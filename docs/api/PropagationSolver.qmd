@@ -49,6 +49,12 @@ each step (once per velocity class if the medium is Doppler broadened).
 | velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening. ``thermal_width`` and the ``thermal_delta_*`` values are cyclic frequencies, in the same units as ``decays`` rates and ``rabi_freq``. The weights are Gaussian, ``exp(-(delta / thermal_width)**2)``. | `None`      |
 | atom                  | dict \| None          | Deprecated name for ``system``.                                                                                                                                                                                                                                                                 | `None`      |
 
+## Attributes
+
+| Name | Description |
+| --- | --- |
+| [rabi_freqs_zt](#clerq.PropagationSolver.rabi_freqs_zt) | The solved complex Rabi frequency of each field, as a cyclic frequency. |
+
 ## Methods
 
 | Name | Description |
@@ -201,7 +207,10 @@ PropagationSolver.init_Omegas_zt()
 
 Inits the Rabi frequency array.
 
-Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
+_Omegas_zt is the internal angular-frequency field array;
+``rabi_freqs_zt`` is its public cyclic view.
+
+_Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
 states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first.
 These are inconsistent; correcting either is a breaking API change,
 deferred to a future major version.
@@ -350,10 +359,10 @@ Solves the propagation of the fields through the medium.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                                                                  |
-|--------|------------|----------------------------------------------------------------------------------------------|
-|        | np.ndarray | self.Omegas_zt: The solved field complex Rabi frequency at each point in space z and time t. |
-|        | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.               |
+| Name      | Type       | Description                                                                                                                                  |
+|-----------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| Omegas_zt | np.ndarray | The solved field complex Rabi frequency at each point in space z and time t, as an *angular* frequency (``rabi_freqs_zt`` times ``2 * pi``). |
+|           | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.                                                               |
 
 ### to_autodiff { #clerq.PropagationSolver.to_autodiff }
 
