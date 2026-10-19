@@ -175,3 +175,28 @@ class TestSolverArg:
 
         with pytest.raises(TypeError):
             spectral.freq_list(solver=solver, mb_solve=solver)
+
+
+def test_omegas_zt_is_deprecated_and_angular():
+    solver = PropagationSolver(system=SYSTEM, t_steps=10, interaction_strengths=[1.0])
+    solver.solve(progress=False)
+    with pytest.warns(DeprecationWarning, match="rabi_freqs_zt"):
+        old = solver.Omegas_zt
+    np.testing.assert_array_equal(old, solver._Omegas_zt)
+    np.testing.assert_allclose(solver.rabi_freqs_zt * 2 * np.pi, old)
+    with pytest.warns(DeprecationWarning, match="rabi_freqs_zt"):
+        solver.Omegas_zt = old * 2
+    np.testing.assert_array_equal(solver._Omegas_zt, old * 2)
+    assert "Omegas_zt" not in solver.__dict__
+
+
+def test_introspecting_a_solver_does_not_warn():
+    import inspect
+    import warnings
+
+    solver = PropagationSolver(system=SYSTEM, t_steps=10, interaction_strengths=[1.0])
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        inspect.getmembers(solver)
+        dir(solver)
+    assert not [w for w in caught if "Omegas_zt" in str(w.message)]

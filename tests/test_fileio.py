@@ -33,5 +33,5 @@ class TestSaveCSVRabiFreq(unittest.TestCase):
         test_rf = np.loadtxt("rabi_freq.csv", delimiter=",", dtype=complex)
         test_rf_abs = np.loadtxt("rabi_freq_abs.csv", delimiter=",")
 
-        self.assertTrue(np.allclose(test_rf, mb_solve_00.Omegas_zt[0]))
-        self.assertTrue(np.allclose(test_rf_abs, np.abs(mb_solve_00.Omegas_zt[0])))
+        self.assertTrue(np.allclose(test_rf, mb_solve_00._Omegas_zt[0]))
+        self.assertTrue(np.allclose(test_rf_abs, np.abs(mb_solve_00._Omegas_zt[0])))

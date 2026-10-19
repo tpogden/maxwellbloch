@@ -297,28 +297,58 @@ class PropagationSolver(LindbladSolver):
             )
         return True
 
+    @property
+    def rabi_freqs_zt(self) -> np.ndarray:
+        """The solved complex Rabi frequency of each field, as a cyclic frequency.
+
+        Same units as ``rabi_freq`` in the problem definition. Shape
+        ``(num_fields, z_steps+1, t_steps+1)``. This is a new array on every access
+        (the solver stores the angular field), so assign it to a local variable
+        before indexing it in a loop; modifying it does not change the solver.
+        """
+        return self._Omegas_zt / (2 * np.pi)
+
+    # ``Omegas_zt`` is deprecated. It is handled here, not as a property, so that
+    # introspection (``dir``, ``inspect.getmembers``) never evaluates it and warns.
+    def __getattr__(self, name: str) -> Any:
+        if name == "Omegas_zt":
+            warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
+            return self._Omegas_zt  # the angular array
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "Omegas_zt":
+            warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
+            name = "_Omegas_zt"
+        super().__setattr__(name, value)
+
     def init_Omegas_zt(self) -> np.ndarray:
         """Inits the Rabi frequency array.
 
-        Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
+        _Omegas_zt is the internal angular-frequency field array;
+        ``rabi_freqs_zt`` is its public cyclic view.
+
+        _Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
         states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first.
         These are inconsistent; correcting either is a breaking API change,
         deferred to a future major version.
         """
-        self.Omegas_zt = np.zeros(
+        self._Omegas_zt = np.zeros(
             (len(self.system.fields), len(self.zlist), len(self.tlist)), dtype=complex
         )
         self._Omegas_z_buf = np.zeros(
             (len(self.system.fields), len(self.tlist)), dtype=complex
         )
         for f_i, f in enumerate(self.system.fields):
-            self.Omegas_zt[f_i][0] = (
+            self._Omegas_zt[f_i][0] = (
                 2.0
                 * np.pi
                 * f.rabi_freq
                 * f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
             )
-        return self.Omegas_zt
+        return self._Omegas_zt
 
     def init_states_zt(self) -> np.ndarray:
         """Inits the system density matrices."""
@@ -391,8 +421,9 @@ class PropagationSolver(LindbladSolver):
             max_z_steps_inner: Upper limit for ``z_steps_inner="auto"``.
 
         Returns:
-            self.Omegas_zt: The solved field complex Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
@@ -458,7 +489,7 @@ class PropagationSolver(LindbladSolver):
                 depletion_warn=depletion_warn, depletion_error=depletion_error
             )
 
-        return self.Omegas_zt, self.states_zt
+        return self._Omegas_zt, self.states_zt
 
     def to_autodiff(self, **options: Any) -> Any:
         """Return a differentiable version of this problem.
@@ -521,8 +552,9 @@ class PropagationSolver(LindbladSolver):
             progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
-            self.Omegas_zt: The solved field complex Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
@@ -546,7 +578,7 @@ class PropagationSolver(LindbladSolver):
         )
         f_hist: list[np.ndarray] = []
         for j, _z in pbar:
-            Omegas_z_this = self.Omegas_zt[:, j, :]
+            Omegas_z_this = self._Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
                 thermal_states_t = self._solve_and_average_over_thermal_detunings(
@@ -572,9 +604,9 @@ class PropagationSolver(LindbladSolver):
                 )
                 Omegas_z_this = self._Omegas_z_buf
             self.states_zt[j + 1, :] = self.states_t()
-            self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            self._Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
             pbar.set_postfix(self._pbar_postfix(progress_show_area))
-        return self.Omegas_zt, self.states_zt
+        return self._Omegas_zt, self.states_zt
 
     def _solve_ab(
         self,
@@ -592,8 +624,9 @@ class PropagationSolver(LindbladSolver):
             progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
-            self.Omegas_zt: The solved field complex Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
@@ -612,7 +645,7 @@ class PropagationSolver(LindbladSolver):
         pbar = tqdm.tqdm(total=self.z_steps, disable=not progress, unit="z")
         f_hist: list[np.ndarray] = []
         for j in range(self.z_steps):
-            Omegas_z_this = self.Omegas_zt[:, j, :]
+            Omegas_z_this = self._Omegas_zt[:, j, :]
             for k in range(self.z_steps_inner):
                 N = N_z[j * self.z_steps_inner + k]
                 if j == 0 and k == 0:
@@ -656,11 +689,11 @@ class PropagationSolver(LindbladSolver):
                 Omegas_z_this = self._Omegas_z_buf
                 sum_coh_prev = sum_coh_this
             self.states_zt[j + 1, :] = self.states_t()
-            self.Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
+            self._Omegas_zt[:, j + 1, :] = self._Omegas_z_buf
             pbar.update(1)
             pbar.set_postfix(self._pbar_postfix(progress_show_area))
         pbar.close()
-        return self.Omegas_zt, self.states_zt
+        return self._Omegas_zt, self.states_zt
 
     def _solve_auto(self, do_solve, tol: float, max_inner: int) -> None:
         """Repeat do_solve with a larger z_steps_inner until it is stable."""
@@ -922,7 +955,7 @@ class PropagationSolver(LindbladSolver):
         for field_idx, field in enumerate(self.system.fields):
             if field.factor_doppler_shift >= 0:
                 continue
-            Omega_field = self.Omegas_zt[field_idx]  # shape (z_steps+1, t_steps+1)
+            Omega_field = self._Omegas_zt[field_idx]  # shape (z_steps+1, t_steps+1)
             peak_zmin = np.max(np.abs(Omega_field[0]))
             peak_zmax = np.max(np.abs(Omega_field[-1]))
             if peak_zmin == 0.0:
@@ -981,7 +1014,7 @@ class PropagationSolver(LindbladSolver):
             os.makedirs(os.path.dirname(self.savefile) or ".", exist_ok=True)
             print("Saving PropagationSolver to", self.savefile + ".qu")
             qu.qsave(
-                (self.Omegas_zt, self.states_zt, self._savefile_metadata()),
+                (self._Omegas_zt, self.states_zt, self._savefile_metadata()),
                 self.savefile,
             )
 
@@ -1047,7 +1080,7 @@ class PropagationSolver(LindbladSolver):
                 stacklevel=2,
             )
             Omegas_zt, states_zt = data
-        self.Omegas_zt, self.states_zt = Omegas_zt, states_zt
+        self._Omegas_zt, self.states_zt = Omegas_zt, states_zt
 
     def fields_area(self) -> np.ndarray:
         """Gets the integrated pulse area of each field.
@@ -1056,7 +1089,7 @@ class PropagationSolver(LindbladSolver):
             np.array [num_fields, num_z_steps]: Integrated area of each field
             over time
         """
-        return np.trapezoid(np.real(self.Omegas_zt), self.tlist, axis=2)
+        return np.trapezoid(np.real(self._Omegas_zt), self.tlist, axis=2)
 
     def populations(self, levels: list[int]) -> np.ndarray:
         """Gets the sum of populations in a list of levels.

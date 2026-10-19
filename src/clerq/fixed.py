@@ -55,13 +55,14 @@ def rabi_freq(
 
     Returns:
         Array[num_fields, num_space_points, num_time_points] of field
-        values in the fixed frame of reference.
+        values in the fixed frame of reference, in *angular* units (``2 * pi``
+        times the cyclic ``rabi_freqs_zt``).
     """
 
     if part == "abs":
-        rabi_freq_zt = np.abs(solver.Omegas_zt[field_idx])
+        rabi_freq_zt = np.abs(solver._Omegas_zt[field_idx])
     elif part == "real":
-        rabi_freq_zt = np.real(solver.Omegas_zt[field_idx])
+        rabi_freq_zt = np.real(solver._Omegas_zt[field_idx])
     else:
         raise ValueError('Invalid part. Try "abs" or "real"')
 
@@ -73,7 +74,7 @@ def rabi_freq(
         fill_value=0.0,
     )
 
-    rabi_freq_fixed = np.zeros(solver.Omegas_zt[field_idx].shape, dtype=float)
+    rabi_freq_fixed = np.zeros(solver._Omegas_zt[field_idx].shape, dtype=float)
 
     for i, z_i in enumerate(solver.zlist):
         t_shifted = t_list(solver, speed_of_light) - z_i / speed_of_light

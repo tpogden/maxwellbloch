@@ -148,10 +148,11 @@ class AutodiffPropagation:
         first slice is driven by their cubic spline instead of the analytic
         pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
 
-    All parameters are cyclic (like the problem definition). The propagated field
-    is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
-    shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
-    by ``2 * pi`` for the cyclic Rabi frequency.
+    All parameters are cyclic (like the problem definition), and so is the
+    propagated field. It is returned in the layout and units of
+    ``PropagationSolver.rabi_freqs_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
+    complex, *cyclic* Rabi frequency, the same unit as ``rabi_freq`` and
+    ``omega0``.
 
     Attributes:
         GRAD_CACHE_SIZE: how many compiled ``value_and_grad`` programs (one per
@@ -332,10 +333,10 @@ class AutodiffPropagation:
                     strict=True,
                 )
             ]
-        # omega0 is cyclic like every other parameter; the engine works in angular
-        # units (the layout of Omegas_zt).
+        # Everything is cyclic at this interface; the engine works in angular units,
+        # so convert omega0 on the way in and the propagated field on the way out.
         omega0 = p.get("omega0")
-        return propagate_fields(
+        omegas = propagate_fields(
             self.setup,
             omega0=None if omega0 is None else TWO_PI * omega0,
             pulse_args=p["pulse_args"],
@@ -345,6 +346,7 @@ class AutodiffPropagation:
             decay_scale=p["decay_scale"],
             **{**self._options, **overrides},
         )
+        return omegas / TWO_PI
 
     def propagate(self, params: dict | None = None) -> Any:
         """Propagate the fields; a pure, jit-compiled function of ``params``.

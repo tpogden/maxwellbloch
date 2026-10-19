@@ -73,6 +73,8 @@ Hyperfine structure lives in `hyperfine.py` and `angmom.py` (3j/6j symbols, Cleb
 
 Up to 0.13.1 the classes were `OBBase`, `OBAtom`, `OBSolve` and `MBSolve` (modules `ob_base`, `ob_atom`, `ob_solve`, `mb_solve`), the solve methods were `obsolve()` and `mbsolve()`, and the system was called `atom` (constructor argument, attribute and JSON key). Functions taking a solver named the argument `mb_solve` (`spectral`, `fixed`, `fileio`) or `mbs` (`plot`); it is now `solver`. These all still work and raise a `DeprecationWarning`; the helpers are in `_deprecation.py` and the tests in `tests/test_deprecated.py`. Do not use them in new code. The `mbsolve` and `obsolve` command-line scripts keep their names.
 
+`PropagationSolver.Omegas_zt` (the field as an angular frequency) is also deprecated, in favour of the cyclic `rabi_freqs_zt`; the angular array is now the private `_Omegas_zt`, and the `solve()` return value and helpers such as `fields_area`, `spectral`, `fixed`, `fileio` and `plot` remain angular. Its warning is tested in `tests/test_deprecated.py`.
+
 ### Solver flow
 
 - **LindbladSolver** calls `qutip.mesolve` to evolve the system density matrix in time for a single spatial point (`solve()`).
