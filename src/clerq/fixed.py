@@ -55,7 +55,8 @@ def rabi_freq(
 
     Returns:
         Array[num_fields, num_space_points, num_time_points] of field
-        values in the fixed frame of reference.
+        values in the fixed frame of reference, in *angular* units (``2 * pi``
+        times the cyclic ``rabi_freqs_zt``).
     """
 
     if part == "abs":

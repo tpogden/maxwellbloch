@@ -142,7 +142,8 @@ def test_asking_for_the_gradient_of_square_edges_is_an_error_not_a_silent_zero()
 
     h = 5e-3
     fd_on = (f(0.6 + h) - f(0.6 - h)) / (2 * h)
-    assert abs(fd_on) > 10.0  # (about 91 in cyclic units; 4 pi^2 times that angular)
+    # about 91 here; the same loss in angular units was 4 pi^2 times larger
+    assert abs(fd_on) > 50.0
 
 
 def test_square_edges_can_be_changed_via_fixed():

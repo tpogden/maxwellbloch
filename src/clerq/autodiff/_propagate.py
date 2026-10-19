@@ -212,7 +212,8 @@ def propagate_fields(
 
     Returns:
         ``Omega(z, t)`` of shape ``(n_fields, z_steps + 1, n_t)``, complex,
-        angular units (the layout of ``PropagationSolver.Omegas_zt``).
+        angular units, the engine's internal convention. ``AutodiffPropagation``
+        divides by ``2 * pi`` to give ``PropagationSolver.rabi_freqs_zt``.
 
     Raises:
         RuntimeError: if JAX is not in 64-bit mode.

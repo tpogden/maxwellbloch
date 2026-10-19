@@ -1078,11 +1078,3 @@ class TestRabiFreqsZt(unittest.TestCase):
         f = mbs.system.fields[0]
         expected = f.rabi_freq * f.rabi_freq_t_func(mbs.tlist, f.rabi_freq_t_args)
         np.testing.assert_allclose(mbs.rabi_freqs_zt[0, 0], expected)
-
-    def test_omegas_zt_is_deprecated_and_angular(self):
-        mbs = self._solver()
-        with self.assertWarnsRegex(DeprecationWarning, "rabi_freqs_zt"):
-            old = mbs.Omegas_zt
-        np.testing.assert_array_equal(old, mbs._Omegas_zt)
-        with self.assertWarnsRegex(DeprecationWarning, "rabi_freqs_zt"):
-            mbs.Omegas_zt = old

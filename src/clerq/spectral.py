@@ -46,7 +46,8 @@ def rabi_freq(
             (default) applies no windowing and does not change the result.
 
     Returns:
-        Array[num_z_steps, num_t_steps] Field result in frequency domain.
+        Array[num_z_steps, num_t_steps] Field result in frequency domain, of the
+        *angular* field (``2 * pi`` times the cyclic ``rabi_freqs_zt``).
 
     """
 

@@ -289,22 +289,27 @@ class PropagationSolver(LindbladSolver):
         """The solved complex Rabi frequency of each field, as a cyclic frequency.
 
         Same units as ``rabi_freq`` in the problem definition. Shape
-        ``(num_fields, z_steps+1, t_steps+1)``. This is a copy; modifying it does
-        not change the solver.
+        ``(num_fields, z_steps+1, t_steps+1)``. This is a new array on every access
+        (the solver stores the angular field), so assign it to a local variable
+        before indexing it in a loop; modifying it does not change the solver.
         """
         return self._Omegas_zt / (2 * np.pi)
 
-    @property
-    def Omegas_zt(self) -> np.ndarray:
-        """Deprecated: the field as an *angular* frequency; use ``rabi_freqs_zt``
-        (cyclic, divide this by ``2 * pi``)."""
-        warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
-        return self._Omegas_zt
+    # ``Omegas_zt`` is deprecated. It is handled here, not as a property, so that
+    # introspection (``dir``, ``inspect.getmembers``) never evaluates it and warns.
+    def __getattr__(self, name: str) -> Any:
+        if name == "Omegas_zt":
+            warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
+            return self._Omegas_zt  # the angular array
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
-    @Omegas_zt.setter
-    def Omegas_zt(self, value: np.ndarray) -> None:
-        warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
-        self._Omegas_zt = value
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "Omegas_zt":
+            warn_deprecated("PropagationSolver.Omegas_zt", "rabi_freqs_zt (cyclic)")
+            name = "_Omegas_zt"
+        super().__setattr__(name, value)
 
     def init_Omegas_zt(self) -> np.ndarray:
         """Inits the Rabi frequency array.
@@ -382,8 +387,9 @@ class PropagationSolver(LindbladSolver):
                 CounterPropagatingDepletionError.
 
         Returns:
-            self.rabi_freqs_zt: The solved field complex (cyclic) Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
@@ -494,8 +500,9 @@ class PropagationSolver(LindbladSolver):
             progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
-            self.rabi_freqs_zt: The solved field complex (cyclic) Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
@@ -557,8 +564,9 @@ class PropagationSolver(LindbladSolver):
             progress_show_area: Add pulse area ∫|Ω|dt per field to the progress bar.
 
         Returns:
-            self.rabi_freqs_zt: The solved field complex (cyclic) Rabi frequency at each
-                point in space z and time t.
+            Omegas_zt: The solved field complex Rabi frequency at each point in
+                space z and time t, as an *angular* frequency (``rabi_freqs_zt``
+                times ``2 * pi``).
             self.states_zt: The solved density matrix at each point in space z
                 and time t.
         """
