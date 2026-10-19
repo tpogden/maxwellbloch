@@ -92,6 +92,7 @@ Counter-propagating fields are not supported. The result matches
 | [clear_cache](#clerq.autodiff.AutodiffPropagation.clear_cache) | Drop the compiled programs, releasing the loss functions (and the arrays |
 | [default_params](#clerq.autodiff.AutodiffPropagation.default_params) | The parameters of the problem this object was built from. |
 | [from_solver](#clerq.autodiff.AutodiffPropagation.from_solver) | Build from a :class:`~clerq.PropagationSolver`. |
+| [minimize](#clerq.autodiff.AutodiffPropagation.minimize) | Minimise ``loss(Omega_zt)`` over ``params`` with an optax optimiser. |
 | [propagate](#clerq.autodiff.AutodiffPropagation.propagate) | Propagate the fields; a pure, jit-compiled function of ``params``. |
 | [value_and_grad](#clerq.autodiff.AutodiffPropagation.value_and_grad) | Value and gradient of ``loss(Omega_zt)`` with respect to ``params``. |
 
@@ -128,6 +129,55 @@ Build from a :class:`~clerq.PropagationSolver`.
 |-----------|--------|----------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | solver    | Any    | the problem to differentiate.                                                                                                                | _required_ |
 | **options | Any    | the constructor options of this class (``step``, ``strategy``, ``checkpoints``, ``rtol``, ``atol``, ``max_steps``, ``n_steps``, ``solver``). | `{}`       |
+
+### minimize { #clerq.autodiff.AutodiffPropagation.minimize }
+
+```python
+autodiff.AutodiffPropagation.minimize(
+    loss,
+    params=None,
+    *,
+    fixed=None,
+    optimizer=None,
+    learning_rate=None,
+    steps=100,
+    gtol=None,
+)
+```
+
+Minimise ``loss(Omega_zt)`` over ``params`` with an optax optimiser.
+
+Each step is one :meth:`value_and_grad` call and one optimiser update, so
+the loss is compiled once, on the first step (plus one final evaluation). Needs ``optax``, which the
+``jax`` extra installs.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type          | Description                                                                                                                                                                                                                                                                                                                                                                                                                  | Default    |
+|---------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| loss          | Callable      | scalar-valued function of the propagated field, as for :meth:`value_and_grad`; reuse one function object.                                                                                                                                                                                                                                                                                                                    | _required_ |
+| params        | dict \| None  | starting point and the parameters to optimise (any subset of the keys). Default: every differentiable parameter of the problem.                                                                                                                                                                                                                                                                                              | `None`     |
+| fixed         | dict \| None  | parameters held constant, as for :meth:`value_and_grad`.                                                                                                                                                                                                                                                                                                                                                                     | `None`     |
+| optimizer     | Any           | an ``optax.GradientTransformation`` (for example ``optax.adam(1e-2)`` or ``optax.lbfgs()``). Pass the same object to reuse its compiled update between calls. Default ``optax.adam(learning_rate)``. Parameters differ in scale (a pulse area is of order 1, an interaction strength of order ``1e3``), so the right ``learning_rate`` depends on what is being optimised; rescale the parameters inside ``loss`` if needed. | `None`     |
+| learning_rate | float \| None | step size of the default Adam optimiser (0.05 if not given); not allowed together with ``optimizer``.                                                                                                                                                                                                                                                                                                                        | `None`     |
+| steps         | int           | the most updates to take.                                                                                                                                                                                                                                                                                                                                                                                                    | `100`      |
+| gtol          | float \| None | stop when the gradient's global norm is below this (default: always take ``steps`` updates).                                                                                                                                                                                                                                                                                                                                 | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type           | Description                                                                            |
+|--------|----------------|----------------------------------------------------------------------------------------|
+|        | OptimizeResult | The An :class:`~clerq.autodiff.OptimizeResult`, at the last point reached. That is the |
+|        | OptimizeResult | best one for a descending optimiser but need not be for one that                       |
+|        | OptimizeResult | overshoots; ``losses`` shows the path.                                                 |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type         | Description                                                                                                                      |
+|--------|--------------|----------------------------------------------------------------------------------------------------------------------------------|
+|        | ImportError  | if ``optax`` is not installed.                                                                                                   |
+|        | RuntimeError | if JAX is not in 64-bit mode.                                                                                                    |
+|        | ValueError   | as for :meth:`value_and_grad`, or if ``steps`` is not a positive integer, or both ``optimizer`` and ``learning_rate`` are given. |
 
 ### propagate { #clerq.autodiff.AutodiffPropagation.propagate }
 

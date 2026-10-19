@@ -18,6 +18,11 @@ Build the differentiable object from an ordinary solver and differentiate::
 
     value, grads = ad.value_and_grad(loss, params)   # exact gradients
 
+Or let an optax optimiser (Adam by default) follow the gradient::
+
+    result = ad.minimize(loss, params, steps=50)
+    result.params, result.losses
+
 The result reproduces ``PropagationSolver.solve``; see
 :class:`~clerq.autodiff.AutodiffPropagation` for the parameters and caveats.
 """
@@ -26,6 +31,6 @@ from clerq.autodiff._config import require_float64, require_jax
 
 require_jax()
 
-from clerq.autodiff._api import AutodiffPropagation  # noqa: E402
+from clerq.autodiff._api import AutodiffPropagation, OptimizeResult  # noqa: E402
 
-__all__ = ["AutodiffPropagation", "require_float64"]
+__all__ = ["AutodiffPropagation", "OptimizeResult", "require_float64"]

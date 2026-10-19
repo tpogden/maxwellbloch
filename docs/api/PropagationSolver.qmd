@@ -53,7 +53,6 @@ each step (once per velocity class if the medium is Doppler broadened).
 
 | Name | Description |
 | --- | --- |
-| [Omegas_zt](#clerq.PropagationSolver.Omegas_zt) | Deprecated: the field as an *angular* frequency; use ``rabi_freqs_zt`` |
 | [rabi_freqs_zt](#clerq.PropagationSolver.rabi_freqs_zt) | The solved complex Rabi frequency of each field, as a cyclic frequency. |
 
 ## Methods
@@ -360,10 +359,10 @@ Solves the propagation of the fields through the medium.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                                                                               |
-|--------|------------|-----------------------------------------------------------------------------------------------------------|
-|        | np.ndarray | self.rabi_freqs_zt: The solved field complex (cyclic) Rabi frequency at each point in space z and time t. |
-|        | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.                            |
+| Name      | Type       | Description                                                                                                                                  |
+|-----------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| Omegas_zt | np.ndarray | The solved field complex Rabi frequency at each point in space z and time t, as an *angular* frequency (``rabi_freqs_zt`` times ``2 * pi``). |
+|           | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.                                                               |
 
 ### to_autodiff { #clerq.PropagationSolver.to_autodiff }
 

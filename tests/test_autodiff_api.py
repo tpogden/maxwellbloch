@@ -2,6 +2,7 @@
 
 import copy
 import json
+import sys
 
 import numpy as np
 import pytest
@@ -298,3 +299,78 @@ def test_partial_pulse_args_are_merged_consistently():
         "fwhm": 1.0,
     }
     assert _merge_pulse_args(sech_width, {"centre": 0.5})["width"] == 0.3
+
+
+class TestMinimize:
+    """``AutodiffPropagation.minimize`` wraps an optax optimiser."""
+
+    @pytest.fixture(scope="class")
+    def ad(self):
+        return PropagationSolver.from_json_str(json.dumps(PROBLEM)).to_autodiff()
+
+    @pytest.fixture(scope="class")
+    def optax(self):
+        return pytest.importorskip("optax")
+
+    @pytest.fixture(scope="class")
+    def start(self, ad):
+        return {"interaction_strengths": ad.default_params()["interaction_strengths"]}
+
+    @staticmethod
+    def loss(omegas):
+        return jnp.abs(omegas[0, -1, -1]) ** 2
+
+    def test_descends_and_matches_final_value(self, ad, optax, start):
+        res = ad.minimize(self.loss, start, steps=5, learning_rate=1e-2)
+        assert res.n_steps == 5 and len(res.losses) == 6
+        assert res.losses[-1] < res.losses[0]
+        assert res.value == res.losses[-1]
+        assert set(res.params) == set(start)
+        v, _ = ad.value_and_grad(self.loss, res.params)
+        assert float(v) == pytest.approx(res.value)
+
+    def test_custom_optimizer(self, ad, optax, start):
+        res = ad.minimize(self.loss, start, steps=2, optimizer=optax.sgd(1e-3))
+        assert res.n_steps == 2
+
+    def test_lbfgs_gets_the_loss(self, ad, optax, start):
+        res = ad.minimize(self.loss, start, steps=3, optimizer=optax.lbfgs())
+        assert res.losses[-1] < res.losses[0]
+
+    def test_fixed_is_forwarded(self, ad, optax, start):
+        fixed = {"decay_scale": 2.0}
+        res = ad.minimize(self.loss, start, steps=2, fixed=fixed, learning_rate=1e-2)
+        v, _ = ad.value_and_grad(self.loss, res.params, fixed=fixed)
+        assert float(v) == pytest.approx(res.value)
+        v0, _ = ad.value_and_grad(self.loss, start)
+        assert res.losses[0] != pytest.approx(float(v0))
+
+    def test_gtol_stops_immediately(self, ad, optax):
+        res = ad.minimize(self.loss, steps=10, gtol=1e12)
+        assert res.converged and res.n_steps == 0 and len(res.losses) == 1
+
+    def test_gtol_stops_partway(self, ad, optax, start):
+        from clerq.autodiff._api import _norm
+
+        two = ad.minimize(self.loss, start, steps=2, learning_rate=1e-2)
+        _, g = ad.value_and_grad(self.loss, two.params)
+        res = ad.minimize(
+            self.loss, start, steps=20, learning_rate=1e-2, gtol=_norm(g) * 1.001
+        )
+        assert res.converged and res.n_steps <= 2
+        assert len(res.losses) == res.n_steps + 1
+
+    def test_not_converged_when_gtol_unreachable(self, ad, optax, start):
+        res = ad.minimize(self.loss, start, steps=2, gtol=0.0)
+        assert not res.converged and res.n_steps == 2
+
+    def test_bad_arguments(self, ad, optax):
+        with pytest.raises(ValueError, match="steps"):
+            ad.minimize(self.loss, steps=0)
+        with pytest.raises(ValueError, match="not both"):
+            ad.minimize(self.loss, optimizer=optax.sgd(1e-3), learning_rate=0.1)
+
+    def test_missing_optax(self, ad, monkeypatch):
+        monkeypatch.setitem(sys.modules, "optax", None)
+        with pytest.raises(ImportError, match="optax"):
+            ad.minimize(self.loss, steps=1)
