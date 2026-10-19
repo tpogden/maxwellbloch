@@ -24,7 +24,8 @@ Not yet released; this is on the `next` branch.
 the field blows up, and warns when the z-step looks too coarse (estimated from
 the difference between the Euler and Adams-Bashforth predictions, available as
 `solver.step_error_estimate`). Pass `z_steps_inner="auto"` to refine the step
-automatically, or `check_stability=False` to switch the checks off.
+automatically, or `check_stability=False` to switch the checks off. See
+[Numerical Stability and Step Sizes](usage/numerical-stability.ipynb).
 
 **Time-grid checks.** `solve()` also warns when `t_steps` is too coarse to
 resolve the fields and coherences, or when the time window cuts off a pulse or
