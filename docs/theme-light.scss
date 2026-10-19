@@ -1,0 +1,81 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-family-monospace: "JetBrains Mono", "Fira Code", SFMono-Regular, Menlo, Consolas, monospace;
+$headings-font-weight: 650;
+$border-radius: 0.5rem;
+$code-color: #b4326e;
+$link-decoration: none;
+$toc-font-size: 0.85rem;
+$navbar-padding-y: 0.6rem;
+
+
+$body-bg: #ffffff;
+$body-color: #1f2430;
+$link-color: #0b6bcb;
+$primary: #0b6bcb;
+$navbar-bg: #ffffff;
+$navbar-fg: #1f2430;
+$navbar-hl: #0b6bcb;
+$code-block-bg: #f6f8fa;
+$code-block-border-left: false;
+
+/*-- scss:rules --*/
+:root {
+  --clerq-border: #e3e7ee;
+  --clerq-code-bg: #f6f8fa;
+  --clerq-accent: #0b6bcb;
+}
+
+
+body { line-height: 1.65; }
+
+h1, h2, h3 { letter-spacing: -0.01em; }
+h2 { margin-top: 2.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--clerq-border); }
+
+a:hover { text-decoration: underline; }
+
+.navbar { border-bottom: 1px solid var(--clerq-border); box-shadow: none; }
+.navbar-brand { font-weight: 700; letter-spacing: -0.02em; }
+
+#quarto-sidebar .sidebar-item a.active,
+.sidebar-navigation .sidebar-item a.active {
+  font-weight: 600;
+  border-left: 2px solid var(--clerq-accent);
+  padding-left: 0.5rem;
+}
+
+#TOC .active, #TOC a.active { border-left-color: var(--clerq-accent); color: var(--clerq-accent); }
+
+code:not(pre code) {
+  padding: 0.12em 0.35em;
+  border-radius: 0.3rem;
+  background: var(--clerq-code-bg);
+  border: 1px solid var(--clerq-border);
+  font-size: 0.86em;
+}
+
+pre, div.sourceCode {
+  border-radius: 0.5rem;
+  border: 1px solid var(--clerq-border);
+  background: var(--clerq-code-bg);
+}
+pre { padding: 0.8rem 1rem; }
+pre code { background: transparent; border: 0; }
+
+table { font-size: 0.92rem; }
+table th { font-weight: 600; }
+table.table > :not(caption) > * > * { background-color: transparent; }
+table.table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--clerq-code-bg); }
+
+.callout { border-radius: 0.5rem; }
+
+/* Plots are rendered on white; keep them legible on a dark page. */
+.cell-output-display img, .cell-output-display svg, figure img {
+  border-radius: 0.5rem;
+  background: #fff;
+  max-width: 100%;
+  height: auto;
+}
+
+/* quartodoc API pages */
+.doc-section-title, .quartodoc .anchored code { font-weight: 600; }
