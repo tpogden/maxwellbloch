@@ -77,7 +77,8 @@ table.table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--
 
 .callout { border-radius: 0.5rem; }
 
-/* Plots are rendered on white; keep them legible on a dark page. */
+/* Static images (e.g. matplotlib) are rendered on white; keep them legible on a dark page.
+   Plotly figures are restyled for dark mode by _plotly-theme.html. */
 .cell-output-display img, .cell-output-display > svg, figure img {
   border-radius: 0.5rem;
   background: #fff;
