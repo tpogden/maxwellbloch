@@ -201,6 +201,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/autodiff.OptimizeResult.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">autodiff.OptimizeResult</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Field</span></a>
   </div>
@@ -381,6 +387,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.autodiff.AutodiffPropagation.clear_cache" id="toc-clerq.autodiff.AutodiffPropagation.clear_cache" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.clear_cache">clear_cache</a></li>
   <li><a href="#clerq.autodiff.AutodiffPropagation.default_params" id="toc-clerq.autodiff.AutodiffPropagation.default_params" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.default_params">default_params</a></li>
   <li><a href="#clerq.autodiff.AutodiffPropagation.from_solver" id="toc-clerq.autodiff.AutodiffPropagation.from_solver" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.from_solver">from_solver</a></li>
+  <li><a href="#clerq.autodiff.AutodiffPropagation.minimize" id="toc-clerq.autodiff.AutodiffPropagation.minimize" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.minimize">minimize</a></li>
   <li><a href="#clerq.autodiff.AutodiffPropagation.propagate" id="toc-clerq.autodiff.AutodiffPropagation.propagate" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.propagate">propagate</a></li>
   <li><a href="#clerq.autodiff.AutodiffPropagation.value_and_grad" id="toc-clerq.autodiff.AutodiffPropagation.value_and_grad" class="nav-link" data-scroll-target="#clerq.autodiff.AutodiffPropagation.value_and_grad">value_and_grad</a></li>
   </ul></li>
@@ -539,10 +546,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>Build from a :class:<code>~clerq.PropagationSolver</code>.</td>
 </tr>
 <tr class="even">
+<td><a href="#clerq.autodiff.AutodiffPropagation.minimize">minimize</a></td>
+<td>Minimise <code>loss(Omega_zt)</code> over <code>params</code> with an optax optimiser.</td>
+</tr>
+<tr class="odd">
 <td><a href="#clerq.autodiff.AutodiffPropagation.propagate">propagate</a></td>
 <td>Propagate the fields; a pure, jit-compiled function of <code>params</code>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#clerq.autodiff.AutodiffPropagation.value_and_grad">value_and_grad</a></td>
 <td>Value and gradient of <code>loss(Omega_zt)</code> with respect to <code>params</code>.</td>
 </tr>
@@ -597,12 +608,158 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </section>
 </section>
-<section id="clerq.autodiff.AutodiffPropagation.propagate" class="level3">
-<h3 class="anchored" data-anchor-id="clerq.autodiff.AutodiffPropagation.propagate">propagate</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>autodiff.AutodiffPropagation.propagate(params<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Propagate the fields; a pure, jit-compiled function of <code>params</code>.</p>
+<section id="clerq.autodiff.AutodiffPropagation.minimize" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.autodiff.AutodiffPropagation.minimize">minimize</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>autodiff.AutodiffPropagation.minimize(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    loss,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    params<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    fixed<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    steps<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    gtol<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Minimise <code>loss(Omega_zt)</code> over <code>params</code> with an optax optimiser.</p>
+<p>Each step is one :meth:<code>value_and_grad</code> call and one optimiser update, so the loss is compiled once, on the first step (plus one final evaluation). Needs <code>optax</code>, which the <code>jax</code> extra installs.</p>
 <section id="parameters-2" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 90%">
+<col style="width: 2%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>loss</td>
+<td>Callable</td>
+<td>scalar-valued function of the propagated field, as for :meth:<code>value_and_grad</code>; reuse one function object.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>params</td>
+<td>dict | None</td>
+<td>starting point and the parameters to optimise (any subset of the keys). Default: every differentiable parameter of the problem.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>fixed</td>
+<td>dict | None</td>
+<td>parameters held constant, as for :meth:<code>value_and_grad</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>optimizer</td>
+<td>Any</td>
+<td>an <code>optax.GradientTransformation</code> (for example <code>optax.adam(1e-2)</code> or <code>optax.lbfgs()</code>). Pass the same object to reuse its compiled update between calls. Default <code>optax.adam(learning_rate)</code>. Parameters differ in scale (a pulse area is of order 1, an interaction strength of order <code>1e3</code>), so the right <code>learning_rate</code> depends on what is being optimised; rescale the parameters inside <code>loss</code> if needed.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>learning_rate</td>
+<td>float | None</td>
+<td>step size of the default Adam optimiser (0.05 if not given); not allowed together with <code>optimizer</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>steps</td>
+<td>int</td>
+<td>the most updates to take.</td>
+<td><code>100</code></td>
+</tr>
+<tr class="odd">
+<td>gtol</td>
+<td>float | None</td>
+<td>stop when the gradient’s global norm is below this (default: always take <code>steps</code> updates).</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 14%">
+<col style="width: 78%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>OptimizeResult</td>
+<td>The An :class:<code>~clerq.autodiff.OptimizeResult</code>, at the last point reached. That is the</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>OptimizeResult</td>
+<td>best one for a descending optimiser but need not be for one that</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>OptimizeResult</td>
+<td>overshoots; <code>losses</code> shows the path.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="raises" class="level4 doc-section doc-section-raises">
+<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 9%">
+<col style="width: 85%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>ImportError</td>
+<td>if <code>optax</code> is not installed.</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RuntimeError</td>
+<td>if JAX is not in 64-bit mode.</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>ValueError</td>
+<td>as for :meth:<code>value_and_grad</code>, or if <code>steps</code> is not a positive integer, or both <code>optimizer</code> and <code>learning_rate</code> are given.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="clerq.autodiff.AutodiffPropagation.propagate" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.autodiff.AutodiffPropagation.propagate">propagate</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>autodiff.AutodiffPropagation.propagate(params<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Propagate the fields; a pure, jit-compiled function of <code>params</code>.</p>
+<section id="parameters-3" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 7%">
@@ -628,8 +785,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 9%">
@@ -652,8 +809,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="raises" class="level4 doc-section doc-section-raises">
-<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
+<section id="raises-1" class="level4 doc-section doc-section-raises">
+<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises-1">Raises</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -679,16 +836,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="clerq.autodiff.AutodiffPropagation.value_and_grad" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.autodiff.AutodiffPropagation.value_and_grad">value_and_grad</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>autodiff.AutodiffPropagation.value_and_grad(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    loss,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    params<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    fixed<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">=</span><span class="st">'reverse'</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>autodiff.AutodiffPropagation.value_and_grad(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    loss,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    params<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    fixed<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">=</span><span class="st">'reverse'</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Value and gradient of <code>loss(Omega_zt)</code> with respect to <code>params</code>.</p>
-<section id="parameters-3" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
+<section id="parameters-4" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-4">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 2%">
@@ -732,8 +889,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-1" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<section id="returns-2" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 8%">
@@ -756,8 +913,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="raises-1" class="level4 doc-section doc-section-raises">
-<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises-1">Raises</h4>
+<section id="raises-2" class="level4 doc-section doc-section-raises">
+<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises-2">Raises</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 5%">
