@@ -126,6 +126,35 @@ ul.task-list li input[type="checkbox"] {
 })();
 </script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -369,7 +398,10 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#troubleshooting" id="toc-troubleshooting" class="nav-link active" data-scroll-target="#troubleshooting">Troubleshooting</a></li>
+  <li><a href="#troubleshooting" id="toc-troubleshooting" class="nav-link active" data-scroll-target="#troubleshooting">Troubleshooting</a>
+  <ul class="collapse">
+  <li><a href="#numerical-stability" id="toc-numerical-stability" class="nav-link" data-scroll-target="#numerical-stability">Numerical stability</a></li>
+  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/support/troubleshooting.md" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -382,9 +414,18 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="troubleshooting" class="level1">
 <h1>Troubleshooting</h1>
-<p>If you have any problems with clerq, please raise <a href="https://github.com/tpogden/clerq/issues">an issue on Github</a>.</p>
+<section id="numerical-stability" class="level2">
+<h2 class="anchored" data-anchor-id="numerical-stability">Numerical stability</h2>
+<p><strong><code>PropagationInstabilityError</code>, or a result that looks wrong or grows along the medium.</strong> The <span class="math inline">\(z\)</span>-step is probably too coarse for the density and pulse. Raise <code>z_steps_inner</code> (the error message suggests a value), or pass <code>z_steps_inner="auto"</code>. If a dense medium still fails, lower the density or shorten the medium, or use more <code>z_steps</code>.</p>
+<p><strong>“The z-step may be too coarse” warning.</strong> The estimated error of the <span class="math inline">\(z\)</span>-stepping, <code>solver.step_error_estimate</code>, is above <code>step_error_warn</code>. Raise <code>z_steps_inner</code> as above.</p>
+<p><strong>“The time grid may be too coarse” warning.</strong> The fields or coherences are not resolved on the time grid. Raise <code>t_steps</code>; <code>solver.suggest_t_steps()</code> estimates a value.</p>
+<p><strong>“A field is still changing near the edge of the time window” warning.</strong> A pulse or its ringing is cut off by <code>t_min</code> or <code>t_max</code>. Widen the window; remember the medium delays the pulse.</p>
+<p><strong>A genuine gain medium raises the instability error.</strong> Raise <code>blowup_factor</code> in <code>solve()</code>.</p>
+<p>All of these checks can be turned off with <code>solve(check_stability=False)</code>. See <a href="../usage/numerical-stability.html">Numerical Stability and Step Sizes</a> for examples and how to read the estimates.</p>
+<p>If you have any other problems with clerq, please raise <a href="https://github.com/tpogden/clerq/issues">an issue on Github</a>.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

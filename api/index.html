@@ -396,6 +396,18 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/exceptions.CounterPropagatingDepletionError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">exceptions.CounterPropagatingDepletionError</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/exceptions.PropagationInstabilityError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">exceptions.PropagationInstabilityError</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/Field.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Field</span></a>
   </div>
@@ -570,6 +582,7 @@ ul.task-list li input[type="checkbox"] {
   <ul class="collapse">
   <li><a href="#solvers" id="toc-solvers" class="nav-link" data-scroll-target="#solvers">Solvers</a></li>
   <li><a href="#differentiable-propagation" id="toc-differentiable-propagation" class="nav-link" data-scroll-target="#differentiable-propagation">Differentiable propagation</a></li>
+  <li><a href="#exceptions" id="toc-exceptions" class="nav-link" data-scroll-target="#exceptions">Exceptions</a></li>
   <li><a href="#systems-and-fields" id="toc-systems-and-fields" class="nav-link" data-scroll-target="#systems-and-fields">Systems and fields</a></li>
   <li><a href="#time-functions" id="toc-time-functions" class="nav-link" data-scroll-target="#time-functions">Time functions</a></li>
   <li><a href="#spectral-analysis" id="toc-spectral-analysis" class="nav-link" data-scroll-target="#spectral-analysis">Spectral analysis</a></li>
@@ -616,6 +629,22 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td><a href="../api/autodiff.OptimizeResult.html#clerq.autodiff.OptimizeResult">autodiff.OptimizeResult</a></td>
 <td>The outcome of :meth:<code>AutodiffPropagation.minimize</code>.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exceptions" class="level2">
+<h2 class="anchored" data-anchor-id="exceptions">Exceptions</h2>
+<p>Raised by <code>PropagationSolver.solve()</code>.</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../api/exceptions.PropagationInstabilityError.html#clerq.exceptions.PropagationInstabilityError">exceptions.PropagationInstabilityError</a></td>
+<td>Raised when a propagation solve has blown up numerically.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/exceptions.CounterPropagatingDepletionError.html#clerq.exceptions.CounterPropagatingDepletionError">exceptions.CounterPropagatingDepletionError</a></td>
+<td>Raised when a counter-propagating field depletes beyond the error threshold.</td>
 </tr>
 </tbody>
 </table>

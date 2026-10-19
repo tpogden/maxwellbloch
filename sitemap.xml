@@ -2,242 +2,254 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://clerq.org/api/utility.maxwell_boltzmann.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/utility.full_width_at_half_max.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.sinc.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.ramp_onoff.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.ramp_offon.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.intp.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.voigt_two_linear_known.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.rabi_freq.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.dispersion_two_linear_known.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.absorption_two_linear_known.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/index.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/hyperfine.LevelF.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/api/exceptions.PropagationInstabilityError.html</loc>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/autodiff.OptimizeResult.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/System.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/LindbladSolver.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/news/rename.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/support/troubleshooting.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-two-stimulated-echo.html</loc>
-    <lastmod>2026-10-19T20:20:57.034Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.703Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-sit-area-theorem.html</loc>
-    <lastmod>2026-10-19T20:20:57.031Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.701Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-lambda-eit-slow-light.html</loc>
-    <lastmod>2026-10-19T20:20:57.003Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.678Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-lambda-adiabatons.html</loc>
-    <lastmod>2026-10-19T20:20:56.998Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.674Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-ladder-autler-townes.html</loc>
-    <lastmod>2026-10-19T20:20:56.996Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.672Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-Rb87_5s12_5p12_F11_q1-weak-pulse-decay.html</loc>
-    <lastmod>2026-10-19T20:20:56.995Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.671Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/autodiff-pulse-design.html</loc>
-    <lastmod>2026-10-19T20:20:56.992Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.669Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/scripts.html</loc>
-    <lastmod>2026-10-19T20:20:57.046Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.715Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/two-level.html</loc>
-    <lastmod>2026-10-19T20:20:57.053Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.721Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/structure.html</loc>
-    <lastmod>2026-10-19T20:20:57.051Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.719Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/plotting.html</loc>
-    <lastmod>2026-10-19T20:20:57.046Z</lastmod>
-  </url>
-  <url>
-    <loc>https://clerq.org/usage/built-in-time-functions.html</loc>
-    <lastmod>2026-10-19T20:20:57.046Z</lastmod>
-  </url>
-  <url>
-    <loc>https://clerq.org/installation.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
-  </url>
-  <url>
-    <loc>https://clerq.org/index.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
-  </url>
-  <url>
-    <loc>https://clerq.org/usage/autodiff-recipes.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.715Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/counter-propagating.html</loc>
-    <lastmod>2026-10-19T20:20:57.046Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.714Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/usage/autodiff-recipes.html</loc>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/index.html</loc>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/installation.html</loc>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/usage/built-in-time-functions.html</loc>
+    <lastmod>2026-10-19T20:52:03.714Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/usage/numerical-stability.html</loc>
+    <lastmod>2026-10-19T20:52:03.715Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/spectral-analysis.html</loc>
-    <lastmod>2026-10-19T20:20:57.049Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.718Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/three-level.html</loc>
-    <lastmod>2026-10-19T20:20:57.053Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.721Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/usage/velocity-classes.html</loc>
-    <lastmod>2026-10-19T20:20:57.055Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.723Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/index.html</loc>
-    <lastmod>2026-10-19T20:20:56.994Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.669Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-Rb87_5s12_5p12_F11_q1-sech-2pi.html</loc>
-    <lastmod>2026-10-19T20:20:56.994Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.670Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-Rb87_5s12_5p32_F23_q1-weak-pulse-decay.html</loc>
-    <lastmod>2026-10-19T20:20:56.996Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.672Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-ladder-weak-pulse-coupling-decay.html</loc>
-    <lastmod>2026-10-19T20:20:56.997Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.673Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-lambda-cpt.html</loc>
-    <lastmod>2026-10-19T20:20:56.999Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.675Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-linear-absorption.html</loc>
-    <lastmod>2026-10-19T20:20:57.003Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.679Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-two-photon-echo.html</loc>
-    <lastmod>2026-10-19T20:20:57.033Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.703Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/examples/mbs-vee-simultons.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/release-notes.html</loc>
-    <lastmod>2026-10-19T20:20:57.043Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.712Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/Field.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/PropagationSolver.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/autodiff.AutodiffPropagation.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
+  </url>
+  <url>
+    <loc>https://clerq.org/api/exceptions.CounterPropagatingDepletionError.html</loc>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/hyperfine.Atom1e.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/hyperfine.LevelMF.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.absorption.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.dispersion.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.freq_list.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/spectral.susceptibility_two_linear_known.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.gaussian.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.ramp_off.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.ramp_on.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.650Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.sech.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/t_funcs.square.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
   <url>
     <loc>https://clerq.org/api/utility.half_max_roots.html</loc>
-    <lastmod>2026-10-19T20:20:56.971Z</lastmod>
+    <lastmod>2026-10-19T20:52:03.651Z</lastmod>
   </url>
 </urlset>

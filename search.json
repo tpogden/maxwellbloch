@@ -290,7 +290,7 @@
     "href": "api/index.html",
     "title": "API reference",
     "section": "",
-    "text": "Time-domain and spatial-propagation solvers.\n\n\n\nPropagationSolver\nSolver for the propagation of fields through a medium of systems.\n\n\nLindbladSolver\nTime-domain master equation solver for a single spatial point.\n\n\n\n\n\n\nExact gradients through the propagation (needs the jax extra).\n\n\n\nautodiff.AutodiffPropagation\nA differentiable version of a :class:~clerq.PropagationSolver problem.\n\n\nautodiff.OptimizeResult\nThe outcome of :meth:AutodiffPropagation.minimize.\n\n\n\n\n\n\n\n\n\nSystem\nAn open quantum system: its states, decays and the fields coupling them.\n\n\nField\nField object to address the System object, describing the atomic levels\n\n\n\n\n\n\n\n\n\nt_funcs.square\nReturn a square (top-hat) pulse time function.\n\n\nt_funcs.gaussian\nReturn a Gaussian pulse time function.\n\n\nt_funcs.sech\nReturn a sech pulse time function.\n\n\nt_funcs.ramp_on\nReturn a ramp-on time function.\n\n\nt_funcs.ramp_off\nReturn a ramp-off time function.\n\n\nt_funcs.ramp_onoff\nReturn a ramp-on / ramp-off time function.\n\n\nt_funcs.ramp_offon\nReturn a ramp-off / ramp-on time function.\n\n\nt_funcs.sinc\nReturn a sinc pulse time function.\n\n\nt_funcs.intp\nReturn an interpolated time function.\n\n\n\n\n\n\n\n\n\nspectral.freq_list\nFourier transform of the tlist into the frequency domain for\n\n\nspectral.rabi_freq\nFourier transform of the field result of field index.\n\n\nspectral.absorption\nField absorption in the frequency domain.\n\n\nspectral.dispersion\nField dispersion in the frequency domain.\n\n\nspectral.susceptibility_two_linear_known\nIn the linear regime for a two-level system, the susceptibility is\n\n\nspectral.absorption_two_linear_known\nThe field absorption, equal to the imaginary part of the susceptibility.\n\n\nspectral.dispersion_two_linear_known\nThe field dispersion, equal to the real part of the susceptibility.\n\n\nspectral.voigt_two_linear_known\nReturns the Voigt profile for a two-level system in the linear regime.\n\n\n\n\n\n\n\n\n\nhyperfine.Atom1e\nRepresents an atom object and contains a list of J levels.\n\n\nhyperfine.LevelF\nRepresents an F hyperfine structure level and holds its magnetic\n\n\nhyperfine.LevelMF\nRepresents an m_F hyperfine sublevel.\n\n\n\n\n\n\n\n\n\nutility.maxwell_boltzmann\nMaxwell-Boltzmann probability distribution.\n\n\nutility.half_max_roots\nReturn the half-maximum value and the two roots where y crosses it.\n\n\nutility.full_width_at_half_max\nReturn the full width at half maximum (FWHM) of a peak.",
+    "text": "Time-domain and spatial-propagation solvers.\n\n\n\nPropagationSolver\nSolver for the propagation of fields through a medium of systems.\n\n\nLindbladSolver\nTime-domain master equation solver for a single spatial point.\n\n\n\n\n\n\nExact gradients through the propagation (needs the jax extra).\n\n\n\nautodiff.AutodiffPropagation\nA differentiable version of a :class:~clerq.PropagationSolver problem.\n\n\nautodiff.OptimizeResult\nThe outcome of :meth:AutodiffPropagation.minimize.\n\n\n\n\n\n\nRaised by PropagationSolver.solve().\n\n\n\nexceptions.PropagationInstabilityError\nRaised when a propagation solve has blown up numerically.\n\n\nexceptions.CounterPropagatingDepletionError\nRaised when a counter-propagating field depletes beyond the error threshold.\n\n\n\n\n\n\n\n\n\nSystem\nAn open quantum system: its states, decays and the fields coupling them.\n\n\nField\nField object to address the System object, describing the atomic levels\n\n\n\n\n\n\n\n\n\nt_funcs.square\nReturn a square (top-hat) pulse time function.\n\n\nt_funcs.gaussian\nReturn a Gaussian pulse time function.\n\n\nt_funcs.sech\nReturn a sech pulse time function.\n\n\nt_funcs.ramp_on\nReturn a ramp-on time function.\n\n\nt_funcs.ramp_off\nReturn a ramp-off time function.\n\n\nt_funcs.ramp_onoff\nReturn a ramp-on / ramp-off time function.\n\n\nt_funcs.ramp_offon\nReturn a ramp-off / ramp-on time function.\n\n\nt_funcs.sinc\nReturn a sinc pulse time function.\n\n\nt_funcs.intp\nReturn an interpolated time function.\n\n\n\n\n\n\n\n\n\nspectral.freq_list\nFourier transform of the tlist into the frequency domain for\n\n\nspectral.rabi_freq\nFourier transform of the field result of field index.\n\n\nspectral.absorption\nField absorption in the frequency domain.\n\n\nspectral.dispersion\nField dispersion in the frequency domain.\n\n\nspectral.susceptibility_two_linear_known\nIn the linear regime for a two-level system, the susceptibility is\n\n\nspectral.absorption_two_linear_known\nThe field absorption, equal to the imaginary part of the susceptibility.\n\n\nspectral.dispersion_two_linear_known\nThe field dispersion, equal to the real part of the susceptibility.\n\n\nspectral.voigt_two_linear_known\nReturns the Voigt profile for a two-level system in the linear regime.\n\n\n\n\n\n\n\n\n\nhyperfine.Atom1e\nRepresents an atom object and contains a list of J levels.\n\n\nhyperfine.LevelF\nRepresents an F hyperfine structure level and holds its magnetic\n\n\nhyperfine.LevelMF\nRepresents an m_F hyperfine sublevel.\n\n\n\n\n\n\n\n\n\nutility.maxwell_boltzmann\nMaxwell-Boltzmann probability distribution.\n\n\nutility.half_max_roots\nReturn the half-maximum value and the two roots where y crosses it.\n\n\nutility.full_width_at_half_max\nReturn the full width at half maximum (FWHM) of a peak.",
     "crumbs": [
       "API",
       "API reference"
@@ -313,6 +313,17 @@
     "title": "API reference",
     "section": "",
     "text": "Exact gradients through the propagation (needs the jax extra).\n\n\n\nautodiff.AutodiffPropagation\nA differentiable version of a :class:~clerq.PropagationSolver problem.\n\n\nautodiff.OptimizeResult\nThe outcome of :meth:AutodiffPropagation.minimize.",
+    "crumbs": [
+      "API",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "api/index.html#exceptions",
+    "href": "api/index.html#exceptions",
+    "title": "API reference",
+    "section": "",
+    "text": "Raised by PropagationSolver.solve().\n\n\n\nexceptions.PropagationInstabilityError\nRaised when a propagation solve has blown up numerically.\n\n\nexceptions.CounterPropagatingDepletionError\nRaised when a counter-propagating field depletes beyond the error threshold.",
     "crumbs": [
       "API",
       "API reference"
@@ -415,6 +426,28 @@
     "crumbs": [
       "API",
       "hyperfine.LevelF"
+    ]
+  },
+  {
+    "objectID": "api/exceptions.PropagationInstabilityError.html",
+    "href": "api/exceptions.PropagationInstabilityError.html",
+    "title": "exceptions.PropagationInstabilityError",
+    "section": "",
+    "text": "exceptions.PropagationInstabilityError(\n    message,\n    z=None,\n    suggested_z_steps_inner=None,\n)\nRaised when a propagation solve has blown up numerically.\nThe field became non-finite or grew far beyond its initial amplitude, or the master-equation integrator failed, which is the usual signature of a z-step (or t-step) too coarse for the finite-difference scheme. Increase z_steps_inner (or z_steps) or t_steps, or pass z_steps_inner=\"auto\". Pass check_stability=False to solve() to suppress the check.\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nz\n\nPosition at which the solve was stopped.\n\n\nsuggested_z_steps_inner\n\nA larger z_steps_inner to try, or None.",
+    "crumbs": [
+      "API",
+      "exceptions.PropagationInstabilityError"
+    ]
+  },
+  {
+    "objectID": "api/exceptions.PropagationInstabilityError.html#attributes",
+    "href": "api/exceptions.PropagationInstabilityError.html#attributes",
+    "title": "exceptions.PropagationInstabilityError",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\nz\n\nPosition at which the solve was stopped.\n\n\nsuggested_z_steps_inner\n\nA larger z_steps_inner to try, or None.",
+    "crumbs": [
+      "API",
+      "exceptions.PropagationInstabilityError"
     ]
   },
   {
@@ -570,7 +603,14 @@
     "href": "support/troubleshooting.html",
     "title": "Troubleshooting",
     "section": "",
-    "text": "Troubleshooting\nIf you have any problems with clerq, please raise an issue on Github."
+    "text": "PropagationInstabilityError, or a result that looks wrong or grows along the medium. The \\(z\\)-step is probably too coarse for the density and pulse. Raise z_steps_inner (the error message suggests a value), or pass z_steps_inner=\"auto\". If a dense medium still fails, lower the density or shorten the medium, or use more z_steps.\n“The z-step may be too coarse” warning. The estimated error of the \\(z\\)-stepping, solver.step_error_estimate, is above step_error_warn. Raise z_steps_inner as above.\n“The time grid may be too coarse” warning. The fields or coherences are not resolved on the time grid. Raise t_steps; solver.suggest_t_steps() estimates a value.\n“A field is still changing near the edge of the time window” warning. A pulse or its ringing is cut off by t_min or t_max. Widen the window; remember the medium delays the pulse.\nA genuine gain medium raises the instability error. Raise blowup_factor in solve().\nAll of these checks can be turned off with solve(check_stability=False). See Numerical Stability and Step Sizes for examples and how to read the estimates.\nIf you have any other problems with clerq, please raise an issue on Github."
+  },
+  {
+    "objectID": "support/troubleshooting.html#numerical-stability",
+    "href": "support/troubleshooting.html#numerical-stability",
+    "title": "Troubleshooting",
+    "section": "",
+    "text": "PropagationInstabilityError, or a result that looks wrong or grows along the medium. The \\(z\\)-step is probably too coarse for the density and pulse. Raise z_steps_inner (the error message suggests a value), or pass z_steps_inner=\"auto\". If a dense medium still fails, lower the density or shorten the medium, or use more z_steps.\n“The z-step may be too coarse” warning. The estimated error of the \\(z\\)-stepping, solver.step_error_estimate, is above step_error_warn. Raise z_steps_inner as above.\n“The time grid may be too coarse” warning. The fields or coherences are not resolved on the time grid. Raise t_steps; solver.suggest_t_steps() estimates a value.\n“A field is still changing near the edge of the time window” warning. A pulse or its ringing is cut off by t_min or t_max. Widen the window; remember the medium delays the pulse.\nA genuine gain medium raises the instability error. Raise blowup_factor in solve().\nAll of these checks can be turned off with solve(check_stability=False). See Numerical Stability and Step Sizes for examples and how to read the estimates.\nIf you have any other problems with clerq, please raise an issue on Github."
   },
   {
     "objectID": "examples/mbs-two-stimulated-echo.html",
@@ -1519,6 +1559,213 @@
     ]
   },
   {
+    "objectID": "usage/counter-propagating.html",
+    "href": "usage/counter-propagating.html",
+    "title": "Counter-Propagating Fields",
+    "section": "",
+    "text": "Many atomic physics experiments use fields that propagate in opposite directions through the medium. A common example is Rydberg EIT, where a near-infrared probe and a blue coupling field enter the vapour cell from opposite ends to reduce (or eliminate) the Doppler broadening of the two-photon resonance.",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#why-a-counter-propagating-geometry-changes-the-doppler-shift",
+    "href": "usage/counter-propagating.html#why-a-counter-propagating-geometry-changes-the-doppler-shift",
+    "title": "Counter-Propagating Fields",
+    "section": "Why a counter-propagating geometry changes the Doppler shift",
+    "text": "Why a counter-propagating geometry changes the Doppler shift\nAn atom moving with velocity \\(v\\) along the propagation axis sees each field at a Doppler-shifted frequency. For a field with wave-vector \\(\\mathbf{k}\\):\n\nCo-propagating (\\(\\mathbf{k} \\parallel \\hat{z}\\)): the atom sees the field blue-shifted by \\(kv\\), so its effective one-photon detuning shifts by \\(+kv\\).\nCounter-propagating (\\(\\mathbf{k} \\antiparallel \\hat{z}\\)): the shift is \\(-kv\\).\n\nIn a two-photon (Ξ or Λ) scheme, the two-photon detuning is the sum of the individual detunings. When both fields propagate in the same direction, the two-photon detuning picks up \\(+kv + kv = 2kv\\), and the resonance is Doppler-broadened. When the fields counter-propagate with similar wavelengths, the shifts partially or fully cancel, giving a narrower (Doppler-reduced or Doppler-free) two-photon resonance.",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#how-clerq-handles-this",
+    "href": "usage/counter-propagating.html#how-clerq-handles-this",
+    "title": "Counter-Propagating Fields",
+    "section": "How clerq handles this",
+    "text": "How clerq handles this\nclerq propagates all fields in the \\(+z\\) direction (it solves an initial-value problem marching from \\(z_\\mathrm{min}\\) to \\(z_\\mathrm{max}\\)). A genuinely counter-propagating field would require boundary data at \\(z_\\mathrm{max}\\) and backward integration, turning the problem into a boundary-value problem.\nHowever, when the counter-propagating field does not deplete significantly across the cell—a valid approximation for many coupling fields in EIT experiments—the forward-propagating solver is equivalent to the true counter-propagating geometry. The only physical difference is the sign of the Doppler shift each velocity class contributes to that field. clerq exposes this sign via the counter_propagating field attribute.\n\nNote on phrasing. This is not an ‘undepleted-coupling approximation’ in the sense of neglecting absorption. The solver computes absorption honestly for every velocity class. The approximation is purely geometric: it exploits the spatial symmetry that holds when the counter-propagating field’s intensity profile is essentially flat across the cell.",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#basic-usage-counter_propagating",
+    "href": "usage/counter-propagating.html#basic-usage-counter_propagating",
+    "title": "Counter-Propagating Fields",
+    "section": "Basic usage: counter_propagating",
+    "text": "Basic usage: counter_propagating\nSet \"counter_propagating\": true on any field in the JSON configuration. This tells clerq to apply the Doppler shift with the opposite sign for that field, while leaving the forward-propagation geometry unchanged.\n\nmb_solve_json = \"\"\"\n{\n  \"system\": {\n    \"num_states\": 3,\n    \"decays\": [{\"channels\": [[0, 1], [1, 2]], \"rate\": 1.0}],\n    \"fields\": [\n      {\n        \"label\": \"probe\",\n        \"coupled_levels\": [[0, 1]],\n        \"rabi_freq\": 1.0e-3,\n        \"rabi_freq_t_func\": \"gaussian\",\n        \"rabi_freq_t_args\": {\"ampl\": 1.0, \"centre\": 0.0, \"fwhm\": 1.0}\n      },\n      {\n        \"label\": \"coupling\",\n        \"coupled_levels\": [[1, 2]],\n        \"rabi_freq\": 5.0,\n        \"rabi_freq_t_func\": \"ramp_onoff\",\n        \"rabi_freq_t_args\": {\"ampl\": 1.0, \"fwhm\": 0.2, \"on\": -2.0, \"off\": 8.0},\n        \"counter_propagating\": true\n      }\n    ]\n  },\n  \"t_min\": -2.0,\n  \"t_max\": 8.0,\n  \"t_steps\": 120,\n  \"z_min\": 0.0,\n  \"z_max\": 1.0,\n  \"z_steps\": 20,\n  \"z_steps_inner\": 2,\n  \"interaction_strengths\": [0.5, 0.5],\n  \"velocity_classes\": {\n    \"thermal_width\": 5.0,\n    \"thermal_delta_min\": -15.0,\n    \"thermal_delta_max\": 15.0,\n    \"thermal_delta_steps\": 10\n  },\n  \"savefile\": \"counter-propagating-eit\"\n}\n\"\"\"\n\n\nfrom clerq import PropagationSolver\n\nmbs = PropagationSolver().from_json_str(mb_solve_json)\nprint(f\"Coupling field counter_propagating: {mbs.system.fields[1].counter_propagating}\")\nprint(f\"Coupling factor_doppler_shift:      {mbs.system.fields[1].factor_doppler_shift}\")\n\nCoupling field counter_propagating: True\nCoupling factor_doppler_shift:      -1.0\n\n\n\nOmegas_zt, states_zt = mbs.solve()\n\nSaving PropagationSolver to counter-propagating-eit.qu\n\n\n\nDepletion check\nAfter solving, clerq automatically checks whether the counter-propagating field depleted significantly across the cell. The check computes\n\\[\n\\text{depletion} = 1 - \\frac{\\max_t |\\Omega(z_\\mathrm{max}, t)|}{\\max_t |\\Omega(z_\\mathrm{min}, t)|}\n\\]\n\n&lt; 1 % — check passes silently. The forward-propagation result is reliable.\n1 – 10 % — a UserWarning is emitted. Results may still be usable but caution is advised.\n&gt; 10 % — a CounterPropagatingDepletionError is raised. The approximation has broken down.\n\nYou can suppress the check with check_counter_prop_depletion=False if you know the depletion is acceptable for your purposes.\n\nimport numpy as np\n\ncoupling_idx = 1  # second field\nOmega_coupling = Omegas_zt[coupling_idx]\npeak_in  = np.max(np.abs(Omega_coupling[0]))\npeak_out = np.max(np.abs(Omega_coupling[-1]))\ndepletion = 1.0 - peak_out / peak_in\nprint(f\"Coupling field depletion: {depletion:.2%}\")\n\nCoupling field depletion: -0.00%",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#advanced-factor_doppler_shift",
+    "href": "usage/counter-propagating.html#advanced-factor_doppler_shift",
+    "title": "Counter-Propagating Fields",
+    "section": "Advanced: factor_doppler_shift",
+    "text": "Advanced: factor_doppler_shift\nFor schemes where the two counter-propagating fields have different wavelengths (e.g. a three-photon Doppler-free ladder where \\(k_1 \\neq k_2\\)), the Doppler cancellation is only partial. Use factor_doppler_shift directly to set the fractional weight:\n{\n  \"coupled_levels\": [[2, 3]],\n  \"rabi_freq\": 1.5,\n  \"factor_doppler_shift\": -0.62\n}\nThe sign determines the direction; the magnitude scales the Doppler shift relative to the thermal width unit. factor_doppler_shift = 1.0 (the default) gives standard co-propagating behaviour; -1.0 is equivalent to counter_propagating = true.\n\nNote on detuning_positive. The detuning_positive flag on a field is a separate and orthogonal concept. It controls the sign convention for the RWA Hamiltonian based on the level ordering (used when the second coupled level sits below the first in energy, e.g. the lower leg of a Λ system). It has nothing to do with the laser k-vector direction. Both flags can be set independently.",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#pulse-area-check",
+    "href": "usage/counter-propagating.html#pulse-area-check",
+    "title": "Counter-Propagating Fields",
+    "section": "Pulse-area check",
+    "text": "Pulse-area check\nAs a sanity check, verify that the probe pulse area at the input is correct.\n\nprobe_area_in = np.trapezoid(np.abs(Omegas_zt[0, 0, :]), mbs.tlist) / np.pi\nprint(f\"Probe area at z=z_min: {probe_area_in:.4f} π\")\n\nProbe area at z=z_min: 0.0021 π",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/counter-propagating.html#references",
+    "href": "usage/counter-propagating.html#references",
+    "title": "Counter-Propagating Fields",
+    "section": "References",
+    "text": "References\n\nMohapatra, Jackson, Adams — Coherent Optical Detection of Highly Excited Rydberg States Using Electromagnetically Induced Transparency, PRL 98, 113003 (2007). Example of the counter-propagating Rydberg EIT geometry this feature supports.\nAdams, Pritchard, Shaffer — Rydberg atom physics, J. Phys. B 53, 012002 (2020). Broader review including Doppler-free multi-photon spectroscopy.",
+    "crumbs": [
+      "Usage",
+      "Counter-Propagating Fields"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html",
+    "href": "usage/autodiff-recipes.html",
+    "title": "Autodiff recipes",
+    "section": "",
+    "text": "PropagationSolver.to_autodiff() returns a differentiable copy of a propagation problem: the propagated field becomes a pure function of a dictionary of parameters, so any loss of the field can be differentiated exactly with JAX. This page is a set of short recipes for the parts of the API you will reach for most. It needs the jax extra:",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#setup-64-bit-precision",
+    "href": "usage/autodiff-recipes.html#setup-64-bit-precision",
+    "title": "Autodiff recipes",
+    "section": "Setup: 64-bit precision",
+    "text": "Setup: 64-bit precision\nJAX computes in 32-bit by default, which is not enough for the master equation. clerq never changes JAX’s global configuration for you; it raises a RuntimeError if 64-bit mode is off. Enable it before creating any JAX arrays:\nimport jax\njax.config.update(\"jax_enable_x64\", True)\nor set the environment variable JAX_ENABLE_X64=1.\n\nimport json\n\nimport jax\nimport jax.numpy as jnp\nimport numpy as np\n\njax.config.update(\"jax_enable_x64\", True)\n\nfrom clerq import PropagationSolver\n\nWe’ll use a small ladder problem with two fields: a weak Gaussian probe on \\(|0\\rangle \\leftrightarrow |1\\rangle\\) and a square coupling pulse on \\(|1\\rangle \\leftrightarrow |2\\rangle\\).\n\nproblem = {\n    \"system\": {\n        \"num_states\": 3,\n        \"energies\": [0.0, 0.0, 0.0],\n        \"decays\": [{\"channels\": [[0, 1]], \"rate\": 1.0}],\n        \"fields\": [\n            {\n                \"coupled_levels\": [[0, 1]],\n                \"rabi_freq\": 0.5,\n                \"rabi_freq_t_func\": \"gaussian\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"centre\": 0.0, \"fwhm\": 0.5},\n            },\n            {\n                \"coupled_levels\": [[1, 2]],\n                \"rabi_freq\": 1.0,\n                \"rabi_freq_t_func\": \"square\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"on\": -1.0, \"off\": 1.0},\n            },\n        ],\n        \"initial_state\": [1.0, 0.0, 0.0],\n    },\n    \"t_min\": -2.0,\n    \"t_max\": 2.0,\n    \"t_steps\": 80,\n    \"z_min\": 0.0,\n    \"z_max\": 1.0,\n    \"z_steps\": 20,\n    \"interaction_strengths\": [10.0, 10.0],\n}\n\nsolver = PropagationSolver.from_json_str(json.dumps(problem))\nad = solver.to_autodiff()\n\nad is an AutodiffPropagation. Options such as step, strategy, rtol and max_steps are passed to to_autodiff() and are covered below.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#the-parameter-dictionary",
+    "href": "usage/autodiff-recipes.html#the-parameter-dictionary",
+    "title": "Autodiff recipes",
+    "section": "The parameter dictionary",
+    "text": "The parameter dictionary\nParameters are a dictionary; every key is optional and defaults to the value in the problem. default_params() shows them:\n\nad.default_params()\n\n{'pulse_args': [{'ampl': 1.0, 'centre': 0.0, 'fwhm': 0.5},\n  {'ampl': 1.0, 'on': -1.0, 'off': 1.0}],\n 'rabi_freq': array([0.5, 1. ]),\n 'interaction_strengths': array([10., 10.]),\n 'detunings': array([0., 0.]),\n 'decay_scale': 1.0}\n\n\n\n\n\n\n\n\n\n\nKey\nShape\nMeaning\n\n\n\n\npulse_args\nlist, one dict per field\narguments of each field’s analytic pulse (ampl, centre, fwhm/width, n_pi, on, off)\n\n\nrabi_freq\n(n_fields,)\nthe rabi_freq multiplying each pulse\n\n\ninteraction_strengths\n(n_fields,)\nthe coupling strength of each field to the medium\n\n\ndetunings\n(n_fields,)\nthe fixed detuning of each field\n\n\ndecay_scale\nscalar\nmultiplies every decay rate\n\n\nomega0\n(n_fields, n_t)\nsampled input fields on tlist, used instead of the analytic pulses\n\n\n\n\nPropagating\npropagate(params) returns the field \\(\\Omega(z, t)\\) with shape (n_fields, z_steps + 1, n_t). Pass nothing for the problem’s own parameters, or any subset of keys to override them; everything else keeps its default.\n\nomega = ad.propagate()\nomega_strong = ad.propagate({\"rabi_freq\": jnp.array([0.5, 2.0])})\nprint(omega.shape, omega.dtype)\n\n(2, 21, 81) complex128\n\n\nPulse arguments are merged per field, so you only name the ones you change. A field’s alternative arguments replace one another: giving n_pi drops the default ampl.\n\nwider = ad.propagate({\"pulse_args\": [{\"fwhm\": 1.0}, {}]})\n\n\n\nGradients with respect to any subset\nvalue_and_grad(loss, params) differentiates loss(Omega_zt) with respect to the parameters you pass, and returns gradients with the same structure. Here, the gradient of the output probe intensity with respect to the coupling rabi_freq and the probe interaction_strengths only:\n\ndef loss(omega):\n    \"\"\"Negative probe energy at the end of the medium.\"\"\"\n    return -jnp.sum(jnp.abs(omega[0, -1]) ** 2)\n\n\nparams = {\n    \"rabi_freq\": jnp.array([0.5, 1.0]),\n    \"interaction_strengths\": jnp.array([10.0, 10.0]),\n}\nvalue, grads = ad.value_and_grad(loss, params)\nprint(value)\ngrads\n\n-0.09651633408235306\n\n\n{'interaction_strengths': Array([0.01786184, 0.00017319], dtype=float64),\n 'rabi_freq': Array([-0.36828985, -0.31595014], dtype=float64)}\n\n\nWith no params, every differentiable parameter of the problem is used.\n\n\nHolding values constant with fixed\nfixed= takes parameters with the same structure but does not differentiate them. Use it to evaluate at a different operating point, or to hold a parameter the optimiser should not touch:\n\nvalue, grads = ad.value_and_grad(\n    loss,\n    {\"rabi_freq\": jnp.array([0.5, 1.0])},\n    fixed={\"detunings\": jnp.array([0.0, 0.3]), \"decay_scale\": 2.0},\n)\nprint(value)\ngrads\n\n-27.538834865877007\n\n\n{'rabi_freq': Array([-104.8820873 ,  -72.64311402], dtype=float64)}",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#units",
+    "href": "usage/autodiff-recipes.html#units",
+    "title": "Autodiff recipes",
+    "section": "Units",
+    "text": "Units\nAll parameters are cyclic, exactly as in the problem definition (rabi_freq in \\(2\\pi\\,\\mathrm{MHz}\\) means you pass the cyclic number, and detunings and omega0 follow suit). The returned field is in the layout and units of PropagationSolver.Omegas_zt: angular frequency. Divide by \\(2\\pi\\) to get the cyclic Rabi frequency:\n\nsolver.solve()\nprint(np.abs(omega - solver.Omegas_zt).max() / np.abs(solver.Omegas_zt).max())  # agrees with solve() to solver tolerance\nrabi_cyclic = omega / (2 * np.pi)\n\n7.76819321747668e-07",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#reverse-and-forward-mode",
+    "href": "usage/autodiff-recipes.html#reverse-and-forward-mode",
+    "title": "Autodiff recipes",
+    "section": "Reverse and forward mode",
+    "text": "Reverse and forward mode\nThe default mode=\"reverse\" costs roughly five propagations however many parameters you differentiate. mode=\"forward\" costs more as parameters are added, so it is mainly useful as a cross-check or when there are very few parameters.\n\nv_rev, g_rev = ad.value_and_grad(loss, params, mode=\"reverse\")\nv_fwd, g_fwd = ad.value_and_grad(loss, params, mode=\"forward\")\nprint(np.allclose(g_rev[\"rabi_freq\"], g_fwd[\"rabi_freq\"]))\n\nTrue",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#memory-strategies",
+    "href": "usage/autodiff-recipes.html#memory-strategies",
+    "title": "Autodiff recipes",
+    "section": "Memory strategies",
+    "text": "Memory strategies\nReverse mode has to remember something about the forward pass. The strategy option, given to to_autodiff(), trades memory for recomputation:\n\n\n\n\n\n\n\n\nstrategy\nStores\nCost\n\n\n\n\n\"s2\"\nevery \\(z\\)-slice’s residuals\nleast recomputation, most memory\n\n\n\"s3\" (default)\nslice boundaries; recomputes inside a slice on the backward pass\na moderate recomputation overhead\n\n\n\"s4\"\nas s3, and limits the ODE solver’s inner checkpoints to checkpoints\nleast memory; needs checkpoints=N\n\n\n\nmax_steps is the most steps one slice solve may take: the solve raises if it needs more. In reverse mode the default checkpoint count is sized from it, so a smaller max_steps lowers memory use on large problems.\n\nad_s2 = solver.to_autodiff(strategy=\"s2\")\nad_s4 = solver.to_autodiff(strategy=\"s4\", checkpoints=16, max_steps=2000)\n\ng_s2 = ad_s2.value_and_grad(loss, params)[1]\ng_s4 = ad_s4.value_and_grad(loss, params)[1]\nprint(np.allclose(g_s2[\"rabi_freq\"], g_s4[\"rabi_freq\"]))\n\nTrue\n\n\nAll strategies give the same gradients; only the memory and run time differ. checkpoints is an error with any strategy other than \"s4\".",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
+    "href": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
+    "title": "Autodiff recipes",
+    "section": "jax.jit and reusing the loss function",
+    "text": "jax.jit and reusing the loss function\npropagate and value_and_grad are already jit-compiled, and compose with jax.jit, jax.vmap and optimisers such as Optax. Two things to know:\n\nvalue_and_grad compiles once per loss function object (and mode). Define the loss once and reuse it. Only the last 8 are kept (an LRU, AutodiffPropagation.GRAD_CACHE_SIZE), so a new lambda on every call recompiles every time.\nCaptured arrays stay alive as long as the compiled function does. Call ad.clear_cache() to drop the compiled programs and release them.\n\n\n# A loss with a captured target is compiled once, then reused for every step.\ntarget = jnp.abs(omega[0, -1]) ** 2\n\n\ndef make_loss(target):\n    def mismatch(omega):\n        return jnp.sum((jnp.abs(omega[0, -1]) ** 2 - target) ** 2)\n\n    return mismatch\n\n\nmismatch = make_loss(target)  # build once...\nfor rabi in (0.8, 0.9, 1.0):  # ...and reuse\n    p = {\"rabi_freq\": jnp.array([0.5, rabi])}\n    v, _ = ad.value_and_grad(mismatch, p)\n    print(rabi, float(v))\n\nad.clear_cache()\n\n0.8 0.00048150204918500565\n0.9 0.00015390985971960178\n1.0 1.5212166504500135e-18\n\n\nA gradient step is then a short loop around value_and_grad.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "usage/autodiff-recipes.html#limits",
+    "href": "usage/autodiff-recipes.html#limits",
+    "title": "Autodiff recipes",
+    "section": "Limits",
+    "text": "Limits\n\nCo-propagating fields only. to_autodiff() raises NotImplementedError for a problem with counter-propagating fields.\nsquare edge times are held fixed. The field is discontinuous at on and off, so its derivative with respect to them is a delta function that autodiff would silently return as 0. value_and_grad refuses to differentiate them: pass them in fixed=, or use a continuous pulse. The ramp_on, ramp_off, ramp_onoff and ramp_offon pulses are continuous, so their on and off can be differentiated.\nSupported pulses are those ported to JAX; others raise NotImplementedError from to_autodiff().\nFloat64 is required (see above).\n\nFor example, asking for a square pulse’s edge gives a clear error rather than a silent zero:\n\ntry:\n    ad.value_and_grad(loss, {\"pulse_args\": [{}, {\"on\": -1.0}]})\nexcept ValueError as e:\n    print(e)\n\npulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a continuous pulse such as 'ramp_onoff'.",
+    "crumbs": [
+      "Usage",
+      "Autodiff recipes"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "clerq",
+    "section": "",
+    "text": "clerq solves the propagation of classical electromagnetic fields through media of open quantum systems, using Maxwell’s equations coupled to the Lindblad master equation. It is used for near-resonant light in thermal atomic vapours, with two-, three- and many-level atoms, spontaneous decay, dephasing and Doppler broadening.\nclerq is used for theoretical research, for modelling experiments and for undergraduate and graduate teaching. It can model two, three or many-level systems with physical effects including:\nModules are also available for:\nSome phenomena that can be demonstrated:\nSee the Examples for details."
+  },
+  {
+    "objectID": "index.html#source-code",
+    "href": "index.html#source-code",
+    "title": "clerq",
+    "section": "Source code",
+    "text": "Source code\nclerq is open source. The code, issue tracker and releases are on GitHub: github.com/tpogden/clerq."
+  },
+  {
+    "objectID": "installation.html",
+    "href": "installation.html",
+    "title": "Installation",
+    "section": "",
+    "text": "uv is the recommended way to install clerq:\nuv pip install clerq"
+  },
+  {
+    "objectID": "installation.html#using-uv-recommended",
+    "href": "installation.html#using-uv-recommended",
+    "title": "Installation",
+    "section": "",
+    "text": "uv is the recommended way to install clerq:\nuv pip install clerq"
+  },
+  {
+    "objectID": "installation.html#using-pip",
+    "href": "installation.html#using-pip",
+    "title": "Installation",
+    "section": "Using pip",
+    "text": "Using pip\npip install clerq"
+  },
+  {
+    "objectID": "installation.html#using-conda",
+    "href": "installation.html#using-conda",
+    "title": "Installation",
+    "section": "Using Conda",
+    "text": "Using Conda\nYou can create and activate a Conda environment with the required dependencies:\nconda create --name mb -c conda-forge python=3.11 qutip\nconda activate mb\npip install clerq\nAlternatively you can manually download and install any release."
+  },
+  {
     "objectID": "usage/built-in-time-functions.html",
     "href": "usage/built-in-time-functions.html",
     "title": "Built-in time functions",
@@ -1629,210 +1876,80 @@
     ]
   },
   {
-    "objectID": "installation.html",
-    "href": "installation.html",
-    "title": "Installation",
+    "objectID": "usage/numerical-stability.html",
+    "href": "usage/numerical-stability.html",
+    "title": "Numerical Stability and Step Sizes",
     "section": "",
-    "text": "uv is the recommended way to install clerq:\nuv pip install clerq"
-  },
-  {
-    "objectID": "installation.html#using-uv-recommended",
-    "href": "installation.html#using-uv-recommended",
-    "title": "Installation",
-    "section": "",
-    "text": "uv is the recommended way to install clerq:\nuv pip install clerq"
-  },
-  {
-    "objectID": "installation.html#using-pip",
-    "href": "installation.html#using-pip",
-    "title": "Installation",
-    "section": "Using pip",
-    "text": "Using pip\npip install clerq"
-  },
-  {
-    "objectID": "installation.html#using-conda",
-    "href": "installation.html#using-conda",
-    "title": "Installation",
-    "section": "Using Conda",
-    "text": "Using Conda\nYou can create and activate a Conda environment with the required dependencies:\nconda create --name mb -c conda-forge python=3.11 qutip\nconda activate mb\npip install clerq\nAlternatively you can manually download and install any release."
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "clerq",
-    "section": "",
-    "text": "clerq solves the propagation of classical electromagnetic fields through media of open quantum systems, using Maxwell’s equations coupled to the Lindblad master equation. It is used for near-resonant light in thermal atomic vapours, with two-, three- and many-level atoms, spontaneous decay, dephasing and Doppler broadening.\nclerq is used for theoretical research, for modelling experiments and for undergraduate and graduate teaching. It can model two, three or many-level systems with physical effects including:\nModules are also available for:\nSome phenomena that can be demonstrated:\nSee the Examples for details."
-  },
-  {
-    "objectID": "index.html#source-code",
-    "href": "index.html#source-code",
-    "title": "clerq",
-    "section": "Source code",
-    "text": "Source code\nclerq is open source. The code, issue tracker and releases are on GitHub: github.com/tpogden/clerq."
-  },
-  {
-    "objectID": "usage/autodiff-recipes.html",
-    "href": "usage/autodiff-recipes.html",
-    "title": "Autodiff recipes",
-    "section": "",
-    "text": "PropagationSolver.to_autodiff() returns a differentiable copy of a propagation problem: the propagated field becomes a pure function of a dictionary of parameters, so any loss of the field can be differentiated exactly with JAX. This page is a set of short recipes for the parts of the API you will reach for most. It needs the jax extra:",
+    "text": "PropagationSolver marches the fields through the medium in steps of \\(\\Delta z\\) (z_steps recorded steps, each split into z_steps_inner finite-difference steps), and records them on a time grid of t_steps steps. Nothing in the physics tells you how fine these need to be. Too coarse a \\(z\\)-step gives a wrong answer that may grow without bound, and too coarse a time grid gives a wrong answer that looks perfectly reasonable.\nsolve() checks for both. This page shows what the checks catch, how to read them and how to choose the step sizes.\nThe test problem is a \\(2\\pi\\) hyperbolic-secant pulse in a resonant two-level medium. This is self-induced transparency: the pulse passes through unchanged apart from a delay, so any change in its peak is numerical error.\nimport json\nimport warnings\n\nimport matplotlib.pyplot as plt\nimport numpy as np\nimport seaborn as sns\n\nfrom clerq import PropagationSolver\nfrom clerq.exceptions import PropagationInstabilityError\n\nsns.set_style(\"darkgrid\")\nproblem = {\n    \"system\": {\n        \"num_states\": 2,\n        \"fields\": [\n            {\n                \"coupled_levels\": [[0, 1]],\n                \"rabi_freq_t_func\": \"sech\",\n                \"rabi_freq_t_args\": {\n                    \"ampl\": 0.8384014365421667,\n                    \"centre\": 0.0,\n                    \"width\": 0.3796628587572578,\n                },\n            }\n        ],\n    },\n    \"t_min\": -2.0,\n    \"t_max\": 14.0,\n    \"t_steps\": 160,\n    \"z_min\": 0.0,\n    \"z_max\": 1.0,\n    \"z_steps\": 10,\n    \"interaction_strengths\": [10.0],\n}\n\n\ndef make(**changes):\n    return PropagationSolver(**{**problem, **changes})\n\n\ndef peak_field(solver):\n    \"\"\"Peak |Omega| of the field at each recorded z, as a cyclic frequency.\"\"\"\n    return np.abs(solver.rabi_freqs_zt[0]).max(axis=1)",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#setup-64-bit-precision",
-    "href": "usage/autodiff-recipes.html#setup-64-bit-precision",
-    "title": "Autodiff recipes",
-    "section": "Setup: 64-bit precision",
-    "text": "Setup: 64-bit precision\nJAX computes in 32-bit by default, which is not enough for the master equation. clerq never changes JAX’s global configuration for you; it raises a RuntimeError if 64-bit mode is off. Enable it before creating any JAX arrays:\nimport jax\njax.config.update(\"jax_enable_x64\", True)\nor set the environment variable JAX_ENABLE_X64=1.\n\nimport json\n\nimport jax\nimport jax.numpy as jnp\nimport numpy as np\n\njax.config.update(\"jax_enable_x64\", True)\n\nfrom clerq import PropagationSolver\n\nWe’ll use a small ladder problem with two fields: a weak Gaussian probe on \\(|0\\rangle \\leftrightarrow |1\\rangle\\) and a square coupling pulse on \\(|1\\rangle \\leftrightarrow |2\\rangle\\).\n\nproblem = {\n    \"system\": {\n        \"num_states\": 3,\n        \"energies\": [0.0, 0.0, 0.0],\n        \"decays\": [{\"channels\": [[0, 1]], \"rate\": 1.0}],\n        \"fields\": [\n            {\n                \"coupled_levels\": [[0, 1]],\n                \"rabi_freq\": 0.5,\n                \"rabi_freq_t_func\": \"gaussian\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"centre\": 0.0, \"fwhm\": 0.5},\n            },\n            {\n                \"coupled_levels\": [[1, 2]],\n                \"rabi_freq\": 1.0,\n                \"rabi_freq_t_func\": \"square\",\n                \"rabi_freq_t_args\": {\"ampl\": 1.0, \"on\": -1.0, \"off\": 1.0},\n            },\n        ],\n        \"initial_state\": [1.0, 0.0, 0.0],\n    },\n    \"t_min\": -2.0,\n    \"t_max\": 2.0,\n    \"t_steps\": 80,\n    \"z_min\": 0.0,\n    \"z_max\": 1.0,\n    \"z_steps\": 20,\n    \"interaction_strengths\": [10.0, 10.0],\n}\n\nsolver = PropagationSolver.from_json_str(json.dumps(problem))\nad = solver.to_autodiff()\n\nad is an AutodiffPropagation. Options such as step, strategy, rtol and max_steps are passed to to_autodiff() and are covered below.",
+    "objectID": "usage/numerical-stability.html#too-coarse-a-z-step",
+    "href": "usage/numerical-stability.html#too-coarse-a-z-step",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "Too coarse a z-step",
+    "text": "Too coarse a z-step\nWith z_steps_inner=2 the solver runs without complaint, but the pulse should leave the medium with the peak it went in with.\n\ncoarse = make(z_steps_inner=2)\ncoarse.solve(progress=False)\nprint(f\"peak in {peak_field(coarse)[0]:.3f}, out {peak_field(coarse)[-1]:.3f}\")\n\npeak in 0.838, out 3.926\n\n\n/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 466.0% (tolerance 10.0%). Try z_steps_inner=14 (currently 2) or z_steps_inner='auto'.\n  coarse.solve(progress=False)\n/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 102.6% (tolerance 10.0%). Try t_steps=1491 (currently 160), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.\n  coarse.solve(progress=False)\n/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: A field is still changing near the edge of the time window (by 41.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.\n  coarse.solve(progress=False)\n\n\nThe pulse that goes in with a peak of 0.84 comes out with 3.9, nearly five times too large, and before the checks nothing said so. The first warning is the one to act on: the \\(z\\)-step is too coarse. The other two (the time grid and the window edge) are consequences. The wrong field has structure that the time grid cannot resolve and spreads to the edge of the window, so fixing the \\(z\\)-step usually clears them. Here is the peak along the medium as the \\(z\\)-step is refined:\n\nfig, ax = plt.subplots(figsize=(6, 3.5))\nwith warnings.catch_warnings():\n    warnings.simplefilter(\"ignore\")\n    for n in [1, 2, 4, 16, 64]:\n        s = make(z_steps_inner=n)\n        s.solve(progress=False)\n        ax.plot(s.zlist, peak_field(s), label=f\"z_steps_inner={n}\")\nax.set_xlabel(\"z\")\nax.set_ylabel(\"Peak Rabi frequency\")\nax.set_yscale(\"log\")\nax.legend();",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#the-parameter-dictionary",
-    "href": "usage/autodiff-recipes.html#the-parameter-dictionary",
-    "title": "Autodiff recipes",
-    "section": "The parameter dictionary",
-    "text": "The parameter dictionary\nParameters are a dictionary; every key is optional and defaults to the value in the problem. default_params() shows them:\n\nad.default_params()\n\n{'pulse_args': [{'ampl': 1.0, 'centre': 0.0, 'fwhm': 0.5},\n  {'ampl': 1.0, 'on': -1.0, 'off': 1.0}],\n 'rabi_freq': array([0.5, 1. ]),\n 'interaction_strengths': array([10., 10.]),\n 'detunings': array([0., 0.]),\n 'decay_scale': 1.0}\n\n\n\n\n\n\n\n\n\n\nKey\nShape\nMeaning\n\n\n\n\npulse_args\nlist, one dict per field\narguments of each field’s analytic pulse (ampl, centre, fwhm/width, n_pi, on, off)\n\n\nrabi_freq\n(n_fields,)\nthe rabi_freq multiplying each pulse\n\n\ninteraction_strengths\n(n_fields,)\nthe coupling strength of each field to the medium\n\n\ndetunings\n(n_fields,)\nthe fixed detuning of each field\n\n\ndecay_scale\nscalar\nmultiplies every decay rate\n\n\nomega0\n(n_fields, n_t)\nsampled input fields on tlist, used instead of the analytic pulses\n\n\n\n\nPropagating\npropagate(params) returns the field \\(\\Omega(z, t)\\) with shape (n_fields, z_steps + 1, n_t). Pass nothing for the problem’s own parameters, or any subset of keys to override them; everything else keeps its default.\n\nomega = ad.propagate()\nomega_strong = ad.propagate({\"rabi_freq\": jnp.array([0.5, 2.0])})\nprint(omega.shape, omega.dtype)\n\n(2, 21, 81) complex128\n\n\nPulse arguments are merged per field, so you only name the ones you change. A field’s alternative arguments replace one another: giving n_pi drops the default ampl.\n\nwider = ad.propagate({\"pulse_args\": [{\"fwhm\": 1.0}, {}]})\n\n\n\nGradients with respect to any subset\nvalue_and_grad(loss, params) differentiates loss(Omega_zt) with respect to the parameters you pass, and returns gradients with the same structure. Here, the gradient of the output probe intensity with respect to the coupling rabi_freq and the probe interaction_strengths only:\n\ndef loss(omega):\n    \"\"\"Negative probe energy at the end of the medium.\"\"\"\n    return -jnp.sum(jnp.abs(omega[0, -1]) ** 2)\n\n\nparams = {\n    \"rabi_freq\": jnp.array([0.5, 1.0]),\n    \"interaction_strengths\": jnp.array([10.0, 10.0]),\n}\nvalue, grads = ad.value_and_grad(loss, params)\nprint(value)\ngrads\n\n-0.09651633408235306\n\n\n{'interaction_strengths': Array([0.01786184, 0.00017319], dtype=float64),\n 'rabi_freq': Array([-0.36828985, -0.31595014], dtype=float64)}\n\n\nWith no params, every differentiable parameter of the problem is used.\n\n\nHolding values constant with fixed\nfixed= takes parameters with the same structure but does not differentiate them. Use it to evaluate at a different operating point, or to hold a parameter the optimiser should not touch:\n\nvalue, grads = ad.value_and_grad(\n    loss,\n    {\"rabi_freq\": jnp.array([0.5, 1.0])},\n    fixed={\"detunings\": jnp.array([0.0, 0.3]), \"decay_scale\": 2.0},\n)\nprint(value)\ngrads\n\n-27.538834865877007\n\n\n{'rabi_freq': Array([-104.8820873 ,  -72.64311402], dtype=float64)}",
+    "objectID": "usage/numerical-stability.html#the-step-error-estimate",
+    "href": "usage/numerical-stability.html#the-step-error-estimate",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "The step error estimate",
+    "text": "The step error estimate\nWhile solving, clerq estimates the error of the \\(z\\)-stepping from how much the derivative \\(\\partial\\Omega/\\partial z\\) changes between steps: the difference between the Euler and Adams-Bashforth predictions. This costs nothing extra. It is summed over the steps and kept relative to the peak field, as solver.step_error_estimate. solve() warns when it exceeds step_error_warn (0.1 by default).\nHere it is against the true error, measured from a very finely stepped solution:\n\nreference = make(z_steps_inner=256)\nreference.solve(progress=False, check_stability=False)\nexact = peak_field(reference)[-1]\n\nprint(\"z_steps_inner  estimate  true error\")\nwith warnings.catch_warnings():\n    warnings.simplefilter(\"ignore\")\n    for n in [1, 2, 4, 8, 16, 32, 64, 128]:\n        s = make(z_steps_inner=n)\n        s.solve(progress=False)\n        true_err = abs(peak_field(s)[-1] - exact) / exact\n        print(f\"{n:13d}  {s.step_error_estimate:8.3g}  {true_err:10.3g}\")\n\nz_steps_inner  estimate  true error\n            1      2.42        6.19\n            2      4.66        3.72\n            4      5.52       0.881\n            8      3.08       0.168\n           16     0.484      0.0268\n           32    0.0837     0.00964\n           64    0.0207    0.000783\n          128    0.0052    9.33e-05\n\n\nThe estimate is a heuristic, not a stability limit like a Courant number, so read it as follows:\n\nIt is conservative for the default Adams-Bashforth scheme (step=\"ab\"). In the table, an estimate of 0.08 goes with a true error of 1%, and 0.5 with 3%. Above about 3 the result is wrong by order one.\nIt falls with z_steps_inner at the rate of the scheme: as the square for Adams-Bashforth and linearly for Euler. The suggestion in the warning uses this, and it can be a little off the first time. Repeat if the warning remains.\nFor step=\"euler\" it is close to the true error rather than conservative (see below), and Euler is much less accurate at the same step size. Prefer the default.\nWhether \\(\\Delta z\\) is small enough depends on the density, the pulse and the decay rates together, which is why there is no single safe default.\n\n\nwith warnings.catch_warnings():\n    warnings.simplefilter(\"ignore\")\n    s = make(z_steps_inner=128)\n    s.solve(step=\"euler\", progress=False)\ntrue_err = abs(peak_field(s)[-1] - exact) / exact\nprint(f\"Euler, 128 inner steps: estimate {s.step_error_estimate:.3g}, true error {true_err:.3g}\")\n\nEuler, 128 inner steps: estimate 0.192, true error 0.142",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#units",
-    "href": "usage/autodiff-recipes.html#units",
-    "title": "Autodiff recipes",
-    "section": "Units",
-    "text": "Units\nAll parameters are cyclic, exactly as in the problem definition (rabi_freq in \\(2\\pi\\,\\mathrm{MHz}\\) means you pass the cyclic number, and detunings and omega0 follow suit). The returned field is in the layout and units of PropagationSolver.Omegas_zt: angular frequency. Divide by \\(2\\pi\\) to get the cyclic Rabi frequency:\n\nsolver.solve()\nprint(np.abs(omega - solver.Omegas_zt).max() / np.abs(solver.Omegas_zt).max())  # agrees with solve() to solver tolerance\nrabi_cyclic = omega / (2 * np.pi)\n\n7.76819321747668e-07",
+    "objectID": "usage/numerical-stability.html#choosing-the-step-automatically",
+    "href": "usage/numerical-stability.html#choosing-the-step-automatically",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "Choosing the step automatically",
+    "text": "Choosing the step automatically\nPass z_steps_inner=\"auto\" and solve() starts from 2 inner steps and repeats the solve with more until the estimate is under step_error_warn, up to max_z_steps_inner (512).\n\nauto = make(z_steps_inner=\"auto\")\nauto.solve(progress=False)\nprint(f\"z_steps_inner chosen: {auto.z_steps_inner}\")\nprint(f\"estimate {auto.step_error_estimate:.3g}; peak out {peak_field(auto)[-1]:.3f}\")\n\nz_steps_inner chosen: 41\nestimate 0.0505; peak out 0.836\n\n\nThe repeated solves cost time, so for a calculation you will run many times, find the value once and set it. With a savefile the chosen value is stored with the result, and a later run loads both without solving again.",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#reverse-and-forward-mode",
-    "href": "usage/autodiff-recipes.html#reverse-and-forward-mode",
-    "title": "Autodiff recipes",
-    "section": "Reverse and forward mode",
-    "text": "Reverse and forward mode\nThe default mode=\"reverse\" costs roughly five propagations however many parameters you differentiate. mode=\"forward\" costs more as parameters are added, so it is mainly useful as a cross-check or when there are very few parameters.\n\nv_rev, g_rev = ad.value_and_grad(loss, params, mode=\"reverse\")\nv_fwd, g_fwd = ad.value_and_grad(loss, params, mode=\"forward\")\nprint(np.allclose(g_rev[\"rabi_freq\"], g_fwd[\"rabi_freq\"]))\n\nTrue",
+    "objectID": "usage/numerical-stability.html#runs-that-blow-up",
+    "href": "usage/numerical-stability.html#runs-that-blow-up",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "Runs that blow up",
+    "text": "Runs that blow up\nSome problems are unstable rather than just inaccurate. A dense medium with a coarse step can make the field grow without limit, or make the master-equation integrator fail. solve() stops as soon as the field is not finite, exceeds blowup_factor (1000 by default) times its initial peak, or the integrator fails, and raises PropagationInstabilityError:\n\ndense = make(interaction_strengths=[3000.0], z_steps_inner=2)\ntry:\n    dense.solve(progress=False)\nexcept PropagationInstabilityError as e:\n    print(e)\n    print(\"stopped at z =\", e.z, \"; suggested z_steps_inner:\", e.suggested_z_steps_inner)\n\nPropagation became unstable at z=0.1: the master-equation integrator failed (Excess work done on this call. Try to increasing the nsteps parameter in the Options class). The z-step is probably too coarse for this medium; try z_steps_inner=4 (currently 2), z_steps_inner='auto', or more t_steps. Pass check_stability=False to solve() to suppress this check.\nstopped at z = 0.1 ; suggested z_steps_inner: 4\n\n\n/Users/tpo/repos/clerq/.claude/worktrees/cyclic-output-parameters-9652ec/.venv/lib/python3.14/site-packages/scipy/integrate/_ode.py:418: UserWarning: _zvode: Excess work done on this call. (Perhaps wrong MF.)\n  self._y, self.t = mth(self.f, self.jac or (lambda: None),\n\n\nThe fields up to the point of failure are still in the solver. The suggestion in the error is a starting point, not a guarantee. Here it is too small. Four inner steps still fail at this density, because the medium is far too optically thick for the pulse to be followed at all with a step of this kind. Try the suggestion, then lower the density or shorten the medium, or split it into more z_steps.\nA medium with real gain, such as an inverted population, can legitimately amplify the field by more than 1000. Raise blowup_factor for those. check_stability=False turns off every check on this page.",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#memory-strategies",
-    "href": "usage/autodiff-recipes.html#memory-strategies",
-    "title": "Autodiff recipes",
-    "section": "Memory strategies",
-    "text": "Memory strategies\nReverse mode has to remember something about the forward pass. The strategy option, given to to_autodiff(), trades memory for recomputation:\n\n\n\n\n\n\n\n\nstrategy\nStores\nCost\n\n\n\n\n\"s2\"\nevery \\(z\\)-slice’s residuals\nleast recomputation, most memory\n\n\n\"s3\" (default)\nslice boundaries; recomputes inside a slice on the backward pass\na moderate recomputation overhead\n\n\n\"s4\"\nas s3, and limits the ODE solver’s inner checkpoints to checkpoints\nleast memory; needs checkpoints=N\n\n\n\nmax_steps is the most steps one slice solve may take: the solve raises if it needs more. In reverse mode the default checkpoint count is sized from it, so a smaller max_steps lowers memory use on large problems.\n\nad_s2 = solver.to_autodiff(strategy=\"s2\")\nad_s4 = solver.to_autodiff(strategy=\"s4\", checkpoints=16, max_steps=2000)\n\ng_s2 = ad_s2.value_and_grad(loss, params)[1]\ng_s4 = ad_s4.value_and_grad(loss, params)[1]\nprint(np.allclose(g_s2[\"rabi_freq\"], g_s4[\"rabi_freq\"]))\n\nTrue\n\n\nAll strategies give the same gradients; only the memory and run time differ. checkpoints is an error with any strategy other than \"s4\".",
+    "objectID": "usage/numerical-stability.html#too-coarse-a-time-grid",
+    "href": "usage/numerical-stability.html#too-coarse-a-time-grid",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "Too coarse a time grid",
+    "text": "Too coarse a time grid\nTime is not marched like \\(z\\) is. The master equation is integrated with its own adaptive steps, and the time grid only fixes where the fields and coherences are recorded and interpolated. So a coarse grid cannot blow up. It makes the answer wrong in a way that looks reasonable, which is the harder case.\nAfter solving, solve() takes the fields and the summed coherences at every \\(z\\), drops every other time sample, interpolates them back and compares. This is solver.t_step_error_estimate, relative to the peak, and it warns above t_step_error_warn.\n\nprint(\"t_steps  estimate  true error\")\nref_t = make(t_steps=1280, z_steps_inner=128)\nref_t.solve(progress=False, check_stability=False)\nexact_t = peak_field(ref_t)[-1]\nwith warnings.catch_warnings():\n    warnings.simplefilter(\"ignore\")\n    for n in [20, 40, 80, 160, 320]:\n        s = make(t_steps=n, z_steps_inner=32)\n        s.solve(progress=False)\n        true_err = abs(peak_field(s)[-1] - exact_t) / exact_t\n        print(f\"{n:7d}  {s.t_step_error_estimate:8.3g}  {true_err:10.3g}\")\n\nt_steps  estimate  true error\n     20      1.47       0.258\n     40     0.929      0.0735\n     80     0.212     0.00326\n    160    0.0134     0.00321\n    320   0.00371     0.00318\n\n\nThe true error stops falling at about 0.3% because that is the remaining \\(z\\)-step error at z_steps_inner=32. The estimate of the time grid keeps falling.\nYou can estimate a grid before solving. suggest_t_steps() finds the largest frequency in the problem (the bandwidth of the input fields, their Rabi frequencies, the detunings and the Doppler width) and returns enough steps for 10 samples per period of it:\n\nmake().suggest_t_steps()\n\n135\n\n\nThis is an estimate from the input fields. The medium can add structure that is not there at the start, such as sidebands and ringing, so check it against the warning after solving.\n\nThe time window\nThe window t_min to t_max has to contain the whole pulse at every \\(z\\), including the delay the medium adds. solve() warns when a field is still changing in the first or last 5% of the window (window_edge_warn, window_edge_frac). In this problem the pulse is delayed by about 9 time units over the medium, so a window ending at 9 cuts it off:\n\nclipped = make(t_max=9.0, z_steps_inner=32)\nclipped.solve(progress=False)\nprint(f\"field still changing at the window edge by {clipped.window_edge_estimate:.0%} of its peak\")\n\nfield still changing at the window edge by 58% of its peak\n\n\n/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2846482427.py:2: UserWarning: A field is still changing near the edge of the time window (by 58.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.\n  clipped.solve(progress=False)",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
-    "objectID": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
-    "href": "usage/autodiff-recipes.html#jax.jit-and-reusing-the-loss-function",
-    "title": "Autodiff recipes",
-    "section": "jax.jit and reusing the loss function",
-    "text": "jax.jit and reusing the loss function\npropagate and value_and_grad are already jit-compiled, and compose with jax.jit, jax.vmap and optimisers such as Optax. Two things to know:\n\nvalue_and_grad compiles once per loss function object (and mode). Define the loss once and reuse it. Only the last 8 are kept (an LRU, AutodiffPropagation.GRAD_CACHE_SIZE), so a new lambda on every call recompiles every time.\nCaptured arrays stay alive as long as the compiled function does. Call ad.clear_cache() to drop the compiled programs and release them.\n\n\n# A loss with a captured target is compiled once, then reused for every step.\ntarget = jnp.abs(omega[0, -1]) ** 2\n\n\ndef make_loss(target):\n    def mismatch(omega):\n        return jnp.sum((jnp.abs(omega[0, -1]) ** 2 - target) ** 2)\n\n    return mismatch\n\n\nmismatch = make_loss(target)  # build once...\nfor rabi in (0.8, 0.9, 1.0):  # ...and reuse\n    p = {\"rabi_freq\": jnp.array([0.5, rabi])}\n    v, _ = ad.value_and_grad(mismatch, p)\n    print(rabi, float(v))\n\nad.clear_cache()\n\n0.8 0.00048150204918500565\n0.9 0.00015390985971960178\n1.0 1.5212166504500135e-18\n\n\nA gradient step is then a short loop around value_and_grad.",
+    "objectID": "usage/numerical-stability.html#summary",
+    "href": "usage/numerical-stability.html#summary",
+    "title": "Numerical Stability and Step Sizes",
+    "section": "Summary",
+    "text": "Summary\n\n\n\n\n\n\n\nTo do\nUse\n\n\n\n\nFind out if a result is under-resolved\nRead the warnings; check step_error_estimate, t_step_error_estimate and window_edge_estimate after solve()\n\n\nLet clerq choose the \\(z\\)-step\nz_steps_inner=\"auto\"\n\n\nGet a starting time grid\nsolver.suggest_t_steps()\n\n\nHandle a run that blew up\nCatch PropagationInstabilityError; raise z_steps_inner (or z_steps) or lower the density\n\n\nAllow genuine gain\nsolve(blowup_factor=...)\n\n\nSilence the checks\nsolve(check_stability=False)\n\n\n\nThe warning thresholds are arguments of solve(): step_error_warn, t_step_error_warn and window_edge_warn. See the API reference.",
     "crumbs": [
       "Usage",
-      "Autodiff recipes"
-    ]
-  },
-  {
-    "objectID": "usage/autodiff-recipes.html#limits",
-    "href": "usage/autodiff-recipes.html#limits",
-    "title": "Autodiff recipes",
-    "section": "Limits",
-    "text": "Limits\n\nCo-propagating fields only. to_autodiff() raises NotImplementedError for a problem with counter-propagating fields.\nsquare edge times are held fixed. The field is discontinuous at on and off, so its derivative with respect to them is a delta function that autodiff would silently return as 0. value_and_grad refuses to differentiate them: pass them in fixed=, or use a continuous pulse. The ramp_on, ramp_off, ramp_onoff and ramp_offon pulses are continuous, so their on and off can be differentiated.\nSupported pulses are those ported to JAX; others raise NotImplementedError from to_autodiff().\nFloat64 is required (see above).\n\nFor example, asking for a square pulse’s edge gives a clear error rather than a silent zero:\n\ntry:\n    ad.value_and_grad(loss, {\"pulse_args\": [{}, {\"on\": -1.0}]})\nexcept ValueError as e:\n    print(e)\n\npulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a continuous pulse such as 'ramp_onoff'.",
-    "crumbs": [
-      "Usage",
-      "Autodiff recipes"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html",
-    "href": "usage/counter-propagating.html",
-    "title": "Counter-Propagating Fields",
-    "section": "",
-    "text": "Many atomic physics experiments use fields that propagate in opposite directions through the medium. A common example is Rydberg EIT, where a near-infrared probe and a blue coupling field enter the vapour cell from opposite ends to reduce (or eliminate) the Doppler broadening of the two-photon resonance.",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#why-a-counter-propagating-geometry-changes-the-doppler-shift",
-    "href": "usage/counter-propagating.html#why-a-counter-propagating-geometry-changes-the-doppler-shift",
-    "title": "Counter-Propagating Fields",
-    "section": "Why a counter-propagating geometry changes the Doppler shift",
-    "text": "Why a counter-propagating geometry changes the Doppler shift\nAn atom moving with velocity \\(v\\) along the propagation axis sees each field at a Doppler-shifted frequency. For a field with wave-vector \\(\\mathbf{k}\\):\n\nCo-propagating (\\(\\mathbf{k} \\parallel \\hat{z}\\)): the atom sees the field blue-shifted by \\(kv\\), so its effective one-photon detuning shifts by \\(+kv\\).\nCounter-propagating (\\(\\mathbf{k} \\antiparallel \\hat{z}\\)): the shift is \\(-kv\\).\n\nIn a two-photon (Ξ or Λ) scheme, the two-photon detuning is the sum of the individual detunings. When both fields propagate in the same direction, the two-photon detuning picks up \\(+kv + kv = 2kv\\), and the resonance is Doppler-broadened. When the fields counter-propagate with similar wavelengths, the shifts partially or fully cancel, giving a narrower (Doppler-reduced or Doppler-free) two-photon resonance.",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#how-clerq-handles-this",
-    "href": "usage/counter-propagating.html#how-clerq-handles-this",
-    "title": "Counter-Propagating Fields",
-    "section": "How clerq handles this",
-    "text": "How clerq handles this\nclerq propagates all fields in the \\(+z\\) direction (it solves an initial-value problem marching from \\(z_\\mathrm{min}\\) to \\(z_\\mathrm{max}\\)). A genuinely counter-propagating field would require boundary data at \\(z_\\mathrm{max}\\) and backward integration, turning the problem into a boundary-value problem.\nHowever, when the counter-propagating field does not deplete significantly across the cell—a valid approximation for many coupling fields in EIT experiments—the forward-propagating solver is equivalent to the true counter-propagating geometry. The only physical difference is the sign of the Doppler shift each velocity class contributes to that field. clerq exposes this sign via the counter_propagating field attribute.\n\nNote on phrasing. This is not an ‘undepleted-coupling approximation’ in the sense of neglecting absorption. The solver computes absorption honestly for every velocity class. The approximation is purely geometric: it exploits the spatial symmetry that holds when the counter-propagating field’s intensity profile is essentially flat across the cell.",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#basic-usage-counter_propagating",
-    "href": "usage/counter-propagating.html#basic-usage-counter_propagating",
-    "title": "Counter-Propagating Fields",
-    "section": "Basic usage: counter_propagating",
-    "text": "Basic usage: counter_propagating\nSet \"counter_propagating\": true on any field in the JSON configuration. This tells clerq to apply the Doppler shift with the opposite sign for that field, while leaving the forward-propagation geometry unchanged.\n\nmb_solve_json = \"\"\"\n{\n  \"system\": {\n    \"num_states\": 3,\n    \"decays\": [{\"channels\": [[0, 1], [1, 2]], \"rate\": 1.0}],\n    \"fields\": [\n      {\n        \"label\": \"probe\",\n        \"coupled_levels\": [[0, 1]],\n        \"rabi_freq\": 1.0e-3,\n        \"rabi_freq_t_func\": \"gaussian\",\n        \"rabi_freq_t_args\": {\"ampl\": 1.0, \"centre\": 0.0, \"fwhm\": 1.0}\n      },\n      {\n        \"label\": \"coupling\",\n        \"coupled_levels\": [[1, 2]],\n        \"rabi_freq\": 5.0,\n        \"rabi_freq_t_func\": \"ramp_onoff\",\n        \"rabi_freq_t_args\": {\"ampl\": 1.0, \"fwhm\": 0.2, \"on\": -2.0, \"off\": 8.0},\n        \"counter_propagating\": true\n      }\n    ]\n  },\n  \"t_min\": -2.0,\n  \"t_max\": 8.0,\n  \"t_steps\": 120,\n  \"z_min\": 0.0,\n  \"z_max\": 1.0,\n  \"z_steps\": 20,\n  \"z_steps_inner\": 2,\n  \"interaction_strengths\": [0.5, 0.5],\n  \"velocity_classes\": {\n    \"thermal_width\": 5.0,\n    \"thermal_delta_min\": -15.0,\n    \"thermal_delta_max\": 15.0,\n    \"thermal_delta_steps\": 10\n  },\n  \"savefile\": \"counter-propagating-eit\"\n}\n\"\"\"\n\n\nfrom clerq import PropagationSolver\n\nmbs = PropagationSolver().from_json_str(mb_solve_json)\nprint(f\"Coupling field counter_propagating: {mbs.system.fields[1].counter_propagating}\")\nprint(f\"Coupling factor_doppler_shift:      {mbs.system.fields[1].factor_doppler_shift}\")\n\nCoupling field counter_propagating: True\nCoupling factor_doppler_shift:      -1.0\n\n\n\nOmegas_zt, states_zt = mbs.solve()\n\nSaving PropagationSolver to counter-propagating-eit.qu\n\n\n\nDepletion check\nAfter solving, clerq automatically checks whether the counter-propagating field depleted significantly across the cell. The check computes\n\\[\n\\text{depletion} = 1 - \\frac{\\max_t |\\Omega(z_\\mathrm{max}, t)|}{\\max_t |\\Omega(z_\\mathrm{min}, t)|}\n\\]\n\n&lt; 1 % — check passes silently. The forward-propagation result is reliable.\n1 – 10 % — a UserWarning is emitted. Results may still be usable but caution is advised.\n&gt; 10 % — a CounterPropagatingDepletionError is raised. The approximation has broken down.\n\nYou can suppress the check with check_counter_prop_depletion=False if you know the depletion is acceptable for your purposes.\n\nimport numpy as np\n\ncoupling_idx = 1  # second field\nOmega_coupling = Omegas_zt[coupling_idx]\npeak_in  = np.max(np.abs(Omega_coupling[0]))\npeak_out = np.max(np.abs(Omega_coupling[-1]))\ndepletion = 1.0 - peak_out / peak_in\nprint(f\"Coupling field depletion: {depletion:.2%}\")\n\nCoupling field depletion: -0.00%",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#advanced-factor_doppler_shift",
-    "href": "usage/counter-propagating.html#advanced-factor_doppler_shift",
-    "title": "Counter-Propagating Fields",
-    "section": "Advanced: factor_doppler_shift",
-    "text": "Advanced: factor_doppler_shift\nFor schemes where the two counter-propagating fields have different wavelengths (e.g. a three-photon Doppler-free ladder where \\(k_1 \\neq k_2\\)), the Doppler cancellation is only partial. Use factor_doppler_shift directly to set the fractional weight:\n{\n  \"coupled_levels\": [[2, 3]],\n  \"rabi_freq\": 1.5,\n  \"factor_doppler_shift\": -0.62\n}\nThe sign determines the direction; the magnitude scales the Doppler shift relative to the thermal width unit. factor_doppler_shift = 1.0 (the default) gives standard co-propagating behaviour; -1.0 is equivalent to counter_propagating = true.\n\nNote on detuning_positive. The detuning_positive flag on a field is a separate and orthogonal concept. It controls the sign convention for the RWA Hamiltonian based on the level ordering (used when the second coupled level sits below the first in energy, e.g. the lower leg of a Λ system). It has nothing to do with the laser k-vector direction. Both flags can be set independently.",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#pulse-area-check",
-    "href": "usage/counter-propagating.html#pulse-area-check",
-    "title": "Counter-Propagating Fields",
-    "section": "Pulse-area check",
-    "text": "Pulse-area check\nAs a sanity check, verify that the probe pulse area at the input is correct.\n\nprobe_area_in = np.trapezoid(np.abs(Omegas_zt[0, 0, :]), mbs.tlist) / np.pi\nprint(f\"Probe area at z=z_min: {probe_area_in:.4f} π\")\n\nProbe area at z=z_min: 0.0021 π",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
-    ]
-  },
-  {
-    "objectID": "usage/counter-propagating.html#references",
-    "href": "usage/counter-propagating.html#references",
-    "title": "Counter-Propagating Fields",
-    "section": "References",
-    "text": "References\n\nMohapatra, Jackson, Adams — Coherent Optical Detection of Highly Excited Rydberg States Using Electromagnetically Induced Transparency, PRL 98, 113003 (2007). Example of the counter-propagating Rydberg EIT geometry this feature supports.\nAdams, Pritchard, Shaffer — Rydberg atom physics, J. Phys. B 53, 012002 (2020). Broader review including Doppler-free multi-photon spectroscopy.",
-    "crumbs": [
-      "Usage",
-      "Counter-Propagating Fields"
+      "Numerical Stability and Step Sizes"
     ]
   },
   {
@@ -2550,7 +2667,7 @@
     "href": "release-notes.html#unreleased",
     "title": "Release Notes",
     "section": "Unreleased",
-    "text": "Unreleased\nNot yet released; this is on the next branch.\nStability checks. solve() now stops with PropagationInstabilityError when the field blows up, and warns when the z-step looks too coarse (estimated from the difference between the Euler and Adams-Bashforth predictions, available as solver.step_error_estimate). Pass z_steps_inner=\"auto\" to refine the step automatically, or check_stability=False to switch the checks off.\nTime-grid checks. solve() also warns when t_steps is too coarse to resolve the fields and coherences, or when the time window cuts off a pulse or its ringing, and suggest_t_steps() estimates a grid from the problem’s frequency scales before you solve.\nGradients through the propagation (optional, experimental). With pip install 'clerq[jax]', solver.to_autodiff() returns a differentiable version of a PropagationSolver problem: exact gradients of any loss of the propagated field with respect to pulse parameters, interaction strengths, detunings, decay rates or a sampled input field, for about the cost of five to six propagations however many parameters there are. It is meant for gradient-based design of pulses and media, and ad.minimize(loss, params) follows the gradient with an optax optimiser (Adam by default). import clerq itself never loads JAX. See the pulse design example and the API reference, and CHANGELOG.md for the supported features and limits.\nCyclic field accessor. solver.rabi_freqs_zt is the solved field as a cyclic Rabi frequency, the same unit as rabi_freq in the problem definition, so you no longer divide by \\(2\\pi\\). solver.Omegas_zt (angular) is deprecated but still works, and the arrays returned by solve() are unchanged. The output of to_autodiff() is cyclic too, so it compares directly with rabi_freqs_zt.\n\n\n\n\n\n\nNoteUpgrading from 0.13.1\n\n\n\nYour code keeps working: the old names still run and raise a DeprecationWarning. Switching to the new names now will save you work when they are removed in a future release.\n\n\nClearer names, all available from import clerq.\n\n\n\nBefore\nNow\n\n\n\n\nclerq.mb_solve.MBSolve\nclerq.PropagationSolver\n\n\nclerq.ob_solve.OBSolve\nclerq.LindbladSolver\n\n\nclerq.ob_atom.OBAtom\nclerq.System\n\n\nclerq.field.Field\nclerq.Field\n\n\nmbsolve(), obsolve()\nsolve()\n\n\natom (argument, attribute, JSON key)\nsystem\n\n\n\n\n“System” replaces “atom” because the solvers work for any few-level open quantum system, not only atoms.\nThe modules are now clerq.propagation, clerq.lindblad, clerq.system and clerq.system_base.\nHelper functions that take a solver always call that argument solver. Before, it was mb_solve in spectral, fixed and fileio, and mbs in plot.\nmbsolve_euler() and mbsolve_ab() are deprecated in favour of solve(step=...).\nThe mbsolve and obsolve command-line scripts keep their names.\n\nFixed: solving twice gave different results. Calling solver.solve() again on the same PropagationSolver (or editing a field’s rabi_freq_t_args and solving again) started from the last solve’s leftover field instead of the pulse you defined, so the second and later results were wrong. Repeated solves now match a fresh solver. If you re-solved the same object, recalculate.\nFixed: Adams-Bashforth output was one inner step early. With the default step=\"ab\" and z_steps_inner &gt; 1 (the default is 2), each stored slice of the field and the states was one inner step short of its nominal z. Slices are now at zlist[j]. Problems with z_steps_inner=1, and step=\"euler\", are unchanged, and so are problems whose medium starts a couple of inner steps after z_min, because a second error cancelled the first there. Problems where the medium reaches z_min (for example z_min=0 with the medium from z=0) shift, by an amount first order in the inner step: re-run them and discard old .qu files. This is a correction; there is nothing to change in your code.\nCached results. A .qu savefile made by an earlier version no longer matches its problem definition (which now has a system key), so it is solved again and overwritten the first time you use it.\nOther changes\n\nPropagationSolver and System have class docstrings describing their arguments.\nThe release assets on GitHub are now just the wheel, the sdist and their attestations.\nThe documentation has correct API page titles, and several docstrings that disagreed with their signatures are fixed.\nThe lockfile is updated to clear security alerts in documentation and development packages. The installed package is unaffected."
+    "text": "Unreleased\nNot yet released; this is on the next branch.\nStability checks. solve() now stops with PropagationInstabilityError when the field blows up, and warns when the z-step looks too coarse (estimated from the difference between the Euler and Adams-Bashforth predictions, available as solver.step_error_estimate). Pass z_steps_inner=\"auto\" to refine the step automatically, or check_stability=False to switch the checks off. See Numerical Stability and Step Sizes.\nTime-grid checks. solve() also warns when t_steps is too coarse to resolve the fields and coherences, or when the time window cuts off a pulse or its ringing, and suggest_t_steps() estimates a grid from the problem’s frequency scales before you solve.\nGradients through the propagation (optional, experimental). With pip install 'clerq[jax]', solver.to_autodiff() returns a differentiable version of a PropagationSolver problem: exact gradients of any loss of the propagated field with respect to pulse parameters, interaction strengths, detunings, decay rates or a sampled input field, for about the cost of five to six propagations however many parameters there are. It is meant for gradient-based design of pulses and media, and ad.minimize(loss, params) follows the gradient with an optax optimiser (Adam by default). import clerq itself never loads JAX. See the pulse design example and the API reference, and CHANGELOG.md for the supported features and limits.\nCyclic field accessor. solver.rabi_freqs_zt is the solved field as a cyclic Rabi frequency, the same unit as rabi_freq in the problem definition, so you no longer divide by \\(2\\pi\\). solver.Omegas_zt (angular) is deprecated but still works, and the arrays returned by solve() are unchanged. The output of to_autodiff() is cyclic too, so it compares directly with rabi_freqs_zt.\n\n\n\n\n\n\nNoteUpgrading from 0.13.1\n\n\n\nYour code keeps working: the old names still run and raise a DeprecationWarning. Switching to the new names now will save you work when they are removed in a future release.\n\n\nClearer names, all available from import clerq.\n\n\n\nBefore\nNow\n\n\n\n\nclerq.mb_solve.MBSolve\nclerq.PropagationSolver\n\n\nclerq.ob_solve.OBSolve\nclerq.LindbladSolver\n\n\nclerq.ob_atom.OBAtom\nclerq.System\n\n\nclerq.field.Field\nclerq.Field\n\n\nmbsolve(), obsolve()\nsolve()\n\n\natom (argument, attribute, JSON key)\nsystem\n\n\n\n\n“System” replaces “atom” because the solvers work for any few-level open quantum system, not only atoms.\nThe modules are now clerq.propagation, clerq.lindblad, clerq.system and clerq.system_base.\nHelper functions that take a solver always call that argument solver. Before, it was mb_solve in spectral, fixed and fileio, and mbs in plot.\nmbsolve_euler() and mbsolve_ab() are deprecated in favour of solve(step=...).\nThe mbsolve and obsolve command-line scripts keep their names.\n\nFixed: solving twice gave different results. Calling solver.solve() again on the same PropagationSolver (or editing a field’s rabi_freq_t_args and solving again) started from the last solve’s leftover field instead of the pulse you defined, so the second and later results were wrong. Repeated solves now match a fresh solver. If you re-solved the same object, recalculate.\nFixed: Adams-Bashforth output was one inner step early. With the default step=\"ab\" and z_steps_inner &gt; 1 (the default is 2), each stored slice of the field and the states was one inner step short of its nominal z. Slices are now at zlist[j]. Problems with z_steps_inner=1, and step=\"euler\", are unchanged, and so are problems whose medium starts a couple of inner steps after z_min, because a second error cancelled the first there. Problems where the medium reaches z_min (for example z_min=0 with the medium from z=0) shift, by an amount first order in the inner step: re-run them and discard old .qu files. This is a correction; there is nothing to change in your code.\nCached results. A .qu savefile made by an earlier version no longer matches its problem definition (which now has a system key), so it is solved again and overwritten the first time you use it.\nOther changes\n\nPropagationSolver and System have class docstrings describing their arguments.\nThe release assets on GitHub are now just the wheel, the sdist and their attestations.\nThe documentation has correct API page titles, and several docstrings that disagreed with their signatures are fixed.\nThe lockfile is updated to clear security alerts in documentation and development packages. The installed package is unaffected."
   },
   {
     "objectID": "release-notes.html#october-2026",
@@ -2745,6 +2862,17 @@
     "crumbs": [
       "API",
       "autodiff.AutodiffPropagation"
+    ]
+  },
+  {
+    "objectID": "api/exceptions.CounterPropagatingDepletionError.html",
+    "href": "api/exceptions.CounterPropagatingDepletionError.html",
+    "title": "exceptions.CounterPropagatingDepletionError",
+    "section": "",
+    "text": "exceptions.CounterPropagatingDepletionError\nexceptions.CounterPropagatingDepletionError()\nRaised when a counter-propagating field depletes beyond the error threshold.\nThe forward-propagation solver is only equivalent to true counter-propagation when depletion is negligible. Pass check_counter_prop_depletion=False to solve() to suppress this check if you know what you are doing.",
+    "crumbs": [
+      "API",
+      "exceptions.CounterPropagatingDepletionError"
     ]
   },
   {
