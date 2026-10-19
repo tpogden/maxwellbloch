@@ -83,9 +83,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-6c7cefc384eab7262e643c504b8a9054.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e651cdfa9410f337ee1970aa72a0a587.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-3866d01c38dcb40cf5fb13b813c51a7a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-e651cdfa9410f337ee1970aa72a0a587.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-6157712325429ffe12f7682d8d6565f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -116,6 +116,51 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<script>
+// Stored notebook outputs use the light "clerq" Plotly template; restyle the
+// live figures to follow the site's light/dark toggle.
+(function () {
+  var LIGHT = {
+    "paper_bgcolor": "white", "plot_bgcolor": "white",
+    "font.color": "#2a2a2a",
+    "xaxis.gridcolor": "#e0e0e0", "yaxis.gridcolor": "#e0e0e0",
+    "xaxis.zerolinecolor": "#aaaaaa", "yaxis.zerolinecolor": "#aaaaaa",
+    "xaxis.linecolor": "#888888", "yaxis.linecolor": "#888888",
+    "legend.bgcolor": "rgba(255,255,255,0.8)", "legend.bordercolor": "#cccccc",
+    "colorway": ["#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB"]
+  };
+  var DARK = {
+    "paper_bgcolor": "#161b22", "plot_bgcolor": "#161b22",
+    "font.color": "#d5dbe5",
+    "xaxis.gridcolor": "#2a313c", "yaxis.gridcolor": "#2a313c",
+    "xaxis.zerolinecolor": "#4a5361", "yaxis.zerolinecolor": "#4a5361",
+    "xaxis.linecolor": "#6b7585", "yaxis.linecolor": "#6b7585",
+    "legend.bgcolor": "rgba(22,27,34,0.8)", "legend.bordercolor": "#2a313c",
+    "colorway": ["#6ea8e0", "#f2808f", "#4fc46a", "#e6d25c", "#7fd8f2", "#cf6fa8", "#c4c9d1"]
+  };
+
+  function apply() {
+    if (!window.Plotly) return;
+    var mode = document.body.classList.contains("quarto-dark") ? "dark" : "light";
+    document.querySelectorAll(".js-plotly-plot").forEach(function (gd) {
+      if (gd._clerqMode === mode || !gd._fullLayout) return;
+      // First pass on a light page: stored figures are already light.
+      if (gd._clerqMode === undefined && mode === "light") { gd._clerqMode = mode; return; }
+      gd._clerqMode = mode;
+      window.Plotly.relayout(gd, mode === "dark" ? DARK : LIGHT);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    new MutationObserver(apply).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    // Plotly loads and renders asynchronously from the CDN.
+    var tries = 0, timer = setInterval(function () {
+      apply();
+      if (++tries > 60) clearInterval(timer);
+    }, 500);
+  });
+})();
+</script>
 
 
 </head>
