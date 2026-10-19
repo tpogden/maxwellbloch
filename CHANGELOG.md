@@ -9,6 +9,12 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Numerical-stability checks in `PropagationSolver.solve()`. A blow-up (non-finite field, peak field more than
+  `blowup_factor` times its input, or a failed master-equation integration) now stops the run with
+  `PropagationInstabilityError`, giving the z reached and a suggested `z_steps_inner`. The Euler/Adams-Bashforth
+  difference gives a free estimate of the error per z-step (`solver.step_error_estimate`); `solve()` warns when it
+  exceeds `step_error_warn`. `check_stability=False` turns this off. `z_steps_inner="auto"` repeats the solve with more
+  inner steps until the estimate is within tolerance.
 - Automatic differentiation of field propagation (optional, experimental). `PropagationSolver.to_autodiff()` returns
   a pure, `jit`-able function of a parameter pytree (pulse parameters, `rabi_freq`, interaction strengths,
   detunings, decay scale, or sampled input fields) that reproduces `solve()`, with exact gradients of any scalar loss
