@@ -744,7 +744,7 @@ class PropagationSolver(LindbladSolver):
         if not np.all(np.isfinite(peaks)):
             self._raise_instability(z, "the field became non-finite")
         if st["ref"] is None:
-            st["ref"] = float(np.max(np.abs(self.Omegas_zt[:, 0, :])))
+            st["ref"] = float(np.max(np.abs(self._Omegas_zt[:, 0, :])))
         ref = st["ref"]
         if ref > 0.0 and peaks.max() > st["blowup_factor"] * ref:
             self._raise_instability(
