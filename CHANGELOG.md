@@ -19,6 +19,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   Transverse fields, an arbitrary quantisation axis and the Breit-Rabi regime are not included. `clerq.autodiff`
   picks the shift up from `H_0`, and `b_field` is a new differentiable parameter of `AutodiffPropagation`. See the
   usage page `b-field`.
+- Documentation for the stability checks: a usage page, "Numerical Stability and Step Sizes", a troubleshooting section, and
+  the `PropagationInstabilityError` and `CounterPropagatingDepletionError` exceptions in the API reference.
 - Time-grid checks in `PropagationSolver.solve()` (with `check_stability`). It warns if the fields or summed coherences
   are not resolved by `t_steps` (the error of rebuilding them from every other time sample, from a cubic spline like
   QuTiP's, is above `t_step_error_warn`; the suggested `t_steps` uses the convergence order measured between strides
@@ -62,6 +64,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   `clerq.plot` helpers compute from them, are unchanged and still angular.
 
 ### Fixed
+- `PropagationSolver` with `z_steps_inner="auto"` and a `savefile` now caches: the problem definition keeps `"auto"`, and
+  the resolved step count is stored in and restored from the savefile, so a later run loads the result instead of
+  re-solving.
 - Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted
   energy fractions of 0.96848, 0.95962, 0.95950, ... for a sech pulse), and editing a field's `rabi_freq_t_args`
   between solves was not picked up correctly. The z-stepping replaced `system.H_Omega_list` with the last slice's

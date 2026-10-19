@@ -18,6 +18,15 @@ Exact gradients through the propagation (needs the `jax` extra).
 | [autodiff.AutodiffPropagation](autodiff.AutodiffPropagation.qmd#clerq.autodiff.AutodiffPropagation) | A differentiable version of a :class:`~clerq.PropagationSolver` problem. |
 | [autodiff.OptimizeResult](autodiff.OptimizeResult.qmd#clerq.autodiff.OptimizeResult) | The outcome of :meth:`AutodiffPropagation.minimize`. |
 
+## Exceptions
+
+Raised by `PropagationSolver.solve()`.
+
+| | |
+| --- | --- |
+| [exceptions.PropagationInstabilityError](exceptions.PropagationInstabilityError.qmd#clerq.exceptions.PropagationInstabilityError) | Raised when a propagation solve has blown up numerically. |
+| [exceptions.CounterPropagatingDepletionError](exceptions.CounterPropagatingDepletionError.qmd#clerq.exceptions.CounterPropagatingDepletionError) | Raised when a counter-propagating field depletes beyond the error threshold. |
+
 ## Systems and fields
 
 | | |

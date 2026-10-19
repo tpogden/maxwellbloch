@@ -1,0 +1,25 @@
+# exceptions.PropagationInstabilityError { #clerq.exceptions.PropagationInstabilityError }
+
+```python
+exceptions.PropagationInstabilityError(
+    message,
+    z=None,
+    suggested_z_steps_inner=None,
+)
+```
+
+Raised when a propagation solve has blown up numerically.
+
+The field became non-finite or grew far beyond its initial amplitude, or the
+master-equation integrator failed, which is the usual signature of a
+z-step (or t-step) too coarse for the finite-difference scheme. Increase
+``z_steps_inner`` (or ``z_steps``) or ``t_steps``, or pass
+``z_steps_inner="auto"``. Pass ``check_stability=False`` to ``solve()``
+to suppress the check.
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name                    | Type   | Description                                     |
+|-------------------------|--------|-------------------------------------------------|
+| z                       |        | Position at which the solve was stopped.        |
+| suggested_z_steps_inner |        | A larger ``z_steps_inner`` to try, or ``None``. |

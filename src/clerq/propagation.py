@@ -1165,7 +1165,11 @@ class PropagationSolver(LindbladSolver):
                 "z_min": self.z_min,
                 "z_max": self.z_max,
                 "z_steps": self.z_steps,
-                "z_steps_inner": self.z_steps_inner,
+                # "auto" is part of the problem definition, the value it
+                # resolves to is a result (kept in the savefile metadata).
+                "z_steps_inner": (
+                    "auto" if self._auto_z_steps_inner else self.z_steps_inner
+                ),
                 "num_density_z_func": self._num_density_z_func_name,
                 "num_density_z_args": self._num_density_z_args_raw,
                 "interaction_strengths": self.interaction_strengths,
@@ -1179,6 +1183,7 @@ class PropagationSolver(LindbladSolver):
         return {
             "hash": hashlib.sha256(self.to_json_str().encode()).hexdigest(),
             "source_weights": _SOURCE_WEIGHTS,
+            "z_steps_inner": self.z_steps_inner,
             "clerq": importlib.metadata.version("clerq"),
             "qutip": importlib.metadata.version("qutip"),
             "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
@@ -1244,6 +1249,8 @@ class PropagationSolver(LindbladSolver):
                     "problem definition. Delete it or set recalc=True."
                 )
             self._check_source_weights(meta.get("source_weights"))
+            if self._auto_z_steps_inner and meta.get("z_steps_inner"):
+                self.z_steps_inner = meta["z_steps_inner"]
             for key in ("clerq", "qutip"):
                 saved = meta.get(key)
                 current = importlib.metadata.version(key)

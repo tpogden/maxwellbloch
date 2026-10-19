@@ -274,3 +274,31 @@ class TestTimeResolutionEdgeCases:
     def test_suggest_t_steps_bandwidth_fraction(self):
         s = make(**WIDE)
         assert s.suggest_t_steps(bandwidth_fraction=0.5) <= s.suggest_t_steps()
+
+
+def test_auto_z_steps_inner_is_cached(tmp_path):
+    kw = dict(savefile=str(tmp_path / "auto"))
+
+    def build():
+        d = json.loads(JSON.read_text())
+        d.update(
+            z_steps=10,
+            z_steps_inner="auto",
+            interaction_strengths=[10.0],
+            **kw,
+        )
+        return PropagationSolver(**d)
+
+    first = build()
+    first.solve(progress=False)
+    assert first.z_steps_inner > 2
+
+    saved = tmp_path / "auto.qu"
+    mtime = saved.stat().st_mtime_ns
+    second = build()
+    # Loads the saved result (no re-solve) and restores the resolved step count.
+    second.solve(progress=False, recalc=False)
+    assert saved.stat().st_mtime_ns == mtime  # not solved and saved again
+    assert second.z_steps_inner == first.z_steps_inner
+    np.testing.assert_array_equal(second.rabi_freqs_zt, first.rabi_freqs_zt)
+    assert json.loads(second.to_json_str())["z_steps_inner"] == "auto"
