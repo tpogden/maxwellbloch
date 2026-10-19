@@ -346,6 +346,7 @@ PropagationSolver.solve(
     max_z_steps_inner=512,
     t_step_error_warn=0.1,
     window_edge_warn=0.2,
+    window_edge_frac=0.05,
 )
 ```
 
@@ -367,8 +368,9 @@ Solves the propagation of the fields through the medium.
 | blowup_factor                | float  | Growth of the peak field, relative to its peak at ``z_min``, treated as a blow-up. Raise it for media with genuine gain.                                                                                                                                                                                                                                                                                                                   | `1000.0`  |
 | step_error_warn              | float  | Estimated accumulated relative error (from the differences of dOmega/dz between z-steps, relative to the peak field) above which a UserWarning is issued suggesting a larger ``z_steps_inner``. The largest value seen is kept in ``self.step_error_estimate``. With ``z_steps_inner="auto"`` this is also the tolerance: the solve is repeated with more inner steps until the estimate is below it, or ``max_z_steps_inner`` is reached. | `0.1`     |
 | max_z_steps_inner            | int    | Upper limit for ``z_steps_inner="auto"``.                                                                                                                                                                                                                                                                                                                                                                                                  | `512`     |
-| t_step_error_warn            | float  | With ``check_stability``, warn if the time grid is too coarse to represent the fields and coherences: the relative error (to the peak) of interpolating them from every other time sample, ``self.t_step_error_estimate``, exceeds this. The error of the full grid is about 1/16 of it, since the interpolation is a cubic spline.                                                                                                        | `0.1`     |
+| t_step_error_warn            | float  | With ``check_stability``, warn if the time grid is too coarse to represent the fields and coherences: the relative error (to the peak) of interpolating them from every other time sample, ``self.t_step_error_estimate``, exceeds this. The error of the full grid is smaller, by about a factor of 16 once the grid resolves the signal (a cubic spline), and by less on a coarser grid.                                                 | `0.1`     |
 | window_edge_warn             | float  | With ``check_stability``, warn if a field is still changing near the edge of the time window (the first or last 5% of it) by more than this fraction of its peak, so that a pulse or its ringing is probably cut off. Kept in ``self.window_edge_estimate``.                                                                                                                                                                               | `0.2`     |
+| window_edge_frac             | float  | Fraction of the time window at each end that ``window_edge_warn`` looks at. Reduce it if the window deliberately starts or ends in the middle of a pulse.                                                                                                                                                                                                                                                                                  | `0.05`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
@@ -380,7 +382,10 @@ Solves the propagation of the fields through the medium.
 ### suggest_t_steps { #clerq.PropagationSolver.suggest_t_steps }
 
 ```python
-PropagationSolver.suggest_t_steps(points_per_period=10.0)
+PropagationSolver.suggest_t_steps(
+    points_per_period=10.0,
+    bandwidth_fraction=0.99,
+)
 ```
 
 Estimate the ``t_steps`` needed to resolve the problem's frequencies.
@@ -388,7 +393,7 @@ Estimate the ``t_steps`` needed to resolve the problem's frequencies.
 Finds the largest frequency scale (cyclic, in the units of the problem)
 and returns enough steps over ``[t_min, t_max]`` for
 ``points_per_period`` samples per period of it. The scales are the
-bandwidth of the input fields (99% of their power), their peak Rabi
+bandwidth of the input fields (``bandwidth_fraction`` of their power), their peak Rabi
 frequencies combined with the detunings and the Doppler width.
 
 This is an estimate from the input fields: the medium can add structure
@@ -397,9 +402,10 @@ if the grid turns out to be too coarse.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name              | Type   | Description                                   | Default   |
-|-------------------|--------|-----------------------------------------------|-----------|
-| points_per_period | float  | Time samples per period of the fastest scale. | `10.0`    |
+| Name               | Type   | Description                                                                                                                                                         | Default   |
+|--------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| points_per_period  | float  | Time samples per period of the fastest scale.                                                                                                                       | `10.0`    |
+| bandwidth_fraction | float  | Fraction of an input field's spectral power that its bandwidth must contain. Lower it for sharp-edged pulses, whose slowly decaying tails would otherwise dominate. | `0.99`    |
 
 #### Returns {.doc-section .doc-section-returns}
 

@@ -171,3 +171,106 @@ class TestTimeResolution:
         # 10 points per period of 20 over a window of 22 is at least ~4400 steps.
         assert detuned >= 4000
         assert detuned > 10 * base
+
+
+def _synthetic(t_steps=240, **overrides):
+    """An unsolved solver whose stored arrays we can overwrite."""
+    return make(z_steps=2, **{**WIDE, "t_steps": t_steps, **overrides})
+
+
+def _gaussian(s, centre, width=0.5):
+    return np.exp(-(((s.tlist - centre) / width) ** 2)).astype(complex)
+
+
+class TestTimeResolutionEdgeCases:
+    @pytest.mark.parametrize("stride", [2, 4])
+    @pytest.mark.parametrize("t_steps", [101, 102, 103])
+    def test_decimation_error_does_not_extrapolate(self, t_steps, stride):
+        # A signal that does not decay at the end of the window, so samples
+        # past the last knot would be extrapolated if they were compared.
+        def err(n):
+            t = np.linspace(0, 8, n + 1)
+            return PropagationSolver._decimation_error(
+                np.cos(3 * t), np.array(1.0), stride
+            )
+
+        assert err(t_steps) < 2 * err(100)
+
+    @pytest.mark.parametrize("t_steps", [239, 241, 243])
+    def test_odd_t_steps_do_not_warn_when_resolved(self, t_steps):
+        s = make(z_steps_inner=32, **{**WIDE, "t_steps": t_steps})
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            s.solve(progress=False)
+
+    def test_coherence_noise_below_the_floor_is_ignored(self):
+        s = _synthetic()
+        s._Omegas_zt[:] = _gaussian(s, 5.0)
+        rng = np.random.default_rng(0)
+        noise = 1e-9 * rng.normal(size=s.states_zt.shape[:2])
+        s.states_zt[..., 0, 1] = noise
+        s.states_zt[..., 1, 0] = noise
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            s._check_time_resolution(0.1, 0.2, 0.05)
+        assert s.t_step_error_estimate < 0.1
+
+    def test_unresolved_coherence_sets_the_order_and_suggestion(self):
+        s = _synthetic()
+        s._Omegas_zt[:] = _gaussian(s, 5.0)
+        # A coherence oscillating at ~2 samples per period.
+        wiggle = np.cos(2.0 * np.arange(len(s.tlist)))
+        s.states_zt[..., 0, 1] = wiggle
+        s.states_zt[..., 1, 0] = wiggle
+        with pytest.warns(UserWarning, match="time grid may be too coarse") as rec:
+            s._check_time_resolution(0.1, 0.2, 0.05)
+        assert s.t_step_error_estimate > 0.1
+        n_z, n_t = s.states_zt.shape[:2]
+        coh = s.system.get_fields_sum_coherence(
+            states_t=s.states_zt.reshape(n_z * n_t, 2, 2)
+        ).reshape(1, n_z, n_t)
+        peak = np.max(np.abs(coh), axis=(1, 2))[:, None]
+        e2 = PropagationSolver._decimation_error(coh, peak)
+        e4 = PropagationSolver._decimation_error(coh, peak, stride=4)
+        order = float(np.clip(np.log2(e4 / e2), 1.0, 4.0)) if e4 > e2 else 4.0
+        expected = int(np.ceil(s.t_steps * max((e2 / 0.1) ** (1.0 / order), 1.5)))
+        got = int(re.search(r"t_steps=(\d+)", str(rec[0].message)).group(1))
+        assert got == expected
+
+    @pytest.mark.parametrize("centre", [-2.0, 19.8])
+    def test_pulse_cut_off_at_either_edge_warns(self, centre):
+        # make() has t_min=-2, t_max=20.
+        s = _synthetic()
+        s._Omegas_zt[:] = _gaussian(s, centre)
+        with pytest.warns(UserWarning, match="edge of the time window"):
+            s._check_time_resolution(0.1, 0.2, 0.05)
+        assert s.window_edge_estimate > 0.2
+
+    def test_cw_field_and_centred_pulse_are_not_flagged(self):
+        s = _synthetic()
+        for field in (np.ones(len(s.tlist), dtype=complex), _gaussian(s, 9.0)):
+            s._Omegas_zt[:] = field
+            with warnings.catch_warnings():
+                warnings.simplefilter("error")
+                s._check_time_resolution(0.1, 0.2, 0.05)
+            assert s.window_edge_estimate < 0.2
+
+    def test_window_edge_frac_is_adjustable(self):
+        s = _synthetic()
+        s._Omegas_zt[:] = _gaussian(s, 5.0, width=2.0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s._check_time_resolution(0.1, 0.2, 0.05)
+            wide = s.window_edge_estimate
+            s._check_time_resolution(0.1, 0.2, 0.005)
+        assert s.window_edge_estimate < wide
+
+    def test_suggest_t_steps_follows_edits_to_the_fields(self):
+        s = make(**WIDE)
+        before = s.suggest_t_steps()
+        s.system.fields[0].rabi_freq_t_args["width_0"] = 0.2
+        assert s.suggest_t_steps() > before
+
+    def test_suggest_t_steps_bandwidth_fraction(self):
+        s = make(**WIDE)
+        assert s.suggest_t_steps(bandwidth_fraction=0.5) <= s.suggest_t_steps()

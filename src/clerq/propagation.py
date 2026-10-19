@@ -391,6 +391,7 @@ class PropagationSolver(LindbladSolver):
         max_z_steps_inner: int = 512,
         t_step_error_warn: float = 0.1,
         window_edge_warn: float = 0.2,
+        window_edge_frac: float = 0.05,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Solves the propagation of the fields through the medium.
 
@@ -428,13 +429,17 @@ class PropagationSolver(LindbladSolver):
                 is too coarse to represent the fields and coherences: the
                 relative error (to the peak) of interpolating them from every
                 other time sample, ``self.t_step_error_estimate``, exceeds this.
-                The error of the full grid is about 1/16 of it, since the
-                interpolation is a cubic spline.
+                The error of the full grid is smaller, by about a factor of 16
+                once the grid resolves the signal (a cubic spline), and by
+                less on a coarser grid.
             window_edge_warn: With ``check_stability``, warn if a field is still
                 changing near the edge of the time window (the first or last 5%
                 of it) by more than this fraction of its peak, so that a pulse
                 or its ringing is probably cut off. Kept in
                 ``self.window_edge_estimate``.
+            window_edge_frac: Fraction of the time window at each end that
+                ``window_edge_warn`` looks at. Reduce it if the window
+                deliberately starts or ends in the middle of a pulse.
 
         Returns:
             Omegas_zt: The solved field complex Rabi frequency at each point in
@@ -503,7 +508,9 @@ class PropagationSolver(LindbladSolver):
             self.system._build_H_Omega()
 
         if check_stability:
-            self._check_time_resolution(t_step_error_warn, window_edge_warn)
+            self._check_time_resolution(
+                t_step_error_warn, window_edge_warn, window_edge_frac
+            )
 
         if check_counter_prop_depletion:
             self._check_counter_prop_depletion(
@@ -813,9 +820,6 @@ class PropagationSolver(LindbladSolver):
     # whose interpolation error falls as dt**4 once the grid resolves the
     # signal; coarser than that it falls more slowly, so the order is measured.
     _T_ORDER = 4
-    # Fraction of the time window at each end in which a field is checked for
-    # still changing.
-    _EDGE_FRAC = 0.05
 
     @staticmethod
     def _decimation_error(y: np.ndarray, peak: np.ndarray, stride: int = 2) -> float:
@@ -824,7 +828,10 @@ class PropagationSolver(LindbladSolver):
         Interpolates with the same not-a-knot cubic spline that QuTiP uses for
         array coefficients and compares at the samples left out. ``y`` has time
         on the last axis; ``peak`` broadcasts against ``y[..., 0]``. With
-        ``stride=2`` the error of the full grid is about ``2**-order`` times this.
+        ``stride=2`` the error of the full grid is smaller by ``2**order``,
+        with the order up to 4 for a grid that resolves the signal and lower
+        for a coarser one. Only samples between the first and last knot are
+        compared, so nothing is extrapolated.
         """
         n = y.shape[-1]
         if n < 3 * stride + 1:
@@ -833,18 +840,25 @@ class PropagationSolver(LindbladSolver):
         spline = CubicSpline(
             t[::stride], y[..., ::stride], axis=-1, bc_type="not-a-knot"
         )
+        # Compare only between the first and last knot: the samples after the
+        # last knot (when n - 1 is not a multiple of the stride) would be
+        # extrapolated.
+        last = (n - 1) // stride * stride
         rest = np.ones(n, dtype=bool)
         rest[::stride] = False
+        rest[last + 1 :] = False
         err = np.max(np.abs(spline(t[rest]) - y[..., rest]), axis=-1)
         return float(np.max(err / peak))
 
-    def _check_time_resolution(self, tol: float, edge_tol: float) -> None:
+    def _check_time_resolution(
+        self, tol: float, edge_tol: float, edge_frac: float
+    ) -> None:
         """Warn if the time grid is too coarse, or the window cuts off a field.
 
         Sets ``t_step_error_estimate`` (decimation error of the fields and
         summed coherences, relative to each field's peak) and
         ``window_edge_estimate`` (largest change of a field, relative to its
-        peak, over the first or last 5% of the window).
+        peak, over the first or last ``edge_frac`` of the window).
         """
         Omegas = self._Omegas_zt  # (num_fields, z, t)
         peak_O = np.max(np.abs(Omegas), axis=(1, 2))
@@ -853,21 +867,23 @@ class PropagationSolver(LindbladSolver):
         peak_O = np.where(peak_O > 0.0, peak_O, np.inf)
         err = self._decimation_error(Omegas, peak_O[:, None])
         err4 = self._decimation_error(Omegas, peak_O[:, None], stride=4)
-        sum_coh = np.array(
-            [self.system.get_fields_sum_coherence(states_t=s) for s in self.states_zt]
-        )  # (z, num_fields, t)
-        peak_c = np.max(np.abs(sum_coh), axis=(0, 2))
+        n_z, n_t = self.states_zt.shape[:2]
+        sum_coh = self.system.get_fields_sum_coherence(
+            states_t=self.states_zt.reshape(n_z * n_t, *self.states_zt.shape[2:])
+        ).reshape(-1, n_z, n_t)  # (num_fields, z, t)
+        peak_c = np.max(np.abs(sum_coh), axis=(1, 2))
         if np.all(np.isfinite(peak_c)):
             # Coherences near the integrator's absolute tolerance are noise,
             # not structure the grid should resolve: normalise to at least this.
             floor = 1e3 * (self.opts or {}).get("atol", 1e-8)
-            err = max(
-                err,
-                self._decimation_error(sum_coh, np.maximum(peak_c, floor)[None, :]),
-            )
+            peak = np.maximum(peak_c, floor)[:, None]
+            err_c = self._decimation_error(sum_coh, peak)
+            if err_c > err:
+                # Take the order from the same quantity as the error.
+                err, err4 = err_c, self._decimation_error(sum_coh, peak, stride=4)
         self.t_step_error_estimate = err
 
-        m = max(1, int((Omegas.shape[-1] - 1) * self._EDGE_FRAC))
+        m = max(1, int((Omegas.shape[-1] - 1) * edge_frac))
         change = np.maximum(
             np.abs(Omegas[..., m] - Omegas[..., 0]),
             np.abs(Omegas[..., -1] - Omegas[..., -1 - m]),
@@ -900,13 +916,15 @@ class PropagationSolver(LindbladSolver):
                 stacklevel=3,
             )
 
-    def suggest_t_steps(self, points_per_period: float = 10.0) -> int:
+    def suggest_t_steps(
+        self, points_per_period: float = 10.0, bandwidth_fraction: float = 0.99
+    ) -> int:
         """Estimate the ``t_steps`` needed to resolve the problem's frequencies.
 
         Finds the largest frequency scale (cyclic, in the units of the problem)
         and returns enough steps over ``[t_min, t_max]`` for
         ``points_per_period`` samples per period of it. The scales are the
-        bandwidth of the input fields (99% of their power), their peak Rabi
+        bandwidth of the input fields (``bandwidth_fraction`` of their power), their peak Rabi
         frequencies combined with the detunings and the Doppler width.
 
         This is an estimate from the input fields: the medium can add structure
@@ -915,11 +933,22 @@ class PropagationSolver(LindbladSolver):
 
         Args:
             points_per_period: Time samples per period of the fastest scale.
+            bandwidth_fraction: Fraction of an input field's spectral power
+                that its bandwidth must contain. Lower it for sharp-edged
+                pulses, whose slowly decaying tails would otherwise dominate.
 
         Returns:
             The suggested number of time steps; compare it with ``t_steps``.
         """
-        Omegas = self._Omegas_zt[:, 0, :] / (2 * np.pi)  # cyclic, at z_min
+        # The input fields as they are now, not as last built: the fields may
+        # have been edited since. Cyclic, as in the problem definition.
+        Omegas = np.array(
+            [
+                f.rabi_freq * f.rabi_freq_t_func(self.tlist, f.rabi_freq_t_args)
+                for f in self.system.fields
+            ],
+            dtype=complex,
+        ).reshape(len(self.system.fields), len(self.tlist))
         dt = self.tlist[1] - self.tlist[0]
         rabi = float(np.max(np.abs(Omegas))) if Omegas.size else 0.0
         detuning = max(
@@ -934,7 +963,9 @@ class PropagationSolver(LindbladSolver):
             total = power.sum()
             if total > 0.0:
                 cum = np.cumsum(power[order]) / total
-                f_max = max(f_max, float(freqs[order][np.searchsorted(cum, 0.99)]))
+                f_max = max(
+                    f_max, float(freqs[order][np.searchsorted(cum, bandwidth_fraction)])
+                )
         span = self.t_max - self.t_min
         return max(int(np.ceil(points_per_period * f_max * span)), 1)
 
