@@ -78,7 +78,7 @@ table.table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--
 .callout { border-radius: 0.5rem; }
 
 /* Plots are rendered on white; keep them legible on a dark page. */
-.cell-output-display img, .cell-output-display svg, figure img {
+.cell-output-display img, .cell-output-display > svg, figure img {
   border-radius: 0.5rem;
   background: #fff;
   max-width: 100%;
