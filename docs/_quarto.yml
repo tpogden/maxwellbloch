@@ -49,6 +49,7 @@ website:
         - usage/counter-propagating.ipynb
         - usage/plotting.ipynb
         - usage/built-in-time-functions.ipynb
+        - usage/autodiff-recipes.ipynb
         - usage/scripts.md
     - id: examples
       title: Examples
