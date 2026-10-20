@@ -9,6 +9,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.plot.field_spacetime` accepts a sequence of field indices (e.g. `field_idx=[0, 1]`) and stacks the fields in one
+  figure, one row each with its own colorbar and label; `colorscale` may then be a list, one per field.
 - DC magnetic field (Zeeman shift). A `System` (JSON key `b_field` on the system) takes `{"magnitude": B, "units":
   "natural" | "gauss", "g_F": [...], "m_F": [...]}`, a scalar field along the quantisation axis that adds
   `g_F * m_F * B` to each level's energy (`H_0 += 2 pi g_F m_F B`). Natural units are `mu_B B / h` in the unit of

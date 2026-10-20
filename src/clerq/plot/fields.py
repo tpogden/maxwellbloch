@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
+import numpy as np
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from clerq._deprecation import renamed_arg
 from clerq.plot import theme as _theme  # noqa: F401 — registers template
 from clerq.plot.utils import field_label, omega_abs, pulse_area_z
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from clerq.field import Field
     from clerq.propagation import PropagationSolver
 
@@ -83,78 +84,123 @@ def field_profile(
 @renamed_arg("mbs", "solver")
 def field_spacetime(
     solver: PropagationSolver,
-    field_idx: int = 0,
+    field_idx: int | Sequence[int] = 0,
     *,
-    colorscale: str | None = None,
+    colorscale: str | Sequence[str] | None = None,
     plot_type: Literal["heatmap", "contour"] = "heatmap",
     show_z_bounds: tuple[float, float] | None = None,
     speed_of_light: float | None = None,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
-    """Heatmap or contour plot of |Ω(z, t)| for *field_idx*.
+    """Heatmap or contour plot of |Ω(z, t)| for one or more fields.
+
+    With a sequence of field indices the fields are stacked in one figure, one
+    row per field, sharing the time axis, each with its own colorbar and a
+    label in the corner.
 
     Args:
         solver: A solved PropagationSolver instance.
-        field_idx: Index of the field to plot.
-        colorscale: Plotly colorscale name. Defaults to Blues for field 0,
-            Greens for field 1 (cycles through _DEFAULT_COLORSCALES).
+        field_idx: Index of the field to plot, or a sequence of indices to
+            plot several fields in one figure (e.g. ``[0, 1]``).
+        colorscale: Plotly colorscale name, or one per field. Defaults to
+            Blues for field 0, Greens for field 1 (cycles through
+            _DEFAULT_COLORSCALES).
         plot_type: ``"heatmap"`` (default, smoothed) or ``"contour"``.
         show_z_bounds: If given, draw dotted grey lines at these two z values
             to mark the start and end of the medium, e.g. ``(0.0, 1.0)``.
         speed_of_light: If given, apply the fixed-frame transform using
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
         width: Figure width in pixels.
-        height: Figure height in pixels.
+        height: Figure height in pixels. For several fields, the height of
+            each row is 0.75 * height.
 
     Returns:
         plotly Figure — call ``.show()`` or ``.write_image()`` on it.
     """
-    if colorscale is None:
-        colorscale = _DEFAULT_COLORSCALES[field_idx % len(_DEFAULT_COLORSCALES)]
-    label = field_label(solver, field_idx)
+    single = isinstance(field_idx, (int, np.integer))
+    indices = [int(field_idx)] if single else [int(i) for i in field_idx]
+    if not indices:
+        raise ValueError("field_idx must contain at least one field index")
+    if colorscale is None or isinstance(colorscale, str):
+        colorscales = [
+            colorscale or _DEFAULT_COLORSCALES[i % len(_DEFAULT_COLORSCALES)]
+            for i in indices
+        ]
+    else:
+        colorscales = list(colorscale)
+        if len(colorscales) != len(indices):
+            raise ValueError("colorscale must give one colorscale per field")
 
     if speed_of_light is not None:
         from clerq import fixed
 
-        Omega = fixed.rabi_freq(solver, field_idx, speed_of_light, part="abs")
         tlist = fixed.t_list(solver, speed_of_light)
         x_title = "t (fixed frame)"
         title_suffix = " — fixed frame"
     else:
-        Omega = omega_abs(solver, field_idx)
         tlist = solver.tlist
         x_title = "t (γ⁻¹)"
         title_suffix = ""
 
-    _common = dict(
-        z=Omega,
-        x=tlist,
-        y=solver.zlist,
-        colorscale=colorscale,
-        colorbar=dict(title="|Ω| (γ)"),
-    )
-    if plot_type == "contour":
-        trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
+    n = len(indices)
+    if single:
+        fig = go.Figure()
     else:
-        trace = go.Heatmap(**_common, zsmooth="best")
+        fig = make_subplots(rows=n, cols=1, shared_xaxes=True, vertical_spacing=0.08)
+    for row, (idx, cs) in enumerate(zip(indices, colorscales, strict=True), start=1):
+        if speed_of_light is not None:
+            Omega = fixed.rabi_freq(solver, idx, speed_of_light, part="abs")
+        else:
+            Omega = omega_abs(solver, idx)
+        _common = dict(
+            z=Omega,
+            x=tlist,
+            y=solver.zlist,
+            colorscale=cs,
+            colorbar=dict(title="|Ω| (γ)"),
+        )
+        if not single:
+            _common["colorbar"].update(len=0.8 / n, y=1 - (row - 0.5) / n)
+        if plot_type == "contour":
+            trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
+        else:
+            trace = go.Heatmap(**_common, zsmooth="best")
+        if single:
+            fig.add_trace(trace)
+        else:
+            fig.add_trace(trace, row=row, col=1)
+            suffix = "" if row == 1 else str(row)
+            fig.add_annotation(
+                text=field_label(solver, idx),
+                xref=f"x{suffix} domain",
+                yref=f"y{suffix} domain",
+                x=0.98,
+                y=0.92,
+                xanchor="right",
+                yanchor="top",
+                showarrow=False,
+                font=dict(size=14, color="white"),
+                bgcolor="rgba(0, 0, 0, 0.45)",
+            )
+            fig.update_yaxes(title_text="z", row=row, col=1)
 
-    fig = go.Figure(
-        data=trace,
-        layout=go.Layout(
-            title=f"|Ω(z, t)| — {label}{title_suffix}",
-            xaxis_title=x_title,
-            yaxis_title="z",
+    if single:
+        label = field_label(solver, indices[0])
+        title = f"|Ω(z, t)| — {label}{title_suffix}"
+        fig.update_layout(xaxis_title=x_title, yaxis_title="z")
+        fig.update_layout(title=title, width=width, height=height, template=_TEMPLATE)
+    else:
+        fig.update_xaxes(title_text=x_title, row=n, col=1)
+        fig.update_layout(
+            title=f"|Ω(z, t)|{title_suffix}",
             width=width,
-            height=height,
+            height=int(0.75 * height * n),
             template=_TEMPLATE,
-        ),
-    )
-    fig.update_layout(
-        xaxis_minallowed=float(tlist[0]),
-        xaxis_maxallowed=float(tlist[-1]),
-        yaxis_minallowed=float(solver.zlist[0]),
-        yaxis_maxallowed=float(solver.zlist[-1]),
+        )
+    fig.update_xaxes(minallowed=float(tlist[0]), maxallowed=float(tlist[-1]))
+    fig.update_yaxes(
+        minallowed=float(solver.zlist[0]), maxallowed=float(solver.zlist[-1])
     )
     if show_z_bounds is not None:
         for z in show_z_bounds:
