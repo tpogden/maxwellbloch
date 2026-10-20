@@ -9,6 +9,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.plot.field_spacetime` accepts a sequence of field indices (e.g. `field_idx=[0, 1]`) and stacks the fields in one
+  figure, one row each with its own colorbar and label; `colorscale` may then be a list, one per field.
 - `clerq.plot.field_z_profile_anim` takes a sequence of `field_idx` to overlay several fields in one animation, and
   `show_z_bounds=(z0, z1)` to shade the medium.
 - DC magnetic field (Zeeman shift). A `System` (JSON key `b_field` on the system) takes `{"magnitude": B, "units":
