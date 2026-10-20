@@ -163,7 +163,7 @@ def field_spacetime(
         if not single:
             _common["colorbar"].update(len=0.8 / n, y=1 - (row - 0.5) / n)
         if plot_type == "contour":
-            trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
+            trace = go.Contour(**_common, line_width=0, line_smoothing=0.85)
         else:
             trace = go.Heatmap(**_common, zsmooth="best")
         if single:
