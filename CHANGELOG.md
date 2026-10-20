@@ -9,6 +9,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.plot.field_z_profile_anim` takes a sequence of `field_idx` to overlay several fields in one animation, and
+  `show_z_bounds=(z0, z1)` to shade the medium.
 - DC magnetic field (Zeeman shift). A `System` (JSON key `b_field` on the system) takes `{"magnitude": B, "units":
   "natural" | "gauss", "g_F": [...], "m_F": [...]}`, a scalar field along the quantisation axis that adds
   `g_F * m_F * B` to each level's energy (`H_0 += 2 pi g_F m_F B`). Natural units are `mu_B B / h` in the unit of
