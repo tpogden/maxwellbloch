@@ -81,15 +81,22 @@ fig
 
 ```{=html}
 <script>
-// Start the animation when it scrolls into view (once; not for reduced motion).
+// One Play/Pause toggle button, and autoplay once when the figure scrolls into
+// view (not for reduced motion).
 window.addEventListener("load", () => {
   const gd = document.querySelector(".plotly-graph-div");
-  if (!gd || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const play = gd.layout.updatemenus[0].buttons[0].args;
+  if (!gd) return;
+  const [play, pause] = gd.layout.updatemenus[0].buttons;
+  const show = (btn) => Plotly.relayout(gd, { "updatemenus[0].buttons": [btn] });
+  show(play);
+  gd.on("plotly_buttonclicked", (e) => show(e.button.label === play.label ? pause : play));
+  gd.on("plotly_animated", () => show(play));
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const io = new IntersectionObserver((entries) => {
     if (!entries[0].isIntersecting) return;
     io.disconnect();
-    Plotly.animate(gd, null, play[1]);
+    show(pause);
+    Plotly.animate(gd, null, play.args[1]);
   }, { threshold: 0.6 });
   io.observe(gd);
 });
