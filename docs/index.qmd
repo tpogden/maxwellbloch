@@ -21,6 +21,12 @@ Doppler broadening.
 #| echo: false
 #| code-fold: true
 #| code-summary: "Show the code"
+#| label: fig-simulton
+#| fig-cap: |
+#|   Two optical solitons, launched at different times, lock together into a
+#|   simulton. Where the pulses meet in the medium the collision reshapes them
+#|   into a single shape-preserving pair that crosses the rest of the medium
+#|   without absorption. Press play, or drag the slider.
 import numpy as np
 
 from clerq import PropagationSolver, plot
@@ -89,13 +95,6 @@ window.addEventListener("load", () => {
 });
 </script>
 ```
-
-Two optical solitons, launched at different times, lock together into a
-simulton. A probe and a coupling field that share a ground state interact
-through the atomic coherence they both drive. Where the two pulses meet in the
-medium, the collision reshapes them into a single shape-preserving pair that
-crosses the rest of the medium without absorption. Press play, or drag the
-slider.
 
 clerq is used for theoretical research, for modelling experiments and for
 undergraduate and graduate teaching. It can model two, three or many-level

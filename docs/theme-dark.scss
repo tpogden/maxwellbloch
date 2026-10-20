@@ -77,6 +77,15 @@ table.table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--
 
 .callout { border-radius: 0.5rem; }
 
+/* Figure captions: smaller and muted, set off from the body text. */
+figcaption, .figure-caption {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--bs-secondary-color, #6c757d);
+  margin-top: 0.6rem;
+  text-align: left;
+}
+
 /* Static images (e.g. matplotlib) are rendered on white; keep them legible on a dark page.
    Plotly figures are restyled for dark mode by _plotly-theme.html. */
 .cell-output-display img, .cell-output-display > svg, figure img {
