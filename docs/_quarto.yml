@@ -47,6 +47,7 @@ website:
         - usage/spectral-analysis.ipynb
         - usage/velocity-classes.ipynb
         - usage/counter-propagating.ipynb
+        - usage/b-field.ipynb
         - usage/numerical-stability.ipynb
         - usage/plotting.ipynb
         - usage/built-in-time-functions.ipynb

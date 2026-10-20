@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import json
 from typing import Any
 
@@ -7,7 +8,7 @@ import numpy as np
 import qutip as qu
 from numpy import pi
 
-from clerq import field, system_base
+from clerq import field, hyperfine, system_base
 
 
 class System(system_base.SystemBase):
@@ -28,6 +29,16 @@ class System(system_base.SystemBase):
         initial_state: initial state, as a list or array
         fields: list of dicts representing the fields that couple the
             system's states.
+        b_field: a DC magnetic field along the quantisation axis, as a dict
+            with the keys ``magnitude`` (default 0), ``units`` (``"natural"``,
+            the default, or ``"gauss"``), and the per-level lists ``g_F`` and
+            ``m_F`` (length ``num_states``). It adds ``g_F * m_F * B`` to
+            the level energies (``H_0 += 2 pi g_F m_F B``), with the sign
+            convention of Steck's alkali data (see ``clerq.hyperfine``).
+            ``"natural"`` means ``mu_B * B / h`` in the same frequency unit as
+            ``energies``; ``"gauss"`` assumes energies in MHz (time in
+            microseconds). For hyperfine systems,
+            ``Atom1e.get_zeeman_levels()`` gives ``g_F`` and ``m_F``.
     """
 
     def __init__(
@@ -38,6 +49,7 @@ class System(system_base.SystemBase):
         decays: list[dict] | None = None,
         initial_state: list[float] | None = None,
         fields: list[dict] | None = None,
+        b_field: dict | None = None,
     ) -> None:
 
         super().__init__()
@@ -46,6 +58,7 @@ class System(system_base.SystemBase):
         self.num_states = num_states
         self.energies = energies if energies is not None else []
         self.decays = decays if decays is not None else []
+        self._b_field = self._check_b_field(b_field)
 
         self.build_initial_state(initial_state if initial_state is not None else [])
 
@@ -60,6 +73,58 @@ class System(system_base.SystemBase):
             + "decays={3}, "
             + "fields={4})"
         ).format(self.label, self.num_states, self.energies, self.decays, self.fields)
+
+    @property
+    def b_field(self) -> dict | None:
+        """The validated ``b_field`` dict (a copy: assign a new dict to change it)."""
+
+        return copy.deepcopy(self._b_field)
+
+    @b_field.setter
+    def b_field(self, value: dict | None) -> None:
+        self._b_field = self._check_b_field(value)
+        self._build_H_0()
+
+    def _check_b_field(self, b_field: dict | None) -> dict | None:
+        """Validate the ``b_field`` dict and fill in its defaults."""
+
+        if b_field is None:
+            return None
+        unknown = set(b_field) - {"magnitude", "units", "g_F", "m_F"}
+        if unknown:
+            raise ValueError(f"Unknown b_field key(s) {sorted(unknown)}.")
+        units = b_field.get("units", "natural")
+        if units not in ("natural", "gauss"):
+            raise ValueError("b_field units must be 'natural' or 'gauss'.")
+        for key in ("g_F", "m_F"):
+            if key not in b_field:
+                raise ValueError(f"b_field requires a per-level '{key}' list.")
+            if len(b_field[key]) != self.num_states:
+                raise ValueError(f"b_field '{key}' must have num_states elements.")
+        return {
+            "magnitude": float(b_field.get("magnitude", 0.0)),
+            "units": units,
+            "g_F": [float(g) for g in b_field["g_F"]],
+            "m_F": [float(m) for m in b_field["m_F"]],
+        }
+
+    @property
+    def b_field_natural(self) -> float:
+        """The B-field magnitude in natural units (``mu_B B / h``); 0 if none."""
+
+        if self._b_field is None:
+            return 0.0
+        if self._b_field["units"] == "gauss":
+            return hyperfine.gauss_to_natural(self._b_field["magnitude"])
+        return self._b_field["magnitude"]
+
+    @property
+    def zeeman_coeffs(self) -> np.ndarray:
+        """``g_F * m_F`` of each level: the Zeeman shift per unit natural B."""
+
+        if self._b_field is None:
+            return np.zeros(self.num_states)
+        return np.array(self._b_field["g_F"]) * np.array(self._b_field["m_F"])
 
     def build_initial_state(self, initial_state: list[float] | None = None) -> qu.Qobj:
         """Build the initial density matrix for the system.
@@ -147,6 +212,9 @@ class System(system_base.SystemBase):
             H_0 = np.diag(2 * pi * np.array(self.energies))
         else:
             H_0 = np.zeros([self.num_states, self.num_states])
+
+        if self._b_field is not None:
+            H_0 = H_0 + np.diag(2 * pi * self.b_field_natural * self.zeeman_coeffs)
 
         self.H_0 = qu.Qobj(H_0)
         return self.H_0
@@ -369,6 +437,8 @@ class System(system_base.SystemBase):
             "decays": self.decays,
             "fields": [f.get_json_dict() for f in self.fields],
         }
+        if self.b_field is not None:
+            json_dict["b_field"] = self.b_field
         return json_dict
 
     def to_json_str(self) -> str:

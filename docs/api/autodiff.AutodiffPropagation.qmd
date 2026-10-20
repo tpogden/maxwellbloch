@@ -46,6 +46,12 @@ in the problem (see :meth:`default_params`):
     array ``(n_fields,)``, cyclic fixed detuning of each field.
 ``decay_scale``
     scalar multiplying every decay rate.
+``b_field``
+    scalar, the DC B-field in natural units (``mu_B B / h`` in the
+    frequency unit of the energies), so the Zeeman shift of the levels can
+    be differentiated: ``H_0 = H_base + 2 pi B Z``. Requires the system to
+    have a ``b_field`` block giving ``g_F`` and ``m_F`` (it is then in the
+    default parameters; without one it raises ``ValueError``).
 ``omega0``
     array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
     *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
@@ -114,6 +120,7 @@ autodiff.AutodiffPropagation.default_params()
 The parameters of the problem this object was built from.
 
 Every value is a float, whatever literal the problem definition used.
+``b_field`` is included only if the system has a ``b_field`` block.
 
 ### from_solver { #clerq.autodiff.AutodiffPropagation.from_solver }
 

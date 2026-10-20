@@ -28,6 +28,7 @@ _PARAM_KEYS = (
     "interaction_strengths",
     "detunings",
     "decay_scale",
+    "b_field",
     "omega0",
 )
 
@@ -142,6 +143,12 @@ class AutodiffPropagation:
         array ``(n_fields,)``, cyclic fixed detuning of each field.
     ``decay_scale``
         scalar multiplying every decay rate.
+    ``b_field``
+        scalar, the DC B-field in natural units (``mu_B B / h`` in the
+        frequency unit of the energies), so the Zeeman shift of the levels can
+        be differentiated: ``H_0 = H_base + 2 pi B Z``. Requires the system to
+        have a ``b_field`` block giving ``g_F`` and ``m_F`` (it is then in the
+        default parameters; without one it raises ``ValueError``).
     ``omega0``
         array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
         *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
@@ -249,15 +256,19 @@ class AutodiffPropagation:
         """The parameters of the problem this object was built from.
 
         Every value is a float, whatever literal the problem definition used.
+        ``b_field`` is included only if the system has a ``b_field`` block.
         """
         s = self.setup
-        return {
+        params = {
             "pulse_args": [{k: float(v) for k, v in a.items()} for _, a, _ in s.pulses],
             "rabi_freq": np.array([r for _, _, r in s.pulses], dtype=float),
             "interaction_strengths": np.asarray(s.g, dtype=float) / TWO_PI,
             "detunings": np.asarray(s.ops.detunings, dtype=float).copy(),
             "decay_scale": 1.0,
         }
+        if s.ops.has_b_field:
+            params["b_field"] = float(s.ops.b_field)
+        return params
 
     def _differentiable_default_params(self) -> dict:
         """``default_params()`` without the arguments that cannot be differentiated.
@@ -300,6 +311,11 @@ class AutodiffPropagation:
         if unknown:
             raise ValueError(
                 f"Unknown parameter(s) {sorted(unknown)}; valid: {list(_PARAM_KEYS)}."
+            )
+        if "b_field" in params and not self.setup.ops.has_b_field:
+            raise ValueError(
+                "b_field was given but the system has no b_field block, so it "
+                "would have no effect; add a b_field block (with g_F and m_F)."
             )
         n_f, n_t = self.num_fields, len(self.setup.tlist)
         for key in ("rabi_freq", "interaction_strengths", "detunings"):
@@ -344,6 +360,7 @@ class AutodiffPropagation:
             g=p["interaction_strengths"],
             detunings=p["detunings"],
             decay_scale=p["decay_scale"],
+            b_field=p.get("b_field"),
             **{**self._options, **overrides},
         )
         return omegas / TWO_PI
