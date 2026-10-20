@@ -80,6 +80,8 @@ class SystemOperators:
         Z: Zeeman operator ``diag(g_F m_F)``, shape ``(n, n)``; the Zeeman part
             of ``H0`` is ``2 pi b_field Z``.
         b_field: the system's cyclic B-field in natural units (already in ``H0``).
+        has_b_field: whether the system has a ``b_field`` block (``Z`` and ``b_field``
+            default to no Zeeman term).
     """
 
     num_states: int
@@ -94,8 +96,13 @@ class SystemOperators:
     c_ops: np.ndarray
     sparse: SparseDissipator | None
     rho0: np.ndarray
-    Z: np.ndarray
-    b_field: float
+    Z: np.ndarray | None = None
+    b_field: float = 0.0
+    has_b_field: bool = False
+
+    def __post_init__(self):
+        if self.Z is None:
+            object.__setattr__(self, "Z", np.zeros((self.num_states, self.num_states)))
 
     @property
     def num_fields(self) -> int:
@@ -201,4 +208,5 @@ def build_operators(system: System) -> SystemOperators:
         rho0=np.asarray(system.initial_state.full()),
         Z=np.diag(system.zeeman_coeffs),
         b_field=float(system.b_field_natural),
+        has_b_field=system.b_field is not None,
     )

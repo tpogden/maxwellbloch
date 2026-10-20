@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import json
 from typing import Any
 
@@ -57,7 +58,7 @@ class System(system_base.SystemBase):
         self.num_states = num_states
         self.energies = energies if energies is not None else []
         self.decays = decays if decays is not None else []
-        self.b_field = self._check_b_field(b_field)
+        self._b_field = self._check_b_field(b_field)
 
         self.build_initial_state(initial_state if initial_state is not None else [])
 
@@ -72,6 +73,17 @@ class System(system_base.SystemBase):
             + "decays={3}, "
             + "fields={4})"
         ).format(self.label, self.num_states, self.energies, self.decays, self.fields)
+
+    @property
+    def b_field(self) -> dict | None:
+        """The validated ``b_field`` dict (a copy: assign a new dict to change it)."""
+
+        return copy.deepcopy(self._b_field)
+
+    @b_field.setter
+    def b_field(self, value: dict | None) -> None:
+        self._b_field = self._check_b_field(value)
+        self._build_H_0()
 
     def _check_b_field(self, b_field: dict | None) -> dict | None:
         """Validate the ``b_field`` dict and fill in its defaults."""
@@ -100,19 +112,19 @@ class System(system_base.SystemBase):
     def b_field_natural(self) -> float:
         """The B-field magnitude in natural units (``mu_B B / h``); 0 if none."""
 
-        if self.b_field is None:
+        if self._b_field is None:
             return 0.0
-        if self.b_field["units"] == "gauss":
-            return hyperfine.gauss_to_natural(self.b_field["magnitude"])
-        return self.b_field["magnitude"]
+        if self._b_field["units"] == "gauss":
+            return hyperfine.gauss_to_natural(self._b_field["magnitude"])
+        return self._b_field["magnitude"]
 
     @property
     def zeeman_coeffs(self) -> np.ndarray:
         """``g_F * m_F`` of each level: the Zeeman shift per unit natural B."""
 
-        if self.b_field is None:
+        if self._b_field is None:
             return np.zeros(self.num_states)
-        return np.array(self.b_field["g_F"]) * np.array(self.b_field["m_F"])
+        return np.array(self._b_field["g_F"]) * np.array(self._b_field["m_F"])
 
     def build_initial_state(self, initial_state: list[float] | None = None) -> qu.Qobj:
         """Build the initial density matrix for the system.
@@ -201,7 +213,7 @@ class System(system_base.SystemBase):
         else:
             H_0 = np.zeros([self.num_states, self.num_states])
 
-        if self.b_field is not None:
+        if self._b_field is not None:
             H_0 = H_0 + np.diag(2 * pi * self.b_field_natural * self.zeeman_coeffs)
 
         self.H_0 = qu.Qobj(H_0)

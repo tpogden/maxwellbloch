@@ -33,6 +33,7 @@ a quantum dot or a colour centre.
 
 | Name | Description |
 | --- | --- |
+| [b_field](#clerq.System.b_field) | The validated ``b_field`` dict (a copy: assign a new dict to change it). |
 | [b_field_natural](#clerq.System.b_field_natural) | The B-field magnitude in natural units (``mu_B B / h``); 0 if none. |
 | [zeeman_coeffs](#clerq.System.zeeman_coeffs) | ``g_F * m_F`` of each level: the Zeeman shift per unit natural B. |
 

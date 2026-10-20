@@ -1,6 +1,7 @@
 """Calculate factors for hyperfine structure in single-electron atoms."""
 
 import json
+import warnings
 from itertools import product
 
 import numpy as np
@@ -354,7 +355,7 @@ class LevelF(_JsonMixin):
         mF_energies=None,
         g_F=None,
         g_J=None,
-        g_I=0.0,
+        g_I=None,
         L=None,
     ):
         """
@@ -370,7 +371,9 @@ class LevelF(_JsonMixin):
             g_J (float): Fine-structure Lande factor. Calculated from ``L``
                 (with S = 1/2) if not given.
             g_I (float): Nuclear g-factor in units of mu_B (Steck's
-                convention, e.g. -0.000995 for Rb87).
+                convention, e.g. -0.000995 for Rb87). If ``g_F`` is calculated
+                and ``g_I`` is not given, the nuclear term is neglected (0)
+                and a warning is issued; pass ``g_I=0.0`` to silence it.
             L (float): Orbital angular momentum, for calculating ``g_J``.
         """
 
@@ -391,6 +394,15 @@ class LevelF(_JsonMixin):
             if g_J is None and L is not None:
                 g_J = lande_g_J(L=L, J=J)
             if g_J is not None:
+                if g_I is None:
+                    warnings.warn(
+                        "g_I not given: the nuclear term of g_F is neglected "
+                        "(g_I=0), which shifts g_F by about 1e-3. Pass g_I "
+                        "(e.g. -0.0009951 for Rb87) or g_I=0.0 to silence this.",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                    g_I = 0.0
                 g_F = lande_g_F(I=I, J=J, F=F, g_J=g_J, g_I=g_I)
         self.g_F = g_F
 

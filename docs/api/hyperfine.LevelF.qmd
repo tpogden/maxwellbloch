@@ -9,7 +9,7 @@ hyperfine.LevelF(
     mF_energies=None,
     g_F=None,
     g_J=None,
-    g_I=0.0,
+    g_I=None,
     L=None,
 )
 ```

@@ -72,17 +72,22 @@ class TestGF:
         assert f1.g_F == pytest.approx(-0.5018, abs=1e-4)
 
     def test_g_F_excited(self):
-        p32 = hyperfine.LevelF(I=1.5, J=1.5, F=3, L=1)
+        p32 = hyperfine.LevelF(I=1.5, J=1.5, F=3, L=1, g_I=0.0)
         assert p32.g_F == pytest.approx(2.0 / 3.0, abs=1e-3)
-        p12 = hyperfine.LevelF(I=1.5, J=0.5, F=1, L=1)
+        p12 = hyperfine.LevelF(I=1.5, J=0.5, F=1, L=1, g_I=0.0)
         assert p12.g_F == pytest.approx(-1.0 / 6.0, abs=1e-3)
 
     def test_explicit_g_F_wins_and_missing_is_none(self):
         assert hyperfine.LevelF(I=1.5, J=0.5, F=1, g_F=0.25, L=0).g_F == 0.25
         assert hyperfine.LevelF(I=1.5, J=0.5, F=1).g_F is None
 
+    def test_missing_g_I_warns_and_neglects_nuclear_term(self):
+        with pytest.warns(UserWarning, match="g_I not given"):
+            f1 = hyperfine.LevelF(I=1.5, J=0.5, F=1, L=0)
+        assert f1.g_F == pytest.approx(-0.5006, abs=1e-4)
+
     def test_f0_has_zero_g_F(self):
-        assert hyperfine.LevelF(I=1.5, J=1.5, F=0, L=1).g_F == 0.0
+        assert hyperfine.LevelF(I=1.5, J=1.5, F=0, L=1, g_I=0.0).g_F == 0.0
 
     def test_atom_zeeman_levels(self):
         atom = hyperfine.Atom1e(element="Rb", isotope="87")
@@ -162,8 +167,28 @@ class TestZeroFieldRegression:
         assert np.array_equal(a._Omegas_zt, b._Omegas_zt)
 
     def test_hash_unchanged_without_b_field(self):
-        solver = PropagationSolver.from_json_str(json.dumps(two_level_problem()))
-        assert "b_field" not in solver.to_json_str()
+        """No block: the JSON (hence the .qu hash) has no b_field and round-trips;
+        adding a block changes it."""
+        plain = PropagationSolver.from_json_str(json.dumps(two_level_problem()))
+        assert "b_field" not in plain.to_json_str()
+        again = PropagationSolver.from_json_str(plain.to_json_str())
+        assert again.to_json_str() == plain.to_json_str()
+        with_b = PropagationSolver.from_json_str(
+            json.dumps(
+                two_level_problem({"magnitude": 0.0, "g_F": [1, 1], "m_F": [1, 1]})
+            )
+        )
+        assert with_b.to_json_str() != plain.to_json_str()
+
+    def test_editing_b_field_rebuilds_H_0(self):
+        s = System(num_states=2, b_field={"g_F": [1, 1], "m_F": [1, 2]})
+        s.b_field["magnitude"] = 9.0  # a copy: no effect
+        np.testing.assert_allclose(s.H_0.full(), 0)
+        s.b_field = {"magnitude": 1.0, "g_F": [1, 1], "m_F": [1, 2]}
+        np.testing.assert_allclose(
+            np.diag(s.H_0.full()).real, 2 * np.pi * np.array([1, 2])
+        )
+        assert s.get_json_dict()["b_field"]["magnitude"] == 1.0
 
 
 class TestSpectrum:
@@ -326,3 +351,28 @@ class TestAutodiff:
         up = float(loss(ad.propagate({"b_field": 0.7 + h})))
         dn = float(loss(ad.propagate({"b_field": 0.7 - h})))
         assert float(grads["b_field"]) == pytest.approx((up - dn) / (2 * h), rel=1e-4)
+
+    def test_b_field_param_without_block_raises(self):
+        d = self.problem(0.7)
+        del d["system"]["b_field"]
+        ad = PropagationSolver.from_json_str(json.dumps(d)).to_autodiff()
+        assert "b_field" not in ad.default_params()
+        with pytest.raises(ValueError, match="no b_field block"):
+            ad.propagate({"b_field": 0.7})
+
+    def test_zero_zeeman_block_keeps_b_field_param(self):
+        d = self.problem(0.7)
+        d["system"]["b_field"]["m_F"] = [0.0, 0.0]
+        ad = PropagationSolver.from_json_str(json.dumps(d)).to_autodiff()
+        assert ad.default_params()["b_field"] == pytest.approx(0.7)
+
+    def test_gauss_units_default_param_is_natural(self):
+        d = self.problem(0.7)
+        d["system"]["b_field"].update(magnitude=0.5, units="gauss")
+        ad = PropagationSolver.from_json_str(json.dumps(d)).to_autodiff()
+        nat = 0.5 * hyperfine.MU_B_OVER_H_MHZ_PER_GAUSS
+        assert ad.default_params()["b_field"] == pytest.approx(nat)
+        ref = np.asarray(self.solver(nat).to_autodiff().propagate())
+        np.testing.assert_allclose(
+            np.asarray(ad.propagate()), ref, rtol=1e-8, atol=1e-10
+        )
