@@ -244,6 +244,13 @@ class TestFieldZProfileAnim(unittest.TestCase):
         play = fig.layout.updatemenus[0].buttons[0]
         self.assertEqual(play.args[1]["frame"]["duration"], 200)
 
+    def test_frame_stride(self):
+        mbs = _get_mbs2()
+        fig = plot.field_z_profile_anim(mbs, frame_stride=3)
+        n = len(mbs.tlist[::3])
+        self.assertEqual(len(fig.frames), n)
+        self.assertEqual(len(fig.layout.sliders[0].steps), n)
+
     def test_show_z_bounds_adds_shaded_region(self):
         fig = plot.field_z_profile_anim(_get_mbs2(), show_z_bounds=(0.0, 1.0))
         self.assertEqual(len(fig.layout.shapes), 1)

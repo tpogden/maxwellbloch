@@ -249,6 +249,7 @@ def field_z_profile_anim(
     show_z_bounds: tuple[float, float] | None = None,
     speed_of_light: float | None = None,
     frame_duration: int = 50,
+    frame_stride: int = 1,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -268,6 +269,8 @@ def field_z_profile_anim(
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
         frame_duration: Time in milliseconds each frame is shown when
             playing; increase it for a slower animation.
+        frame_stride: Use every ``frame_stride``-th time step as a frame.
+            Raise it to shrink the figure (and its HTML) for long solves.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -285,6 +288,10 @@ def field_z_profile_anim(
     else:
         Omegas = [omega_abs(solver, i) for i in idxs]
         tlist = solver.tlist
+
+    if frame_stride > 1:
+        Omegas = [om[:, ::frame_stride] for om in Omegas]
+        tlist = tlist[::frame_stride]
 
     labels = [field_label(solver, i) for i in idxs]
     colors = [_DEFAULT_FIELD_COLORS[i % len(_DEFAULT_FIELD_COLORS)] for i in idxs]

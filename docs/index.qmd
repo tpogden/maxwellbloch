@@ -17,9 +17,66 @@ master equation. It is used for near-resonant light in thermal atomic vapours,
 with two-, three- and many-level atoms, spontaneous decay, dephasing and
 Doppler broadening.
 
-![Propagation of a 4π pulse through a dense atomic vapour. The pulse
-immediately breaks up on entering the medium and the resultant pulses form two
-optical solitons each with a pulse area of 2π.](example.gif)
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Show the code"
+import numpy as np
+
+from clerq import PropagationSolver, plot
+
+t_width = 0.3796628587572578
+ampl = np.sqrt(8) / t_width / (2 * np.pi)  # a sqrt(8)·pi sech pulse
+
+solver = PropagationSolver(
+    system={
+        "num_states": 3,
+        "fields": [
+            {
+                "label": "probe",
+                "coupled_levels": [[0, 1]],
+                "rabi_freq": 1.0,
+                "rabi_freq_t_func": "sech",
+                "rabi_freq_t_args": {"ampl": ampl, "centre": 0.0, "width": t_width},
+            },
+            {
+                "label": "coupling",
+                "coupled_levels": [[0, 2]],
+                "rabi_freq": 1.0,
+                "rabi_freq_t_func": "sech",
+                "rabi_freq_t_args": {"ampl": ampl, "centre": 3.0, "width": t_width},
+            },
+        ],
+    },
+    t_min=-2.0,
+    t_max=18.0,
+    t_steps=450,
+    z_min=-0.5,
+    z_max=1.5,
+    z_steps=500,
+    z_steps_inner=4,
+    interaction_strengths=[25.0, 5.0],
+)
+solver.solve(progress=False)
+
+fig = plot.field_z_profile_anim(
+    solver,
+    field_idx=[0, 1],
+    show_z_bounds=(0.0, 1.0),
+    speed_of_light=1.0,
+    frame_duration=150,
+    frame_stride=3,
+    width=None,  # fill the page column
+    height=420,
+)
+fig.update_layout(title="|Ω(z, t)|: two √8π pulses in a V-type atom")
+fig
+```
+
+A probe pulse and, three time units later, a coupling pulse, each with area
+√8π, propagate through a V-type three-level medium. Their combined area is 4π.
+Where they overlap the two fields lock together and travel on as a single
+simulton. Press play, or drag the slider.
 
 clerq is used for theoretical research, for modelling experiments and for
 undergraduate and graduate teaching. It can model two, three or many-level
