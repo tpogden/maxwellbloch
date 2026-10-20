@@ -65,7 +65,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -83,9 +83,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-6c7cefc384eab7262e643c504b8a9054.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-6157712325429ffe12f7682d8d6565f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-1202c0f58007e831025b64e54c7697da.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-6757dfbc37e394733f2f1652391aae70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-1202c0f58007e831025b64e54c7697da.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -161,6 +161,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   });
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script>
+window.PlotlyConfig = {MathJaxConfig: 'local'};
+if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}
+</script>
+<script type="module">import "https://cdn.plot.ly/plotly-3.5.0.min"</script>
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -571,14 +580,11 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq.exceptions <span class="im">import</span> PropagationInstabilityError</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"darkgrid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq <span class="im">import</span> PropagationSolver, plot  <span class="co"># noqa: F401  (registers the clerq Plotly template)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> clerq.exceptions <span class="im">import</span> PropagationInstabilityError</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="cell-3" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>problem <span class="op">=</span> {</span>
@@ -625,33 +631,60 @@ window.Quarto = {
 <pre><code>peak in 0.838, out 3.926</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 466.0% (tolerance 10.0%). Try z_steps_inner=14 (currently 2) or z_steps_inner='auto'.
+<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_36381/2736311170.py:2: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 466.0% (tolerance 10.0%). Try z_steps_inner=14 (currently 2) or z_steps_inner='auto'.
   coarse.solve(progress=False)
-/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 102.6% (tolerance 10.0%). Try t_steps=1491 (currently 160), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_36381/2736311170.py:2: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 102.6% (tolerance 10.0%). Try t_steps=1491 (currently 160), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.
   coarse.solve(progress=False)
-/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2736311170.py:2: UserWarning: A field is still changing near the edge of the time window (by 41.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_36381/2736311170.py:2: UserWarning: A field is still changing near the edge of the time window (by 41.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.
   coarse.solve(progress=False)</code></pre>
 </div>
 </div>
 <p>The pulse that goes in with a peak of 0.84 comes out with 3.9, nearly five times too large, and before the checks nothing said so. The first warning is the one to act on: the <span class="math inline">\(z\)</span>-step is too coarse. The other two (the time grid and the window edge) are consequences. The wrong field has structure that the time grid cannot resolve and spreads to the edge of the window, so fixing the <span class="math inline">\(z\)</span>-step usually clears them. Here is the peak along the medium as the <span class="math inline">\(z\)</span>-step is refined:</p>
 <div id="cell-7" class="cell" data-execution_count="4">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="fl">3.5</span>))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> go.Figure()</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> warnings.catch_warnings():</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    warnings.simplefilter(<span class="st">"ignore"</span>)</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> n <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">16</span>, <span class="dv">64</span>]:</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> make(z_steps_inner<span class="op">=</span>n)</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        s.solve(progress<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        ax.plot(s.zlist, peak_field(s), label<span class="op">=</span><span class="ss">f"z_steps_inner=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"z"</span>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Peak Rabi frequency"</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>ax.set_yscale(<span class="st">"log"</span>)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>ax.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        fig.add_scatter(</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span>s.zlist, y<span class="op">=</span>peak_field(s), mode<span class="op">=</span><span class="st">"lines"</span>, name<span class="op">=</span><span class="ss">f"z_steps_inner=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    xaxis_title<span class="op">=</span><span class="st">"z"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">"Peak Rabi frequency"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    yaxis_type<span class="op">=</span><span class="st">"log"</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">700</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>fig.show(renderer<span class="op">=</span><span class="st">"notebook_connected"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="numerical-stability_files/figure-html/cell-5-output-1.png" width="531" height="317" class="figure-img"></p>
-</figure>
-</div>
+<div>            <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_SVG"></script><script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.5.0.min.js" integrity="sha256-fHbNLP+GlIXN+efbQec78UkemUz3NJp7UmfGxC1tNxs=" crossorigin="anonymous"></script>                <div id="00000000-0000-0000-0000-000000000001" class="plotly-graph-div" style="height:400px; width:700px;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("00000000-0000-0000-0000-000000000001")) {                    Plotly.newPlot(                        "00000000-0000-0000-0000-000000000001",                        [{"mode":"lines","name":"z_steps_inner=1","x":{"dtype":"f8","bdata":"AAAAAAAAAACamZmZmZm5P5qZmZmZmck\u002fNDMzMzMz0z+amZmZmZnZPwAAAAAAAOA\u002fNDMzMzMz4z9nZmZmZmbmP5qZmZmZmek\u002fzczMzMzM7D8AAAAAAADwPw=="},"y":{"dtype":"f8","bdata":"3cbbPy\u002fU6j9BQ3MRHuj5P9o6sEQ8hQJAiwxCm4\u002foBEBY3kjAtswLQEtuA41hjRBAA2XEAhWtEkDVVRv3J0gTQDGEVWQDOhVAYqRBus+9FkB7ZwNK7O4XQA=="},"type":"scatter"},{"mode":"lines","name":"z_steps_inner=2","x":{"dtype":"f8","bdata":"AAAAAAAAAACamZmZmZm5P5qZmZmZmck\u002fNDMzMzMz0z+amZmZmZnZPwAAAAAAAOA\u002fNDMzMzMz4z9nZmZmZmbmP5qZmZmZmek\u002fzczMzMzM7D8AAAAAAADwPw=="},"y":{"dtype":"f8","bdata":"3cbbPy\u002fU6j\u002fQtmskKjH0P\u002ft\u002fh1k6cvg\u002fZsgZEGRbAECDWO+yyUsDQBZyfb\u002fSFgZACGGxfYiTCUBlaf8rfgoOQF7Y7fhQ6w5ALdsBfRMfEUCgGNIBK2kPQA=="},"type":"scatter"},{"mode":"lines","name":"z_steps_inner=4","x":{"dtype":"f8","bdata":"AAAAAAAAAACamZmZmZm5P5qZmZmZmck\u002fNDMzMzMz0z+amZmZmZnZPwAAAAAAAOA\u002fNDMzMzMz4z9nZmZmZmbmP5qZmZmZmek\u002fzczMzMzM7D8AAAAAAADwPw=="},"y":{"dtype":"f8","bdata":"3cbbPy\u002fU6j+5F8TNa1vwPy3R3Q6lTvY\u002fl2+EdxCN+j+zjGlNrKIAQCtLUcwL3\u002f0\u002fV+lDB7R0\u002fj\u002fZOjwiuKv7P+t0+I9Zmfk\u002f+ATxM2II\u002fT\u002fFKkfoNhD5Pw=="},"type":"scatter"},{"mode":"lines","name":"z_steps_inner=16","x":{"dtype":"f8","bdata":"AAAAAAAAAACamZmZmZm5P5qZmZmZmck\u002fNDMzMzMz0z+amZmZmZnZPwAAAAAAAOA\u002fNDMzMzMz4z9nZmZmZmbmP5qZmZmZmek\u002fzczMzMzM7D8AAAAAAADwPw=="},"y":{"dtype":"f8","bdata":"3cbbPy\u002fU6j+BJ9r+JifrP7Qk5nG3Pus\u002f4gh2AOlN6z\u002foxHYqpUnrPzMsP0E4OOs\u002fryVWrEs16z+\u002fPUesO23rP5X8UQYWiOs\u002fvr24LOmA6z+mODfGIlvrPw=="},"type":"scatter"},{"mode":"lines","name":"z_steps_inner=64","x":{"dtype":"f8","bdata":"AAAAAAAAAACamZmZmZm5P5qZmZmZmck\u002fNDMzMzMz0z+amZmZmZnZPwAAAAAAAOA\u002fNDMzMzMz4z9nZmZmZmbmP5qZmZmZmek\u002fzczMzMzM7D8AAAAAAADwPw=="},"y":{"dtype":"f8","bdata":"3cbbPy\u002fU6j8pX0P2X9DqP44JB6wy2Oo\u002f5clJ42jb6j\u002fpxiXGT9DqP7g3puaMwuo\u002frJ6hQ5i\u002f6j\u002fmb5yhYb\u002fqP25BaHjHs+o\u002fJOKMpBOi6j\u002fNzJO\u002fN5\u002fqPw=="},"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30}}},"yaxis":{"title":{"text":"Peak Rabi frequency"},"type":"log"},"xaxis":{"title":{"text":"z"}},"width":700,"height":400},                        {"responsive": true}                    ).then(function(){
+                            
+var gd = document.getElementById('00000000-0000-0000-0000-000000000001');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };            </script>        </div>
 </div>
 </div>
 </section>
@@ -733,7 +766,7 @@ estimate 0.0505; peak out 0.836</code></pre>
 stopped at z = 0.1 ; suggested z_steps_inner: 4</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/Users/tpo/repos/clerq/.claude/worktrees/cyclic-output-parameters-9652ec/.venv/lib/python3.14/site-packages/scipy/integrate/_ode.py:418: UserWarning: _zvode: Excess work done on this call. (Perhaps wrong MF.)
+<pre><code>/Users/tpo/repos/clerq/.claude/worktrees/clerq-homepage-stickers-github-aff45f/.venv/lib/python3.14/site-packages/scipy/integrate/_ode.py:418: UserWarning: _zvode: Excess work done on this call. (Perhaps wrong MF.)
   self._y, self.t = mth(self.f, self.jac or (lambda: None),</code></pre>
 </div>
 </div>
@@ -785,7 +818,7 @@ stopped at z = 0.1 ; suggested z_steps_inner: 4</code></pre>
 <pre><code>field still changing at the window edge by 58% of its peak</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_25506/2846482427.py:2: UserWarning: A field is still changing near the edge of the time window (by 58.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.
+<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_36381/2846482427.py:2: UserWarning: A field is still changing near the edge of the time window (by 58.0% of its peak), so a pulse or its ringing may be cut off. Try widening t_min and t_max.
   clipped.solve(progress=False)</code></pre>
 </div>
 </div>
