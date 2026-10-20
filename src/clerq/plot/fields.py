@@ -380,7 +380,7 @@ def field_z_profile_anim(
                         },
                     ],
                     "direction": "left",
-                    "pad": {"r": 10, "t": 87},
+                    "pad": {"r": 10, "t": 69},
                     "showactive": False,
                     "type": "buttons",
                     "x": 0.1,
