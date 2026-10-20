@@ -623,9 +623,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.hyperfine.Atom1e.get_coupled_levels" id="toc-clerq.hyperfine.Atom1e.get_coupled_levels" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_coupled_levels">get_coupled_levels</a></li>
   <li><a href="#clerq.hyperfine.Atom1e.get_decay_factors" id="toc-clerq.hyperfine.Atom1e.get_decay_factors" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_decay_factors">get_decay_factors</a></li>
   <li><a href="#clerq.hyperfine.Atom1e.get_energies" id="toc-clerq.hyperfine.Atom1e.get_energies" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_energies">get_energies</a></li>
+  <li><a href="#clerq.hyperfine.Atom1e.get_g_F_list" id="toc-clerq.hyperfine.Atom1e.get_g_F_list" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_g_F_list">get_g_F_list</a></li>
   <li><a href="#clerq.hyperfine.Atom1e.get_mF_list" id="toc-clerq.hyperfine.Atom1e.get_mF_list" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_mF_list">get_mF_list</a></li>
   <li><a href="#clerq.hyperfine.Atom1e.get_num_mF_levels" id="toc-clerq.hyperfine.Atom1e.get_num_mF_levels" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_num_mF_levels">get_num_mF_levels</a></li>
   <li><a href="#clerq.hyperfine.Atom1e.get_strength_factor" id="toc-clerq.hyperfine.Atom1e.get_strength_factor" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_strength_factor">get_strength_factor</a></li>
+  <li><a href="#clerq.hyperfine.Atom1e.get_zeeman_levels" id="toc-clerq.hyperfine.Atom1e.get_zeeman_levels" class="nav-link" data-scroll-target="#clerq.hyperfine.Atom1e.get_zeeman_levels">get_zeeman_levels</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -677,16 +679,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>Returns a list of energies for each mF level in all J levels.</td>
 </tr>
 <tr class="odd">
+<td><a href="#clerq.hyperfine.Atom1e.get_g_F_list">get_g_F_list</a></td>
+<td>Returns the g_F factor of each mF level, in units of mu_B.</td>
+</tr>
+<tr class="even">
 <td><a href="#clerq.hyperfine.Atom1e.get_mF_list">get_mF_list</a></td>
 <td>Unnests the mF levels into a single list of dicts.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#clerq.hyperfine.Atom1e.get_num_mF_levels">get_num_mF_levels</a></td>
 <td>Returns the total number of mF levels in all J levels.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#clerq.hyperfine.Atom1e.get_strength_factor">get_strength_factor</a></td>
 <td>Relative hyperfine transition strength factors.</td>
+</tr>
+<tr class="odd">
+<td><a href="#clerq.hyperfine.Atom1e.get_zeeman_levels">get_zeeman_levels</a></td>
+<td>Returns the per-level <code>g_F</code> and <code>m_F</code> lists for a <code>b_field</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -974,23 +984,52 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_energies()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Returns a list of energies for each mF level in all J levels.</p>
 </section>
+<section id="clerq.hyperfine.Atom1e.get_g_F_list" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_g_F_list">get_g_F_list</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_g_F_list()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returns the g_F factor of each mF level, in units of mu_B.</p>
+<section id="raises" class="level4 doc-section doc-section-raises">
+<h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 10%">
+<col style="width: 82%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>ValueError</td>
+<td>if an F level has no g_F (give its <code>g_F</code>, <code>g_J</code> or <code>L</code> when constructing the <code>LevelF</code>).</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 <section id="clerq.hyperfine.Atom1e.get_mF_list" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_mF_list">get_mF_list</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_mF_list()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_mF_list()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Unnests the mF levels into a single list of dicts.</p>
 </section>
 <section id="clerq.hyperfine.Atom1e.get_num_mF_levels" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_num_mF_levels">get_num_mF_levels</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_num_mF_levels()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_num_mF_levels()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Returns the total number of mF levels in all J levels.</p>
 </section>
 <section id="clerq.hyperfine.Atom1e.get_strength_factor" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_strength_factor">get_strength_factor</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_strength_factor(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    F_level_idx_lower,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    F_level_idx_upper,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    mF_level_lower_idx<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_strength_factor(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    F_level_idx_lower,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    F_level_idx_upper,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    mF_level_lower_idx<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Relative hyperfine transition strength factors. Equal for each ground state (mF_level_lower_idx), so this parameter never needs to be set, just used for testing that claim.</p>
 <section id="notes-2" class="level4 doc-section doc-section-notes">
 <h4 class="doc-section doc-section-notes anchored" data-anchor-id="notes-2">Notes</h4>
@@ -1002,13 +1041,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 
 </section>
+<section id="clerq.hyperfine.Atom1e.get_zeeman_levels" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.hyperfine.Atom1e.get_zeeman_levels">get_zeeman_levels</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>hyperfine.Atom1e.get_zeeman_levels()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returns the per-level <code>g_F</code> and <code>m_F</code> lists for a <code>b_field</code>.</p>
+<p>Merge into the system’s <code>b_field</code> block, e.g. <code>{"magnitude": 1.0, **atom.get_zeeman_levels()}</code>.</p>
+
+
+</section>
 </section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><section id="refs" class="level4 doc-section doc-section-refs">
 <h4 class="doc-section doc-section-refs anchored" data-anchor-id="refs">Refs</h4>
-
-
 </section></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

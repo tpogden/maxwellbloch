@@ -616,6 +616,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.System" id="toc-clerq.System" class="nav-link active" data-scroll-target="#clerq.System">System</a>
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
   <li><a href="#clerq.System.add_field" id="toc-clerq.System.add_field" class="nav-link" data-scroll-target="#clerq.System.add_field">add_field</a></li>
@@ -648,17 +649,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    decays<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    initial_state<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    fields<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    b_field<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>An open quantum system: its states, decays and the fields coupling them.</p>
 <p>The system can be an atom or any other few-level quantum system, such as a quantum dot or a colour centre.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 6%">
-<col style="width: 10%">
-<col style="width: 78%">
-<col style="width: 4%">
+<col style="width: 2%">
+<col style="width: 3%">
+<col style="width: 92%">
+<col style="width: 1%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -704,6 +706,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>list[dict] | None</td>
 <td>list of dicts representing the fields that couple the system’s states.</td>
 <td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>b_field</td>
+<td>dict | None</td>
+<td>a DC magnetic field along the quantisation axis, as a dict with the keys <code>magnitude</code> (default 0), <code>units</code> (<code>"natural"</code>, the default, or <code>"gauss"</code>), and the per-level lists <code>g_F</code> and <code>m_F</code> (length <code>num_states</code>). It adds <code>g_F * m_F * B</code> to the level energies (<code>H_0 += 2 pi g_F m_F B</code>), with the sign convention of Steck’s alkali data (see <code>clerq.hyperfine</code>). <code>"natural"</code> means <code>mu_B * B / h</code> in the same frequency unit as <code>energies</code>; <code>"gauss"</code> assumes energies in MHz (time in microseconds). For hyperfine systems, <code>Atom1e.get_zeeman_levels()</code> gives <code>g_F</code> and <code>m_F</code>.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes" class="level2">
+<h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#clerq.System.b_field">b_field</a></td>
+<td>The validated <code>b_field</code> dict (a copy: assign a new dict to change it).</td>
+</tr>
+<tr class="even">
+<td><a href="#clerq.System.b_field_natural">b_field_natural</a></td>
+<td>The B-field magnitude in natural units (<code>mu_B B / h</code>); 0 if none.</td>
+</tr>
+<tr class="odd">
+<td><a href="#clerq.System.zeeman_coeffs">zeeman_coeffs</a></td>
+<td><code>g_F * m_F</code> of each level: the Zeeman shift per unit natural B.</td>
 </tr>
 </tbody>
 </table>
