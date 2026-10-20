@@ -73,6 +73,23 @@ fig.update_layout(title="|Ω(z, t)|: two √8π pulses in a V-type atom")
 fig
 ```
 
+```{=html}
+<script>
+// Start the animation when it scrolls into view (once; not for reduced motion).
+window.addEventListener("load", () => {
+  const gd = document.querySelector(".plotly-graph-div");
+  if (!gd || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const play = gd.layout.updatemenus[0].buttons[0].args;
+  const io = new IntersectionObserver((entries) => {
+    if (!entries[0].isIntersecting) return;
+    io.disconnect();
+    Plotly.animate(gd, null, play[1]);
+  }, { threshold: 0.6 });
+  io.observe(gd);
+});
+</script>
+```
+
 A probe pulse and, three time units later, a coupling pulse, each with area
 √8π, propagate through a V-type three-level medium. Their combined area is 4π.
 Where they overlap the two fields lock together and travel on as a single
