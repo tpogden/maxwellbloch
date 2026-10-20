@@ -248,6 +248,7 @@ def field_z_profile_anim(
     *,
     show_z_bounds: tuple[float, float] | None = None,
     speed_of_light: float | None = None,
+    frame_duration: int = 50,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -265,6 +266,8 @@ def field_z_profile_anim(
             to mark the medium, e.g. ``(0.0, 1.0)``.
         speed_of_light: If given, apply the fixed-frame transform using
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
+        frame_duration: Time in milliseconds each frame is shown when
+            playing; increase it for a slower animation.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
@@ -345,7 +348,10 @@ def field_z_profile_anim(
                             "args": [
                                 None,
                                 {
-                                    "frame": {"duration": 50, "redraw": False},
+                                    "frame": {
+                                        "duration": frame_duration,
+                                        "redraw": False,
+                                    },
                                     "fromcurrent": True,
                                     "transition": {"duration": 0},
                                 },
@@ -381,7 +387,13 @@ def field_z_profile_anim(
                     "active": 0,
                     "yanchor": "top",
                     "xanchor": "left",
+                    # Per-step labels would crowd the axis; the current value
+                    # readout (which uses them) is enough.
+                    "font": {"color": "rgba(0, 0, 0, 0)"},
+                    "ticklen": 0,
+                    "minorticklen": 0,
                     "currentvalue": {
+                        "font": {"color": "#888"},
                         "prefix": "t = ",
                         "visible": True,
                         "xanchor": "right",

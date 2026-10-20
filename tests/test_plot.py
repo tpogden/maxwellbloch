@@ -239,6 +239,11 @@ class TestFieldZProfileAnim(unittest.TestCase):
         fig = plot.field_z_profile_anim(_get_mbs2())
         self.assertFalse(fig.data[0].showlegend)
 
+    def test_frame_duration(self):
+        fig = plot.field_z_profile_anim(_get_mbs2(), frame_duration=200)
+        play = fig.layout.updatemenus[0].buttons[0]
+        self.assertEqual(play.args[1]["frame"]["duration"], 200)
+
     def test_show_z_bounds_adds_shaded_region(self):
         fig = plot.field_z_profile_anim(_get_mbs2(), show_z_bounds=(0.0, 1.0))
         self.assertEqual(len(fig.layout.shapes), 1)
