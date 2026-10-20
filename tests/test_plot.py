@@ -160,6 +160,28 @@ class TestFieldSpacetime(unittest.TestCase):
         fig = plot.field_spacetime(_get_mbs2())
         self.assertEqual(len(fig.layout.shapes), 0)
 
+    def test_multi_field_stacks_subplots(self):
+        fig = plot.field_spacetime(
+            _get_mbs3(), field_idx=[0, 1], plot_type="contour", show_z_bounds=(0.0, 1.0)
+        )
+        self.assertEqual(len(fig.data), 2)
+        self.assertIsInstance(fig.data[1], go.Contour)
+        self.assertNotEqual(fig.data[0].colorscale, fig.data[1].colorscale)
+        self.assertEqual(fig.data[0].xaxis, "x")
+        self.assertEqual(fig.data[1].xaxis, "x2")
+        self.assertEqual(len([s for s in fig.layout.shapes if s.type == "line"]), 4)
+        self.assertEqual(len(fig.layout.annotations), 2)
+
+    def test_multi_field_colorscale_per_field(self):
+        fig = plot.field_spacetime(_get_mbs3(), [0, 1], colorscale=["Reds", "Blues"])
+        self.assertNotEqual(fig.data[0].colorscale, fig.data[1].colorscale)
+        with self.assertRaises(ValueError):
+            plot.field_spacetime(_get_mbs3(), [0, 1], colorscale=["Reds"])
+
+    def test_empty_field_idx_raises(self):
+        with self.assertRaises(ValueError):
+            plot.field_spacetime(_get_mbs3(), [])
+
 
 class TestFieldEnvelope(unittest.TestCase):
     def test_returns_figure(self):

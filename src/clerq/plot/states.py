@@ -108,7 +108,7 @@ def population_spacetime(
         zmax=zmax,
     )
     if plot_type == "contour":
-        trace = go.Contour(**_common, line_width=0.5, line_smoothing=0.85)
+        trace = go.Contour(**_common, line_width=0, line_smoothing=0.85)
     else:
         trace = go.Heatmap(**_common, zsmooth="best")
 
