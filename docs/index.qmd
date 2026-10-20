@@ -69,7 +69,7 @@ fig = plot.field_z_profile_anim(
     width=None,  # fill the page column
     height=420,
 )
-fig.update_layout(title="|Ω(z, t)|: two √8π pulses in a V-type atom")
+fig.update_layout(title="Two optical solitons lock together into a simulton")
 fig
 ```
 
@@ -90,10 +90,12 @@ window.addEventListener("load", () => {
 </script>
 ```
 
-A probe pulse and, three time units later, a coupling pulse, each with area
-√8π, propagate through a V-type three-level medium. Their combined area is 4π.
-Where they overlap the two fields lock together and travel on as a single
-simulton. Press play, or drag the slider.
+Two optical solitons, launched at different times, lock together into a
+simulton. A probe and a coupling field that share a ground state interact
+through the atomic coherence they both drive. Where the two pulses meet in the
+medium, the collision reshapes them into a single shape-preserving pair that
+crosses the rest of the medium without absorption. Press play, or drag the
+slider.
 
 clerq is used for theoretical research, for modelling experiments and for
 undergraduate and graduate teaching. It can model two, three or many-level
