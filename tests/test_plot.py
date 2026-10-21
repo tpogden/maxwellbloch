@@ -249,6 +249,34 @@ class TestFieldZProfileAnim(unittest.TestCase):
         self.assertIn("▶ Play", labels)
         self.assertIn("⏸ Pause", labels)
 
+    def test_multi_field_overlay(self):
+        mbs = _get_mbs3()
+        fig = plot.field_z_profile_anim(mbs, field_idx=[0, 1])
+        self.assertEqual(len(fig.data), 2)
+        self.assertEqual(len(fig.frames), len(mbs.tlist))
+        self.assertEqual(len(fig.frames[0].data), 2)
+        self.assertTrue(all(tr.showlegend for tr in fig.data))
+
+    def test_single_field_has_no_legend(self):
+        fig = plot.field_z_profile_anim(_get_mbs2())
+        self.assertFalse(fig.data[0].showlegend)
+
+    def test_frame_duration(self):
+        fig = plot.field_z_profile_anim(_get_mbs2(), frame_duration=200)
+        play = fig.layout.updatemenus[0].buttons[0]
+        self.assertEqual(play.args[1]["frame"]["duration"], 200)
+
+    def test_frame_stride(self):
+        mbs = _get_mbs2()
+        fig = plot.field_z_profile_anim(mbs, frame_stride=3)
+        n = len(mbs.tlist[::3])
+        self.assertEqual(len(fig.frames), n)
+        self.assertEqual(len(fig.layout.sliders[0].steps), n)
+
+    def test_show_z_bounds_adds_shaded_region(self):
+        fig = plot.field_z_profile_anim(_get_mbs2(), show_z_bounds=(0.0, 1.0))
+        self.assertEqual(len(fig.layout.shapes), 1)
+
     def test_color_differs_by_field_idx(self):
         fig0 = plot.field_z_profile_anim(_get_mbs3(), field_idx=0)
         fig1 = plot.field_z_profile_anim(_get_mbs3(), field_idx=1)

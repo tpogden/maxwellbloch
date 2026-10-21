@@ -288,9 +288,12 @@ def field_envelope(
 @renamed_arg("mbs", "solver")
 def field_z_profile_anim(
     solver: PropagationSolver,
-    field_idx: int = 0,
+    field_idx: int | Sequence[int] = 0,
     *,
+    show_z_bounds: tuple[float, float] | None = None,
     speed_of_light: float | None = None,
+    frame_duration: int = 50,
+    frame_stride: int = 1,
     width: int = 700,
     height: int = 400,
 ) -> go.Figure:
@@ -301,32 +304,50 @@ def field_z_profile_anim(
 
     Args:
         solver: A solved PropagationSolver instance.
-        field_idx: Index of the field to plot.
+        field_idx: Index of the field to plot, or a sequence of indices to
+            overlay several fields (each with its own colour and legend entry)
+            on a shared y-axis.
+        show_z_bounds: If given, shade the region between these two z values
+            to mark the medium, e.g. ``(0.0, 1.0)``.
         speed_of_light: If given, apply the fixed-frame transform using
             ``fixed.t_list`` and ``fixed.rabi_freq`` at this speed.
+        frame_duration: Time in milliseconds each frame is shown when
+            playing; increase it for a slower animation.
+        frame_stride: Use every ``frame_stride``-th time step as a frame.
+            Raise it to shrink the figure (and its HTML) for long solves.
         width: Figure width in pixels.
         height: Figure height in pixels.
 
     Returns:
         plotly Figure with animation frames, time slider, and play/pause buttons.
     """
+    multi = not isinstance(field_idx, int)
+    idxs = list(field_idx) if multi else [field_idx]
+
     if speed_of_light is not None:
         from clerq import fixed
 
-        Omega = fixed.rabi_freq(solver, field_idx, speed_of_light, part="abs")
+        Omegas = [fixed.rabi_freq(solver, i, speed_of_light, part="abs") for i in idxs]
         tlist = fixed.t_list(solver, speed_of_light)
     else:
-        Omega = omega_abs(solver, field_idx)
+        Omegas = [omega_abs(solver, i) for i in idxs]
         tlist = solver.tlist
 
-    label = field_label(solver, field_idx)
-    line_color, fill_color = _DEFAULT_FIELD_COLORS[
-        field_idx % len(_DEFAULT_FIELD_COLORS)
-    ]
-    y_max = float(Omega.max())
+    if frame_stride > 1:
+        Omegas = [om[:, ::frame_stride] for om in Omegas]
+        tlist = tlist[::frame_stride]
+
+    labels = [field_label(solver, i) for i in idxs]
+    colors = [_DEFAULT_FIELD_COLORS[i % len(_DEFAULT_FIELD_COLORS)] for i in idxs]
+    y_max = max(float(om.max()) for om in Omegas)
+    label = " & ".join(labels)
 
     frames = [
-        go.Frame(data=[go.Scatter(y=Omega[:, t_idx])], name=str(t_idx))
+        go.Frame(
+            data=[go.Scatter(y=om[:, t_idx]) for om in Omegas],
+            traces=list(range(len(idxs))),
+            name=str(t_idx),
+        )
         for t_idx in range(len(tlist))
     ]
 
@@ -350,12 +371,16 @@ def field_z_profile_anim(
         data=[
             go.Scatter(
                 x=solver.zlist,
-                y=Omega[:, 0],
+                y=om[:, 0],
                 mode="lines",
+                name=lbl,
                 line=dict(color=line_color),
                 fill="tozeroy",
                 fillcolor=fill_color,
-                showlegend=False,
+                showlegend=multi,
+            )
+            for om, lbl, (line_color, fill_color) in zip(
+                Omegas, labels, colors, strict=True
             )
         ],
         frames=frames,
@@ -374,7 +399,10 @@ def field_z_profile_anim(
                             "args": [
                                 None,
                                 {
-                                    "frame": {"duration": 50, "redraw": False},
+                                    "frame": {
+                                        "duration": frame_duration,
+                                        "redraw": False,
+                                    },
                                     "fromcurrent": True,
                                     "transition": {"duration": 0},
                                 },
@@ -396,7 +424,7 @@ def field_z_profile_anim(
                         },
                     ],
                     "direction": "left",
-                    "pad": {"r": 10, "t": 87},
+                    "pad": {"r": 10, "t": 69},
                     "showactive": False,
                     "type": "buttons",
                     "x": 0.1,
@@ -410,7 +438,13 @@ def field_z_profile_anim(
                     "active": 0,
                     "yanchor": "top",
                     "xanchor": "left",
+                    # Per-step labels would crowd the axis; the current value
+                    # readout (which uses them) is enough.
+                    "font": {"color": "rgba(0, 0, 0, 0)"},
+                    "ticklen": 0,
+                    "minorticklen": 0,
                     "currentvalue": {
+                        "font": {"color": "#888"},
                         "prefix": "t = ",
                         "visible": True,
                         "xanchor": "right",
@@ -430,6 +464,15 @@ def field_z_profile_anim(
         xaxis_maxallowed=float(solver.zlist[-1]),
         yaxis_minallowed=0.0,
     )
+    if show_z_bounds is not None:
+        fig.add_vrect(
+            x0=float(show_z_bounds[0]),
+            x1=float(show_z_bounds[1]),
+            fillcolor="grey",
+            opacity=0.12,
+            line_width=0,
+            layer="below",
+        )
     return fig
 
 
