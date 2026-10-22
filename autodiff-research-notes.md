@@ -217,3 +217,18 @@ Doppler, 11 classes, d_eff~25, coupling cap 5 for everything, retrieved energy f
   (estimate at 44 parameters: forward-difference gradient ~45 forwards vs ~6 for reverse, i.e. ~7x, extrapolated from the 22-parameter timing).
 Current story for a methods/application paper: gradient-based design earns its cost in the Doppler-broadened regime where low-parameter protocols are
 ~2x worse, and not where a 3-parameter scan suffices.
+
+## 13. Spectrum-fit scoping: detuned-probe scans are not valid in clerq (2026-10-23)
+
+Prototype probe (scratchpad fit0.py/fit1.py): `jax.vmap` over the probe detuning and `jax.jacrev` of per-detuning transmission both work through
+`AutodiffPropagation.propagate` (25-point spectra and their Jacobians are feasible: ~12 s for a 3-point 3-parameter Jacobian on a small problem).
+But a two-level check (coupling off, g=10, weak narrowband probe) gives, versus the expected Lorentzian transmission exp(-OD/(1+4 d^2)):
+d=0.25: 0.062 (expected 1e-7); d=1: 0.98 (0.018); d=3: 3.7 (0.58). Transmission above 1 is unphysical.
+Cause (consistent with the code): `propagation.py:670` drives the Hamiltonian with `Omegas_z[f_i].real`, i.e. only Re(Omega), which is exact on resonance
+but mixes +d and -d for a detuned field. clerq's spectral-analysis notebook avoids this by Fourier-analysing a broadband resonant pulse.
+Consequences:
+- A spectrum-fit example must either use that FFT route (valid only for spectra symmetric about the probe centre, so no two-photon offsets, dispersion
+  asymmetry or Paschen-Back multiplets such as the Durham dataset) or clerq needs a complex-envelope drive (an RWA-correct H with Omega and Omega*),
+  in both the QuTiP path and `autodiff/_operators.py`/`_lindblad.py` (which integrate a real (A, B) pair).
+- OPEN RISK for the Doppler memory results: velocity classes are detuned fields too. Symmetric class grids may make the Re(Omega) approximation exact on
+  average (per the earlier code survey), but this has not been verified. Check against a complex-drive reference before quoting the Doppler numbers.
