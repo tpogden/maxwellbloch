@@ -230,5 +230,22 @@ Consequences:
 - A spectrum-fit example must either use that FFT route (valid only for spectra symmetric about the probe centre, so no two-photon offsets, dispersion
   asymmetry or Paschen-Back multiplets such as the Durham dataset) or clerq needs a complex-envelope drive (an RWA-correct H with Omega and Omega*),
   in both the QuTiP path and `autodiff/_operators.py`/`_lindblad.py` (which integrate a real (A, B) pair).
-- OPEN RISK for the Doppler memory results: velocity classes are detuned fields too. Symmetric class grids may make the Re(Omega) approximation exact on
-  average (per the earlier code survey), but this has not been verified. Check against a complex-drive reference before quoting the Doppler numbers.
+- (Risk below RESOLVED in section 14.)
+
+## 14. Complex-drive reference: Doppler memory results are valid (2026-10-23)
+
+Built an independent NumPy/SciPy reference (`autodiff-research-refsolve.py`) that marches the same Maxwell-Bloch problem with either clerq's real-part drive
+(`real_drive=True`) or a full RWA drive (Omega on one off-diagonal, Omega* on the other; `False`). The coupling constant is g_clerq = 2 pi * interaction_strength.
+- Validation: real-drive mode reproduces autodiff to 4 digits for a single detuned two-level class (T = 0.002522, 0.2141, 0.6516, 1.115 at probe detunings
+  0, 0.5, 1, 2), and the complex-drive mode reproduces the Lorentzian exp(-OD/(1+d^2)) (here total excited decay is 2: T = 0.0025, 0.0083, 0.0498, 0.300).
+  So clerq's real-part drive is badly wrong for one detuned field (e.g. T = 1.1 at d=2 against 0.30).
+- Optimised memory fields (retrieved, leak), autodiff / real-drive ref / complex-drive ref:
+  no Doppler d=25: (0.4596, 0.1021) / (0.4596, 0.1021) / (0.4596, 0.1021);
+  Doppler 11 classes: (0.1180, 0.0731) / (0.1180, 0.0731) / (0.1180, 0.0731). The complex reference equals the real one to ~1e-15.
+- Why: with real input fields, zero static detunings and a symmetric class grid with equal weights, class -D is the complex conjugate of class +D, so the
+  class-averaged polarisation is real, the propagated fields stay real, and Re(Omega) = Omega exactly. The Doppler memory numbers (0.118 and the 1.9x over the
+  tuned baseline) therefore stand. The condition is essential: a nonzero static detuning (probe or coupling), an asymmetric class grid, unequal weights
+  or a complex input breaks it.
+- Consequence for the plan: single-detuned-probe spectra, asymmetric EIT (two-photon offset), dispersion and Paschen-Back multiplets are NOT available until clerq
+  (QuTiP path and autodiff `_operators.py`/`_lindblad.py`) gets a complex-envelope drive. A symmetric resonant EIT/AT spectrum fit (FFT route) remains valid.
+Follow-up worth a PR: complex drive in clerq + autodiff, tested against `autodiff-research-refsolve.py`, plus a documentation warning about detuned fields.
