@@ -56,6 +56,8 @@ def gaussian_basis(
         raise ValueError(f"hi ({hi}) must be greater than lo ({lo}).")
     centres = np.linspace(lo, hi, n)
     sigma = (centres[1] - centres[0]) if width is None else float(width)
+    if not sigma > 0:
+        raise ValueError(f"width must be positive, got {sigma}.")
     return np.exp(-0.5 * ((t[:, None] - centres[None, :]) / sigma) ** 2)
 
 
@@ -76,6 +78,8 @@ def bounded(x: ArrayLike, lower: float, upper: float) -> jax.Array:
     Keeps an amplitude within a budget (for example a peak Rabi frequency) without
     clipping, which would have zero gradient outside the range.
     """
+    if not upper > lower:
+        raise ValueError(f"upper ({upper}) must be greater than lower ({lower}).")
     return lower + (upper - lower) * jax.nn.sigmoid(jnp.asarray(x))
 
 
@@ -89,6 +93,8 @@ def unbounded(
     """
     if not 0.0 <= margin < 0.5:
         raise ValueError(f"margin must be in [0, 0.5), got {margin}.")
+    if not upper > lower:
+        raise ValueError(f"upper ({upper}) must be greater than lower ({lower}).")
     frac = (np.asarray(y, dtype=float) - lower) / (upper - lower)
     frac = np.clip(frac, margin, 1.0 - margin)
     return np.log(frac / (1.0 - frac))

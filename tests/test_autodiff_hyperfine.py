@@ -1,4 +1,4 @@
-"""A hyperfine Rb87 system (12 Zeeman sublevels, Clebsch-Gordan factors) through autodiff."""
+"""A hyperfine Rb87 system (11 Zeeman sublevels, Clebsch-Gordan factors) through autodiff."""
 
 import json
 

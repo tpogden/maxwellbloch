@@ -149,8 +149,11 @@ class AutodiffPropagation:
         ``decays`` (spontaneous decay, ground-state decoherence, or pure
         dephasing through a ``[a, a]`` channel). The effective rate of a channel is
         ``decay_scale * decay_rates[i]``. Differentiable at any value, including
-        zero, so a rate can be fitted or optimised from nothing; keep it
-        non-negative. Empty for a system without decays.
+        zero, so a rate can be fitted or optimised from nothing. Rates must be
+        non-negative: a concrete negative value raises, but an optimiser can still
+        step below zero (a negative rate is gain, and the field runs away), so
+        optimise an unconstrained variable and map it, for example with
+        :func:`clerq.autodiff.controls.bounded`. Empty for a system without decays.
     ``b_field``
         scalar, the DC B-field in natural units (``mu_B B / h`` in the
         frequency unit of the energies), so the Zeeman shift of the levels can
@@ -340,6 +343,15 @@ class AutodiffPropagation:
                     f"decay_rates must have shape ({n_d},) (one per entry of the "
                     f"system's decays), got {np.shape(params['decay_rates'])}."
                 )
+            try:
+                negative = bool(np.any(np.asarray(params["decay_rates"]) < 0))
+            except jax.errors.TracerArrayConversionError:  # traced: cannot check
+                negative = False
+            if negative:
+                raise ValueError(
+                    "decay_rates must be non-negative (a negative rate is gain); "
+                    "map an unconstrained variable with clerq.autodiff.controls.bounded."
+                )
         for key in ("rabi_freq", "interaction_strengths", "detunings"):
             if key in params and np.shape(params[key]) != (n_f,):
                 raise ValueError(
@@ -382,7 +394,7 @@ class AutodiffPropagation:
             g=p["interaction_strengths"],
             detunings=p["detunings"],
             decay_scale=p["decay_scale"],
-            decay_rates=p["decay_rates"] if np.size(p["decay_rates"]) else None,
+            decay_rates=p["decay_rates"],
             b_field=p.get("b_field"),
             **{**self._options, **overrides},
         )

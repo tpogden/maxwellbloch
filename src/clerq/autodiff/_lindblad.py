@@ -141,10 +141,15 @@ def solve_slice(
         )
     eye = jnp.eye(n)
 
-    sparse = ops.sparse
-    if decay_rates is not None:
-        if ops.decays is None:
+    if decay_rates is not None and ops.decays is None:
+        if np.size(decay_rates):
             raise ValueError("decay_rates was given but the system has no decays.")
+        decay_rates = None
+    sparse = ops.sparse
+    if decay_rates is None and ops.decays is not None and sparse is not None:
+        decay_rates = ops.decays.rates  # one code path for the decays
+    use_sparse = decay_rates is not None or sparse is not None
+    if decay_rates is not None:
         ch = ops.decays
         rates = jnp.asarray(decay_rates, dtype=jnp.float64)
         if rates.shape != ch.rates.shape:
@@ -155,7 +160,6 @@ def solve_slice(
         a, b = jnp.asarray(ch.a), jnp.asarray(ch.b)
         w = 2.0 * jnp.pi * rates[jnp.asarray(ch.idx)] * jnp.asarray(ch.f2)
         r = jax.ops.segment_sum(w, b, num_segments=n)
-        sparse = True  # the channels are single elements, the same O(n^2) form
     elif sparse is not None:
         a, b = jnp.asarray(sparse.a), jnp.asarray(sparse.b)
         w, r = jnp.asarray(sparse.w), jnp.asarray(sparse.r)
@@ -177,7 +181,7 @@ def solve_slice(
             Hi = jnp.pi * jnp.einsum("k,kij->ij", jnp.imag(drive), Y)[None]
             dA = dA + Hi @ A - A @ Hi
             dB = dB + Hi @ B - B @ Hi
-        if sparse:
+        if use_sparse:
             zero = jnp.zeros((n_v, n))
             gain_a = zero.at[:, a].add(scale * w * A[:, b, b])
             gain_b = zero.at[:, a].add(scale * w * B[:, b, b])

@@ -36,6 +36,15 @@ def test_basis_rejects_bad_arguments():
         controls.gaussian_basis(T, 1)
     with pytest.raises(ValueError, match="greater than"):
         controls.gaussian_basis(T, 4, lo=3.0, hi=3.0)
+    with pytest.raises(ValueError, match="width must be positive"):
+        controls.gaussian_basis(T, 4, width=0.0)
+
+
+def test_bounded_and_unbounded_reject_an_empty_range():
+    with pytest.raises(ValueError, match="greater than lower"):
+        controls.bounded(0.0, 5.0, 5.0)
+    with pytest.raises(ValueError, match="greater than lower"):
+        controls.unbounded(1.0, 5.0, 1.0)
 
 
 def test_fit_reproduces_a_smooth_waveform():

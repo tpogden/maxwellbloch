@@ -220,3 +220,25 @@ def test_system_without_decays_has_no_rates():
     ad.propagate()  # still runs
     with pytest.raises(ValueError, match="decay_rates must have shape"):
         ad.propagate({"decay_rates": np.array([0.1])})
+
+
+def test_a_negative_rate_is_rejected():
+    """A negative rate is gain (the field runs away), so concrete values raise."""
+    ad = _solver().to_autodiff()
+    with pytest.raises(ValueError, match="non-negative"):
+        ad.propagate({"decay_rates": np.array([1.0, -0.2, 0.05])})
+
+
+def test_rates_mapped_through_bounded_stay_physical_under_jit():
+    """Traced values pass validation; the bounded map keeps an optimiser physical."""
+    from clerq.autodiff import controls
+
+    ad = _solver().to_autodiff(rtol=1e-8, atol=1e-10)
+
+    def f(x):
+        rates = controls.bounded(x, 0.0, 3.0)
+        return loss(ad.propagate({"decay_rates": rates}))
+
+    x0 = jnp.array([-2.0, -5.0, -9.0])  # rates near zero but positive
+    v, g = jax.value_and_grad(f)(x0)
+    assert np.isfinite(float(v)) and np.all(np.isfinite(np.asarray(g)))
