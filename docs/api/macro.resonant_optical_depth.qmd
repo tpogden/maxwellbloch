@@ -1,0 +1,23 @@
+# macro.resonant_optical_depth { #clerq.macro.resonant_optical_depth }
+
+```python
+macro.resonant_optical_depth(number_density, length, wavelength, factor=1.0)
+```
+
+Resonant intensity optical depth ``N sigma_0 L`` of a cold, weak-field medium.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type   | Description                                               | Default    |
+|----------------|--------|-----------------------------------------------------------|------------|
+| number_density | float  | Atoms per cm^3.                                           | _required_ |
+| length         | float  | Medium length, in cm.                                     | _required_ |
+| wavelength     | float  | Transition wavelength, in nm.                             | _required_ |
+| factor         | float  | Dipole moment squared relative to the cycling transition. | `1.0`      |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                               |
+|--------|--------|---------------------------------------------------------------------------|
+|        | float  | The optical depth ``OD``; intensity transmission is ``exp(-OD)``. Doppler |
+|        | float  | broadening reduces the peak.                                              |

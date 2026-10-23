@@ -20,6 +20,10 @@ class names, as they were at the time. See
 
 Not yet released; this is on the `next` branch.
 
+**Unit conversions.** The new `clerq.macro` module converts laboratory quantities
+(intensity, beam power, temperature, density, linewidth) to clerq's MHz, µs and cm units. See
+[Converting from Experimental Units](usage/units.ipynb).
+
 **DC magnetic field.** A system can now sit in a static B-field along the
 quantisation axis: add a `b_field` block (magnitude, units, and the per-level
 `g_F` and `m_F`) and each sublevel shifts by $g_F m_F \mu_B B$. For hyperfine

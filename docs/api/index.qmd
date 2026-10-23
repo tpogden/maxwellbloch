@@ -69,6 +69,20 @@ Raised by `PropagationSolver.solve()`.
 | [hyperfine.LevelF](hyperfine.LevelF.qmd#clerq.hyperfine.LevelF) | Represents an F hyperfine structure level and holds its magnetic |
 | [hyperfine.LevelMF](hyperfine.LevelMF.qmd#clerq.hyperfine.LevelMF) | Represents an m_F hyperfine sublevel. |
 
+## Unit conversions
+
+From experimental units to clerq's (MHz, µs, cm).
+
+| | |
+| --- | --- |
+| [macro.saturation_intensity](macro.saturation_intensity.qmd#clerq.macro.saturation_intensity) | Saturation intensity of a cycling transition, ``pi h c Gamma / (3 lambda^3)``. |
+| [macro.intensity_to_rabi_freq](macro.intensity_to_rabi_freq.qmd#clerq.macro.intensity_to_rabi_freq) | Cyclic Rabi frequency of a field of the given intensity. |
+| [macro.rabi_freq_to_intensity](macro.rabi_freq_to_intensity.qmd#clerq.macro.rabi_freq_to_intensity) | Intensity, in mW/cm^2, for a cyclic Rabi frequency ``Omega / 2 pi`` in MHz. |
+| [macro.gaussian_beam_peak_intensity](macro.gaussian_beam_peak_intensity.qmd#clerq.macro.gaussian_beam_peak_intensity) | Peak intensity of a circular Gaussian beam, ``2 P / (pi w^2)``. |
+| [macro.interaction_strength](macro.interaction_strength.qmd#clerq.macro.interaction_strength) | Interaction strength per atom, ``g / 2 pi = sigma_0 gamma / 4``, with ``gamma = Gamma / 2 pi``. |
+| [macro.resonant_optical_depth](macro.resonant_optical_depth.qmd#clerq.macro.resonant_optical_depth) | Resonant intensity optical depth ``N sigma_0 L`` of a cold, weak-field medium. |
+| [macro.thermal_width](macro.thermal_width.qmd#clerq.macro.thermal_width) | The ``thermal_width`` of ``velocity_classes`` for a vapor. |
+
 ## Utilities
 
 | | |
