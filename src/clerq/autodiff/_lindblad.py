@@ -26,6 +26,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import diffrax as dfx
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -67,6 +68,7 @@ def solve_slice(
     ts,
     *,
     decay_scale=1.0,
+    decay_rates=None,
     rho0=None,
     observe: Callable | None = None,
     rtol: float = 1e-8,
@@ -90,6 +92,9 @@ def solve_slice(
             ``(n_v, n_fields)`` for a batch (e.g. velocity classes).
         ts: output times (also the integration span).
         decay_scale: multiplies every decay rate.
+        decay_rates: cyclic ``rate`` of each entry of ``system.decays``, shape
+            ``(n_decays,)``; default: the system's. May be traced; the gradient is
+            defined at any value, including zero.
         rho0: initial density matrices, ``(n, n)`` or ``(n_v, n, n)``; defaults to
             the system's initial state.
         observe: optional ``observe(re, im) -> real array`` applied at each output
@@ -137,7 +142,21 @@ def solve_slice(
     eye = jnp.eye(n)
 
     sparse = ops.sparse
-    if sparse is not None:
+    if decay_rates is not None:
+        if ops.decays is None:
+            raise ValueError("decay_rates was given but the system has no decays.")
+        ch = ops.decays
+        rates = jnp.asarray(decay_rates, dtype=jnp.float64)
+        if rates.shape != ch.rates.shape:
+            raise ValueError(
+                f"decay_rates must have shape {ch.rates.shape} (one per entry of "
+                f"system.decays), got {rates.shape}."
+            )
+        a, b = jnp.asarray(ch.a), jnp.asarray(ch.b)
+        w = 2.0 * jnp.pi * rates[jnp.asarray(ch.idx)] * jnp.asarray(ch.f2)
+        r = jax.ops.segment_sum(w, b, num_segments=n)
+        sparse = True  # the channels are single elements, the same O(n^2) form
+    elif sparse is not None:
         a, b = jnp.asarray(sparse.a), jnp.asarray(sparse.b)
         w, r = jnp.asarray(sparse.w), jnp.asarray(sparse.r)
     elif len(ops.c_ops):
@@ -158,7 +177,7 @@ def solve_slice(
             Hi = jnp.pi * jnp.einsum("k,kij->ij", jnp.imag(drive), Y)[None]
             dA = dA + Hi @ A - A @ Hi
             dB = dB + Hi @ B - B @ Hi
-        if sparse is not None:
+        if sparse:
             zero = jnp.zeros((n_v, n))
             gain_a = zero.at[:, a].add(scale * w * A[:, b, b])
             gain_b = zero.at[:, a].add(scale * w * B[:, b, b])

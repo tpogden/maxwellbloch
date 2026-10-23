@@ -28,6 +28,7 @@ _PARAM_KEYS = (
     "interaction_strengths",
     "detunings",
     "decay_scale",
+    "decay_rates",
     "b_field",
     "omega0",
 )
@@ -143,6 +144,13 @@ class AutodiffPropagation:
         array ``(n_fields,)``, cyclic fixed detuning of each field.
     ``decay_scale``
         scalar multiplying every decay rate.
+    ``decay_rates``
+        array ``(n_decays,)``, the cyclic ``rate`` of each entry of the system's
+        ``decays`` (spontaneous decay, ground-state decoherence, or pure
+        dephasing through a ``[a, a]`` channel). The effective rate of a channel is
+        ``decay_scale * decay_rates[i]``. Differentiable at any value, including
+        zero, so a rate can be fitted or optimised from nothing; keep it
+        non-negative. Empty for a system without decays.
     ``b_field``
         scalar, the DC B-field in natural units (``mu_B B / h`` in the
         frequency unit of the energies), so the Zeeman shift of the levels can
@@ -265,6 +273,11 @@ class AutodiffPropagation:
             "interaction_strengths": np.asarray(s.g, dtype=float) / TWO_PI,
             "detunings": np.asarray(s.ops.detunings, dtype=float).copy(),
             "decay_scale": 1.0,
+            "decay_rates": (
+                np.asarray(s.ops.decays.rates, dtype=float).copy()
+                if s.ops.decays is not None
+                else np.zeros(0)
+            ),
         }
         if s.ops.has_b_field:
             params["b_field"] = float(s.ops.b_field)
@@ -318,6 +331,15 @@ class AutodiffPropagation:
                 "would have no effect; add a b_field block (with g_F and m_F)."
             )
         n_f, n_t = self.num_fields, len(self.setup.tlist)
+        if "decay_rates" in params:
+            n_d = (
+                0 if self.setup.ops.decays is None else len(self.setup.ops.decays.rates)
+            )
+            if np.shape(params["decay_rates"]) != (n_d,):
+                raise ValueError(
+                    f"decay_rates must have shape ({n_d},) (one per entry of the "
+                    f"system's decays), got {np.shape(params['decay_rates'])}."
+                )
         for key in ("rabi_freq", "interaction_strengths", "detunings"):
             if key in params and np.shape(params[key]) != (n_f,):
                 raise ValueError(
@@ -360,6 +382,7 @@ class AutodiffPropagation:
             g=p["interaction_strengths"],
             detunings=p["detunings"],
             decay_scale=p["decay_scale"],
+            decay_rates=p["decay_rates"] if np.size(p["decay_rates"]) else None,
             b_field=p.get("b_field"),
             **{**self._options, **overrides},
         )

@@ -59,6 +59,31 @@ class SparseDissipator:
 
 
 @dataclass(frozen=True)
+class DecayChannels:
+    """The decay channels of a ``System``, one entry per ``(decay, channel)`` pair.
+
+    Every channel is a collapse operator ``f sqrt(2 pi rate) |a><b|``, so it is a
+    single element and the dissipator is linear in its weight
+    ``w_k = 2 pi rate f^2``. Keeping the channels (rather than the finished
+    operators) makes each decay's ``rate`` a parameter, differentiable at any
+    value including zero.
+
+    Attributes:
+        a: target level of each channel, shape ``(k,)``.
+        b: source level of each channel, shape ``(k,)``.
+        f2: squared factor ``f^2`` of each channel, shape ``(k,)``.
+        idx: index of the decay (entry of ``system.decays``) each channel belongs to.
+        rates: cyclic ``rate`` of each decay, shape ``(n_decays,)``.
+    """
+
+    a: np.ndarray
+    b: np.ndarray
+    f2: np.ndarray
+    idx: np.ndarray
+    rates: np.ndarray
+
+
+@dataclass(frozen=True)
 class SystemOperators:
     """Operators and field data extracted from a ``System``.
 
@@ -104,6 +129,7 @@ class SystemOperators:
     b_field: float = 0.0
     has_b_field: bool = False
     Y: np.ndarray | None = None
+    decays: DecayChannels | None = None
 
     def __post_init__(self):
         if self.Y is None:
@@ -163,6 +189,28 @@ def _sparse_dissipator(c_ops: np.ndarray, n: int) -> SparseDissipator | None:
         w.append(abs(c[i, j]) ** 2)
     a, b, w = np.array(a), np.array(b), np.array(w)
     return SparseDissipator(a=a, b=b, w=w, r=np.bincount(b, weights=w, minlength=n))
+
+
+def _decay_channels(system: System) -> DecayChannels | None:
+    """The channels of ``system.decays`` (``None`` if it has no decays)."""
+    a, b, f2, idx = [], [], [], []
+    for i, d in enumerate(system.decays):
+        channels = d["channels"]
+        factors = d.get("factors", [1.0] * len(channels))
+        for (to, frm), f in zip(channels, factors, strict=True):
+            a.append(to)
+            b.append(frm)
+            f2.append(float(f) ** 2)
+            idx.append(i)
+    if not idx:
+        return None
+    return DecayChannels(
+        a=np.array(a, dtype=int),
+        b=np.array(b, dtype=int),
+        f2=np.array(f2),
+        idx=np.array(idx, dtype=int),
+        rates=np.array([float(d["rate"]) for d in system.decays]),
+    )
 
 
 def build_operators(system: System) -> SystemOperators:
@@ -225,4 +273,5 @@ def build_operators(system: System) -> SystemOperators:
         Z=np.diag(system.zeeman_coeffs),
         b_field=float(system.b_field_natural),
         has_b_field=system.b_field is not None,
+        decays=_decay_channels(system),
     )

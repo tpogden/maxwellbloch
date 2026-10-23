@@ -168,6 +168,7 @@ def propagate_fields(
     rabi_freqs=None,
     g=None,
     decay_scale=1.0,
+    decay_rates=None,
     detunings=None,
     b_field=None,
     step: str = "ab",
@@ -196,6 +197,8 @@ def propagate_fields(
         g: cyclic interaction strengths, shape ``(n_fields,)``; default: the
             problem's.
         decay_scale: multiplies every decay rate.
+        decay_rates: cyclic ``rate`` of each entry of ``system.decays``, shape
+            ``(n_decays,)``; default: the system's.
         detunings: cyclic fixed detunings of the fields, shape ``(n_fields,)``;
             default: the problem's.
         b_field: cyclic DC B-field in natural units; default: the problem's.
@@ -266,6 +269,7 @@ def propagate_fields(
             det_classes,
             ts,
             decay_scale=decay_scale,
+            decay_rates=decay_rates,
             observe=observe,
             rtol=rtol,
             atol=atol,

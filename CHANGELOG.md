@@ -9,6 +9,16 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.autodiff`: `decay_rates`, a differentiable parameter of `AutodiffPropagation`, the cyclic `rate` of each entry of the
+  system's `decays` (spontaneous decay, ground-state decoherence, or pure dephasing through an `[a, a]` channel), so decoherence
+  rates can be fitted or designed with exact gradients. The effective rate is `decay_scale * decay_rates[i]`; the gradient is
+  defined at a rate of zero. `default_params()` returns the problem's rates (an empty array for a system without decays).
+  One transmitted field constrains only a combination of rates, so several of them are not separately identifiable from it.
+- `clerq.autodiff.controls`: `gaussian_basis`, `fit_coefficients`, `bounded` and `unbounded`, for parametrising a free-form
+  control (a row of `omega0`) with a few smooth functions and a bounded amplitude. A control with one free value per time sample
+  lets the optimiser exploit the time grid (near-Nyquist waveforms and efficiencies no physical field could reach).
+- Tests that a hyperfine Rb87 system (12 Zeeman sublevels, Clebsch-Gordan factors) runs through `clerq.autodiff`, matches
+  `solve()` and has correct gradients.
 - `clerq.macro`, conversions from experimental units to clerq's (MHz, µs, cm): `saturation_intensity`, `intensity_to_rabi_freq`,
   `rabi_freq_to_intensity`, `gaussian_beam_peak_intensity`, `interaction_strength`, `resonant_optical_depth` and
   `thermal_width`. See the new usage page "Converting from Experimental Units".

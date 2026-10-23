@@ -97,6 +97,10 @@ quartodoc:
       contents:
         - autodiff.AutodiffPropagation
         - autodiff.OptimizeResult
+        - autodiff.controls.gaussian_basis
+        - autodiff.controls.fit_coefficients
+        - autodiff.controls.bounded
+        - autodiff.controls.unbounded
     - title: Exceptions
       desc: Raised by `PropagationSolver.solve()`.
       contents:
