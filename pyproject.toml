@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clerq"
-version = "0.13.1"
+version = "0.14.0"
 description = "Classical Maxwell fields propagating through open quantum systems: Maxwell's equations coupled to the Lindblad master equation."
 readme = "README.md"
 license = { text = "MIT" }
@@ -32,7 +32,7 @@ jax = ["jax>=0.6.2,<0.12", "diffrax>=0.7.0,<0.8", "optax>=0.2.4"]
 dev = ["clerq[test,docs,plot,jax]", "ruff", "twine", "bump-my-version"]
 
 [tool.bumpversion]
-current_version = "0.13.1"
+current_version = "0.14.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
