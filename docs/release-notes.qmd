@@ -16,9 +16,7 @@ Entries before 0.13.0 use the old package name, `maxwellbloch`, and its old
 class names, as they were at the time. See
 [MaxwellBloch is now clerq](news/rename.qmd) for the rename.
 
-## Unreleased
-
-Not yet released; this is on the `next` branch.
+## 0.14.0 — 23 October 2026
 
 **Unit conversions.** The new `clerq.macro` module converts laboratory quantities
 (intensity, beam power, temperature, density, linewidth) to clerq's MHz, µs and cm units. See
@@ -54,6 +52,10 @@ with an optax optimiser (Adam by default). `import clerq` itself never loads JAX
 [pulse design example](examples/autodiff-pulse-design.ipynb) and the
 [API reference](api/autodiff.AutodiffPropagation.qmd), and `CHANGELOG.md` for the
 supported features and limits.
+
+Each decay's `rate` is a parameter too (`decay_rates`, for spontaneous decay, ground-state
+decoherence or dephasing), and `clerq.autodiff.controls` expands a free-form control in a few
+smooth functions, which stops an optimiser from exploiting the time grid.
 
 ::: {.callout-warning}
 ## Detuned fields: results change

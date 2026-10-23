@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.14.0] 2026-10-23
+
 ### Added
 - `clerq.autodiff`: `decay_rates`, a differentiable parameter of `AutodiffPropagation`, the cyclic `rate` of each entry of the
   system's `decays` (spontaneous decay, ground-state decoherence, or pure dephasing through an `[a, a]` channel), so decoherence
@@ -73,8 +75,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ### Changed
 - `AutodiffPropagation.propagate()` (and so the argument of every loss function) returns the field as a cyclic Rabi
   frequency in the units of `rabi_freq` and `omega0`, equal to `PropagationSolver.rabi_freqs_zt`. Previously it was
-  angular, so `propagate()` output could not be passed straight back as `omega0`. This feature is unreleased, so
-  nothing outside this branch is affected.
+  angular, so `propagate()` output could not be passed straight back as `omega0`. `clerq.autodiff` is new in this
+  release, so nothing released changes.
+- CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 added.
 
 ### Deprecated
 - `PropagationSolver(real_drive=True)`, the old drive that put only `Re(Omega)` into the Hamiltonian (see Fixed). It is kept
@@ -164,22 +167,15 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   modules and their classes, `mbsolve()`, `obsolve()`, the `atom` argument and attribute, and the `atom` key in JSON
   problem definitions, and the `mb_solve`, `mbs` and `mbs_list` keyword arguments. `mbsolve_euler()` and `mbsolve_ab()` are deprecated in favour of `solve(step=...)`. They will be
   removed in a future release. The `mbsolve` and `obsolve` command-line scripts are unchanged.
-
-### Security
-- Lockfile updated to clear 19 Dependabot alerts in transitive docs/dev packages (`tornado`, `notebook`, `jupyterlab`,
-  `urllib3`, `mistune`, `anyio`, `soupsieve`; `setuptools` dropped from the lock). None are dependencies of the
-  installed package (`qutip`, `tqdm`), so `pip install clerq` is unaffected.
-
-## [Unreleased]
-
-### Fixed
 - Release assets: only the wheel, sdist and their attestations are attached to the GitHub release (a stray
   `default.gitignore` from `dist/.gitignore` was included before).
 - Documentation: API page titles in the browser tab keep their case (`mb_solve.MBSolve`, not `mb_solve.mbsolve`); the
   docstrings that produced 16 quartodoc warnings now match their signatures (`hyperfine`, `ob_atom`, `spectral`).
 
-### Changed
-- CHANGELOG entries for 0.10.0, 0.11.0 and 0.12.0 added.
+### Security
+- Lockfile updated to clear 19 Dependabot alerts in transitive docs/dev packages (`tornado`, `notebook`, `jupyterlab`,
+  `urllib3`, `mistune`, `anyio`, `soupsieve`; `setuptools` dropped from the lock). None are dependencies of the
+  installed package (`qutip`, `tqdm`), so `pip install clerq` is unaffected.
 
 ## [0.13.1] 2026-10-09
 
