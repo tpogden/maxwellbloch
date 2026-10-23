@@ -35,7 +35,7 @@ uv run ruff format .
 
 # Build docs
 make docs_html        # API pages + quarto render (uses the outputs stored in the notebooks)
-make docs_execute     # re-run every notebook and store fresh outputs in the .ipynb files (~8 min)
+make docs_execute     # re-run every notebook in parallel and store fresh outputs in the .ipynb files (~3-4 min on 4 cores; JOBS=n sets how many at once)
 
 # Build distribution
 uv build
