@@ -236,9 +236,9 @@ Loads the solution from a QuTiP pickle file.
 
 #### Raises {.doc-section .doc-section-raises}
 
-| Name   | Type       | Description                                                                                                                                                                   |
-|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1. |
+| Name   | Type       | Description                                                                                                                                                                                                                                                                                                                                                                          |
+|--------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1, or was solved with the other drive convention (savefiles without a drive marker used ``Re(Omega)``) for a problem where the two differ (static detunings, level energies or an asymmetric class grid). |
 
 #### Notes {.doc-section .doc-section-notes}
 
