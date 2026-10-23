@@ -62,8 +62,10 @@ class PropagationSolver(LindbladSolver):
         velocity_classes: Dict defining the velocity classes for Doppler
             broadening, or ``None`` for no broadening. ``thermal_width`` and
             the ``thermal_delta_*`` values are cyclic frequencies, in the
-            same units as ``decays`` rates and ``rabi_freq``. The weights
-            are Gaussian, ``exp(-(delta / thermal_width)**2)``.
+            same units as ``decays`` rates and ``rabi_freq``. The density
+            of the classes is Gaussian, ``exp(-(delta / thermal_width)**2)``
+            (``thermal_weights``); each class is weighted by this times the
+            detuning interval it represents (``thermal_widths``).
         atom: Deprecated name for ``system``.
         real_drive: Deprecated. Drive the Hamiltonian with ``Re(Omega)`` only,
             the behaviour before the complex-envelope drive. That is exact for
@@ -259,8 +261,18 @@ class PropagationSolver(LindbladSolver):
         self.thermal_weights = maxwell_boltzmann(
             self.thermal_delta_list,
             2 * np.pi * self.velocity_classes["thermal_width"],
-        ) * self._thermal_spacings(self.thermal_delta_list)
+        )
+        self.thermal_widths = self._thermal_spacings(self.thermal_delta_list)
         return self.thermal_delta_list, self.thermal_weights
+
+    @property
+    def thermal_quadrature_weights(self) -> np.ndarray:
+        """Weight of each velocity class in the Doppler average.
+
+        The Maxwell-Boltzmann density ``thermal_weights`` times the detuning
+        interval ``thermal_widths`` each class represents. Not normalised.
+        """
+        return self.thermal_weights * self.thermal_widths
 
     @staticmethod
     def _thermal_spacings(deltas: np.ndarray) -> np.ndarray:
@@ -268,9 +280,10 @@ class PropagationSolver(LindbladSolver):
 
         The classes are quadrature nodes for the Doppler integral, so each
         Boltzmann weight is multiplied by its interval width. Interior classes
-        take half the distance between their neighbours (trapezoid rule); the
-        end classes take their one adjacent spacing, which makes the widths
-        constant, and so leaves the weights unchanged, on a uniform grid.
+        take half the distance between their neighbours (trapezoid rule). The
+        end classes take their whole adjacent spacing, not half of it (a
+        rectangle rule at the ends), so that the widths are constant, and the
+        weights unchanged, on a uniform grid.
 
         Args:
             deltas: sorted 1-D array of thermal detunings.
@@ -1170,7 +1183,7 @@ class PropagationSolver(LindbladSolver):
         # Restore fixed detunings
         self.system.set_H_Delta(fixed_detunings)
         thermal_states_t = np.average(
-            states_t_Delta, axis=0, weights=self.thermal_weights
+            states_t_Delta, axis=0, weights=self.thermal_quadrature_weights
         )
         return thermal_states_t
 
@@ -1245,6 +1258,7 @@ class PropagationSolver(LindbladSolver):
         return {
             "hash": hashlib.sha256(self.to_json_str().encode()).hexdigest(),
             "source_weights": _SOURCE_WEIGHTS,
+            "thermal_quadrature": True,
             "drive": self._drive_name(),
             "z_steps_inner": self.z_steps_inner,
             "clerq": importlib.metadata.version("clerq"),
@@ -1286,6 +1300,21 @@ class PropagationSolver(LindbladSolver):
                 "Delete it or set recalc=True."
             )
 
+    def _check_thermal_quadrature(self, saved: bool | None) -> None:
+        """Rejects results solved before the classes were weighted by width.
+
+        Those averaged with the Boltzmann density alone, which differs from
+        the current weights only on a non-uniform grid.
+        """
+        widths = np.asarray(self.thermal_widths, dtype=float)
+        if not saved and not np.allclose(widths, widths[0], rtol=1e-9):
+            raise ValueError(
+                f"Savefile {self.savefile}.qu was solved with velocity-class "
+                "weights that ignored the class spacing, which differ from "
+                "the current ones for a non-uniform grid (e.g. "
+                "thermal_delta_inner_*). Delete it or set recalc=True."
+            )
+
     def _drive_name(self) -> str:
         return "real" if self.real_drive else "complex"
 
@@ -1300,7 +1329,7 @@ class PropagationSolver(LindbladSolver):
         if np.abs(self.system.H_0.full()).max() > 0:
             return True
         deltas = np.asarray(self.thermal_delta_list, dtype=float)
-        weights = np.asarray(self.thermal_weights, dtype=float)
+        weights = np.asarray(self.thermal_quadrature_weights, dtype=float)
         order = np.argsort(deltas)
         deltas, weights = deltas[order], weights[order]
         return not (
@@ -1329,7 +1358,8 @@ class PropagationSolver(LindbladSolver):
             ValueError: if the savefile was built from a different problem
                 definition (hash mismatch), or was solved with the old
                 factor**2 source-term weights and a field has factors other
-                than 1, or was solved with the other drive convention (savefiles
+                than 1, or was solved with velocity-class weights that ignored
+                the class spacing on a non-uniform grid, or was solved with the other drive convention (savefiles
                 without a drive marker used ``Re(Omega)``) for a problem where
                 the two differ (static detunings, level energies or an
                 asymmetric class grid).
@@ -1351,6 +1381,7 @@ class PropagationSolver(LindbladSolver):
                     "problem definition. Delete it or set recalc=True."
                 )
             self._check_source_weights(meta.get("source_weights"))
+            self._check_thermal_quadrature(meta.get("thermal_quadrature"))
             self._check_drive(meta.get("drive"))
             if self._auto_z_steps_inner and meta.get("z_steps_inner"):
                 self.z_steps_inner = meta["z_steps_inner"]
@@ -1365,6 +1396,7 @@ class PropagationSolver(LindbladSolver):
                     )
         else:
             self._check_source_weights(None)
+            self._check_thermal_quadrature(None)
             self._check_drive(None)
             warnings.warn(
                 f"Savefile {self.savefile}.qu has no integrity metadata "

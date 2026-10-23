@@ -11,7 +11,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ### Fixed
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
   density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
-  region. Uniform grids are unchanged.
+  region. Uniform grids are unchanged. `thermal_weights` is still the Boltzmann density; the interval widths are the new
+  `thermal_widths` and the product, which `solve()` and `clerq.autodiff` average with, is `thermal_quadrature_weights`. The
+  end classes take their whole adjacent gap, not half, so a uniform grid keeps its weights. Savefiles solved before this
+  on a non-uniform grid are rejected on load (delete them or `recalc=True`); uniform-grid savefiles still load.
 
 ## [0.14.0] 2026-10-23
 
