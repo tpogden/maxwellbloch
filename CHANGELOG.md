@@ -65,12 +65,24 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   nothing outside this branch is affected.
 
 ### Deprecated
+- `PropagationSolver(real_drive=True)`, the old drive that put only `Re(Omega)` into the Hamiltonian (see Fixed). It is kept
+  so old results can be reproduced and raises a `DeprecationWarning`; `clerq.autodiff` follows the solver's setting.
 - `PropagationSolver.Omegas_zt` (the field as an *angular* frequency, which needed `/ (2 * np.pi)` to compare with
   `rabi_freq`) is deprecated in favour of `rabi_freqs_zt`. It still works and raises a `DeprecationWarning`. The
   arrays returned by `solve()`, and what `fields_area()` and the `clerq.spectral`, `clerq.fixed`, `clerq.fileio` and
   `clerq.plot` helpers compute from them, are unchanged and still angular.
 
 ### Fixed
+- **Detuned fields now use the full complex envelope.** `PropagationSolver` (QuTiP) and `clerq.autodiff` drove the
+  Hamiltonian with `Re(Omega)` only, `H = pi Re(Omega) (sigma_ab + sigma_ba)`. That is exact for resonant fields and for
+  real fields on a symmetric, equally weighted class grid with zero static detunings, but wrong for a single detuned
+  field, a two-photon offset or an asymmetric class grid: the field acquires a phase, and the transmission of a weak probe
+  through a two-level medium (optical depth 6, decay rate 2) at half-width detunings 0.5, 1, 2 was 0.214, 0.652, 1.115
+  (above 1) instead of the Lorentzian `exp(-OD / (1 + d^2))` = 0.0083, 0.0498, 0.301. Each coupled pair now has
+  `H_ab = pi f Omega` and `H_ba = pi f conj(Omega)`, with `Omega` the cyclic field. Results for resonant problems with
+  real fields on a symmetric class grid are unchanged to better than 1e-10 (tested); results for detuned problems change.
+  Pass `real_drive=True` to reproduce the old numbers. The QuTiP drive now has two interpolated terms per field (the
+  real and imaginary parts), so `system.H_Omega_list` has twice as many entries.
 - `PropagationSolver` with `z_steps_inner="auto"` and a `savefile` now caches: the problem definition keeps `"auto"`, and
   the resolved step count is stored in and restored from the savefile, so a later run loads the result instead of
   re-solving.

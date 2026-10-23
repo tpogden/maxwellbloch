@@ -67,6 +67,10 @@ class SystemOperators:
         H0: bare Hamiltonian ``2 pi diag(energies)``, shape ``(n, n)``, real.
         X: coupling operators, shape ``(n_fields, n, n)``, real symmetric, so that
             the field's interaction is ``pi * Omega_k * X_k`` (``Omega`` cyclic).
+        Y: antisymmetric coupling operators, shape ``(n_fields, n, n)``, so that a
+            complex Rabi frequency ``Omega`` drives ``pi (Re Omega X_k + i Im Omega Y_k)``
+            (``Omega`` on ``rho_ab``'s Hamiltonian element, ``conj(Omega)`` on the
+            transpose). Built from ``pairs`` when not given.
         N: detuning operators, shape ``(n_fields, n, n)``, real diagonal.
         detuning_sign: ``s_k`` of each field (``+1`` or ``-1``).
         detunings: fixed cyclic detuning of each field, shape ``(n_fields,)``.
@@ -99,8 +103,15 @@ class SystemOperators:
     Z: np.ndarray | None = None
     b_field: float = 0.0
     has_b_field: bool = False
+    Y: np.ndarray | None = None
 
     def __post_init__(self):
+        if self.Y is None:
+            Y = np.zeros_like(self.X)
+            for k, (rows, cols, factors) in enumerate(self.pairs):
+                np.add.at(Y[k], (rows, cols), factors)
+                np.add.at(Y[k], (cols, rows), -factors)
+            object.__setattr__(self, "Y", Y)
         if self.Z is None:
             object.__setattr__(self, "Z", np.zeros((self.num_states, self.num_states)))
 
@@ -111,11 +122,16 @@ class SystemOperators:
     def hamiltonian(
         self, rabi_freqs: np.ndarray, detunings: np.ndarray | None = None
     ) -> np.ndarray:
-        """``H`` for constant cyclic Rabi frequencies and detunings (NumPy reference)."""
+        """``H`` for constant cyclic (possibly complex) Rabi frequencies and detunings.
+
+        NumPy reference.
+        """
         det = self.detunings if detunings is None else np.asarray(detunings)
+        rabi = np.asarray(rabi_freqs)
         return (
             self.H0
-            + np.pi * np.einsum("k,kij->ij", np.asarray(rabi_freqs), self.X)
+            + np.pi * np.einsum("k,kij->ij", rabi.real, self.X)
+            + 1j * np.pi * np.einsum("k,kij->ij", rabi.imag, self.Y)
             - 2.0 * np.pi * np.einsum("k,kij->ij", self.detuning_sign * det, self.N)
         )
 

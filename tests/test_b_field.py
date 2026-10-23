@@ -254,19 +254,29 @@ def expected_lines(atom, q, B):
     )
 
 
-def assert_lines(solver, expected, window=0.5):
-    """The spectrum has a peak at each expected line and no other absorption."""
+def assert_lines(solver, expected, window=0.5, rate=1.0):
+    """The spectrum has a peak at each expected line and no other absorption.
+
+    Away from the lines the absorption may not exceed the Lorentzian wings of
+    the lines themselves: at most ``top / (1 + ((f - line) / hwhm)**2)`` summed
+    over the lines (each line is at most ``top`` high), with ``hwhm = rate / 2``
+    the natural half-width in cyclic frequency, plus the original 2% of ``top``
+    for the FFT ringing of the finite time window.
+    """
     freqs = spectral.freq_list(solver)
     absorb = spectral.absorption(solver, 0, -1)
     inband = np.abs(freqs) < 20
     top = absorb[inband].max()
     covered = np.zeros_like(inband)
+    wings = np.zeros_like(freqs)
     for line in expected:
         near = np.abs(freqs - line) < window
         covered |= near
+        wings += top / (1 + ((freqs - line) / (rate / 2)) ** 2)
         assert absorb[near].max() > 0.05 * top
         assert abs(freqs[near][np.argmax(absorb[near])] - line) < window
-    assert absorb[inband & ~covered].max() < 0.02 * top
+    far = inband & ~covered
+    assert np.all(absorb[far] < wings[far] + 0.02 * top)
 
 
 class TestPolarisation:

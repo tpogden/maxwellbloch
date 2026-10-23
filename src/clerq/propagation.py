@@ -65,6 +65,13 @@ class PropagationSolver(LindbladSolver):
             same units as ``decays`` rates and ``rabi_freq``. The weights
             are Gaussian, ``exp(-(delta / thermal_width)**2)``.
         atom: Deprecated name for ``system``.
+        real_drive: Deprecated. Drive the Hamiltonian with ``Re(Omega)`` only,
+            the behaviour before the complex-envelope drive. That is exact for
+            resonant problems with real fields and a symmetric,
+            equally weighted velocity-class grid, but wrong for a single
+            detuned field (for example a two-level medium, optical depth 6,
+            half-width detuning 2: transmission 1.1 instead of 0.30). The
+            default drives the coupled pair with ``Omega`` and ``conj(Omega)``.
     """
 
     def __init__(
@@ -86,9 +93,17 @@ class PropagationSolver(LindbladSolver):
         velocity_classes: dict | None = None,
         *,
         atom: dict | None = None,
+        real_drive: bool = False,
     ) -> None:
 
         system = resolve_system_arg(system, atom)
+        self.real_drive = bool(real_drive)
+        if self.real_drive:
+            warn_deprecated(
+                "real_drive=True (driving with Re(Omega) only)",
+                "the default complex drive",
+                stacklevel=3,
+            )
 
         if interaction_strengths is None:
             interaction_strengths = []
@@ -1059,8 +1074,25 @@ class PropagationSolver(LindbladSolver):
             H_Omega = H_Omega * np.pi  # pi * 1.0 (rabi_freq normalised to 1)
             # Divide by 2π: H_Omega * coeff(t) = sigma * pi * Omega_z/(2π)
             #                                   = sigma * Omega_z/2  ✓
+            # Omega sigma_ab + conj(Omega) sigma_ba
+            #     = Re(Omega) (sigma_ab + sigma_ba) + Im(Omega) i (sigma_ab - sigma_ba)
             coeff = qu.coefficient(Omegas_z[f_i].real / (2 * np.pi), tlist=self.tlist)
             H_Omega_list.append([H_Omega, coeff])
+            max_im = np.abs(Omegas_z[f_i].imag).max()
+            if not self.real_drive and max_im > 1e-14 * np.abs(Omegas_z).max():
+                H_Omega_im = qu.Qobj(
+                    np.zeros([self.system.num_states, self.system.num_states])
+                )
+                for c_i, c in enumerate(f.coupled_levels):
+                    H_Omega_im += (
+                        self.system.sigma(a=c[0], b=c[1])
+                        - self.system.sigma(a=c[1], b=c[0])
+                    ) * (1j * f.factors[c_i])
+                H_Omega_im = H_Omega_im * np.pi
+                coeff_im = qu.coefficient(
+                    Omegas_z[f_i].imag / (2 * np.pi), tlist=self.tlist
+                )
+                H_Omega_list.append([H_Omega_im, coeff_im])
         return H_Omega_list
 
     def _solve_and_average_over_thermal_detunings(
@@ -1176,6 +1208,8 @@ class PropagationSolver(LindbladSolver):
                 "velocity_classes": self.velocity_classes,
             }
         )
+        if self.real_drive:  # only when set, so default JSON and hashes are unchanged
+            d["real_drive"] = True
         return d
 
     def _savefile_metadata(self) -> dict:
@@ -1183,6 +1217,7 @@ class PropagationSolver(LindbladSolver):
         return {
             "hash": hashlib.sha256(self.to_json_str().encode()).hexdigest(),
             "source_weights": _SOURCE_WEIGHTS,
+            "drive": self._drive_name(),
             "z_steps_inner": self.z_steps_inner,
             "clerq": importlib.metadata.version("clerq"),
             "qutip": importlib.metadata.version("qutip"),
@@ -1223,6 +1258,42 @@ class PropagationSolver(LindbladSolver):
                 "Delete it or set recalc=True."
             )
 
+    def _drive_name(self) -> str:
+        return "real" if self.real_drive else "complex"
+
+    def _drive_can_differ(self) -> bool:
+        """True if the real-part and complex drives can give different results.
+
+        They agree for real fields with zero static detunings, zero level
+        energies and a mirror-symmetric class grid with mirrored equal weights.
+        """
+        if any(f.detuning != 0 for f in self.system.fields):
+            return True
+        if np.abs(self.system.H_0.full()).max() > 0:
+            return True
+        deltas = np.asarray(self.thermal_delta_list, dtype=float)
+        weights = np.asarray(self.thermal_weights, dtype=float)
+        order = np.argsort(deltas)
+        deltas, weights = deltas[order], weights[order]
+        return not (
+            np.allclose(deltas, -deltas[::-1], atol=1e-12)
+            and np.allclose(weights, weights[::-1], rtol=1e-9)
+        )
+
+    def _check_drive(self, saved: str | None) -> None:
+        """Rejects results solved with the other drive convention.
+
+        Savefiles without a marker were solved with the old Re(Omega) drive.
+        """
+        saved = saved or "real"
+        if saved != self._drive_name() and self._drive_can_differ():
+            raise ValueError(
+                f"Savefile {self.savefile}.qu was solved with the {saved}-envelope "
+                f"drive, but this solver uses the {self._drive_name()} drive, which "
+                "gives different results for detuned fields. Delete it or set "
+                "recalc=True."
+            )
+
     def load_results(self) -> None:
         """Loads the solution from a QuTiP pickle file.
 
@@ -1230,7 +1301,10 @@ class PropagationSolver(LindbladSolver):
             ValueError: if the savefile was built from a different problem
                 definition (hash mismatch), or was solved with the old
                 factor**2 source-term weights and a field has factors other
-                than 1.
+                than 1, or was solved with the other drive convention (savefiles
+                without a drive marker used ``Re(Omega)``) for a problem where
+                the two differ (static detunings, level energies or an
+                asymmetric class grid).
 
         Notes:
             - The path from which the results will be loaded is taken from
@@ -1249,6 +1323,7 @@ class PropagationSolver(LindbladSolver):
                     "problem definition. Delete it or set recalc=True."
                 )
             self._check_source_weights(meta.get("source_weights"))
+            self._check_drive(meta.get("drive"))
             if self._auto_z_steps_inner and meta.get("z_steps_inner"):
                 self.z_steps_inner = meta["z_steps_inner"]
             for key in ("clerq", "qutip"):
@@ -1262,6 +1337,7 @@ class PropagationSolver(LindbladSolver):
                     )
         else:
             self._check_source_weights(None)
+            self._check_drive(None)
             warnings.warn(
                 f"Savefile {self.savefile}.qu has no integrity metadata "
                 "(old format). Loading without hash check.",
