@@ -537,6 +537,8 @@ class PropagationSolver(LindbladSolver):
     def to_autodiff(self, **options: Any) -> Any:
         """Return a differentiable version of this problem.
 
+        .. versionadded:: 0.14.0
+
         The result reproduces :meth:`solve` as a pure function of a parameter
         pytree (pulse parameters, interaction strengths, detunings, decay scale,
         or sampled input fields), so the propagated field and any loss of it can

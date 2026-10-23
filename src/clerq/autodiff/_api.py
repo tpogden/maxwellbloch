@@ -115,6 +115,8 @@ class OptimizeResult:
 class AutodiffPropagation:
     """A differentiable version of a :class:`~clerq.PropagationSolver` problem.
 
+    .. versionadded:: 0.14.0
+
     Build it with :meth:`clerq.PropagationSolver.to_autodiff`. It reproduces
     ``PropagationSolver.solve`` as a pure function of a *parameter pytree*, so the
     propagated field and any loss of it can be differentiated with respect to the
