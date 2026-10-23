@@ -21,6 +21,11 @@ Two-level conventions: the transition has natural (spontaneous) linewidth
 transition (e.g. a squared Clebsch-Gordan coefficient). With ``factor=1`` the
 transition is a cycling one with ``Gamma = omega^3 d^2 / (3 pi eps0 hbar
 c^3)``.
+
+``factor`` and a ``Field``'s ``factors`` both scale the dipole moment, so apply
+a Clebsch-Gordan coefficient in one place only: either as ``factor`` here
+(with a ``Field`` whose ``factors`` are 1) or in the ``Field`` (with
+``factor=1`` here, and ``decay_rate`` the total decay rate of the upper level).
 """
 
 from __future__ import annotations
@@ -29,13 +34,23 @@ import numpy as np
 from scipy import constants as _const
 
 _NM = 1e-9
-_CM = 1e-2
 _MHZ = 1e6
-# mW/cm^2 -> W/m^2
+# 1 mW/cm^2 in W/m^2
 _MW_CM2 = 1e-3 / 1e-4
+# nm -> cm
+_NM_TO_CM = 1e-7
 
-AMU_KG = _const.atomic_mass
-"""Atomic mass unit, in kg."""
+
+def _require_positive(**values: float) -> None:
+    for name, value in values.items():
+        if not np.all(np.asarray(value) > 0):
+            raise ValueError(f"{name} must be positive, got {value!r}.")
+
+
+def _sigma0(wavelength: float, factor: float) -> float:
+    """Resonant cross-section ``factor * 3 lambda^2 / (2 pi)``, in cm^2."""
+    lam_cm = wavelength * _NM_TO_CM
+    return factor * 3 * lam_cm**2 / (2 * np.pi)
 
 
 def saturation_intensity(decay_rate: float, wavelength: float) -> float:
@@ -49,14 +64,18 @@ def saturation_intensity(decay_rate: float, wavelength: float) -> float:
         ``I_sat`` in mW/cm^2. For the Rb87 D2 line (6.065 MHz, 780.24 nm) this
         is 1.67 mW/cm^2.
     """
+    _require_positive(decay_rate=decay_rate, wavelength=wavelength)
     gamma = 2 * np.pi * decay_rate * _MHZ
     i_sat = np.pi * _const.h * _const.c * gamma / (3 * (wavelength * _NM) ** 3)
     return i_sat / _MW_CM2
 
 
 def intensity_to_rabi_freq(
-    intensity: float, decay_rate: float, wavelength: float, factor: float = 1.0
-) -> float:
+    intensity: float | np.ndarray,
+    decay_rate: float,
+    wavelength: float,
+    factor: float = 1.0,
+) -> float | np.ndarray:
     """Cyclic Rabi frequency of a field of the given intensity.
 
     ``Omega = Gamma * sqrt(factor * I / (2 I_sat))``, returned as ``Omega / 2
@@ -71,17 +90,24 @@ def intensity_to_rabi_freq(
     Returns:
         ``Omega / 2 pi`` in MHz, the value for a clerq ``rabi_freq``.
     """
+    if np.any(np.asarray(intensity) < 0):
+        raise ValueError(f"intensity must not be negative, got {intensity!r}.")
+    _require_positive(factor=factor)
     i_sat = saturation_intensity(decay_rate, wavelength)
     return decay_rate * np.sqrt(factor * np.asarray(intensity) / (2 * i_sat))
 
 
 def rabi_freq_to_intensity(
-    rabi_freq: float, decay_rate: float, wavelength: float, factor: float = 1.0
-) -> float:
+    rabi_freq: float | np.ndarray,
+    decay_rate: float,
+    wavelength: float,
+    factor: float = 1.0,
+) -> float | np.ndarray:
     """Intensity, in mW/cm^2, for a cyclic Rabi frequency ``Omega / 2 pi`` in MHz.
 
     The inverse of :func:`intensity_to_rabi_freq`.
     """
+    _require_positive(factor=factor)
     i_sat = saturation_intensity(decay_rate, wavelength)
     return 2 * i_sat * (np.asarray(rabi_freq) / decay_rate) ** 2 / factor
 
@@ -96,13 +122,14 @@ def gaussian_beam_peak_intensity(power: float, waist: float) -> float:
     Returns:
         Peak intensity in mW/cm^2.
     """
+    _require_positive(power=power, waist=waist)
     return 2 * power / (np.pi * waist**2)
 
 
 def interaction_strength(
     decay_rate: float, wavelength: float, factor: float = 1.0
 ) -> float:
-    """Interaction strength per atom, ``g / 2 pi`` with ``g = 3 lambda^2 Gamma / (8 pi)``.
+    """Interaction strength per atom, ``g / 2 pi = sigma_0 gamma / 4``, with ``gamma = Gamma / 2 pi``.
 
     The propagation equation is ``dOmega/dz = 2 i N g rho``, so multiplying
     by the number density ``N`` (cm^-3) gives the clerq
@@ -118,8 +145,8 @@ def interaction_strength(
     Returns:
         ``g / 2 pi`` in MHz cm^2.
     """
-    lam_cm = wavelength * _NM / _CM
-    return 3 * lam_cm**2 * decay_rate * factor / (8 * np.pi)
+    _require_positive(decay_rate=decay_rate, wavelength=wavelength, factor=factor)
+    return _sigma0(wavelength, factor) * decay_rate / 4
 
 
 def resonant_optical_depth(
@@ -137,9 +164,8 @@ def resonant_optical_depth(
         The optical depth ``OD``; intensity transmission is ``exp(-OD)``. Doppler
         broadening reduces the peak.
     """
-    lam_cm = wavelength * _NM / _CM
-    sigma0 = factor * 3 * lam_cm**2 / (2 * np.pi)
-    return number_density * sigma0 * length
+    _require_positive(wavelength=wavelength, factor=factor)
+    return number_density * _sigma0(wavelength, factor) * length
 
 
 def thermal_width(temperature: float, mass: float, wavelength: float) -> float:
@@ -156,5 +182,6 @@ def thermal_width(temperature: float, mass: float, wavelength: float) -> float:
     Returns:
         ``w`` in MHz.
     """
-    u = np.sqrt(2 * _const.k * temperature / (mass * AMU_KG))
+    _require_positive(temperature=temperature, mass=mass, wavelength=wavelength)
+    u = np.sqrt(2 * _const.k * temperature / (mass * _const.atomic_mass))
     return u / (wavelength * _NM) / _MHZ

@@ -4,7 +4,7 @@
 macro.interaction_strength(decay_rate, wavelength, factor=1.0)
 ```
 
-Interaction strength per atom, ``g / 2 pi`` with ``g = 3 lambda^2 Gamma / (8 pi)``.
+Interaction strength per atom, ``g / 2 pi = sigma_0 gamma / 4``, with ``gamma = Gamma / 2 pi``.
 
 The propagation equation is ``dOmega/dz = 2 i N g rho``, so multiplying
 by the number density ``N`` (cm^-3) gives the clerq
