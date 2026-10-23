@@ -851,7 +851,7 @@
     "href": "examples/mbs-two-photon-echo.html#level-structure",
     "title": "Two-Level: Two-Pulse Photon Echo",
     "section": "Level structure",
-    "text": "Level structure\n      |1⟩ ════════════════  (excited)\n       │   decay rate 0.1 → T₂ ≈ 3.18 γ⁻¹\n  Ω   │   π/2 and π sech pulses (hard-pulse limit)\n       │\n      |0⟩ ════════════════  (ground)\nInhomogeneous broadening: Gaussian Doppler distribution, \\(\\sigma \\approx 4.2\\,{\\rm rad}\\,\\gamma\\) (wider than the homogeneous linewidth \\(\\Gamma = 2\\pi \\times {\\rm rate} \\approx 0.63\\,\\gamma\\), narrower than the pulse bandwidth \\(\\sim 1/T = 40\\,\\gamma\\)).",
+    "text": "Level structure\n\n\n10Ωγexcitedground\n\nSolid arrows: driving fields; dashed: spontaneous decay. \\(\\Omega\\): \\(\\pi/2\\) and \\(\\pi\\) sech pulses (hard-pulse limit). Decay rate 0.1, so \\(T_2 \\approx 3.18\\,\\gamma^{-1}\\).\nInhomogeneous broadening: Gaussian Doppler distribution, \\(\\sigma \\approx 4.2\\,{\\rm rad}\\,\\gamma\\) (wider than the homogeneous linewidth \\(\\Gamma = 2\\pi \\times {\\rm rate} \\approx 0.63\\,\\gamma\\), narrower than the pulse bandwidth \\(\\sim 1/T = 40\\,\\gamma\\)).",
     "crumbs": [
       "Examples",
       "Two-Level: Two-Pulse Photon Echo"
@@ -1049,7 +1049,7 @@
     "href": "examples/mbs-lambda-cpt.html#level-structure",
     "title": "Λ-Type Three-Level: Coherent Population Trapping (CPT)",
     "section": "Level structure",
-    "text": "Level structure\n         |1⟩ ──────────────── (excited)\n        /    \\\n   Ω_p /      \\ Ω_c\n      /        \\     γ₁₀ = γ₁₂ = 1.0\n    |0⟩        |2⟩  (ground states)",
+    "text": "Level structure\n\n\n1(excited)02ΩpΩcγ10γ12ground states\n\nSolid arrows: driving fields; dashed: spontaneous decay. Decay rates \\(\\gamma_{10} = \\gamma_{12} = 1.0\\).",
     "crumbs": [
       "Examples",
       "Λ-Type Three-Level: Coherent Population Trapping (CPT)"
@@ -2355,7 +2355,7 @@
     "href": "examples/mbs-ladder-autler-townes.html#level-structure",
     "title": "Three-Level Ladder (Ξ): Autler–Townes Splitting",
     "section": "Level structure",
-    "text": "Level structure\n      |2⟩ ────────────────\n       │   γ₂₁ = 1.0\n  Ω_c │   coupling (CW, strong)\n       │\n      |1⟩ ────────────────\n       │   γ₁₀ = 1.0\n  Ω_p │   probe (weak broadband pulse)\n       │\n      |0⟩ ════════════════  (ground)",
+    "text": "Level structure\n\n\n210ΩcΩpγ21γ10coupling (CW, strong)probe (weak broadband pulse)\n\nSolid arrows: driving fields; dashed: spontaneous decay. Decay rates \\(\\gamma_{21} = \\gamma_{10} = 1.0\\).",
     "crumbs": [
       "Examples",
       "Three-Level Ladder (Ξ): Autler–Townes Splitting"
@@ -2454,7 +2454,7 @@
     "href": "examples/mbs-lambda-adiabatons.html#level-structure",
     "title": "Λ-Type Three-Level: Adiabatons",
     "section": "Level structure",
-    "text": "Level structure\n         |1⟩ ──────────────── (excited)\n        /    \\\n   Ω_p /      \\ Ω_c\n      /        \\     γ₁₀ = γ₁₂ = 1.0\n    |0⟩        |2⟩  (ground states)",
+    "text": "Level structure\n\n\n1(excited)02ΩpΩcγ10γ12ground states\n\nSolid arrows: driving fields; dashed: spontaneous decay. Decay rates \\(\\gamma_{10} = \\gamma_{12} = 1.0\\).",
     "crumbs": [
       "Examples",
       "Λ-Type Three-Level: Adiabatons"
@@ -2795,7 +2795,7 @@
     "href": "examples/mbs-two-stimulated-echo.html#level-structure",
     "title": "Two-Level: Stimulated Three-Pulse Photon Echo",
     "section": "Level structure",
-    "text": "Level structure\n      |1⟩ ════════════════  (excited)\n       │   decay rate 0.1 → T₁ ≈ 1.59 γ⁻¹,  T₂ ≈ 3.18 γ⁻¹\n  Ω   │   three π/2 sech pulses (hard-pulse limit)\n       │\n      |0⟩ ════════════════  (ground)\nInhomogeneous broadening: Gaussian Doppler distribution, \\(\\sigma \\approx 4.2\\,{\\rm rad}\\,\\gamma\\) (thermal_width = 0.94).",
+    "text": "Level structure\n\n\n10Ωγexcitedground\n\nSolid arrows: driving fields; dashed: spontaneous decay. \\(\\Omega\\): three \\(\\pi/2\\) sech pulses (hard-pulse limit). Decay rate 0.1, so \\(T_1 \\approx 1.59\\,\\gamma^{-1}\\), \\(T_2 \\approx 3.18\\,\\gamma^{-1}\\).\nInhomogeneous broadening: Gaussian Doppler distribution, \\(\\sigma \\approx 4.2\\,{\\rm rad}\\,\\gamma\\) (thermal_width = 0.94).",
     "crumbs": [
       "Examples",
       "Two-Level: Stimulated Three-Pulse Photon Echo"
