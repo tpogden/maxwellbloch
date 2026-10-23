@@ -46,16 +46,33 @@ in the problem (see :meth:`default_params`):
     array ``(n_fields,)``, cyclic fixed detuning of each field.
 ``decay_scale``
     scalar multiplying every decay rate.
+``decay_rates``
+    array ``(n_decays,)``, the cyclic ``rate`` of each entry of the system's
+    ``decays`` (spontaneous decay, ground-state decoherence, or pure
+    dephasing through a ``[a, a]`` channel). The effective rate of a channel is
+    ``decay_scale * decay_rates[i]``. Differentiable at any value, including
+    zero, so a rate can be fitted or optimised from nothing. Rates must be
+    non-negative: a concrete negative value raises, but an optimiser can still
+    step below zero (a negative rate is gain, and the field runs away), so
+    optimise an unconstrained variable and map it, for example with
+    :func:`clerq.autodiff.controls.bounded`. Empty for a system without decays.
+``b_field``
+    scalar, the DC B-field in natural units (``mu_B B / h`` in the
+    frequency unit of the energies), so the Zeeman shift of the levels can
+    be differentiated: ``H_0 = H_base + 2 pi B Z``. Requires the system to
+    have a ``b_field`` block giving ``g_F`` and ``m_F`` (it is then in the
+    default parameters; without one it raises ``ValueError``).
 ``omega0``
     array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
     *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
     first slice is driven by their cubic spline instead of the analytic
     pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
 
-All parameters are cyclic (like the problem definition). The propagated field
-is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
-shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
-by ``2 * pi`` for the cyclic Rabi frequency.
+All parameters are cyclic (like the problem definition), and so is the
+propagated field. It is returned in the layout and units of
+``PropagationSolver.rabi_freqs_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
+complex, *cyclic* Rabi frequency, the same unit as ``rabi_freq`` and
+``omega0``.
 
 ## Attributes {.doc-section .doc-section-attributes}
 
@@ -113,6 +130,7 @@ autodiff.AutodiffPropagation.default_params()
 The parameters of the problem this object was built from.
 
 Every value is a float, whatever literal the problem definition used.
+``b_field`` is included only if the system has a ``b_field`` block.
 
 ### from_solver { #clerq.autodiff.AutodiffPropagation.from_solver }
 

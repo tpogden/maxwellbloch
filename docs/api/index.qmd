@@ -17,6 +17,19 @@ Exact gradients through the propagation (needs the `jax` extra).
 | --- | --- |
 | [autodiff.AutodiffPropagation](autodiff.AutodiffPropagation.qmd#clerq.autodiff.AutodiffPropagation) | A differentiable version of a :class:`~clerq.PropagationSolver` problem. |
 | [autodiff.OptimizeResult](autodiff.OptimizeResult.qmd#clerq.autodiff.OptimizeResult) | The outcome of :meth:`AutodiffPropagation.minimize`. |
+| [autodiff.controls.gaussian_basis](autodiff.controls.gaussian_basis.qmd#clerq.autodiff.controls.gaussian_basis) | Gaussian bumps on a regular grid of centres, evaluated at the times ``t``. |
+| [autodiff.controls.fit_coefficients](autodiff.controls.fit_coefficients.qmd#clerq.autodiff.controls.fit_coefficients) | Least-squares coefficients ``a`` with ``basis @ a`` closest to ``target``. |
+| [autodiff.controls.bounded](autodiff.controls.bounded.qmd#clerq.autodiff.controls.bounded) | Map real values to ``(lower, upper)`` with a sigmoid (JAX-differentiable). |
+| [autodiff.controls.unbounded](autodiff.controls.unbounded.qmd#clerq.autodiff.controls.unbounded) | Inverse of :func:`bounded`; values are first clipped ``margin`` inside the range. |
+
+## Exceptions
+
+Raised by `PropagationSolver.solve()`.
+
+| | |
+| --- | --- |
+| [exceptions.PropagationInstabilityError](exceptions.PropagationInstabilityError.qmd#clerq.exceptions.PropagationInstabilityError) | Raised when a propagation solve has blown up numerically. |
+| [exceptions.CounterPropagatingDepletionError](exceptions.CounterPropagatingDepletionError.qmd#clerq.exceptions.CounterPropagatingDepletionError) | Raised when a counter-propagating field depletes beyond the error threshold. |
 
 ## Systems and fields
 
@@ -59,6 +72,20 @@ Exact gradients through the propagation (needs the `jax` extra).
 | [hyperfine.Atom1e](hyperfine.Atom1e.qmd#clerq.hyperfine.Atom1e) | Represents an atom object and contains a list of J levels. |
 | [hyperfine.LevelF](hyperfine.LevelF.qmd#clerq.hyperfine.LevelF) | Represents an F hyperfine structure level and holds its magnetic |
 | [hyperfine.LevelMF](hyperfine.LevelMF.qmd#clerq.hyperfine.LevelMF) | Represents an m_F hyperfine sublevel. |
+
+## Unit conversions
+
+From experimental units to clerq's (MHz, µs, cm).
+
+| | |
+| --- | --- |
+| [macro.saturation_intensity](macro.saturation_intensity.qmd#clerq.macro.saturation_intensity) | Saturation intensity of a cycling transition, ``pi h c Gamma / (3 lambda^3)``. |
+| [macro.intensity_to_rabi_freq](macro.intensity_to_rabi_freq.qmd#clerq.macro.intensity_to_rabi_freq) | Cyclic Rabi frequency of a field of the given intensity. |
+| [macro.rabi_freq_to_intensity](macro.rabi_freq_to_intensity.qmd#clerq.macro.rabi_freq_to_intensity) | Intensity, in mW/cm^2, for a cyclic Rabi frequency ``Omega / 2 pi`` in MHz. |
+| [macro.gaussian_beam_peak_intensity](macro.gaussian_beam_peak_intensity.qmd#clerq.macro.gaussian_beam_peak_intensity) | Peak intensity of a circular Gaussian beam, ``2 P / (pi w^2)``. |
+| [macro.interaction_strength](macro.interaction_strength.qmd#clerq.macro.interaction_strength) | Interaction strength per atom, ``g / 2 pi = sigma_0 gamma / 4``, with ``gamma = Gamma / 2 pi``. |
+| [macro.resonant_optical_depth](macro.resonant_optical_depth.qmd#clerq.macro.resonant_optical_depth) | Resonant intensity optical depth ``N sigma_0 L`` of a cold, weak-field medium. |
+| [macro.thermal_width](macro.thermal_width.qmd#clerq.macro.thermal_width) | The ``thermal_width`` of ``velocity_classes`` for a vapor. |
 
 ## Utilities
 

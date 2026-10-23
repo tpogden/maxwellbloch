@@ -59,6 +59,31 @@ class SparseDissipator:
 
 
 @dataclass(frozen=True)
+class DecayChannels:
+    """The decay channels of a ``System``, one entry per ``(decay, channel)`` pair.
+
+    Every channel is a collapse operator ``f sqrt(2 pi rate) |a><b|``, so it is a
+    single element and the dissipator is linear in its weight
+    ``w_k = 2 pi rate f^2``. Keeping the channels (rather than the finished
+    operators) makes each decay's ``rate`` a parameter, differentiable at any
+    value including zero.
+
+    Attributes:
+        a: target level of each channel, shape ``(k,)``.
+        b: source level of each channel, shape ``(k,)``.
+        f2: squared factor ``f^2`` of each channel, shape ``(k,)``.
+        idx: index of the decay (entry of ``system.decays``) each channel belongs to.
+        rates: cyclic ``rate`` of each decay, shape ``(n_decays,)``.
+    """
+
+    a: np.ndarray
+    b: np.ndarray
+    f2: np.ndarray
+    idx: np.ndarray
+    rates: np.ndarray
+
+
+@dataclass(frozen=True)
 class SystemOperators:
     """Operators and field data extracted from a ``System``.
 
@@ -67,6 +92,10 @@ class SystemOperators:
         H0: bare Hamiltonian ``2 pi diag(energies)``, shape ``(n, n)``, real.
         X: coupling operators, shape ``(n_fields, n, n)``, real symmetric, so that
             the field's interaction is ``pi * Omega_k * X_k`` (``Omega`` cyclic).
+        Y: antisymmetric coupling operators, shape ``(n_fields, n, n)``, so that a
+            complex Rabi frequency ``Omega`` drives ``pi (Re Omega X_k + i Im Omega Y_k)``
+            (``Omega`` on ``rho_ab``'s Hamiltonian element, ``conj(Omega)`` on the
+            transpose). Built from ``pairs`` when not given.
         N: detuning operators, shape ``(n_fields, n, n)``, real diagonal.
         detuning_sign: ``s_k`` of each field (``+1`` or ``-1``).
         detunings: fixed cyclic detuning of each field, shape ``(n_fields,)``.
@@ -77,6 +106,11 @@ class SystemOperators:
         sparse: the O(n^2) form of the dissipator if every collapse operator is a
             single element, else ``None``.
         rho0: initial density matrix, shape ``(n, n)``.
+        Z: Zeeman operator ``diag(g_F m_F)``, shape ``(n, n)``; the Zeeman part
+            of ``H0`` is ``2 pi b_field Z``.
+        b_field: the system's cyclic B-field in natural units (already in ``H0``).
+        has_b_field: whether the system has a ``b_field`` block (``Z`` and ``b_field``
+            default to no Zeeman term).
     """
 
     num_states: int
@@ -91,6 +125,21 @@ class SystemOperators:
     c_ops: np.ndarray
     sparse: SparseDissipator | None
     rho0: np.ndarray
+    Z: np.ndarray | None = None
+    b_field: float = 0.0
+    has_b_field: bool = False
+    Y: np.ndarray | None = None
+    decays: DecayChannels | None = None
+
+    def __post_init__(self):
+        if self.Y is None:
+            Y = np.zeros_like(self.X)
+            for k, (rows, cols, factors) in enumerate(self.pairs):
+                np.add.at(Y[k], (rows, cols), factors)
+                np.add.at(Y[k], (cols, rows), -factors)
+            object.__setattr__(self, "Y", Y)
+        if self.Z is None:
+            object.__setattr__(self, "Z", np.zeros((self.num_states, self.num_states)))
 
     @property
     def num_fields(self) -> int:
@@ -99,11 +148,16 @@ class SystemOperators:
     def hamiltonian(
         self, rabi_freqs: np.ndarray, detunings: np.ndarray | None = None
     ) -> np.ndarray:
-        """``H`` for constant cyclic Rabi frequencies and detunings (NumPy reference)."""
+        """``H`` for constant cyclic (possibly complex) Rabi frequencies and detunings.
+
+        NumPy reference.
+        """
         det = self.detunings if detunings is None else np.asarray(detunings)
+        rabi = np.asarray(rabi_freqs)
         return (
             self.H0
-            + np.pi * np.einsum("k,kij->ij", np.asarray(rabi_freqs), self.X)
+            + np.pi * np.einsum("k,kij->ij", rabi.real, self.X)
+            + 1j * np.pi * np.einsum("k,kij->ij", rabi.imag, self.Y)
             - 2.0 * np.pi * np.einsum("k,kij->ij", self.detuning_sign * det, self.N)
         )
 
@@ -135,6 +189,28 @@ def _sparse_dissipator(c_ops: np.ndarray, n: int) -> SparseDissipator | None:
         w.append(abs(c[i, j]) ** 2)
     a, b, w = np.array(a), np.array(b), np.array(w)
     return SparseDissipator(a=a, b=b, w=w, r=np.bincount(b, weights=w, minlength=n))
+
+
+def _decay_channels(system: System) -> DecayChannels | None:
+    """The channels of ``system.decays`` (``None`` if it has no decays)."""
+    a, b, f2, idx = [], [], [], []
+    for i, d in enumerate(system.decays):
+        channels = d["channels"]
+        factors = d.get("factors", [1.0] * len(channels))
+        for (to, frm), f in zip(channels, factors, strict=True):
+            a.append(to)
+            b.append(frm)
+            f2.append(float(f) ** 2)
+            idx.append(i)
+    if not idx:
+        return None
+    return DecayChannels(
+        a=np.array(a, dtype=int),
+        b=np.array(b, dtype=int),
+        f2=np.array(f2),
+        idx=np.array(idx, dtype=int),
+        rates=np.array([float(d["rate"]) for d in system.decays]),
+    )
 
 
 def build_operators(system: System) -> SystemOperators:
@@ -194,4 +270,8 @@ def build_operators(system: System) -> SystemOperators:
         c_ops=c_ops,
         sparse=_sparse_dissipator(c_ops, n),
         rho0=np.asarray(system.initial_state.full()),
+        Z=np.diag(system.zeeman_coeffs),
+        b_field=float(system.b_field_natural),
+        has_b_field=system.b_field is not None,
+        decays=_decay_channels(system),
     )

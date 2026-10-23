@@ -111,7 +111,7 @@ def test_propagate_matches_solve(step):
     ad = ps.to_autodiff(step=step, rtol=1e-11, atol=1e-13)
     ps.solve(step=step, recalc=True, progress=False)
     got = np.asarray(ad.propagate())
-    ref = ps.Omegas_zt
+    ref = ps.rabi_freqs_zt
     assert got.shape == ref.shape
     assert np.abs(got - ref).max() / np.abs(ref).max() < 1e-8
     assert np.abs(ref[:, -1] - ref[:, 0]).max() > 1e-3  # a real effect
@@ -133,12 +133,13 @@ def test_default_params_are_the_problems_own():
 
 
 def test_gradients_of_every_user_facing_parameter_match_finite_differences():
-    """Pulse parameters, rabi frequencies, interaction strengths, detunings and the
-    decay scale: AD (reverse) vs central FD on a fixed-step solve."""
+    """Pulse parameters, rabi frequencies, interaction strengths, detunings, the
+    decay scale and the per-decay rates: AD (reverse) vs central FD on a fixed-step solve."""
     ad = _solver().to_autodiff(n_steps=N_FIXED)
     params = jax.tree_util.tree_map(jnp.asarray, ad.default_params())
     flat, unravel = ravel_pytree(params)
-    assert flat.size == 3 + 3 + 2 + 2 + 2 + 1  # 2 pulses (3 args each) + 7 others
+    # 2 pulses (3 args each) + rabi_freq, g, detunings (2 each) + decay_scale + 2 decay rates
+    assert flat.size == 3 + 3 + 2 + 2 + 2 + 1 + 2
 
     _, grads = ad.value_and_grad(loss, params)
     g_ad = np.asarray(ravel_pytree(grads)[0])
@@ -170,9 +171,9 @@ def test_gradient_of_a_subset_of_parameters():
 def test_input_field_samples_are_a_parameter():
     ad = _solver().to_autodiff(rtol=1e-10, atol=1e-12)
     analytic = np.asarray(ad.propagate())
-    # omega0 is a *cyclic* Rabi frequency, like rabi_freq: the output field is
-    # angular (the layout and units of Omegas_zt), so divide by 2 pi
-    omega0 = analytic[:, 0, :].real / (2.0 * np.pi)
+    # omega0 is a cyclic Rabi frequency, like rabi_freq and the output field, so
+    # the first output slice feeds straight back in
+    omega0 = analytic[:, 0, :].real
     sampled = np.asarray(ad.propagate({"omega0": omega0}))
     # the first slice is then driven by the spline of the samples, not the analytic pulse
     assert np.abs(sampled - analytic).max() / np.abs(analytic).max() < 1e-4
@@ -182,10 +183,10 @@ def test_input_field_samples_are_a_parameter():
 
 
 def test_omega0_units_are_cyclic_not_angular():
-    """Guard: passing the angular samples (the output's units) is a 2 pi error."""
+    """Guard: passing angular samples (2 pi times the output) is a 2 pi error."""
     ad = _solver().to_autodiff(rtol=1e-10, atol=1e-12)
     analytic = np.asarray(ad.propagate())
-    angular = analytic[:, 0, :].real
+    angular = 2.0 * np.pi * analytic[:, 0, :].real
     wrong = np.asarray(ad.propagate({"omega0": angular}))
     assert np.abs(wrong - analytic).max() / np.abs(analytic).max() > 0.1
 

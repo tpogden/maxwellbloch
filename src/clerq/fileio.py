@@ -11,6 +11,8 @@ from clerq._deprecation import renamed_arg
 def save_csv_rabi_freq(solver, field_idx=0, filename=None):
     """Save the complex field Rabi frequency result for a PropagationSolver field.
 
+    The values are in *angular* units (``rabi_freqs_zt`` times ``2 * pi``).
+
     Args:
         solver :
             The PropagationSolver object
@@ -23,13 +25,14 @@ def save_csv_rabi_freq(solver, field_idx=0, filename=None):
     if not filename:
         filename = solver.savefile + "_rabi_freq_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, solver.Omegas_zt[field_idx], delimiter=",")
+    np.savetxt(filename, solver._Omegas_zt[field_idx], delimiter=",")
 
 
 @renamed_arg("mb_solve", "solver")
 def save_csv_rabi_freq_abs(solver, field_idx=0, filename=None):
     """Save the abs value of the complex field Rabi frequency result for an
-        PropagationSolver field.
+        PropagationSolver field, in *angular* units (``2 * pi`` times the cyclic
+        ``rabi_freqs_zt``).
 
     Args:
         solver :
@@ -43,4 +46,4 @@ def save_csv_rabi_freq_abs(solver, field_idx=0, filename=None):
     if not filename:
         filename = solver.savefile + "_rabi_freq_abs_" + str(field_idx) + ".csv"
 
-    np.savetxt(filename, np.abs(solver.Omegas_zt[field_idx]), delimiter=",")
+    np.savetxt(filename, np.abs(solver._Omegas_zt[field_idx]), delimiter=",")

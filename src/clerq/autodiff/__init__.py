@@ -11,7 +11,7 @@ Build the differentiable object from an ordinary solver and differentiate::
 
     ad = solver.to_autodiff()             # solver is a clerq.PropagationSolver
     params = ad.default_params()
-    omegas = ad.propagate(params)         # same layout as solver.Omegas_zt
+    omegas = ad.propagate(params)         # same layout and units as solver.rabi_freqs_zt
 
     def loss(omegas_zt):                  # any scalar function of the field
         return -abs(omegas_zt[0, -1]).max()
@@ -23,6 +23,9 @@ Or let an optax optimiser (Adam by default) follow the gradient::
     result = ad.minimize(loss, params, steps=50)
     result.params, result.losses
 
+Free-form controls (a waveform as the parameters) are best expanded in a few smooth
+functions; :mod:`clerq.autodiff.controls` has the helpers.
+
 The result reproduces ``PropagationSolver.solve``; see
 :class:`~clerq.autodiff.AutodiffPropagation` for the parameters and caveats.
 """
@@ -31,6 +34,7 @@ from clerq.autodiff._config import require_float64, require_jax
 
 require_jax()
 
+from clerq.autodiff import controls  # noqa: E402
 from clerq.autodiff._api import AutodiffPropagation, OptimizeResult  # noqa: E402
 
-__all__ = ["AutodiffPropagation", "OptimizeResult", "require_float64"]
+__all__ = ["AutodiffPropagation", "OptimizeResult", "controls", "require_float64"]

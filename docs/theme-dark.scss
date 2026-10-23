@@ -1,0 +1,99 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-family-monospace: "JetBrains Mono", "Fira Code", SFMono-Regular, Menlo, Consolas, monospace;
+$headings-font-weight: 650;
+$border-radius: 0.5rem;
+$code-color: #b4326e;
+$link-decoration: none;
+$toc-font-size: 0.85rem;
+$navbar-padding-y: 0.6rem;
+
+
+$body-bg: #0f1419;
+$body-color: #d5dbe5;
+$link-color: #6cb6ff;
+$primary: #6cb6ff;
+$navbar-bg: #0f1419;
+$navbar-fg: #d5dbe5;
+$navbar-hl: #6cb6ff;
+$code-color: #ff9ec4;
+$code-block-bg: #161b22;
+$code-block-border-left: false;
+$table-color: #d5dbe5;
+$input-bg: #161b22;
+$input-border-color: #2a313c;
+$popover-bg: #161b22;
+$dropdown-bg: #161b22;
+$dropdown-link-color: #d5dbe5;
+$modal-content-bg: #161b22;
+
+/*-- scss:rules --*/
+:root {
+  --clerq-border: #2a313c;
+  --clerq-code-bg: #161b22;
+  --clerq-accent: #6cb6ff;
+}
+
+
+body { line-height: 1.65; }
+
+h1, h2, h3 { letter-spacing: -0.01em; }
+h2 { margin-top: 2.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--clerq-border); }
+
+a:hover { text-decoration: underline; }
+
+.navbar { border-bottom: 1px solid var(--clerq-border); box-shadow: none; }
+.navbar-brand { font-weight: 700; letter-spacing: -0.02em; }
+
+#quarto-sidebar .sidebar-item a.active,
+.sidebar-navigation .sidebar-item a.active {
+  font-weight: 600;
+  border-left: 2px solid var(--clerq-accent);
+  padding-left: 0.5rem;
+}
+
+#TOC .active, #TOC a.active { border-left-color: var(--clerq-accent); color: var(--clerq-accent); }
+
+code:not(pre code) {
+  padding: 0.12em 0.35em;
+  border-radius: 0.3rem;
+  background: var(--clerq-code-bg);
+  border: 1px solid var(--clerq-border);
+  font-size: 0.86em;
+}
+
+pre, div.sourceCode {
+  border-radius: 0.5rem;
+  border: 1px solid var(--clerq-border);
+  background: var(--clerq-code-bg);
+}
+pre { padding: 0.8rem 1rem; }
+pre code { background: transparent; border: 0; }
+
+table { font-size: 0.92rem; }
+table th { font-weight: 600; }
+table.table > :not(caption) > * > * { background-color: transparent; }
+table.table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--clerq-code-bg); }
+
+.callout { border-radius: 0.5rem; }
+
+/* Figure captions: smaller and muted, set off from the body text. */
+figcaption, .figure-caption {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--bs-secondary-color, #6c757d);
+  margin-top: 0.6rem;
+  text-align: left;
+}
+
+/* Static images (e.g. matplotlib) are rendered on white; keep them legible on a dark page.
+   Plotly figures are restyled for dark mode by _plotly-theme.html. */
+.cell-output-display img, .cell-output-display > svg, figure img {
+  border-radius: 0.5rem;
+  background: #fff;
+  max-width: 100%;
+  height: auto;
+}
+
+/* quartodoc API pages */
+.doc-section-title, .quartodoc .anchored code { font-weight: 600; }

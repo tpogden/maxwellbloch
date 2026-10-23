@@ -1,0 +1,23 @@
+# autodiff.controls.gaussian_basis { #clerq.autodiff.controls.gaussian_basis }
+
+```python
+autodiff.controls.gaussian_basis(t, n, lo=None, hi=None, width=None)
+```
+
+Gaussian bumps on a regular grid of centres, evaluated at the times ``t``.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type          | Description                                                                                                              | Default    |
+|--------|---------------|--------------------------------------------------------------------------------------------------------------------------|------------|
+| t      | ArrayLike     | sample times, shape ``(n_t,)``.                                                                                          | _required_ |
+| n      | int           | number of basis functions (at least 2).                                                                                  | _required_ |
+| lo     | float \| None | first centre; default the first time.                                                                                    | `None`     |
+| hi     | float \| None | last centre; default the last time. Use a ``hi`` below the last time to confine a control to an earlier window.          | `None`     |
+| width  | float \| None | standard deviation of each bump; default the centre spacing, which makes neighbouring bumps overlap enough to be smooth. | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                           |
+|--------|------------|-----------------------------------------------------------------------|
+|        | np.ndarray | ``B``, shape ``(n_t, n)``, so that a control is ``B @ coefficients``. |

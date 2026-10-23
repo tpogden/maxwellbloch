@@ -1,0 +1,10 @@
+# autodiff.controls.fit_coefficients { #clerq.autodiff.controls.fit_coefficients }
+
+```python
+autodiff.controls.fit_coefficients(basis, target)
+```
+
+Least-squares coefficients ``a`` with ``basis @ a`` closest to ``target``.
+
+Use it to start an optimisation from a known waveform. The fit is only as good as
+the basis can represent (a sharp edge is not represented by wide bumps).

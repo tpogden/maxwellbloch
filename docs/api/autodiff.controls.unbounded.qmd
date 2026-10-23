@@ -1,0 +1,10 @@
+# autodiff.controls.unbounded { #clerq.autodiff.controls.unbounded }
+
+```python
+autodiff.controls.unbounded(y, lower, upper, margin=0.02)
+```
+
+Inverse of :func:`bounded`; values are first clipped ``margin`` inside the range.
+
+The clip keeps the logit finite and away from the flat tails of the sigmoid,
+where the gradient is almost zero.

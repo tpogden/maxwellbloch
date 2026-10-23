@@ -1,8 +1,9 @@
 name: Docs
 
 # Publishes the Quarto site to GitHub Pages (clerq.org) from master, i.e. on
-# release merges. Notebook outputs are stored in the committed .ipynb files, so no
-# Python environment is needed here.
+# release merges. Notebook outputs are stored in the committed .ipynb files, but
+# docs/index.qmd has a live Python cell (the simulton figure), so Quarto needs a
+# Jupyter kernel with clerq and the plotting extras installed.
 on:
   push:
     branches: [master]
@@ -15,6 +16,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install clerq with the docs extras
+        run: uv sync --extra docs
+      - name: Point Quarto at the project environment
+        run: echo "QUARTO_PYTHON=$PWD/.venv/bin/python" >> "$GITHUB_ENV"
       - uses: quarto-dev/quarto-actions/setup@v2
       - uses: quarto-dev/quarto-actions/publish@v2
         with:

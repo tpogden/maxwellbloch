@@ -14,6 +14,10 @@ differentiable.
 
     dA = [H, B] + Re D(rho),      dB = -[H, A] + Im D(rho).
 
+With a complex envelope the Hamiltonian is ``H = H_re + i H_im``, ``H_im`` real and
+antisymmetric (``pi Im(Omega_k) Y_k``), which adds ``[H_im, A]`` to ``dA`` and
+``[H_im, B]`` to ``dB``.
+
 Nothing complex enters diffrax, which flags complex dtypes as unreliable.
 """
 
@@ -22,6 +26,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import diffrax as dfx
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -63,6 +68,7 @@ def solve_slice(
     ts,
     *,
     decay_scale=1.0,
+    decay_rates=None,
     rho0=None,
     observe: Callable | None = None,
     rtol: float = 1e-8,
@@ -72,16 +78,23 @@ def solve_slice(
     solver=None,
     adjoint=None,
     jump_ts=None,
+    b_field=None,
+    real_drive: bool = False,
 ):
     """Solve the master equation at the times ``ts``.
 
     Args:
         ops: operators of the system.
-        rabi: ``rabi(t) -> (n_fields,)`` cyclic Rabi frequencies at scalar time ``t``.
+        rabi: ``rabi(t) -> (n_fields,)`` cyclic Rabi frequencies at scalar time ``t``;
+            complex envelopes drive ``Omega`` on ``rho_ab`` and ``conj(Omega)`` on
+            ``rho_ba`` of each coupled pair, unless ``real_drive``.
         detunings: cyclic detunings, shape ``(n_fields,)`` for one copy or
             ``(n_v, n_fields)`` for a batch (e.g. velocity classes).
         ts: output times (also the integration span).
         decay_scale: multiplies every decay rate.
+        decay_rates: cyclic ``rate`` of each entry of ``system.decays``, shape
+            ``(n_decays,)``; default: the system's. May be traced; the gradient is
+            defined at any value, including zero.
         rho0: initial density matrices, ``(n, n)`` or ``(n_v, n, n)``; defaults to
             the system's initial state.
         observe: optional ``observe(re, im) -> real array`` applied at each output
@@ -95,6 +108,9 @@ def solve_slice(
         adjoint: a diffrax adjoint, default ``RecursiveCheckpointAdjoint``.
         jump_ts: times at which the drive is discontinuous (e.g. a square pulse's
             edges), so the adaptive solver steps exactly onto them.
+        b_field: cyclic DC B-field in natural units, replacing the system's
+            (``H_0 = H_base + 2 pi B Z``); default: the system's. May be traced.
+        real_drive: use ``Re(Omega)`` only (the deprecated real-part drive).
 
     Returns:
         Complex ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
@@ -115,13 +131,36 @@ def solve_slice(
     n_v, n = det.shape[0], ops.num_states
 
     X = jnp.asarray(ops.X)
+    Y = jnp.asarray(ops.Y)
     H_static = jnp.asarray(ops.H0)[None] - 2.0 * jnp.pi * jnp.einsum(
         "vk,kij->vij", det * jnp.asarray(ops.detuning_sign), jnp.asarray(ops.N)
     )
+    if b_field is not None:
+        H_static = H_static + (
+            2.0 * jnp.pi * (b_field - ops.b_field) * jnp.asarray(ops.Z)
+        )
     eye = jnp.eye(n)
 
+    if decay_rates is not None and ops.decays is None:
+        if np.size(decay_rates):
+            raise ValueError("decay_rates was given but the system has no decays.")
+        decay_rates = None
     sparse = ops.sparse
-    if sparse is not None:
+    if decay_rates is None and ops.decays is not None and sparse is not None:
+        decay_rates = ops.decays.rates  # one code path for the decays
+    use_sparse = decay_rates is not None or sparse is not None
+    if decay_rates is not None:
+        ch = ops.decays
+        rates = jnp.asarray(decay_rates, dtype=jnp.float64)
+        if rates.shape != ch.rates.shape:
+            raise ValueError(
+                f"decay_rates must have shape {ch.rates.shape} (one per entry of "
+                f"system.decays), got {rates.shape}."
+            )
+        a, b = jnp.asarray(ch.a), jnp.asarray(ch.b)
+        w = 2.0 * jnp.pi * rates[jnp.asarray(ch.idx)] * jnp.asarray(ch.f2)
+        r = jax.ops.segment_sum(w, b, num_segments=n)
+    elif sparse is not None:
         a, b = jnp.asarray(sparse.a), jnp.asarray(sparse.b)
         w, r = jnp.asarray(sparse.w), jnp.asarray(sparse.r)
     elif len(ops.c_ops):
@@ -133,10 +172,16 @@ def solve_slice(
     def rhs(t, y, args):
         rabi_fn, scale, H_s = args
         A, B = y[0], y[1]
-        H = H_s + jnp.pi * jnp.einsum("k,kij->ij", rabi_fn(t), X)[None]
+        drive = rabi_fn(t)
+        H = H_s + jnp.pi * jnp.einsum("k,kij->ij", jnp.real(drive), X)[None]
         dA = H @ B - B @ H
         dB = A @ H - H @ A
-        if sparse is not None:
+        if not real_drive:
+            # H = H_re + i H_im with H_im = pi Im(Omega) Y antisymmetric
+            Hi = jnp.pi * jnp.einsum("k,kij->ij", jnp.imag(drive), Y)[None]
+            dA = dA + Hi @ A - A @ Hi
+            dB = dB + Hi @ B - B @ Hi
+        if use_sparse:
             zero = jnp.zeros((n_v, n))
             gain_a = zero.at[:, a].add(scale * w * A[:, b, b])
             gain_b = zero.at[:, a].add(scale * w * B[:, b, b])

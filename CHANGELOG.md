@@ -9,6 +9,50 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.autodiff`: `decay_rates`, a differentiable parameter of `AutodiffPropagation`, the cyclic `rate` of each entry of the
+  system's `decays` (spontaneous decay, ground-state decoherence, or pure dephasing through an `[a, a]` channel), so decoherence
+  rates can be fitted or designed with exact gradients. The effective rate is `decay_scale * decay_rates[i]`; the gradient is
+  defined at a rate of zero. `default_params()` returns the problem's rates (an empty array for a system without decays).
+  Rates must be non-negative (a concrete negative value raises; a negative rate is gain), so map an unconstrained variable with
+  `controls.bounded` when optimising. One transmitted field constrains only a combination of rates, so several of them are not
+  separately identifiable from it.
+- `clerq.autodiff.controls`: `gaussian_basis`, `fit_coefficients`, `bounded` and `unbounded`, for parametrising a free-form
+  control (a row of `omega0`) with a few smooth functions and a bounded amplitude. A control with one free value per time sample
+  lets the optimiser exploit the time grid (near-Nyquist waveforms and efficiencies no physical field could reach).
+- Tests that a hyperfine Rb87 system (11 Zeeman sublevels, Clebsch-Gordan factors) runs through `clerq.autodiff`, matches
+  `solve()` and has correct gradients.
+- `clerq.macro`, conversions from experimental units to clerq's (MHz, µs, cm): `saturation_intensity`, `intensity_to_rabi_freq`,
+  `rabi_freq_to_intensity`, `gaussian_beam_peak_intensity`, `interaction_strength`, `resonant_optical_depth` and
+  `thermal_width`. See the new usage page "Converting from Experimental Units".
+- `clerq.plot.field_spacetime` accepts a sequence of field indices (e.g. `field_idx=[0, 1]`) and stacks the fields in one
+  figure, one row each with its own colorbar and label; `colorscale` may then be a list, one per field.
+- `clerq.plot.field_z_profile_anim` takes a sequence of `field_idx` to overlay several fields in one animation, and
+  `show_z_bounds=(z0, z1)` to shade the medium.
+- DC magnetic field (Zeeman shift). A `System` (JSON key `b_field` on the system) takes `{"magnitude": B, "units":
+  "natural" | "gauss", "g_F": [...], "m_F": [...]}`, a scalar field along the quantisation axis that adds
+  `g_F * m_F * B` to each level's energy (`H_0 += 2 pi g_F m_F B`). Natural units are `mu_B B / h` in the unit of
+  `energies`; `"gauss"` assumes energies in MHz. The sign convention is Steck's (`E = +g_F m_F mu_B B`; Rb87 5S1/2
+  F=2 has `g_F = +1/2`). Without a `b_field` block, or with `magnitude` 0, nothing changes. In
+  `clerq.hyperfine`, `LevelF` takes `g_F`, or `g_J`/`L` and `g_I` to compute it, and `Atom1e.get_zeeman_levels()`
+  returns the `g_F` and `m_F` lists for `b_field`; `lande_g_J`, `lande_g_F` and `gauss_to_natural` are new helpers.
+  Transverse fields, an arbitrary quantisation axis and the Breit-Rabi regime are not included. `clerq.autodiff`
+  picks the shift up from `H_0`, and `b_field` is a new differentiable parameter of `AutodiffPropagation`. See the
+  usage page `b-field`.
+- Documentation for the stability checks: a usage page, "Numerical Stability and Step Sizes", a troubleshooting section, and
+  the `PropagationInstabilityError` and `CounterPropagatingDepletionError` exceptions in the API reference.
+- Time-grid checks in `PropagationSolver.solve()` (with `check_stability`). It warns if the fields or summed coherences
+  are not resolved by `t_steps` (the error of rebuilding them from every other time sample, from a cubic spline like
+  QuTiP's, is above `t_step_error_warn`; the suggested `t_steps` uses the convergence order measured between strides
+  2 and 4, kept in `solver.t_step_error_estimate`), and if a field is still changing near the edge of the time window
+  by more than `window_edge_warn` of its peak, so a pulse or its ringing is probably cut off
+  (`solver.window_edge_estimate`). `suggest_t_steps()` estimates a grid before solving, from the input bandwidth, Rabi
+  frequencies, detunings and Doppler width.
+- Numerical-stability checks in `PropagationSolver.solve()`. A blow-up (non-finite field, peak field more than
+  `blowup_factor` times its input, or a failed master-equation integration) now stops the run with
+  `PropagationInstabilityError`, giving the z reached and a suggested `z_steps_inner`. The Euler/Adams-Bashforth
+  difference gives a free estimate of the error per z-step (`solver.step_error_estimate`); `solve()` warns when it
+  exceeds `step_error_warn`. `check_stability=False` turns this off. `z_steps_inner="auto"` repeats the solve with more
+  inner steps until the estimate is within tolerance.
 - Automatic differentiation of field propagation (optional, experimental). `PropagationSolver.to_autodiff()` returns
   a pure, `jit`-able function of a parameter pytree (pulse parameters, `rabi_freq`, interaction strengths,
   detunings, decay scale, or sampled input fields) that reproduces `solve()`, with exact gradients of any scalar loss
@@ -23,7 +67,37 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - `AutodiffPropagation.minimize()` runs an optax optimiser (Adam by default, or any `optax` transformation) on a loss of
   the propagated field and returns an `OptimizeResult`. `optax` is now part of the `jax` extra.
 
+- `PropagationSolver.rabi_freqs_zt`: the solved field as a *cyclic* Rabi frequency, the same unit as `rabi_freq` in the
+  problem definition. Shape `(num_fields, z_steps+1, t_steps+1)`.
+
+### Changed
+- `AutodiffPropagation.propagate()` (and so the argument of every loss function) returns the field as a cyclic Rabi
+  frequency in the units of `rabi_freq` and `omega0`, equal to `PropagationSolver.rabi_freqs_zt`. Previously it was
+  angular, so `propagate()` output could not be passed straight back as `omega0`. This feature is unreleased, so
+  nothing outside this branch is affected.
+
+### Deprecated
+- `PropagationSolver(real_drive=True)`, the old drive that put only `Re(Omega)` into the Hamiltonian (see Fixed). It is kept
+  so old results can be reproduced and raises a `DeprecationWarning`; `clerq.autodiff` follows the solver's setting.
+- `PropagationSolver.Omegas_zt` (the field as an *angular* frequency, which needed `/ (2 * np.pi)` to compare with
+  `rabi_freq`) is deprecated in favour of `rabi_freqs_zt`. It still works and raises a `DeprecationWarning`. The
+  arrays returned by `solve()`, and what `fields_area()` and the `clerq.spectral`, `clerq.fixed`, `clerq.fileio` and
+  `clerq.plot` helpers compute from them, are unchanged and still angular.
+
 ### Fixed
+- **Detuned fields now use the full complex envelope.** `PropagationSolver` (QuTiP) and `clerq.autodiff` drove the
+  Hamiltonian with `Re(Omega)` only, `H = pi Re(Omega) (sigma_ab + sigma_ba)`. That is exact for resonant fields and for
+  real fields on a symmetric, equally weighted class grid with zero static detunings, but wrong for a single detuned
+  field, a two-photon offset or an asymmetric class grid: the field acquires a phase, and the transmission of a weak probe
+  through a two-level medium (optical depth 6, decay rate 2) at half-width detunings 0.5, 1, 2 was 0.214, 0.652, 1.115
+  (above 1) instead of the Lorentzian `exp(-OD / (1 + d^2))` = 0.0083, 0.0498, 0.301. Each coupled pair now has
+  `H_ab = pi f Omega` and `H_ba = pi f conj(Omega)`, with `Omega` the cyclic field. Results for resonant problems with
+  real fields on a symmetric class grid are unchanged to better than 1e-10 (tested); results for detuned problems change.
+  Pass `real_drive=True` to reproduce the old numbers. The QuTiP drive now has two interpolated terms per field (the
+  real and imaginary parts), so `system.H_Omega_list` has twice as many entries.
+- `PropagationSolver` with `z_steps_inner="auto"` and a `savefile` now caches: the problem definition keeps `"auto"`, and
+  the resolved step count is stored in and restored from the savefile, so a later run loads the result instead of
+  re-solving.
 - Calling `PropagationSolver.solve()` more than once on the same object gave different answers (for example transmitted
   energy fractions of 0.96848, 0.95962, 0.95950, ... for a sech pulse), and editing a field's `rabi_freq_t_args`
   between solves was not picked up correctly. The z-stepping replaced `system.H_Omega_list` with the last slice's

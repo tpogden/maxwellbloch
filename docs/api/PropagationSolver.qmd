@@ -19,6 +19,7 @@ PropagationSolver(
     velocity_classes=None,
     *,
     atom=None,
+    real_drive=False,
 )
 ```
 
@@ -30,24 +31,31 @@ each step (once per velocity class if the medium is Doppler broadened).
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name                  | Type                  | Description                                                                                                                                                                                                                                                                                     | Default     |
-|-----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| system                | dict \| None          | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.                                                                                                                                                                                       | `None`      |
-| t_min                 | float                 | Start time of the simulation.                                                                                                                                                                                                                                                                   | `0.0`       |
-| t_max                 | float                 | End time of the simulation.                                                                                                                                                                                                                                                                     | `1.0`       |
-| t_steps               | int                   | Number of time steps.                                                                                                                                                                                                                                                                           | `100`       |
-| method                | str                   | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                                                                                                                                                                                           | `'mesolve'` |
-| opts                  | dict \| None          | Dict of QuTiP solver options.                                                                                                                                                                                                                                                                   | `None`      |
-| savefile              | str \| None           | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching.                                                                                                                                                                          | `None`      |
-| z_min                 | float                 | The front of the medium.                                                                                                                                                                                                                                                                        | `0.0`       |
-| z_max                 | float                 | The back of the medium.                                                                                                                                                                                                                                                                         | `1.0`       |
-| z_steps               | int                   | Number of space steps at which the solution is recorded.                                                                                                                                                                                                                                        | `10`        |
-| z_steps_inner         | int                   | Number of finite-difference steps made within each space step.                                                                                                                                                                                                                                  | `2`         |
-| num_density_z_func    | str \| None           | Name of a function in ``clerq.t_funcs`` giving the number density profile over z. Square by default.                                                                                                                                                                                            | `None`      |
-| num_density_z_args    | dict \| None          | Dict of arguments for ``num_density_z_func``.                                                                                                                                                                                                                                                   | `None`      |
-| interaction_strengths | list\[float\] \| None | Interaction strength of each field with the medium, one for each field.                                                                                                                                                                                                                         | `None`      |
-| velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening. ``thermal_width`` and the ``thermal_delta_*`` values are cyclic frequencies, in the same units as ``decays`` rates and ``rabi_freq``. The weights are Gaussian, ``exp(-(delta / thermal_width)**2)``. | `None`      |
-| atom                  | dict \| None          | Deprecated name for ``system``.                                                                                                                                                                                                                                                                 | `None`      |
+| Name                  | Type                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                      | Default     |
+|-----------------------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| system                | dict \| None          | Dict (or empty dict for defaults) describing the quantum system; passed to :class:`~clerq.system.System`.                                                                                                                                                                                                                                                                                                                                        | `None`      |
+| t_min                 | float                 | Start time of the simulation.                                                                                                                                                                                                                                                                                                                                                                                                                    | `0.0`       |
+| t_max                 | float                 | End time of the simulation.                                                                                                                                                                                                                                                                                                                                                                                                                      | `1.0`       |
+| t_steps               | int                   | Number of time steps.                                                                                                                                                                                                                                                                                                                                                                                                                            | `100`       |
+| method                | str                   | Solver method — ``'mesolve'`` (Lindblad master equation) is the only supported value.                                                                                                                                                                                                                                                                                                                                                            | `'mesolve'` |
+| opts                  | dict \| None          | Dict of QuTiP solver options.                                                                                                                                                                                                                                                                                                                                                                                                                    | `None`      |
+| savefile              | str \| None           | Path prefix for caching solved results (``'.qu'`` extension appended automatically). Pass ``None`` to disable caching.                                                                                                                                                                                                                                                                                                                           | `None`      |
+| z_min                 | float                 | The front of the medium.                                                                                                                                                                                                                                                                                                                                                                                                                         | `0.0`       |
+| z_max                 | float                 | The back of the medium.                                                                                                                                                                                                                                                                                                                                                                                                                          | `1.0`       |
+| z_steps               | int                   | Number of space steps at which the solution is recorded.                                                                                                                                                                                                                                                                                                                                                                                         | `10`        |
+| z_steps_inner         | int \| str            | Number of finite-difference steps made within each space step. Pass ``"auto"`` to start from 2 and let ``solve()`` raise it until the estimated step error is below ``step_error_warn`` (see :meth:`solve`).                                                                                                                                                                                                                                     | `2`         |
+| num_density_z_func    | str \| None           | Name of a function in ``clerq.t_funcs`` giving the number density profile over z. Square by default.                                                                                                                                                                                                                                                                                                                                             | `None`      |
+| num_density_z_args    | dict \| None          | Dict of arguments for ``num_density_z_func``.                                                                                                                                                                                                                                                                                                                                                                                                    | `None`      |
+| interaction_strengths | list\[float\] \| None | Interaction strength of each field with the medium, one for each field.                                                                                                                                                                                                                                                                                                                                                                          | `None`      |
+| velocity_classes      | dict \| None          | Dict defining the velocity classes for Doppler broadening, or ``None`` for no broadening. ``thermal_width`` and the ``thermal_delta_*`` values are cyclic frequencies, in the same units as ``decays`` rates and ``rabi_freq``. The weights are Gaussian, ``exp(-(delta / thermal_width)**2)``.                                                                                                                                                  | `None`      |
+| atom                  | dict \| None          | Deprecated name for ``system``.                                                                                                                                                                                                                                                                                                                                                                                                                  | `None`      |
+| real_drive            | bool                  | Deprecated. Drive the Hamiltonian with ``Re(Omega)`` only, the behaviour before the complex-envelope drive. That is exact for resonant problems with real fields and a symmetric, equally weighted velocity-class grid, but wrong for a single detuned field (for example a two-level medium, optical depth 6, half-width detuning 2: transmission 1.1 instead of 0.30). The default drives the coupled pair with ``Omega`` and ``conj(Omega)``. | `False`     |
+
+## Attributes
+
+| Name | Description |
+| --- | --- |
+| [rabi_freqs_zt](#clerq.PropagationSolver.rabi_freqs_zt) | The solved complex Rabi frequency of each field, as a cyclic frequency. |
 
 ## Methods
 
@@ -70,6 +78,7 @@ each step (once per velocity class if the medium is Doppler broadened).
 | [populations_field](#clerq.PropagationSolver.populations_field) | Gets the sum of populations for the upper (excited) level coupled by |
 | [save_results](#clerq.PropagationSolver.save_results) | Saves the solution to a QuTiP pickle file. |
 | [solve](#clerq.PropagationSolver.solve) | Solves the propagation of the fields through the medium. |
+| [suggest_t_steps](#clerq.PropagationSolver.suggest_t_steps) | Estimate the ``t_steps`` needed to resolve the problem's frequencies. |
 | [to_autodiff](#clerq.PropagationSolver.to_autodiff) | Return a differentiable version of this problem. |
 | [z_step](#clerq.PropagationSolver.z_step) | Returns the distance from one space point to the next. |
 | [z_step_inner](#clerq.PropagationSolver.z_step_inner) | Returns the distance from one inner space point to the next. |
@@ -201,7 +210,10 @@ PropagationSolver.init_Omegas_zt()
 
 Inits the Rabi frequency array.
 
-Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
+_Omegas_zt is the internal angular-frequency field array;
+``rabi_freqs_zt`` is its public cyclic view.
+
+_Omegas_zt shape: (num_fields, z_steps+1, t_steps+1) — field-first.
 states_zt shape: (z_steps+1, t_steps+1, num_states, num_states) — z-first.
 These are inconsistent; correcting either is a breaking API change,
 deferred to a future major version.
@@ -224,9 +236,9 @@ Loads the solution from a QuTiP pickle file.
 
 #### Raises {.doc-section .doc-section-raises}
 
-| Name   | Type       | Description                                                                                                                                                                   |
-|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1. |
+| Name   | Type       | Description                                                                                                                                                                                                                                                                                                                                                                          |
+|--------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | ValueError | if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1, or was solved with the other drive convention (savefiles without a drive marker used ``Re(Omega)``) for a problem where the two differ (static detunings, level energies or an asymmetric class grid). |
 
 #### Notes {.doc-section .doc-section-notes}
 
@@ -330,6 +342,13 @@ PropagationSolver.solve(
     check_counter_prop_depletion=True,
     depletion_warn=0.01,
     depletion_error=0.1,
+    check_stability=True,
+    blowup_factor=1000.0,
+    step_error_warn=0.1,
+    max_z_steps_inner=512,
+    t_step_error_warn=0.1,
+    window_edge_warn=0.2,
+    window_edge_frac=0.05,
 )
 ```
 
@@ -337,23 +356,64 @@ Solves the propagation of the fields through the medium.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name                         | Type   | Description                                                                                                         | Default   |
-|------------------------------|--------|---------------------------------------------------------------------------------------------------------------------|-----------|
-| step                         | str    | 'euler (for Euler method) or 'ab' (for Adams-Bashforth)                                                             | `'ab'`    |
-| rho0                         | Qobj   | the initial density matrix state                                                                                    | `None`    |
-| recalc                       | bool   | Recalculate the solution even if a savefile exists?                                                                 | `True`    |
-| progress                     | bool   | Show a tqdm progress bar with elapsed time, ETA and current max field amplitude.                                    | `True`    |
-| progress_show_area           | bool   | Extend the progress bar with the pulse area ∫\|Ω\|dt for each field at the current z-step.  Requires progress=True. | `False`   |
-| check_counter_prop_depletion | bool   | Run a post-solve depletion check on any counter-propagating fields. Set False to suppress.                          | `True`    |
-| depletion_warn               | float  | Depletion fraction that triggers a UserWarning.                                                                     | `0.01`    |
-| depletion_error              | float  | Depletion fraction that raises CounterPropagatingDepletionError.                                                    | `0.1`     |
+| Name                         | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                | Default   |
+|------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| step                         | str    | 'euler (for Euler method) or 'ab' (for Adams-Bashforth)                                                                                                                                                                                                                                                                                                                                                                                    | `'ab'`    |
+| rho0                         | Qobj   | the initial density matrix state                                                                                                                                                                                                                                                                                                                                                                                                           | `None`    |
+| recalc                       | bool   | Recalculate the solution even if a savefile exists?                                                                                                                                                                                                                                                                                                                                                                                        | `True`    |
+| progress                     | bool   | Show a tqdm progress bar with elapsed time, ETA and current max field amplitude.                                                                                                                                                                                                                                                                                                                                                           | `True`    |
+| progress_show_area           | bool   | Extend the progress bar with the pulse area ∫\|Ω\|dt for each field at the current z-step.  Requires progress=True.                                                                                                                                                                                                                                                                                                                        | `False`   |
+| check_counter_prop_depletion | bool   | Run a post-solve depletion check on any counter-propagating fields. Set False to suppress.                                                                                                                                                                                                                                                                                                                                                 | `True`    |
+| depletion_warn               | float  | Depletion fraction that triggers a UserWarning.                                                                                                                                                                                                                                                                                                                                                                                            | `0.01`    |
+| depletion_error              | float  | Depletion fraction that raises CounterPropagatingDepletionError.                                                                                                                                                                                                                                                                                                                                                                           | `0.1`     |
+| check_stability              | bool   | Stop with :class:`PropagationInstabilityError` as soon as the solution blows up (non-finite field, field larger than ``blowup_factor`` times its initial peak, or a failed master-equation integration), and warn if the z-step looks too coarse. Set False to suppress.                                                                                                                                                                   | `True`    |
+| blowup_factor                | float  | Growth of the peak field, relative to its peak at ``z_min``, treated as a blow-up. Raise it for media with genuine gain.                                                                                                                                                                                                                                                                                                                   | `1000.0`  |
+| step_error_warn              | float  | Estimated accumulated relative error (from the differences of dOmega/dz between z-steps, relative to the peak field) above which a UserWarning is issued suggesting a larger ``z_steps_inner``. The largest value seen is kept in ``self.step_error_estimate``. With ``z_steps_inner="auto"`` this is also the tolerance: the solve is repeated with more inner steps until the estimate is below it, or ``max_z_steps_inner`` is reached. | `0.1`     |
+| max_z_steps_inner            | int    | Upper limit for ``z_steps_inner="auto"``.                                                                                                                                                                                                                                                                                                                                                                                                  | `512`     |
+| t_step_error_warn            | float  | With ``check_stability``, warn if the time grid is too coarse to represent the fields and coherences: the relative error (to the peak) of interpolating them from every other time sample, ``self.t_step_error_estimate``, exceeds this. The error of the full grid is smaller, by about a factor of 16 once the grid resolves the signal (a cubic spline), and by less on a coarser grid.                                                 | `0.1`     |
+| window_edge_warn             | float  | With ``check_stability``, warn if a field is still changing near the edge of the time window (the first or last 5% of it) by more than this fraction of its peak, so that a pulse or its ringing is probably cut off. Kept in ``self.window_edge_estimate``.                                                                                                                                                                               | `0.2`     |
+| window_edge_frac             | float  | Fraction of the time window at each end that ``window_edge_warn`` looks at. Reduce it if the window deliberately starts or ends in the middle of a pulse.                                                                                                                                                                                                                                                                                  | `0.05`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                                                                  |
-|--------|------------|----------------------------------------------------------------------------------------------|
-|        | np.ndarray | self.Omegas_zt: The solved field complex Rabi frequency at each point in space z and time t. |
-|        | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.               |
+| Name      | Type       | Description                                                                                                                                  |
+|-----------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| Omegas_zt | np.ndarray | The solved field complex Rabi frequency at each point in space z and time t, as an *angular* frequency (``rabi_freqs_zt`` times ``2 * pi``). |
+|           | np.ndarray | self.states_zt: The solved density matrix at each point in space z and time t.                                                               |
+
+### suggest_t_steps { #clerq.PropagationSolver.suggest_t_steps }
+
+```python
+PropagationSolver.suggest_t_steps(
+    points_per_period=10.0,
+    bandwidth_fraction=0.99,
+)
+```
+
+Estimate the ``t_steps`` needed to resolve the problem's frequencies.
+
+Finds the largest frequency scale (cyclic, in the units of the problem)
+and returns enough steps over ``[t_min, t_max]`` for
+``points_per_period`` samples per period of it. The scales are the
+bandwidth of the input fields (``bandwidth_fraction`` of their power), their peak Rabi
+frequencies combined with the detunings and the Doppler width.
+
+This is an estimate from the input fields: the medium can add structure
+(sidebands, ringing), so check the solved result too; ``solve()`` warns
+if the grid turns out to be too coarse.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type   | Description                                                                                                                                                         | Default   |
+|--------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| points_per_period  | float  | Time samples per period of the fastest scale.                                                                                                                       | `10.0`    |
+| bandwidth_fraction | float  | Fraction of an input field's spectral power that its bandwidth must contain. Lower it for sharp-edged pulses, whose slowly decaying tails would otherwise dominate. | `0.99`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                      |
+|--------|--------|------------------------------------------------------------------|
+|        | int    | The suggested number of time steps; compare it with ``t_steps``. |
 
 ### to_autodiff { #clerq.PropagationSolver.to_autodiff }
 

@@ -28,6 +28,8 @@ _PARAM_KEYS = (
     "interaction_strengths",
     "detunings",
     "decay_scale",
+    "decay_rates",
+    "b_field",
     "omega0",
 )
 
@@ -142,16 +144,33 @@ class AutodiffPropagation:
         array ``(n_fields,)``, cyclic fixed detuning of each field.
     ``decay_scale``
         scalar multiplying every decay rate.
+    ``decay_rates``
+        array ``(n_decays,)``, the cyclic ``rate`` of each entry of the system's
+        ``decays`` (spontaneous decay, ground-state decoherence, or pure
+        dephasing through a ``[a, a]`` channel). The effective rate of a channel is
+        ``decay_scale * decay_rates[i]``. Differentiable at any value, including
+        zero, so a rate can be fitted or optimised from nothing. Rates must be
+        non-negative: a concrete negative value raises, but an optimiser can still
+        step below zero (a negative rate is gain, and the field runs away), so
+        optimise an unconstrained variable and map it, for example with
+        :func:`clerq.autodiff.controls.bounded`. Empty for a system without decays.
+    ``b_field``
+        scalar, the DC B-field in natural units (``mu_B B / h`` in the
+        frequency unit of the energies), so the Zeeman shift of the levels can
+        be differentiated: ``H_0 = H_base + 2 pi B Z``. Requires the system to
+        have a ``b_field`` block giving ``g_F`` and ``m_F`` (it is then in the
+        default parameters; without one it raises ``ValueError``).
     ``omega0``
         array ``(n_fields, n_t)``, the input field samples on ``tlist`` as a
         *cyclic* Rabi frequency, the same unit as ``rabi_freq``. If given, the
         first slice is driven by their cubic spline instead of the analytic
         pulse (and ``pulse_args`` / ``rabi_freq`` are unused).
 
-    All parameters are cyclic (like the problem definition). The propagated field
-    is returned in the layout **and units** of ``PropagationSolver.Omegas_zt``:
-    shape ``(n_fields, z_steps + 1, n_t)``, complex, *angular* frequency; divide
-    by ``2 * pi`` for the cyclic Rabi frequency.
+    All parameters are cyclic (like the problem definition), and so is the
+    propagated field. It is returned in the layout and units of
+    ``PropagationSolver.rabi_freqs_zt``: shape ``(n_fields, z_steps + 1, n_t)``,
+    complex, *cyclic* Rabi frequency, the same unit as ``rabi_freq`` and
+    ``omega0``.
 
     Attributes:
         GRAD_CACHE_SIZE: how many compiled ``value_and_grad`` programs (one per
@@ -248,15 +267,24 @@ class AutodiffPropagation:
         """The parameters of the problem this object was built from.
 
         Every value is a float, whatever literal the problem definition used.
+        ``b_field`` is included only if the system has a ``b_field`` block.
         """
         s = self.setup
-        return {
+        params = {
             "pulse_args": [{k: float(v) for k, v in a.items()} for _, a, _ in s.pulses],
             "rabi_freq": np.array([r for _, _, r in s.pulses], dtype=float),
             "interaction_strengths": np.asarray(s.g, dtype=float) / TWO_PI,
             "detunings": np.asarray(s.ops.detunings, dtype=float).copy(),
             "decay_scale": 1.0,
+            "decay_rates": (
+                np.asarray(s.ops.decays.rates, dtype=float).copy()
+                if s.ops.decays is not None
+                else np.zeros(0)
+            ),
         }
+        if s.ops.has_b_field:
+            params["b_field"] = float(s.ops.b_field)
+        return params
 
     def _differentiable_default_params(self) -> dict:
         """``default_params()`` without the arguments that cannot be differentiated.
@@ -300,7 +328,30 @@ class AutodiffPropagation:
             raise ValueError(
                 f"Unknown parameter(s) {sorted(unknown)}; valid: {list(_PARAM_KEYS)}."
             )
+        if "b_field" in params and not self.setup.ops.has_b_field:
+            raise ValueError(
+                "b_field was given but the system has no b_field block, so it "
+                "would have no effect; add a b_field block (with g_F and m_F)."
+            )
         n_f, n_t = self.num_fields, len(self.setup.tlist)
+        if "decay_rates" in params:
+            n_d = (
+                0 if self.setup.ops.decays is None else len(self.setup.ops.decays.rates)
+            )
+            if np.shape(params["decay_rates"]) != (n_d,):
+                raise ValueError(
+                    f"decay_rates must have shape ({n_d},) (one per entry of the "
+                    f"system's decays), got {np.shape(params['decay_rates'])}."
+                )
+            try:
+                negative = bool(np.any(np.asarray(params["decay_rates"]) < 0))
+            except jax.errors.TracerArrayConversionError:  # traced: cannot check
+                negative = False
+            if negative:
+                raise ValueError(
+                    "decay_rates must be non-negative (a negative rate is gain); "
+                    "map an unconstrained variable with clerq.autodiff.controls.bounded."
+                )
         for key in ("rabi_freq", "interaction_strengths", "detunings"):
             if key in params and np.shape(params[key]) != (n_f,):
                 raise ValueError(
@@ -332,10 +383,10 @@ class AutodiffPropagation:
                     strict=True,
                 )
             ]
-        # omega0 is cyclic like every other parameter; the engine works in angular
-        # units (the layout of Omegas_zt).
+        # Everything is cyclic at this interface; the engine works in angular units,
+        # so convert omega0 on the way in and the propagated field on the way out.
         omega0 = p.get("omega0")
-        return propagate_fields(
+        omegas = propagate_fields(
             self.setup,
             omega0=None if omega0 is None else TWO_PI * omega0,
             pulse_args=p["pulse_args"],
@@ -343,8 +394,11 @@ class AutodiffPropagation:
             g=p["interaction_strengths"],
             detunings=p["detunings"],
             decay_scale=p["decay_scale"],
+            decay_rates=p["decay_rates"],
+            b_field=p.get("b_field"),
             **{**self._options, **overrides},
         )
+        return omegas / TWO_PI
 
     def propagate(self, params: dict | None = None) -> Any:
         """Propagate the fields; a pure, jit-compiled function of ``params``.

@@ -234,7 +234,7 @@ Consequences:
 
 ## 14. Complex-drive reference: Doppler memory results are valid (2026-10-23)
 
-Built an independent NumPy/SciPy reference (`autodiff-research-refsolve.py`) that marches the same Maxwell-Bloch problem with either clerq's real-part drive
+Built an independent NumPy/SciPy reference (`tests/refsolve.py`) that marches the same Maxwell-Bloch problem with either clerq's real-part drive
 (`real_drive=True`) or a full RWA drive (Omega on one off-diagonal, Omega* on the other; `False`). The coupling constant is g_clerq = 2 pi * interaction_strength.
 - Validation: real-drive mode reproduces autodiff to 4 digits for a single detuned two-level class (T = 0.002522, 0.2141, 0.6516, 1.115 at probe detunings
   0, 0.5, 1, 2), and the complex-drive mode reproduces the Lorentzian exp(-OD/(1+d^2)) (here total excited decay is 2: T = 0.0025, 0.0083, 0.0498, 0.300).
@@ -248,4 +248,4 @@ Built an independent NumPy/SciPy reference (`autodiff-research-refsolve.py`) tha
   or a complex input breaks it.
 - Consequence for the plan: single-detuned-probe spectra, asymmetric EIT (two-photon offset), dispersion and Paschen-Back multiplets are NOT available until clerq
   (QuTiP path and autodiff `_operators.py`/`_lindblad.py`) gets a complex-envelope drive. A symmetric resonant EIT/AT spectrum fit (FFT route) remains valid.
-Follow-up worth a PR: complex drive in clerq + autodiff, tested against `autodiff-research-refsolve.py`, plus a documentation warning about detuned fields.
+Follow-up worth a PR: complex drive in clerq + autodiff, tested against `tests/refsolve.py`, plus a documentation warning about detuned fields.

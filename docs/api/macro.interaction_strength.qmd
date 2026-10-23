@@ -1,0 +1,27 @@
+# macro.interaction_strength { #clerq.macro.interaction_strength }
+
+```python
+macro.interaction_strength(decay_rate, wavelength, factor=1.0)
+```
+
+Interaction strength per atom, ``g / 2 pi = sigma_0 gamma / 4``, with ``gamma = Gamma / 2 pi``.
+
+The propagation equation is ``dOmega/dz = 2 i N g rho``, so multiplying
+by the number density ``N`` (cm^-3) gives the clerq
+``interaction_strengths`` entry, in MHz/cm, for a density profile of
+amplitude 1 (the default). A weak resonant field is then absorbed at
+``N * factor * 3 lambda^2 / (2 pi)`` per cm in intensity.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type   | Description                                               | Default    |
+|------------|--------|-----------------------------------------------------------|------------|
+| decay_rate | float  | Natural linewidth ``Gamma / 2 pi``, in MHz.               | _required_ |
+| wavelength | float  | Transition wavelength, in nm.                             | _required_ |
+| factor     | float  | Dipole moment squared relative to the cycling transition. | `1.0`      |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description               |
+|--------|--------|---------------------------|
+|        | float  | ``g / 2 pi`` in MHz cm^2. |

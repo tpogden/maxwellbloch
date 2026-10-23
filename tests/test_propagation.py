@@ -55,12 +55,12 @@ class TestPropagationSolver(unittest.TestCase):
 
         mbs.solve(step="euler")
 
-        self.assertEqual(mbs.Omegas_zt.shape, (1, 5, 101))
+        self.assertEqual(mbs._Omegas_zt.shape, (1, 5, 101))
 
         # Check that the field at the end of the medium matches the field
         # at the start of the medium.
         self.assertTrue(
-            np.allclose(mbs.Omegas_zt[:, 0, :], mbs.Omegas_zt[:, -1, :], rtol=1.0e-6)
+            np.allclose(mbs._Omegas_zt[:, 0, :], mbs._Omegas_zt[:, -1, :], rtol=1.0e-6)
         )
 
     def test_no_atoms_ab(self):
@@ -75,7 +75,7 @@ class TestPropagationSolver(unittest.TestCase):
         # Check that the field at the end of the medium matches the field
         # at the start of the medium.
         self.assertTrue(
-            np.allclose(mbs.Omegas_zt[:, 0, :], mbs.Omegas_zt[:, -1, :], rtol=1.0e-6)
+            np.allclose(mbs._Omegas_zt[:, 0, :], mbs._Omegas_zt[:, -1, :], rtol=1.0e-6)
         )
 
     def test_no_decays(self):
@@ -334,12 +334,12 @@ class TestSaveLoad(unittest.TestCase):
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
             mb_solve_01.save_results()
 
-            mb_solve_01.Omegas_zt = None
+            mb_solve_01._Omegas_zt = None
             mb_solve_01.states_zt = None
 
             mb_solve_01.load_results()
 
-        Omegas_zt_loaded = mb_solve_01.Omegas_zt
+        Omegas_zt_loaded = mb_solve_01._Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
@@ -357,12 +357,12 @@ class TestSaveLoad(unittest.TestCase):
             mb_solve_01.savefile = os.path.join(tmpdir, "result")
             mb_solve_01.save_results()
 
-            mb_solve_01.Omegas_zt = None
+            mb_solve_01._Omegas_zt = None
             mb_solve_01.states_zt = None
 
             Omegas_zt, states_zt = mb_solve_01.solve(recalc=False)
 
-        Omegas_zt_loaded = mb_solve_01.Omegas_zt
+        Omegas_zt_loaded = mb_solve_01._Omegas_zt
         states_zt_loaded = mb_solve_01.states_zt
 
         self.assertTrue((Omegas_zt == Omegas_zt_loaded).all())
@@ -447,9 +447,9 @@ class TestSaveLoad(unittest.TestCase):
             savefile = os.path.join(tmpdir, "result")
             mbs.savefile = savefile
             # Write old-format 2-tuple directly.
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt), savefile)
 
-            mbs.Omegas_zt = None
+            mbs._Omegas_zt = None
             mbs.states_zt = None
 
             with warnings.catch_warnings(record=True) as caught:
@@ -457,7 +457,7 @@ class TestSaveLoad(unittest.TestCase):
                 mbs.load_results()
 
         self.assertTrue(any("no integrity metadata" in str(w.message) for w in caught))
-        self.assertIsNotNone(mbs.Omegas_zt)
+        self.assertIsNotNone(mbs._Omegas_zt)
 
 
 class TestBuildZlist(unittest.TestCase):
@@ -494,26 +494,47 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
     """Unit tests for PropagationSolver._build_intp_H_Omega_list."""
 
     def test_one_field_structure(self):
-        """Returns a list of [Qobj, Coefficient] pairs, one per field."""
+        """Returns [Qobj, Coefficient] pairs: a real field needs no Im term."""
         import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
         mbs = PropagationSolver().from_json(json_path)
-        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
         self.assertEqual(len(result), 1)
-        H_op, coeff = result[0]
         from qutip.core.cy.coefficient import Coefficient
 
-        self.assertIsInstance(H_op, qu.Qobj)
-        self.assertIsInstance(coeff, Coefficient)
+        for H_op, coeff in result:
+            self.assertIsInstance(H_op, qu.Qobj)
+            self.assertIsInstance(coeff, Coefficient)
+
+    def test_complex_field_adds_an_imaginary_term(self):
+        """A field with an imaginary part gets a second term; a real one does not."""
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = PropagationSolver.from_json(json_path)
+        Omegas_z = mbs._Omegas_zt[:, 0, :] * (1 + 0.5j)
+        result = mbs._build_intp_H_Omega_list(Omegas_z)
+        self.assertEqual(len(result), 2)
+        _, coeff_im = result[1]
+        k = len(mbs.tlist) // 2
+        self.assertAlmostEqual(
+            coeff_im(mbs.tlist[k]), Omegas_z[0, k].imag / (2 * np.pi), places=10
+        )
+
+    def test_real_drive_has_one_term_per_field(self):
+        """The deprecated real_drive=True keeps one Re(Omega) term per field."""
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = PropagationSolver.from_json(json_path)
+        mbs.real_drive = True
+        result = mbs._build_intp_H_Omega_list(mbs._Omegas_zt[:, 0, :])
+        self.assertEqual(len(result), 1)
 
     def test_two_fields_length(self):
-        """Returns one pair per field."""
+        """Returns one pair per field for real fields."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
         mbs = PropagationSolver().from_json(json_path)
-        Omegas_z = mbs.Omegas_zt[:, 0, :]
+        Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
         self.assertEqual(len(result), 2)
@@ -524,7 +545,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
         mbs = PropagationSolver().from_json(json_path)
         # Use a non-trivial field profile
         mbs.solve()
-        Omegas_z = mbs.Omegas_zt[:, -1, :]
+        Omegas_z = mbs._Omegas_zt[:, -1, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
         _H_op, coeff = result[0]
         # Check a few time points
@@ -749,7 +770,7 @@ class TestInnerSteps(unittest.TestCase):
                 fine = self._solve(step, 2 * self.N, 1)
                 np.testing.assert_allclose(coarse.zlist, fine.zlist[::2])
                 np.testing.assert_allclose(
-                    coarse.Omegas_zt, fine.Omegas_zt[:, ::2, :], rtol=0, atol=1e-10
+                    coarse._Omegas_zt, fine._Omegas_zt[:, ::2, :], rtol=0, atol=1e-10
                 )
                 np.testing.assert_allclose(
                     coarse.states_zt, fine.states_zt[::2], rtol=0, atol=1e-10
@@ -904,7 +925,7 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
             interaction_strengths=[self.G],
         )
         mbs.solve(step=step)
-        Omegas = mbs.Omegas_zt[0]
+        Omegas = mbs._Omegas_zt[0]
         ratio = (Omegas[-1, -1] / Omegas[0, -1]).real
         expected = np.exp(-2 * self.N * self.G * self.L * np.sum(factors**2) / n_g)
         return ratio, expected, factors
@@ -965,7 +986,7 @@ class TestMultiTransitionFieldSource(unittest.TestCase):
                 mbs.solve(step="ab")
 
                 energy_zt = np.trapezoid(
-                    np.abs(mbs.Omegas_zt[0]) ** 2, mbs.tlist, axis=1
+                    np.abs(mbs._Omegas_zt[0]) ** 2, mbs.tlist, axis=1
                 )
                 lost = energy_zt[0] - energy_zt[-1]
                 P_e = np.real(
@@ -1006,11 +1027,11 @@ class TestSourceWeightsSavefile(unittest.TestCase):
 
         mbs.solve()
         if legacy:
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt), savefile)
         else:
             meta = mbs._savefile_metadata()
             del meta["source_weights"]  # as written before the weights changed
-            qu.qsave((mbs.Omegas_zt, mbs.states_zt, meta), savefile)
+            qu.qsave((mbs._Omegas_zt, mbs.states_zt, meta), savefile)
 
     def test_current_savefile_loads(self):
         import tempfile
@@ -1059,3 +1080,152 @@ class TestSourceWeightsSavefile(unittest.TestCase):
             mbs = self._solver(system, savefile)
             self._write_old_savefile(mbs, savefile, legacy=False)
             mbs.load_results()
+
+
+class TestRabiFreqsZt(unittest.TestCase):
+    """rabi_freqs_zt is the public cyclic view of the internal angular field."""
+
+    def _solver(self):
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.solve(recalc=True, progress=False)
+        return mbs
+
+    def test_cyclic_view_of_angular_field(self):
+        mbs = self._solver()
+        np.testing.assert_allclose(mbs.rabi_freqs_zt, mbs._Omegas_zt / (2 * np.pi))
+
+    def test_input_slice_is_the_problem_rabi_freq(self):
+        mbs = self._solver()
+        f = mbs.system.fields[0]
+        expected = f.rabi_freq * f.rabi_freq_t_func(mbs.tlist, f.rabi_freq_t_args)
+        np.testing.assert_allclose(mbs.rabi_freqs_zt[0, 0], expected)
+
+
+class TestDriveConvention(unittest.TestCase):
+    """The savefile and JSON record which drive (complex or Re(Omega)) was used."""
+
+    def _solver(self, savefile=None, detuning=0.0, real_drive=False, classes=None):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            return PropagationSolver(
+                system={
+                    "num_states": 2,
+                    "decays": [{"channels": [[0, 1]], "rate": 1.0}],
+                    "fields": [
+                        {
+                            "coupled_levels": [[0, 1]],
+                            "detuning": detuning,
+                            "rabi_freq": 1.0e-3,
+                            "rabi_freq_t_func": "gaussian",
+                            "rabi_freq_t_args": {
+                                "ampl": 1.0,
+                                "centre": 0.5,
+                                "fwhm": 0.3,
+                            },
+                        }
+                    ],
+                },
+                t_min=0.0,
+                t_max=1.0,
+                t_steps=20,
+                z_max=0.1,
+                z_steps=3,
+                z_steps_inner=1,
+                interaction_strengths=[1.0],
+                velocity_classes=classes,
+                savefile=savefile,
+                real_drive=real_drive,
+            )
+
+    def _write(self, mbs, savefile, drive):
+        import qutip as qu
+
+        mbs.solve(check_stability=False)
+        meta = mbs._savefile_metadata()
+        if drive is None:
+            del meta["drive"]  # as written before the marker existed
+        else:
+            meta["drive"] = drive
+        qu.qsave((mbs._Omegas_zt, mbs.states_zt, meta), savefile)
+
+    def test_json_round_trip_keeps_real_drive(self):
+        mbs = self._solver(real_drive=True)
+        self.assertTrue(mbs.get_json_dict()["real_drive"])
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            again = PropagationSolver.from_json_str(mbs.to_json_str())
+        self.assertTrue(again.real_drive)
+        self.assertEqual(again.to_json_str(), mbs.to_json_str())
+
+    def test_default_json_has_no_real_drive_key(self):
+        mbs = self._solver()
+        self.assertNotIn("real_drive", mbs.get_json_dict())
+        self.assertFalse(PropagationSolver.from_json_str(mbs.to_json_str()).real_drive)
+
+    def test_current_savefile_loads(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = os.path.join(tmpdir, "r")
+            mbs = self._solver(f, detuning=0.5)
+            mbs.solve(check_stability=False)
+            mbs.load_results()
+            self.assertEqual(mbs._savefile_metadata()["drive"], "complex")
+
+    def test_old_savefile_rejected_when_detuned(self):
+        import tempfile
+
+        for drive in (None, "real"):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                f = os.path.join(tmpdir, "r")
+                mbs = self._solver(f, detuning=0.5)
+                self._write(mbs, f, drive)
+                with self.assertRaisesRegex(ValueError, "drive"):
+                    mbs.load_results()
+
+    def test_old_savefile_rejected_for_asymmetric_classes(self):
+        import tempfile
+
+        classes = {
+            "thermal_delta_min": 0.0,
+            "thermal_delta_max": 2.0,
+            "thermal_delta_steps": 2,
+            "thermal_width": 1.0,
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = os.path.join(tmpdir, "r")
+            mbs = self._solver(f, classes=classes)
+            self._write(mbs, f, None)
+            with self.assertRaisesRegex(ValueError, "drive"):
+                mbs.load_results()
+
+    def test_old_resonant_symmetric_savefile_still_loads(self):
+        import tempfile
+
+        classes = {
+            "thermal_delta_min": -2.0,
+            "thermal_delta_max": 2.0,
+            "thermal_delta_steps": 4,
+            "thermal_width": 1.0,
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = os.path.join(tmpdir, "r")
+            mbs = self._solver(f, classes=classes)
+            self._write(mbs, f, None)
+            mbs.load_results()
+
+    def test_real_drive_savefile_rejected_by_complex_solver(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = os.path.join(tmpdir, "r")
+            old = self._solver(f, detuning=0.5, real_drive=True)
+            old.solve(check_stability=False)
+            self.assertEqual(old._savefile_metadata()["drive"], "real")
+            # same savefile, default drive: the hash (real_drive key) differs
+            with self.assertRaises(ValueError):
+                self._solver(f, detuning=0.5).load_results()
