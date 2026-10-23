@@ -1,6 +1,10 @@
 """Independent NumPy/SciPy reference for the propagation problem with an optional full complex (RWA) drive.
 real_drive=True reproduces the deprecated convention (only Re(Omega) enters H); False uses Omega on one
-off-diagonal and Omega* on the other, as clerq does by default."""
+off-diagonal and Omega* on the other, as clerq does by default.
+
+Limits: a square density on [0, 1] only (other ``num_density_z_func`` raise
+NotImplementedError), and no B-field problems (also NotImplementedError).
+"""
 
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -20,6 +24,10 @@ def reference(
     detunings=None,
     verbose=False,
 ):
+    if s._num_density_z_func_name not in (None, "square"):
+        raise NotImplementedError("refsolve only supports the default square density.")
+    if s.system.b_field is not None:
+        raise NotImplementedError("refsolve does not support B-field problems.")
     ops = build_operators(s.system)
     n = ops.num_states
     nf = len(ops.pairs)

@@ -2,8 +2,9 @@
 
 Reproduces ``PropagationSolver.solve`` (Adams-Bashforth by default, or Euler):
 
-* ``Omega`` is carried in angular units and is complex; only ``Re(Omega)`` drives
-  the Hamiltonian, as in clerq.
+* ``Omega`` is carried in angular units and is complex and drives the Hamiltonian
+  in full (``Omega`` on ``rho_ab``'s element, ``conj(Omega)`` on the transpose), as
+  in ``PropagationSolver``; only the deprecated ``real_drive=True`` uses ``Re(Omega)``.
 * The first inner step is driven by the analytic input pulse (clerq builds the
   Hamiltonian from the ``rabi_freq_t_func`` there) and is an Euler step; later
   steps are driven by the cubic not-a-knot spline of the propagated field.
@@ -258,7 +259,7 @@ def propagate_fields(
     if adjoint is None and strategy == "s4":
         adjoint = dfx.RecursiveCheckpointAdjoint(checkpoints=checkpoints)
 
-    def coherence(rabi, jump_ts=None):
+    def coherence(rabi, jump_ts=None, real_input=False):
         ys = solve_slice(
             ops,
             rabi,
@@ -274,7 +275,7 @@ def propagate_fields(
             adjoint=adjoint,
             jump_ts=jump_ts,
             b_field=b_field,
-            real_drive=setup.real_drive,
+            real_drive=setup.real_drive or real_input,
         )  # (n_t, 2, n_f)
         return (ys[:, 0, :] + 1j * ys[:, 1, :]).T  # (n_f, n_t)
 
@@ -282,7 +283,10 @@ def propagate_fields(
 
     def spline_rabi(omega):
         cyc = omega / TWO_PI
-        re, im = spline(jnp.real(cyc)), spline(jnp.imag(cyc))
+        re = spline(jnp.real(cyc))
+        if setup.real_drive:  # the imaginary part is never used
+            return re
+        im = spline(jnp.imag(cyc))
         return lambda t: re(t) + 1j * im(t)
 
     # input field and the drive of the first slice
@@ -325,7 +329,8 @@ def propagate_fields(
         return omega + h * src * (1.5 * coh - 0.5 * coh_prev)
 
     # first inner step: analytic drive, Euler bootstrap (as clerq)
-    coh0 = coherence(rabi0, jump_ts)
+    # the analytic input pulses are real, so the first slice needs no imaginary term
+    coh0 = coherence(rabi0, jump_ts, real_input=omega0 is None)
     omega1 = omega_init + h * 2.0j * N_z[0] * g_ang[:, None] * coh0
 
     def inner_step(carry, N):
