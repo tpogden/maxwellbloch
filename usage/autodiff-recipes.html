@@ -83,9 +83,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-6c7cefc384eab7262e643c504b8a9054.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-6157712325429ffe12f7682d8d6565f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-50fcf11e378960f39d36a11b3c3e0072.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -485,6 +485,12 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../usage/units.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Converting from Experimental Units</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../usage/numerical-stability.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Numerical Stability and Step Sizes</span></a>
   </div>
@@ -716,11 +722,11 @@ window.Quarto = {
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(value)</span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>grads</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>-0.09651633408235306</code></pre>
+<pre><code>-0.002444787336139042</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>{'interaction_strengths': Array([0.01786184, 0.00017319], dtype=float64),
- 'rabi_freq': Array([-0.36828985, -0.31595014], dtype=float64)}</code></pre>
+<pre><code>{'interaction_strengths': Array([4.52445699e-04, 4.38689488e-06], dtype=float64),
+ 'rabi_freq': Array([-0.00932889, -0.00800311], dtype=float64)}</code></pre>
 </div>
 </div>
 <p>With no <code>params</code>, every differentiable parameter of the problem is used.</p>
@@ -737,10 +743,10 @@ window.Quarto = {
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(value)</span>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>grads</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>-27.538834865877007</code></pre>
+<pre><code>-0.0010771536966387417</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>{'rabi_freq': Array([-104.8820873 ,  -72.64311402], dtype=float64)}</code></pre>
+<pre><code>{'rabi_freq': Array([-0.00415884, -0.00493268], dtype=float64)}</code></pre>
 </div>
 </div>
 </section>
@@ -753,7 +759,15 @@ window.Quarto = {
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.<span class="bu">abs</span>(omega <span class="op">-</span> solver.Omegas_zt).<span class="bu">max</span>() <span class="op">/</span> np.<span class="bu">abs</span>(solver.Omegas_zt).<span class="bu">max</span>())  <span class="co"># agrees with solve() to solver tolerance</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>rabi_cyclic <span class="op">=</span> omega <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>7.76819321747668e-07</code></pre>
+<pre><code>0.8408450498108503</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:1: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 12.2% (tolerance 10.0%). Try z_steps_inner=4 (currently 2) or z_steps_inner='auto'.
+  solver.solve()
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:1: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 48.3% (tolerance 10.0%). Try t_steps=387 (currently 80), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.
+  solver.solve()
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:2: DeprecationWarning: PropagationSolver.Omegas_zt is deprecated and will be removed in a future release; use rabi_freqs_zt (cyclic) instead.
+  print(np.abs(omega - solver.Omegas_zt).max() / np.abs(solver.Omegas_zt).max())  # agrees with solve() to solver tolerance</code></pre>
 </div>
 </div>
 </section>
@@ -761,9 +775,9 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="reverse-and-forward-mode">Reverse and forward mode</h2>
 <p>The default <code>mode="reverse"</code> costs roughly five propagations however many parameters you differentiate. <code>mode="forward"</code> costs more as parameters are added, so it is mainly useful as a cross-check or when there are very few parameters.</p>
 <div id="cell-17" class="cell" data-execution_count="9">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>v_rev, g_rev <span class="op">=</span> ad.value_and_grad(loss, params, mode<span class="op">=</span><span class="st">"reverse"</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>v_fwd, g_fwd <span class="op">=</span> ad.value_and_grad(loss, params, mode<span class="op">=</span><span class="st">"forward"</span>)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.allclose(g_rev[<span class="st">"rabi_freq"</span>], g_fwd[<span class="st">"rabi_freq"</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>v_rev, g_rev <span class="op">=</span> ad.value_and_grad(loss, params, mode<span class="op">=</span><span class="st">"reverse"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>v_fwd, g_fwd <span class="op">=</span> ad.value_and_grad(loss, params, mode<span class="op">=</span><span class="st">"forward"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.allclose(g_rev[<span class="st">"rabi_freq"</span>], g_fwd[<span class="st">"rabi_freq"</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>True</code></pre>
 </div>
@@ -805,12 +819,12 @@ window.Quarto = {
 </table>
 <p><code>max_steps</code> is the most steps one slice solve may take: the solve raises if it needs more. In reverse mode the default checkpoint count is sized from it, so a smaller <code>max_steps</code> lowers memory use on large problems.</p>
 <div id="cell-19" class="cell" data-execution_count="10">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ad_s2 <span class="op">=</span> solver.to_autodiff(strategy<span class="op">=</span><span class="st">"s2"</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ad_s4 <span class="op">=</span> solver.to_autodiff(strategy<span class="op">=</span><span class="st">"s4"</span>, checkpoints<span class="op">=</span><span class="dv">16</span>, max_steps<span class="op">=</span><span class="dv">2000</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>g_s2 <span class="op">=</span> ad_s2.value_and_grad(loss, params)[<span class="dv">1</span>]</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>g_s4 <span class="op">=</span> ad_s4.value_and_grad(loss, params)[<span class="dv">1</span>]</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.allclose(g_s2[<span class="st">"rabi_freq"</span>], g_s4[<span class="st">"rabi_freq"</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ad_s2 <span class="op">=</span> solver.to_autodiff(strategy<span class="op">=</span><span class="st">"s2"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ad_s4 <span class="op">=</span> solver.to_autodiff(strategy<span class="op">=</span><span class="st">"s4"</span>, checkpoints<span class="op">=</span><span class="dv">16</span>, max_steps<span class="op">=</span><span class="dv">2000</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>g_s2 <span class="op">=</span> ad_s2.value_and_grad(loss, params)[<span class="dv">1</span>]</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>g_s4 <span class="op">=</span> ad_s4.value_and_grad(loss, params)[<span class="dv">1</span>]</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.allclose(g_s2[<span class="st">"rabi_freq"</span>], g_s4[<span class="st">"rabi_freq"</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>True</code></pre>
 </div>
@@ -825,28 +839,28 @@ window.Quarto = {
 <li>Captured arrays stay alive as long as the compiled function does. Call <code>ad.clear_cache()</code> to drop the compiled programs and release them.</li>
 </ul>
 <div id="cell-21" class="cell" data-execution_count="11">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A loss with a captured target is compiled once, then reused for every step.</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>target <span class="op">=</span> jnp.<span class="bu">abs</span>(omega[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>]) <span class="op">**</span> <span class="dv">2</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_loss(target):</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> mismatch(omega):</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> jnp.<span class="bu">sum</span>((jnp.<span class="bu">abs</span>(omega[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>]) <span class="op">**</span> <span class="dv">2</span> <span class="op">-</span> target) <span class="op">**</span> <span class="dv">2</span>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mismatch</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>mismatch <span class="op">=</span> make_loss(target)  <span class="co"># build once...</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rabi <span class="kw">in</span> (<span class="fl">0.8</span>, <span class="fl">0.9</span>, <span class="fl">1.0</span>):  <span class="co"># ...and reuse</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> {<span class="st">"rabi_freq"</span>: jnp.array([<span class="fl">0.5</span>, rabi])}</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    v, _ <span class="op">=</span> ad.value_and_grad(mismatch, p)</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(rabi, <span class="bu">float</span>(v))</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>ad.clear_cache()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A loss with a captured target is compiled once, then reused for every step.</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>target <span class="op">=</span> jnp.<span class="bu">abs</span>(omega[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>]) <span class="op">**</span> <span class="dv">2</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_loss(target):</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> mismatch(omega):</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> jnp.<span class="bu">sum</span>((jnp.<span class="bu">abs</span>(omega[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>]) <span class="op">**</span> <span class="dv">2</span> <span class="op">-</span> target) <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mismatch</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>mismatch <span class="op">=</span> make_loss(target)  <span class="co"># build once...</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rabi <span class="kw">in</span> (<span class="fl">0.8</span>, <span class="fl">0.9</span>, <span class="fl">1.0</span>):  <span class="co"># ...and reuse</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> {<span class="st">"rabi_freq"</span>: jnp.array([<span class="fl">0.5</span>, rabi])}</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>    v, _ <span class="op">=</span> ad.value_and_grad(mismatch, p)</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(rabi, <span class="bu">float</span>(v))</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>ad.clear_cache()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.8 0.00048150204918500565
-0.9 0.00015390985971960178
-1.0 1.5212166504500135e-18</code></pre>
+<pre><code>0.8 3.0894311742236937e-07
+0.9 9.875236798680862e-08
+1.0 4.503052745705292e-22</code></pre>
 </div>
 </div>
 <p>A gradient step is then a short loop around <code>value_and_grad</code>.</p>
@@ -861,12 +875,12 @@ window.Quarto = {
 </ul>
 <p>For example, asking for a <code>square</code> pulse’s edge gives a clear error rather than a silent zero:</p>
 <div id="cell-23" class="cell" data-execution_count="12">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    ad.value_and_grad(loss, {<span class="st">"pulse_args"</span>: [{}, {<span class="st">"on"</span>: <span class="op">-</span><span class="fl">1.0</span>}]})</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> e:</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(e)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    ad.value_and_grad(loss, {<span class="st">"pulse_args"</span>: [{}, {<span class="st">"on"</span>: <span class="op">-</span><span class="fl">1.0</span>}]})</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> e:</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(e)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>pulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a continuous pulse such as 'ramp_onoff'.</code></pre>
+<pre><code>pulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a ramp pulse ('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a square-like pulse with smooth edges whose on/off times are differentiable.</code></pre>
 </div>
 </div>
 

@@ -47,9 +47,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-6c7cefc384eab7262e643c504b8a9054.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-6157712325429ffe12f7682d8d6565f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-50fcf11e378960f39d36a11b3c3e0072.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -438,6 +438,48 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/macro.gaussian_beam_peak_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.gaussian_beam_peak_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.intensity_to_rabi_freq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.intensity_to_rabi_freq</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.interaction_strength.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.interaction_strength</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.rabi_freq_to_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.rabi_freq_to_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.resonant_optical_depth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.resonant_optical_depth</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.saturation_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.saturation_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.thermal_width.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.thermal_width</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PropagationSolver</span></a>
   </div>
@@ -587,6 +629,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#time-functions" id="toc-time-functions" class="nav-link" data-scroll-target="#time-functions">Time functions</a></li>
   <li><a href="#spectral-analysis" id="toc-spectral-analysis" class="nav-link" data-scroll-target="#spectral-analysis">Spectral analysis</a></li>
   <li><a href="#hyperfine-structure" id="toc-hyperfine-structure" class="nav-link" data-scroll-target="#hyperfine-structure">Hyperfine structure</a></li>
+  <li><a href="#unit-conversions" id="toc-unit-conversions" class="nav-link" data-scroll-target="#unit-conversions">Unit conversions</a></li>
   <li><a href="#utilities" id="toc-utilities" class="nav-link" data-scroll-target="#utilities">Utilities</a></li>
   </ul></li>
   </ul>
@@ -761,6 +804,42 @@ ul.task-list li input[type="checkbox"] {
 <tr class="odd">
 <td><a href="../api/hyperfine.LevelMF.html#clerq.hyperfine.LevelMF">hyperfine.LevelMF</a></td>
 <td>Represents an m_F hyperfine sublevel.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="unit-conversions" class="level2">
+<h2 class="anchored" data-anchor-id="unit-conversions">Unit conversions</h2>
+<p>From experimental units to clerq’s (MHz, µs, cm).</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../api/macro.saturation_intensity.html#clerq.macro.saturation_intensity">macro.saturation_intensity</a></td>
+<td>Saturation intensity of a cycling transition, <code>pi h c Gamma / (3 lambda^3)</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/macro.intensity_to_rabi_freq.html#clerq.macro.intensity_to_rabi_freq">macro.intensity_to_rabi_freq</a></td>
+<td>Cyclic Rabi frequency of a field of the given intensity.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/macro.rabi_freq_to_intensity.html#clerq.macro.rabi_freq_to_intensity">macro.rabi_freq_to_intensity</a></td>
+<td>Intensity, in mW/cm^2, for a cyclic Rabi frequency <code>Omega / 2 pi</code> in MHz.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/macro.gaussian_beam_peak_intensity.html#clerq.macro.gaussian_beam_peak_intensity">macro.gaussian_beam_peak_intensity</a></td>
+<td>Peak intensity of a circular Gaussian beam, <code>2 P / (pi w^2)</code>.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/macro.interaction_strength.html#clerq.macro.interaction_strength">macro.interaction_strength</a></td>
+<td>Interaction strength per atom, <code>g / 2 pi = sigma_0 gamma / 4</code>, with <code>gamma = Gamma / 2 pi</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/macro.resonant_optical_depth.html#clerq.macro.resonant_optical_depth">macro.resonant_optical_depth</a></td>
+<td>Resonant intensity optical depth <code>N sigma_0 L</code> of a cold, weak-field medium.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/macro.thermal_width.html#clerq.macro.thermal_width">macro.thermal_width</a></td>
+<td>The <code>thermal_width</code> of <code>velocity_classes</code> for a vapor.</td>
 </tr>
 </tbody>
 </table>

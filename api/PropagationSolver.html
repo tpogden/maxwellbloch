@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-6c7cefc384eab7262e643c504b8a9054.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-6157712325429ffe12f7682d8d6565f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-70c262127554ecce53db8d8f2919d7f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-50fcf11e378960f39d36a11b3c3e0072.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-b34efa14f465b4b91eddb160924d7c01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -473,6 +473,48 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/macro.gaussian_beam_peak_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.gaussian_beam_peak_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.intensity_to_rabi_freq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.intensity_to_rabi_freq</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.interaction_strength.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.interaction_strength</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.rabi_freq_to_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.rabi_freq_to_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.resonant_optical_depth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.resonant_optical_depth</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.saturation_intensity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.saturation_intensity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/macro.thermal_width.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">macro.thermal_width</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/PropagationSolver.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">PropagationSolver</span></a>
   </div>
@@ -672,17 +714,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    velocity_classes<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    atom<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    real_drive<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Solver for the propagation of fields through a medium of systems.</p>
 <p>Steps the fields through space with a finite-difference method, solving the Lindblad master equation for the :class:<code>~clerq.system.System</code> at each step (once per velocity class if the medium is Doppler broadened).</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 6%">
-<col style="width: 6%">
-<col style="width: 83%">
-<col style="width: 3%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 88%">
+<col style="width: 2%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -788,6 +831,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>dict | None</td>
 <td>Deprecated name for <code>system</code>.</td>
 <td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>real_drive</td>
+<td>bool</td>
+<td>Deprecated. Drive the Hamiltonian with <code>Re(Omega)</code> only, the behaviour before the complex-envelope drive. That is exact for resonant problems with real fields and a symmetric, equally weighted velocity-class grid, but wrong for a single detuned field (for example a two-level medium, optical depth 6, half-width detuning 2: transmission 1.1 instead of 0.30). The default drives the coupled pair with <code>Omega</code> and <code>conj(Omega)</code>.</td>
+<td><code>False</code></td>
 </tr>
 </tbody>
 </table>
@@ -1168,9 +1217,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 4%">
-<col style="width: 6%">
-<col style="width: 89%">
+<col style="width: 2%">
+<col style="width: 3%">
+<col style="width: 94%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1183,7 +1232,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td>ValueError</td>
-<td>if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1.</td>
+<td>if the savefile was built from a different problem definition (hash mismatch), or was solved with the old factor**2 source-term weights and a field has factors other than 1, or was solved with the other drive convention (savefiles without a drive marker used <code>Re(Omega)</code>) for a problem where the two differ (static detunings, level energies or an asymmetric class grid).</td>
 </tr>
 </tbody>
 </table>
