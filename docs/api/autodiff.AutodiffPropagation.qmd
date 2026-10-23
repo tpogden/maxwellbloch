@@ -46,6 +46,16 @@ in the problem (see :meth:`default_params`):
     array ``(n_fields,)``, cyclic fixed detuning of each field.
 ``decay_scale``
     scalar multiplying every decay rate.
+``decay_rates``
+    array ``(n_decays,)``, the cyclic ``rate`` of each entry of the system's
+    ``decays`` (spontaneous decay, ground-state decoherence, or pure
+    dephasing through a ``[a, a]`` channel). The effective rate of a channel is
+    ``decay_scale * decay_rates[i]``. Differentiable at any value, including
+    zero, so a rate can be fitted or optimised from nothing. Rates must be
+    non-negative: a concrete negative value raises, but an optimiser can still
+    step below zero (a negative rate is gain, and the field runs away), so
+    optimise an unconstrained variable and map it, for example with
+    :func:`clerq.autodiff.controls.bounded`. Empty for a system without decays.
 ``b_field``
     scalar, the DC B-field in natural units (``mu_B B / h`` in the
     frequency unit of the energies), so the Zeeman shift of the levels can

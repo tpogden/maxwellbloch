@@ -17,6 +17,10 @@ Exact gradients through the propagation (needs the `jax` extra).
 | --- | --- |
 | [autodiff.AutodiffPropagation](autodiff.AutodiffPropagation.qmd#clerq.autodiff.AutodiffPropagation) | A differentiable version of a :class:`~clerq.PropagationSolver` problem. |
 | [autodiff.OptimizeResult](autodiff.OptimizeResult.qmd#clerq.autodiff.OptimizeResult) | The outcome of :meth:`AutodiffPropagation.minimize`. |
+| [autodiff.controls.gaussian_basis](autodiff.controls.gaussian_basis.qmd#clerq.autodiff.controls.gaussian_basis) | Gaussian bumps on a regular grid of centres, evaluated at the times ``t``. |
+| [autodiff.controls.fit_coefficients](autodiff.controls.fit_coefficients.qmd#clerq.autodiff.controls.fit_coefficients) | Least-squares coefficients ``a`` with ``basis @ a`` closest to ``target``. |
+| [autodiff.controls.bounded](autodiff.controls.bounded.qmd#clerq.autodiff.controls.bounded) | Map real values to ``(lower, upper)`` with a sigmoid (JAX-differentiable). |
+| [autodiff.controls.unbounded](autodiff.controls.unbounded.qmd#clerq.autodiff.controls.unbounded) | Inverse of :func:`bounded`; values are first clipped ``margin`` inside the range. |
 
 ## Exceptions
 

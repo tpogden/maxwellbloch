@@ -1,0 +1,10 @@
+# autodiff.controls.bounded { #clerq.autodiff.controls.bounded }
+
+```python
+autodiff.controls.bounded(x, lower, upper)
+```
+
+Map real values to ``(lower, upper)`` with a sigmoid (JAX-differentiable).
+
+Keeps an amplitude within a budget (for example a peak Rabi frequency) without
+clipping, which would have zero gradient outside the range.

@@ -23,6 +23,9 @@ Or let an optax optimiser (Adam by default) follow the gradient::
     result = ad.minimize(loss, params, steps=50)
     result.params, result.losses
 
+Free-form controls (a waveform as the parameters) are best expanded in a few smooth
+functions; :mod:`clerq.autodiff.controls` has the helpers.
+
 The result reproduces ``PropagationSolver.solve``; see
 :class:`~clerq.autodiff.AutodiffPropagation` for the parameters and caveats.
 """
@@ -31,6 +34,7 @@ from clerq.autodiff._config import require_float64, require_jax
 
 require_jax()
 
+from clerq.autodiff import controls  # noqa: E402
 from clerq.autodiff._api import AutodiffPropagation, OptimizeResult  # noqa: E402
 
-__all__ = ["AutodiffPropagation", "OptimizeResult", "require_float64"]
+__all__ = ["AutodiffPropagation", "OptimizeResult", "controls", "require_float64"]

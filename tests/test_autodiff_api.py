@@ -133,12 +133,13 @@ def test_default_params_are_the_problems_own():
 
 
 def test_gradients_of_every_user_facing_parameter_match_finite_differences():
-    """Pulse parameters, rabi frequencies, interaction strengths, detunings and the
-    decay scale: AD (reverse) vs central FD on a fixed-step solve."""
+    """Pulse parameters, rabi frequencies, interaction strengths, detunings, the
+    decay scale and the per-decay rates: AD (reverse) vs central FD on a fixed-step solve."""
     ad = _solver().to_autodiff(n_steps=N_FIXED)
     params = jax.tree_util.tree_map(jnp.asarray, ad.default_params())
     flat, unravel = ravel_pytree(params)
-    assert flat.size == 3 + 3 + 2 + 2 + 2 + 1  # 2 pulses (3 args each) + 7 others
+    # 2 pulses (3 args each) + rabi_freq, g, detunings (2 each) + decay_scale + 2 decay rates
+    assert flat.size == 3 + 3 + 2 + 2 + 2 + 1 + 2
 
     _, grads = ad.value_and_grad(loss, params)
     g_ad = np.asarray(ravel_pytree(grads)[0])
