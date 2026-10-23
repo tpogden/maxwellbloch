@@ -1,0 +1,24 @@
+# macro.thermal_width { #clerq.macro.thermal_width }
+
+```python
+macro.thermal_width(temperature, mass, wavelength)
+```
+
+The ``thermal_width`` of ``velocity_classes`` for a vapor.
+
+The Doppler weights in clerq are ``exp(-(delta / w)^2)`` with ``w = u /
+lambda`` and ``u = sqrt(2 k_B T / m)`` the most probable speed.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type   | Description                   | Default    |
+|-------------|--------|-------------------------------|------------|
+| temperature | float  | Temperature, in kelvin.       | _required_ |
+| mass        | float  | Atomic mass, in amu.          | _required_ |
+| wavelength  | float  | Transition wavelength, in nm. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | float  | ``w`` in MHz. |

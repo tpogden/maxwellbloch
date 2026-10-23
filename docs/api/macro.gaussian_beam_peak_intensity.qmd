@@ -1,0 +1,20 @@
+# macro.gaussian_beam_peak_intensity { #clerq.macro.gaussian_beam_peak_intensity }
+
+```python
+macro.gaussian_beam_peak_intensity(power, waist)
+```
+
+Peak intensity of a circular Gaussian beam, ``2 P / (pi w^2)``.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                            | Default    |
+|--------|--------|----------------------------------------|------------|
+| power  | float  | Total beam power, in mW.               | _required_ |
+| waist  | float  | The ``1/e^2`` intensity radius, in cm. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                |
+|--------|--------|----------------------------|
+|        | float  | Peak intensity in mW/cm^2. |

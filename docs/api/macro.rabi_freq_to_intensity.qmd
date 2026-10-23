@@ -1,0 +1,9 @@
+# macro.rabi_freq_to_intensity { #clerq.macro.rabi_freq_to_intensity }
+
+```python
+macro.rabi_freq_to_intensity(rabi_freq, decay_rate, wavelength, factor=1.0)
+```
+
+Intensity, in mW/cm^2, for a cyclic Rabi frequency ``Omega / 2 pi`` in MHz.
+
+The inverse of :func:`intensity_to_rabi_freq`.
