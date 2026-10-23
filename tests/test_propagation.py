@@ -494,7 +494,7 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
     """Unit tests for PropagationSolver._build_intp_H_Omega_list."""
 
     def test_one_field_structure(self):
-        """Returns a list of [Qobj, Coefficient] pairs, one per field."""
+        """Returns [Qobj, Coefficient] pairs: Re and Im drive terms per field."""
         import qutip as qu
 
         json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
@@ -502,21 +502,29 @@ class TestBuildIntpHOmegaList(unittest.TestCase):
         Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(len(result), 1)
-        H_op, coeff = result[0]
+        self.assertEqual(len(result), 2)
         from qutip.core.cy.coefficient import Coefficient
 
-        self.assertIsInstance(H_op, qu.Qobj)
-        self.assertIsInstance(coeff, Coefficient)
+        for H_op, coeff in result:
+            self.assertIsInstance(H_op, qu.Qobj)
+            self.assertIsInstance(coeff, Coefficient)
+
+    def test_real_drive_has_one_term_per_field(self):
+        """The deprecated real_drive=True keeps one Re(Omega) term per field."""
+        json_path = os.path.join(JSON_DIR, "mb_solve_01.json")
+        mbs = PropagationSolver.from_json(json_path)
+        mbs.real_drive = True
+        result = mbs._build_intp_H_Omega_list(mbs._Omegas_zt[:, 0, :])
+        self.assertEqual(len(result), 1)
 
     def test_two_fields_length(self):
-        """Returns one pair per field."""
+        """Returns two (Re and Im) pairs per field."""
         json_path = os.path.join(JSON_DIR, "mb_solve_lamda.json")
         mbs = PropagationSolver().from_json(json_path)
         Omegas_z = mbs._Omegas_zt[:, 0, :]
         result = mbs._build_intp_H_Omega_list(Omegas_z)
 
-        self.assertEqual(len(result), 2)
+        self.assertEqual(len(result), 4)
 
     def test_coefficient_evaluates_correctly(self):
         """Coefficient at tlist[k] equals Omegas_z[0,k].real / (2π)."""

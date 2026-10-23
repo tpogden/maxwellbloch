@@ -51,6 +51,18 @@ with an optax optimiser (Adam by default). `import clerq` itself never loads JAX
 [API reference](api/autodiff.AutodiffPropagation.qmd), and `CHANGELOG.md` for the
 supported features and limits.
 
+::: {.callout-warning}
+## Detuned fields: results change
+Earlier versions drove the Hamiltonian with the real part of the field only. That is
+exact for resonant, real fields on a symmetric, equally weighted velocity-class grid
+(those results are unchanged), but wrong for a single detuned field, a two-photon
+offset or an asymmetric class grid: a weak probe through an optical depth of 6 at two
+half-widths detuning came out with transmission 1.1 (unphysical) instead of 0.30.
+`PropagationSolver` and `to_autodiff()` now use the full complex envelope. Rerun any
+detuned results from older versions. `PropagationSolver(real_drive=True)` reproduces
+the old behaviour and is deprecated.
+:::
+
 **Cyclic field accessor.** `solver.rabi_freqs_zt` is the solved field as a cyclic
 Rabi frequency, the same unit as `rabi_freq` in the problem definition, so you no
 longer divide by $2\pi$. `solver.Omegas_zt` (angular) is deprecated but still works,

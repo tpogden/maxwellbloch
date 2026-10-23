@@ -254,8 +254,12 @@ def expected_lines(atom, q, B):
     )
 
 
-def assert_lines(solver, expected, window=0.5):
-    """The spectrum has a peak at each expected line and no other absorption."""
+def assert_lines(solver, expected, window=1.0):
+    """The spectrum has a peak at each expected line and no other absorption.
+
+    The natural-linewidth Lorentzian wings of the lines are physical, so "no
+    other absorption" starts ``window`` away from each line.
+    """
     freqs = spectral.freq_list(solver)
     absorb = spectral.absorption(solver, 0, -1)
     inband = np.abs(freqs) < 20
@@ -265,7 +269,7 @@ def assert_lines(solver, expected, window=0.5):
         near = np.abs(freqs - line) < window
         covered |= near
         assert absorb[near].max() > 0.05 * top
-        assert abs(freqs[near][np.argmax(absorb[near])] - line) < window
+        assert abs(freqs[near][np.argmax(absorb[near])] - line) < 0.5
     assert absorb[inband & ~covered].max() < 0.02 * top
 
 

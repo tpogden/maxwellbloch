@@ -59,6 +59,8 @@ class PropagationSetup:
         shifts: cyclic Doppler detuning ``thermal_delta / (2 pi)`` of each class.
         weights: normalised Maxwell-Boltzmann weight of each class.
         pulses: per field ``(name, args, rabi_freq)`` of the analytic input pulse.
+        real_drive: drive the Hamiltonian with ``Re(Omega)`` only (the deprecated
+            behaviour of ``PropagationSolver(real_drive=True)``).
     """
 
     ops: SystemOperators
@@ -71,6 +73,7 @@ class PropagationSetup:
     shifts: np.ndarray
     weights: np.ndarray
     pulses: tuple
+    real_drive: bool = False
 
 
 def setup_from_solver(solver) -> PropagationSetup:
@@ -123,6 +126,7 @@ def setup_from_solver(solver) -> PropagationSetup:
         shifts=np.asarray(solver.thermal_delta_list, dtype=float) / TWO_PI,
         weights=weights / weights.sum(),
         pulses=pulses,
+        real_drive=bool(getattr(solver, "real_drive", False)),
     )
 
 
@@ -270,13 +274,16 @@ def propagate_fields(
             adjoint=adjoint,
             jump_ts=jump_ts,
             b_field=b_field,
+            real_drive=setup.real_drive,
         )  # (n_t, 2, n_f)
         return (ys[:, 0, :] + 1j * ys[:, 1, :]).T  # (n_f, n_t)
 
     spline = CubicDrive(setup.tlist)
 
     def spline_rabi(omega):
-        return spline(jnp.real(omega) / TWO_PI)
+        cyc = omega / TWO_PI
+        re, im = spline(jnp.real(cyc)), spline(jnp.imag(cyc))
+        return lambda t: re(t) + 1j * im(t)
 
     # input field and the drive of the first slice
     if omega0 is None:

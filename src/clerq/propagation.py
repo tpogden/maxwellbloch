@@ -65,6 +65,13 @@ class PropagationSolver(LindbladSolver):
             same units as ``decays`` rates and ``rabi_freq``. The weights
             are Gaussian, ``exp(-(delta / thermal_width)**2)``.
         atom: Deprecated name for ``system``.
+        real_drive: Deprecated. Drive the Hamiltonian with ``Re(Omega)`` only,
+            the behaviour before the complex-envelope drive. That is exact for
+            resonant problems with real fields and a symmetric,
+            equally weighted velocity-class grid, but wrong for a single
+            detuned field (for example a two-level medium, optical depth 6,
+            half-width detuning 2: transmission 1.1 instead of 0.30). The
+            default drives the coupled pair with ``Omega`` and ``conj(Omega)``.
     """
 
     def __init__(
@@ -86,9 +93,17 @@ class PropagationSolver(LindbladSolver):
         velocity_classes: dict | None = None,
         *,
         atom: dict | None = None,
+        real_drive: bool = False,
     ) -> None:
 
         system = resolve_system_arg(system, atom)
+        self.real_drive = bool(real_drive)
+        if self.real_drive:
+            warn_deprecated(
+                "real_drive=True (driving with Re(Omega) only)",
+                "the default complex drive",
+                stacklevel=3,
+            )
 
         if interaction_strengths is None:
             interaction_strengths = []
@@ -1059,8 +1074,24 @@ class PropagationSolver(LindbladSolver):
             H_Omega = H_Omega * np.pi  # pi * 1.0 (rabi_freq normalised to 1)
             # Divide by 2π: H_Omega * coeff(t) = sigma * pi * Omega_z/(2π)
             #                                   = sigma * Omega_z/2  ✓
+            # Omega sigma_ab + conj(Omega) sigma_ba
+            #     = Re(Omega) (sigma_ab + sigma_ba) + Im(Omega) i (sigma_ab - sigma_ba)
             coeff = qu.coefficient(Omegas_z[f_i].real / (2 * np.pi), tlist=self.tlist)
             H_Omega_list.append([H_Omega, coeff])
+            if not self.real_drive:
+                H_Omega_im = qu.Qobj(
+                    np.zeros([self.system.num_states, self.system.num_states])
+                )
+                for c_i, c in enumerate(f.coupled_levels):
+                    H_Omega_im += (
+                        self.system.sigma(a=c[0], b=c[1])
+                        - self.system.sigma(a=c[1], b=c[0])
+                    ) * (1j * f.factors[c_i])
+                H_Omega_im = H_Omega_im * np.pi
+                coeff_im = qu.coefficient(
+                    Omegas_z[f_i].imag / (2 * np.pi), tlist=self.tlist
+                )
+                H_Omega_list.append([H_Omega_im, coeff_im])
         return H_Omega_list
 
     def _solve_and_average_over_thermal_detunings(

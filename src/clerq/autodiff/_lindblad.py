@@ -14,6 +14,10 @@ differentiable.
 
     dA = [H, B] + Re D(rho),      dB = -[H, A] + Im D(rho).
 
+With a complex envelope the Hamiltonian is ``H = H_re + i H_im``, ``H_im`` real and
+antisymmetric (``pi Im(Omega_k) Y_k``), which adds ``[H_im, A]`` to ``dA`` and
+``[H_im, B]`` to ``dB``.
+
 Nothing complex enters diffrax, which flags complex dtypes as unreliable.
 """
 
@@ -73,12 +77,15 @@ def solve_slice(
     adjoint=None,
     jump_ts=None,
     b_field=None,
+    real_drive: bool = False,
 ):
     """Solve the master equation at the times ``ts``.
 
     Args:
         ops: operators of the system.
-        rabi: ``rabi(t) -> (n_fields,)`` cyclic Rabi frequencies at scalar time ``t``.
+        rabi: ``rabi(t) -> (n_fields,)`` cyclic Rabi frequencies at scalar time ``t``;
+            complex envelopes drive ``Omega`` on ``rho_ab`` and ``conj(Omega)`` on
+            ``rho_ba`` of each coupled pair, unless ``real_drive``.
         detunings: cyclic detunings, shape ``(n_fields,)`` for one copy or
             ``(n_v, n_fields)`` for a batch (e.g. velocity classes).
         ts: output times (also the integration span).
@@ -98,6 +105,7 @@ def solve_slice(
             edges), so the adaptive solver steps exactly onto them.
         b_field: cyclic DC B-field in natural units, replacing the system's
             (``H_0 = H_base + 2 pi B Z``); default: the system's. May be traced.
+        real_drive: use ``Re(Omega)`` only (the deprecated real-part drive).
 
     Returns:
         Complex ``rho(t)`` of shape ``(len(ts), n, n)`` for 1-D ``detunings`` (or
@@ -118,6 +126,7 @@ def solve_slice(
     n_v, n = det.shape[0], ops.num_states
 
     X = jnp.asarray(ops.X)
+    Y = jnp.asarray(ops.Y)
     H_static = jnp.asarray(ops.H0)[None] - 2.0 * jnp.pi * jnp.einsum(
         "vk,kij->vij", det * jnp.asarray(ops.detuning_sign), jnp.asarray(ops.N)
     )
@@ -140,9 +149,15 @@ def solve_slice(
     def rhs(t, y, args):
         rabi_fn, scale, H_s = args
         A, B = y[0], y[1]
-        H = H_s + jnp.pi * jnp.einsum("k,kij->ij", rabi_fn(t), X)[None]
+        drive = rabi_fn(t)
+        H = H_s + jnp.pi * jnp.einsum("k,kij->ij", jnp.real(drive), X)[None]
         dA = H @ B - B @ H
         dB = A @ H - H @ A
+        if not real_drive:
+            # H = H_re + i H_im with H_im = pi Im(Omega) Y antisymmetric
+            Hi = jnp.pi * jnp.einsum("k,kij->ij", jnp.imag(drive), Y)[None]
+            dA = dA + Hi @ A - A @ Hi
+            dB = dB + Hi @ B - B @ Hi
         if sparse is not None:
             zero = jnp.zeros((n_v, n))
             gain_a = zero.at[:, a].add(scale * w * A[:, b, b])
