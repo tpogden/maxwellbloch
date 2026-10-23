@@ -593,6 +593,7 @@ window.Quarto = {
 </header>
 
 
+<p>Requires clerq 0.14.0 or later (and the <code>jax</code> extra: <code>pip install 'clerq[jax]'</code>).</p>
 <p><code>PropagationSolver.to_autodiff()</code> turns a propagation problem into a function that JAX can differentiate. Any scalar quantity you can compute from the propagated field then has an <strong>exact gradient</strong> with respect to the pulse, the medium and the detunings, for about the cost of five to six propagations however many parameters there are. That makes gradient-based design practical: instead of scanning a parameter and looking at the result, you follow the gradient.</p>
 <p>This notebook designs the input pulse of a resonant two-level medium. The goal is to get as much of the pulse energy as possible through the medium. The <a href="../examples/mbs-sit-area-theorem.html">self-induced transparency</a> area theorem says that a pulse of area <span class="math inline">\(2\pi\)</span> passes without loss, and the optimiser should end up near that on its own.</p>
 <p>This needs the <code>jax</code> extra: <code>pip install 'clerq[jax]'</code>. JAX must run in 64-bit mode, which <code>clerq.autodiff</code> checks and refuses to change for you.</p>
