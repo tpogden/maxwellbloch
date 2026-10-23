@@ -9,6 +9,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.macro`, conversions from experimental units to clerq's (MHz, µs, cm): `saturation_intensity`, `intensity_to_rabi_freq`,
+  `rabi_freq_to_intensity`, `gaussian_beam_peak_intensity`, `interaction_strength`, `resonant_optical_depth` and
+  `thermal_width`. See the new usage page "Converting from Experimental Units".
 - `clerq.plot.field_spacetime` accepts a sequence of field indices (e.g. `field_idx=[0, 1]`) and stacks the fields in one
   figure, one row each with its own colorbar and label; `colorscale` may then be a list, one per field.
 - `clerq.plot.field_z_profile_anim` takes a sequence of `field_idx` to overlay several fields in one animation, and

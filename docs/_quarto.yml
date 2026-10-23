@@ -48,6 +48,7 @@ website:
         - usage/velocity-classes.ipynb
         - usage/counter-propagating.ipynb
         - usage/b-field.ipynb
+        - usage/units.ipynb
         - usage/numerical-stability.ipynb
         - usage/plotting.ipynb
         - usage/built-in-time-functions.ipynb
@@ -131,6 +132,16 @@ quartodoc:
         - hyperfine.Atom1e
         - hyperfine.LevelF
         - hyperfine.LevelMF
+    - title: Unit conversions
+      desc: From experimental units to clerq's (MHz, µs, cm).
+      contents:
+        - macro.saturation_intensity
+        - macro.intensity_to_rabi_freq
+        - macro.rabi_freq_to_intensity
+        - macro.gaussian_beam_peak_intensity
+        - macro.interaction_strength
+        - macro.resonant_optical_depth
+        - macro.thermal_width
     - title: Utilities
       contents:
         - utility.maxwell_boltzmann
