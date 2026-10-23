@@ -640,7 +640,8 @@ window.Quarto = {
  'rabi_freq': array([0.5, 1. ]),
  'interaction_strengths': array([10., 10.]),
  'detunings': array([0., 0.]),
- 'decay_scale': 1.0}</code></pre>
+ 'decay_scale': 1.0,
+ 'decay_rates': array([1.])}</code></pre>
 </div>
 </div>
 <table class="caption-top table">
@@ -683,6 +684,11 @@ window.Quarto = {
 <td>multiplies every decay rate</td>
 </tr>
 <tr class="even">
+<td><code>decay_rates</code></td>
+<td><code>(n_decays,)</code></td>
+<td>the <code>rate</code> of each entry of the system’s <code>decays</code> (non-negative); the effective rate is <code>decay_scale * decay_rates[i]</code></td>
+</tr>
+<tr class="odd">
 <td><code>omega0</code></td>
 <td><code>(n_fields, n_t)</code></td>
 <td>sampled input fields on <code>tlist</code>, used <em>instead of</em> the analytic pulses</td>

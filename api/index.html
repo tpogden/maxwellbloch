@@ -390,6 +390,30 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/autodiff.controls.bounded.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">autodiff.controls.bounded</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/autodiff.controls.fit_coefficients.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">autodiff.controls.fit_coefficients</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/autodiff.controls.gaussian_basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">autodiff.controls.gaussian_basis</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/autodiff.controls.unbounded.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">autodiff.controls.unbounded</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/autodiff.OptimizeResult.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">autodiff.OptimizeResult</span></a>
   </div>
@@ -672,6 +696,22 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td><a href="../api/autodiff.OptimizeResult.html#clerq.autodiff.OptimizeResult">autodiff.OptimizeResult</a></td>
 <td>The outcome of :meth:<code>AutodiffPropagation.minimize</code>.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/autodiff.controls.gaussian_basis.html#clerq.autodiff.controls.gaussian_basis">autodiff.controls.gaussian_basis</a></td>
+<td>Gaussian bumps on a regular grid of centres, evaluated at the times <code>t</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/autodiff.controls.fit_coefficients.html#clerq.autodiff.controls.fit_coefficients">autodiff.controls.fit_coefficients</a></td>
+<td>Least-squares coefficients <code>a</code> with <code>basis @ a</code> closest to <code>target</code>.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/autodiff.controls.bounded.html#clerq.autodiff.controls.bounded">autodiff.controls.bounded</a></td>
+<td>Map real values to <code>(lower, upper)</code> with a sigmoid (JAX-differentiable).</td>
+</tr>
+<tr class="even">
+<td><a href="../api/autodiff.controls.unbounded.html#clerq.autodiff.controls.unbounded">autodiff.controls.unbounded</a></td>
+<td>Inverse of :func:<code>bounded</code>; values are first clipped <code>margin</code> inside the range.</td>
 </tr>
 </tbody>
 </table>
