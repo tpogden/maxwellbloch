@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --extra test --extra plot
       - name: Test with pytest
         run: uv run pytest -n auto
       - name: Build
