@@ -249,3 +249,8 @@ Built an independent NumPy/SciPy reference (`tests/refsolve.py`) that marches th
 - Consequence for the plan: single-detuned-probe spectra, asymmetric EIT (two-photon offset), dispersion and Paschen-Back multiplets are NOT available until clerq
   (QuTiP path and autodiff `_operators.py`/`_lindblad.py`) gets a complex-envelope drive. A symmetric resonant EIT/AT spectrum fit (FFT route) remains valid.
 Follow-up worth a PR: complex drive in clerq + autodiff, tested against `tests/refsolve.py`, plus a documentation warning about detuned fields.
+
+## 15. Status (2026-10-23)
+
+The follow-up in section 14 is done: the complex-envelope drive is merged (PR #359). Phase 1 features are merged too (PR #361): per-decay `decay_rates`,
+`clerq.autodiff.controls`, and Rb87 hyperfine smoke tests. The results above that used the Doppler memory fields remain valid under the symmetric-class condition.
