@@ -259,8 +259,34 @@ class PropagationSolver(LindbladSolver):
         self.thermal_weights = maxwell_boltzmann(
             self.thermal_delta_list,
             2 * np.pi * self.velocity_classes["thermal_width"],
-        )
+        ) * self._thermal_spacings(self.thermal_delta_list)
         return self.thermal_delta_list, self.thermal_weights
+
+    @staticmethod
+    def _thermal_spacings(deltas: np.ndarray) -> np.ndarray:
+        """Width of the detuning interval each velocity class represents.
+
+        The classes are quadrature nodes for the Doppler integral, so each
+        Boltzmann weight is multiplied by its interval width. Interior classes
+        take half the distance between their neighbours (trapezoid rule); the
+        end classes take their one adjacent spacing, which makes the widths
+        constant, and so leaves the weights unchanged, on a uniform grid.
+
+        Args:
+            deltas: sorted 1-D array of thermal detunings.
+
+        Returns:
+            Array of widths, the same length as ``deltas``; ones for a single
+            class.
+        """
+        deltas = np.asarray(deltas, dtype=float)
+        if deltas.size < 2:
+            return np.ones_like(deltas)
+        gaps = np.diff(deltas)
+        widths = np.empty_like(deltas)
+        widths[1:-1] = 0.5 * (gaps[1:] + gaps[:-1])
+        widths[0], widths[-1] = gaps[0], gaps[-1]
+        return widths
 
     def _build_number_density(
         self,

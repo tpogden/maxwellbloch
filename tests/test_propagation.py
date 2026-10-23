@@ -726,6 +726,73 @@ class TestBuildThermalDeltaList(unittest.TestCase):
         self.assertTrue(np.all(np.diff(deltas) > 0))
 
 
+class TestThermalWeights(unittest.TestCase):
+    """Velocity-class weights are Boltzmann densities times interval widths."""
+
+    def setUp(self):
+        self.mbs = PropagationSolver()
+
+    def _weights(self, **vc):
+        _, w = self.mbs.build_velocity_classes({"thermal_width": 1.0, **vc})
+        return w / w.sum()
+
+    def test_uniform_grid_weights_are_plain_boltzmann(self):
+        deltas, w = self.mbs.build_velocity_classes(
+            {
+                "thermal_width": 1.0,
+                "thermal_delta_min": -3.0,
+                "thermal_delta_max": 3.0,
+                "thermal_delta_steps": 12,
+            }
+        )
+        expected = utility.maxwell_boltzmann(deltas, 2 * np.pi)
+        np.testing.assert_allclose(w / w.sum(), expected / expected.sum(), rtol=1e-12)
+
+    def test_single_class_weight_is_one_width(self):
+        _, w = self.mbs.build_velocity_classes(None)
+        self.assertEqual(len(w), 1)
+        self.assertGreater(w[0], 0.0)
+
+    def test_nonuniform_grid_matches_fine_uniform_grid(self):
+        """An inner band must not over-weight the dense region."""
+        fine = {
+            "thermal_delta_min": -6.0,
+            "thermal_delta_max": 6.0,
+            "thermal_delta_steps": 2400,
+        }
+        banded = {
+            "thermal_delta_min": -6.0,
+            "thermal_delta_max": 6.0,
+            "thermal_delta_steps": 120,
+            "thermal_delta_inner_min": -1.0,
+            "thermal_delta_inner_max": 1.0,
+            "thermal_delta_inner_steps": 40,
+        }
+        d_f, _ = self.mbs.build_velocity_classes({"thermal_width": 1.0, **fine})
+        w_f = self._weights(**fine)
+        d_b, _ = self.mbs.build_velocity_classes({"thermal_width": 1.0, **banded})
+        w_b = self._weights(**banded)
+        # Compare a smooth observable: the weighted second moment of Delta.
+        m2_f = np.sum(w_f * d_f**2)
+        m2_b = np.sum(w_b * d_b**2)
+        self.assertLess(abs(m2_b / m2_f - 1.0), 2e-3)
+        # The unweighted Boltzmann density over-weights the dense inner band.
+        raw = utility.maxwell_boltzmann(d_b, 2 * np.pi)
+        m2_raw = np.sum(raw / raw.sum() * d_b**2)
+        self.assertGreater(abs(m2_raw / m2_f - 1.0), 10 * abs(m2_b / m2_f - 1.0))
+
+    def test_symmetric_grid_gives_symmetric_weights(self):
+        w = self._weights(
+            thermal_delta_min=-4.0,
+            thermal_delta_max=4.0,
+            thermal_delta_steps=8,
+            thermal_delta_inner_min=-1.0,
+            thermal_delta_inner_max=1.0,
+            thermal_delta_inner_steps=6,
+        )
+        np.testing.assert_allclose(w, w[::-1], rtol=1e-9)
+
+
 class TestInnerSteps(unittest.TestCase):
     """z_steps_inner subdivides each recorded z step; it must not shift slices.
 

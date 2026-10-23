@@ -8,6 +8,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
+  density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
+  region. Uniform grids are unchanged.
+
 ## [0.14.0] 2026-10-23
 
 ### Added
