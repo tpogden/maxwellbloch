@@ -265,6 +265,46 @@ class System(system_base.SystemBase):
                 self.H_Delta -= sgn * 2 * pi * f.detuning * self.sigma(a=i, b=i)
         return self.H_Delta
 
+    def level_doppler_slopes(self) -> np.ndarray:
+        """Cyclic Doppler slope of each level's energy in the rotating frame.
+
+        Each field adds ``sign * (detuning + factor_doppler_shift * Delta)`` to
+        the energy of its upper levels (see ``_build_H_Delta``), where ``Delta``
+        is the thermal detuning, so level ``i`` moves with ``Delta`` at
+        ``-sum(sign * factor_doppler_shift)`` over the fields that have ``i``
+        as an upper level. A coherence between levels ``i`` and ``j``
+        oscillates with ``Delta`` at the difference of their slopes.
+
+        Returns:
+            Array of length ``num_states``, in units of cycles per unit of the
+            thermal detuning.
+
+        .. versionadded:: 0.15.0
+        """
+        slopes = np.zeros(self.num_states)
+        for f in self.fields:
+            sign = 1.0 if f.detuning_positive else -1.0
+            for level in f.upper_levels():
+                slopes[level] -= sign * f.factor_doppler_shift
+        return slopes
+
+    def level_decay_rates(self) -> np.ndarray:
+        """Angular rate at which each level damps its coherences.
+
+        Half the sum of ``diag(c^dagger c)`` over the collapse operators, so
+        that the coherence between levels ``i`` and ``j`` decays at the sum of
+        the two entries. Pure dephasing counts the same way.
+
+        Returns:
+            Array of length ``num_states``.
+
+        .. versionadded:: 0.15.0
+        """
+        total = np.zeros(self.num_states)
+        for c_op in self.c_ops:
+            total += np.real(np.diag((c_op.dag() * c_op).full()))
+        return 0.5 * total
+
     def set_H_Delta(self, detunings: list[float]) -> qu.Qobj:
         """Set the detuning part of the interaction Hamiltonian, H_Delta,
             given a list of detunings.
