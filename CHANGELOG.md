@@ -15,7 +15,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   levels' Doppler slopes (from each field's `factor_doppler_shift`). `"auto"` takes, for every such pair of levels, the larger of
   the spacing that puts the echo outside the time window and the one that damps it below `thermal_delta_echo_tolerance`
   (default 1e-6, a new optional key) at the coherence's decay rate, and the smallest over the pairs
-  (`PropagationSolver.thermal_delta_auto_spacing()`). On a two-level problem the result is converged to below 1e-4 with it and
+  (`PropagationSolver.thermal_delta_auto_spacing()`), and never coarser than `pi * thermal_width / sqrt(ln(1 / tolerance))`, so that a fast
+  decay with a narrow thermal width cannot give a grid that misses the line. The level Doppler slopes and decay rates come from the new
+  `System.level_doppler_slopes()` and `System.level_decay_rates()`. On a two-level problem the result is converged to below 1e-4 with it and
   wrong (29%) when the echo is inside the window and undamped. It cannot be combined with `thermal_delta_steps` or
   `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 

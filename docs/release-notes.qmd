@@ -24,7 +24,7 @@ largest spacing with no spurious Doppler echo: a grid of spacing $h$ repeats the
 Doppler-dependent coherence at $t = 1/(b h)$, and the result is wrong if that falls inside the
 time window and is not damped by the decay. `"auto"` uses each level's Doppler shift and the
 decay rates, so it depends on the system as well as the window; `thermal_delta_echo_tolerance`
-sets how far the echo must be damped. See [Velocity Classes](usage/velocity-classes.ipynb).
+sets how far the echo must be damped, and the spacing is also kept fine enough to resolve the thermal width. See [Velocity Classes](usage/velocity-classes.ipynb).
 
 **Velocity-class weights (changes results).** Each class is now weighted by the detuning
 interval it represents as well as its Boltzmann density. Before, a non-uniform grid (an inner

@@ -80,7 +80,7 @@ each step (once per velocity class if the medium is Doppler broadened).
 | [save_results](#clerq.PropagationSolver.save_results) | Saves the solution to a QuTiP pickle file. |
 | [solve](#clerq.PropagationSolver.solve) | Solves the propagation of the fields through the medium. |
 | [suggest_t_steps](#clerq.PropagationSolver.suggest_t_steps) | Estimate the ``t_steps`` needed to resolve the problem's frequencies. |
-| [thermal_delta_auto_spacing](#clerq.PropagationSolver.thermal_delta_auto_spacing) | Largest cyclic class spacing free of Doppler echoes. |
+| [thermal_delta_auto_spacing](#clerq.PropagationSolver.thermal_delta_auto_spacing) | Largest cyclic class spacing that is free of Doppler echoes and |
 | [to_autodiff](#clerq.PropagationSolver.to_autodiff) | Return a differentiable version of this problem. |
 | [z_step](#clerq.PropagationSolver.z_step) | Returns the distance from one space point to the next. |
 | [z_step_inner](#clerq.PropagationSolver.z_step_inner) | Returns the distance from one inner space point to the next. |
@@ -423,22 +423,28 @@ if the grid turns out to be too coarse.
 PropagationSolver.thermal_delta_auto_spacing(tolerance=None)
 ```
 
-Largest cyclic class spacing free of Doppler echoes.
+Largest cyclic class spacing that is free of Doppler echoes and
+resolves the thermal distribution.
 
 Sampling the detuning at spacing ``h`` makes the summed response repeat
 at ``t = 1 / h``. A coherence between levels ``i`` and ``j`` oscillates
 at ``b * Delta``, where ``b`` is the difference of the two levels'
-Doppler slopes (1 for a single co-propagating field), so its echo is at
-``t = 1 / (b h)``. Per pair, the spacing is the larger of:
+Doppler slopes (1 for a single co-propagating field; see
+``System.level_doppler_slopes``), so its echo is at ``t = 1 / (b h)``.
+Per pair of levels, the spacing is the larger of:
 
 - the one that puts the echo outside the time window:
   ``THERMAL_ECHO_MARGIN / (T * b)``, with ``T = t_max - t_min``;
-- the one that damps the echo, at decay rate ``g`` of the coherence,
-  below ``tolerance``: ``g / (b * ln(1 / tolerance))``.
+- the one that damps the echo, at decay rate ``g`` of the coherence
+  (``System.level_decay_rates``), below ``tolerance``:
+  ``g / (b * ln(1 / tolerance))``.
 
-The result is the smallest over all pairs of levels whose slopes
-differ. If none do, the classes do not matter and the window rule is
-used with ``b = 1``.
+The echo spacing is the smallest over all pairs of levels whose slopes
+differ; if none do, the window rule is used with ``b = 1``. The result
+is also capped at ``pi * thermal_width / sqrt(ln(1 / tolerance))``,
+below which the sum of the Gaussian weights is correct to
+``tolerance``. Without that cap a fast decay and a narrow thermal width
+would give a grid coarser than the distribution itself.
 
 #### Parameters {.doc-section .doc-section-parameters}
 

@@ -36,8 +36,9 @@ _SOURCE_WEIGHTS = "factor"
 THERMAL_ECHO_MARGIN = 0.75
 
 # thermal_delta_spacing="auto" lets the echo into the window if its amplitude,
-# exp(-decay * t_echo), is below this. Measured on a two-level problem, the
-# result error is within about 20 times this.
+# exp(-decay * t_echo), is below this. The error in the result is a multiple of
+# it: 1 to 20 times on a two-level problem, about 60 times on the
+# counter-propagating example, relative to the probe's absorption.
 THERMAL_ECHO_TOLERANCE = 1e-6
 
 # Above this many velocity classes thermal_delta_spacing warns: each class is a
@@ -283,50 +284,29 @@ class PropagationSolver(LindbladSolver):
             vc["thermal_delta_echo_tolerance"] = float(tolerance)
         return vc
 
-    def _level_doppler_slopes(self) -> np.ndarray:
-        """Cyclic Doppler slope of each level's energy, in the rotating frame.
-
-        Each field adds ``factor_doppler_shift * Delta`` to its detuning, and
-        the detuning is added to the energy of the field's upper levels (see
-        ``System._build_H_Delta``), so level ``i`` moves at ``-sum(sign * s)``
-        over the fields that have ``i`` as an upper level.
-        """
-        slopes = np.zeros(self.system.num_states)
-        for f in self.system.fields:
-            sign = 1.0 if f.detuning_positive else -1.0
-            for level in f.upper_levels():
-                slopes[level] -= sign * f.factor_doppler_shift
-        return slopes
-
-    def _level_decay_rates(self) -> np.ndarray:
-        """Angular rate at which each level's coherences are damped.
-
-        Half the sum of ``diag(c^dagger c)`` over the collapse operators, so
-        the coherence between levels ``i`` and ``j`` decays at the sum of the
-        two entries. Pure dephasing counts the same way.
-        """
-        total = np.zeros(self.system.num_states)
-        for c_op in self.system.c_ops:
-            total += np.real(np.diag((c_op.dag() * c_op).full()))
-        return 0.5 * total
-
     def thermal_delta_auto_spacing(self, tolerance: float | None = None) -> float:
-        """Largest cyclic class spacing free of Doppler echoes.
+        """Largest cyclic class spacing that is free of Doppler echoes and
+        resolves the thermal distribution.
 
         Sampling the detuning at spacing ``h`` makes the summed response repeat
         at ``t = 1 / h``. A coherence between levels ``i`` and ``j`` oscillates
         at ``b * Delta``, where ``b`` is the difference of the two levels'
-        Doppler slopes (1 for a single co-propagating field), so its echo is at
-        ``t = 1 / (b h)``. Per pair, the spacing is the larger of:
+        Doppler slopes (1 for a single co-propagating field; see
+        ``System.level_doppler_slopes``), so its echo is at ``t = 1 / (b h)``.
+        Per pair of levels, the spacing is the larger of:
 
         - the one that puts the echo outside the time window:
           ``THERMAL_ECHO_MARGIN / (T * b)``, with ``T = t_max - t_min``;
-        - the one that damps the echo, at decay rate ``g`` of the coherence,
-          below ``tolerance``: ``g / (b * ln(1 / tolerance))``.
+        - the one that damps the echo, at decay rate ``g`` of the coherence
+          (``System.level_decay_rates``), below ``tolerance``:
+          ``g / (b * ln(1 / tolerance))``.
 
-        The result is the smallest over all pairs of levels whose slopes
-        differ. If none do, the classes do not matter and the window rule is
-        used with ``b = 1``.
+        The echo spacing is the smallest over all pairs of levels whose slopes
+        differ; if none do, the window rule is used with ``b = 1``. The result
+        is also capped at ``pi * thermal_width / sqrt(ln(1 / tolerance))``,
+        below which the sum of the Gaussian weights is correct to
+        ``tolerance``. Without that cap a fast decay and a narrow thermal width
+        would give a grid coarser than the distribution itself.
 
         Args:
             tolerance: largest echo amplitude allowed inside the window, as a
@@ -339,19 +319,21 @@ class PropagationSolver(LindbladSolver):
         """
         tolerance = THERMAL_ECHO_TOLERANCE if tolerance is None else tolerance
         window = self.t_max - self.t_min
-        slopes = self._level_doppler_slopes()
-        decay = self._level_decay_rates()
         log_inv_tol = np.log(1.0 / tolerance)
-        spacings = []
-        for i in range(len(slopes)):
-            for j in range(i + 1, len(slopes)):
-                b = abs(slopes[i] - slopes[j])
-                if b == 0.0:
-                    continue
-                by_window = THERMAL_ECHO_MARGIN / (window * b)
-                by_decay = (decay[i] + decay[j]) / (b * log_inv_tol)
-                spacings.append(max(by_window, by_decay))
-        return min(spacings) if spacings else THERMAL_ECHO_MARGIN / window
+        slopes = self.system.level_doppler_slopes()
+        decay = self.system.level_decay_rates()
+        b = np.abs(slopes[:, None] - slopes[None, :])
+        coherence_decay = decay[:, None] + decay[None, :]
+        b, coherence_decay = b[b > 0.0], coherence_decay[b > 0.0]
+        by_window = THERMAL_ECHO_MARGIN / (window * b)
+        by_decay = coherence_decay / (b * log_inv_tol)
+        echo = (
+            np.max([by_window, by_decay], axis=0).min()
+            if b.size
+            else (THERMAL_ECHO_MARGIN / window)
+        )
+        by_width = np.pi * self.velocity_classes["thermal_width"] / np.sqrt(log_inv_tol)
+        return float(min(echo, by_width))
 
     def _build_thermal_delta_list(self, vc: dict) -> np.ndarray:
         """Build the sorted array of thermal detunings.

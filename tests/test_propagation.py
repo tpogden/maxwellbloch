@@ -954,17 +954,19 @@ class TestThermalDeltaSpacing(unittest.TestCase):
         by_decay = np.pi / np.log(1e6)  # g = pi * rate for a two-level decay
         self.assertGreater(by_decay, 0.75 / window)
         self.assertAlmostEqual(mbs.thermal_delta_auto_spacing(), by_decay)
-        self.assertAlmostEqual(
-            mbs.thermal_delta_auto_spacing(tolerance=1e-3), np.pi / np.log(1e3)
-        )
+        # at a looser tolerance the thermal width (0.3) caps the spacing instead
+        capped = np.pi * 0.3 / np.sqrt(np.log(1e3))
+        self.assertLess(capped, np.pi / np.log(1e3))
+        self.assertAlmostEqual(mbs.thermal_delta_auto_spacing(tolerance=1e-3), capped)
 
     def test_echo_tolerance_key(self):
         mbs = self._solver(
             rate=1.0, thermal_delta_spacing="auto", thermal_delta_echo_tolerance=1e-3
         )
         gaps = np.diff(mbs.thermal_delta_list) / (2 * np.pi)
-        self.assertLessEqual(gaps.max(), np.pi / np.log(1e3) * (1 + 1e-9))
-        self.assertGreater(gaps.max(), np.pi / np.log(1e3) * 0.9)
+        capped = np.pi * 0.3 / np.sqrt(np.log(1e3))
+        self.assertLessEqual(gaps.max(), capped * (1 + 1e-9))
+        self.assertGreater(gaps.max(), capped * 0.9)
         for bad in (0.0, 1.0, 2.0, -1e-3, True, "x"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 self._solver(
@@ -1007,16 +1009,18 @@ class TestThermalDeltaSpacing(unittest.TestCase):
             )
 
         co = ladder(1.0)
-        np.testing.assert_allclose(co._level_doppler_slopes(), [0.0, -1.0, -1.0])
+        np.testing.assert_allclose(co.system.level_doppler_slopes(), [0.0, -1.0, -1.0])
         np.testing.assert_allclose(
-            co._level_decay_rates(), [0.0, np.pi * 1.0, np.pi * 0.001]
+            co.system.level_decay_rates(), [0.0, np.pi * 1.0, np.pi * 0.001]
         )
         # Pairs (0, 1) and (0, 2) have b = 1; (0, 2) is nearly undamped, so the
         # window rule governs; (1, 2) has b = 0 and is skipped.
         self.assertAlmostEqual(co.thermal_delta_auto_spacing(), 0.75 / 13.0)
 
         counter = ladder(-1.625)
-        np.testing.assert_allclose(counter._level_doppler_slopes(), [0.0, -1.0, 1.625])
+        np.testing.assert_allclose(
+            counter.system.level_doppler_slopes(), [0.0, -1.0, 1.625]
+        )
         # (0, 2) has b = 1.625 and no damping: 0.75 / (13 * 1.625), the smallest.
         self.assertAlmostEqual(
             counter.thermal_delta_auto_spacing(), 0.75 / (13 * 1.625)
@@ -1093,6 +1097,135 @@ class TestThermalDeltaSpacing(unittest.TestCase):
                 thermal_delta_min=0.0,
                 thermal_delta_max=0.0,
             )
+
+    def test_level_slopes_follow_the_detuning_sign_and_counter_propagation(self):
+        """The slope of an upper level is -sign * factor, summed over the
+        fields that have it as an upper level; sign is -1 for
+        detuning_positive=False, and counter_propagating sets the factor -1."""
+
+        def slopes(*fields):
+            system = {
+                "num_states": 3,
+                "fields": [
+                    {"coupled_levels": c, "rabi_freq": 0.0, **extra}
+                    for c, extra in fields
+                ],
+            }
+            return PropagationSolver(system=system).system.level_doppler_slopes()
+
+        up = [[0, 1]]
+        np.testing.assert_allclose(slopes((up, {})), [0, -1, 0])
+        np.testing.assert_allclose(
+            slopes((up, {"detuning_positive": False})), [0, 1, 0]
+        )
+        np.testing.assert_allclose(
+            slopes((up, {"counter_propagating": True})), [0, 1, 0]
+        )
+        np.testing.assert_allclose(
+            slopes((up, {"counter_propagating": True, "detuning_positive": False})),
+            [0, -1, 0],
+        )
+        np.testing.assert_allclose(
+            slopes((up, {"factor_doppler_shift": 2.5})), [0, -2.5, 0]
+        )
+        # a ladder with the second field detuning_positive=False, as in the docs
+        np.testing.assert_allclose(
+            slopes((up, {}), ([[1, 2]], {"detuning_positive": False})), [0, -1, 1]
+        )
+        # two fields on the same upper level add
+        np.testing.assert_allclose(slopes((up, {}), (up, {})), [0, -2, 0])
+
+    def test_auto_spacing_resolves_a_narrow_thermal_width(self):
+        """A fast decay damps the echo at a huge spacing, but the classes must
+        still resolve the Gaussian, so the thermal width caps the spacing."""
+        mbs = self._solver(
+            rate=20.0,
+            thermal_width=0.05,
+            thermal_delta_min=-0.25,
+            thermal_delta_max=0.25,
+            thermal_delta_spacing="auto",
+        )
+        by_decay = np.pi * 20.0 / np.log(1e6)
+        self.assertGreater(by_decay, 1.0)
+        capped = np.pi * 0.05 / np.sqrt(np.log(1e6))
+        self.assertAlmostEqual(mbs.thermal_delta_auto_spacing(), capped)
+        cyclic = mbs.thermal_delta_list / (2 * np.pi)
+        self.assertGreaterEqual(len(cyclic), 7)
+        self.assertLessEqual(np.diff(cyclic).max(), capped * (1 + 1e-9))
+        self.assertAlmostEqual(cyclic[len(cyclic) // 2], 0.0)  # samples the line
+
+    def test_narrow_width_auto_grid_is_converged(self):
+        fine = self._solver(
+            rate=20.0,
+            thermal_width=0.05,
+            thermal_delta_min=-0.25,
+            thermal_delta_max=0.25,
+            thermal_delta_steps=200,
+        )
+        fine.solve()
+        ref = np.asarray(fine._Omegas_zt[-1])
+        auto = self._solver(
+            rate=20.0,
+            thermal_width=0.05,
+            thermal_delta_min=-0.25,
+            thermal_delta_max=0.25,
+            thermal_delta_spacing="auto",
+        )
+        auto.solve()
+        err = np.abs(np.asarray(auto._Omegas_zt[-1]) - ref).max() / np.abs(ref).max()
+        self.assertLess(err, 1e-4)
+
+    def test_ladder_auto_grid_is_converged(self):
+        """Solve-level check on three levels with a detuning_positive=False
+        coupling field, where the (1, 2) coherence has slope 2."""
+
+        def ladder(**vc):
+            system = {
+                "num_states": 3,
+                "decays": [
+                    {"channels": [[0, 1]], "rate": 1.0},
+                    {"channels": [[1, 2]], "rate": 0.1},
+                ],
+                "fields": [
+                    {
+                        "coupled_levels": [[0, 1]],
+                        "rabi_freq": 1e-3,
+                        "rabi_freq_t_func": "gaussian",
+                        "rabi_freq_t_args": {"ampl": 1.0, "centre": 0.0, "fwhm": 1.0},
+                    },
+                    {
+                        "coupled_levels": [[1, 2]],
+                        "rabi_freq": 1.0,
+                        "detuning_positive": False,
+                    },
+                ],
+            }
+            mbs = PropagationSolver(
+                system=system,
+                t_min=-1.0,
+                t_max=6.0,
+                t_steps=100,
+                z_min=0.0,
+                z_max=1.0,
+                z_steps=4,
+                interaction_strengths=[1.0, 0.0],
+                velocity_classes={
+                    "thermal_width": 1.0,
+                    "thermal_delta_min": -3.0,
+                    "thermal_delta_max": 3.0,
+                    **vc,
+                },
+            )
+            mbs.solve(progress=False)
+            return mbs
+
+        auto = ladder(thermal_delta_spacing="auto")
+        spacing = auto.thermal_delta_auto_spacing()
+        fine = ladder(thermal_delta_spacing=spacing / 2)
+        change = np.abs(fine._Omegas_zt[0, -1] - fine._Omegas_zt[0, 0]).max()
+        self.assertGreater(change, 1e-5)  # the medium acts on the probe
+        err = np.abs(auto._Omegas_zt[0] - fine._Omegas_zt[0]).max()
+        self.assertLess(err / change, 1e-3)
 
     def test_auto_grid_is_converged_and_a_coarser_one_is_not(self):
         """With a slow decay, the echo-free grid matches a fine reference and a
