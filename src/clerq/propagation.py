@@ -4,6 +4,7 @@
 import datetime
 import hashlib
 import importlib.metadata
+import numbers
 import os
 import warnings
 from typing import Any
@@ -27,6 +28,17 @@ from clerq.utility import maxwell_boltzmann
 # in savefiles. "factor" is the signed factor (as in the Hamiltonian); results
 # solved before it was introduced used factor**2.
 _SOURCE_WEIGHTS = "factor"
+
+# thermal_delta_spacing="auto" is this fraction of 1 / (t_max - t_min). A grid
+# of spacing h echoes at t = 1 / h, so this puts the echo at 1 / 0.75 times the
+# window length. Measured on a two-level problem, the error is at its floor
+# (below 1e-7) by 0.75 / T and 29% at 1.5 / T.
+THERMAL_ECHO_MARGIN = 0.75
+
+# Above this many velocity classes thermal_delta_spacing warns: each class is a
+# master-equation solve at every z-step, and a tiny spacing is usually a units
+# slip (angular for cyclic).
+THERMAL_CLASSES_WARN = 1000
 
 
 class PropagationSolver(LindbladSolver):
@@ -62,7 +74,11 @@ class PropagationSolver(LindbladSolver):
         velocity_classes: Dict defining the velocity classes for Doppler
             broadening, or ``None`` for no broadening. ``thermal_width`` and
             the ``thermal_delta_*`` values are cyclic frequencies, in the
-            same units as ``decays`` rates and ``rabi_freq``. The density
+            same units as ``decays`` rates and ``rabi_freq``. Instead of
+            ``thermal_delta_steps`` the classes can be given a maximum
+            spacing ``thermal_delta_spacing`` (new in 0.15.0), or ``"auto"``
+            for the largest spacing with no spurious Doppler echo inside the
+            time window (``thermal_delta_auto_spacing()``). The density
             of the classes is Gaussian, ``exp(-(delta / thermal_width)**2)``
             (``thermal_weights``); each class is weighted by this times the
             detuning interval it represents (``thermal_widths``).
@@ -221,10 +237,59 @@ class PropagationSolver(LindbladSolver):
         vc = {**defaults, **(velocity_classes or {})}
         if vc["thermal_width"] <= 0.0:
             raise ValueError("Thermal width must be > 0.0.")
+        # Not in the defaults, so that the problem hash (and so existing
+        # savefiles) is unchanged when it is not used.
+        spacing = vc.get("thermal_delta_spacing")
+        if spacing is not None:
+            if vc["thermal_delta_steps"] or vc["thermal_delta_inner_steps"]:
+                raise ValueError(
+                    "thermal_delta_spacing replaces thermal_delta_steps and "
+                    "thermal_delta_inner_steps; set only one of them."
+                )
+            if vc["thermal_delta_max"] <= vc["thermal_delta_min"]:
+                raise ValueError(
+                    "thermal_delta_spacing needs thermal_delta_max > thermal_delta_min."
+                )
+            if spacing != "auto" and not (
+                isinstance(spacing, numbers.Real)
+                and not isinstance(spacing, bool)
+                and spacing > 0.0
+            ):
+                raise ValueError("thermal_delta_spacing must be > 0.0 or 'auto'.")
+            if spacing != "auto":
+                vc["thermal_delta_spacing"] = float(spacing)  # JSON-safe for the hash
         return vc
 
+    def thermal_delta_auto_spacing(self) -> float:
+        """Largest cyclic class spacing free of Doppler echoes in the time window.
+
+        Sampling the detuning at spacing ``h`` makes the summed response repeat
+        at ``t = 1 / h``. That echo is spurious, so it must fall outside the
+        window of length ``t_max - t_min``; the spacing is
+        ``THERMAL_ECHO_MARGIN`` of the window's reciprocal.
+
+        A coherence between two levels oscillates at ``s * Delta`` cyclic, where
+        ``s`` is the sum of the ``factor_doppler_shift`` of the fields that
+        shift the two levels apart: 1 for a single co-propagating field, 2 for
+        the two-photon coherence of a co-propagating ladder. Its echo is at
+        ``1 / (s h)``, so the spacing is divided by the largest possible ``s``,
+        the sum of ``abs(factor_doppler_shift)`` over all the fields.
+
+        Decay damps the echo, but this ignores that, so it is safe for any
+        system.
+
+        .. versionadded:: 0.15.0
+        """
+        slope = sum(abs(f.factor_doppler_shift) for f in self.system.fields)
+        return THERMAL_ECHO_MARGIN / ((self.t_max - self.t_min) * (slope or 1.0))
+
     def _build_thermal_delta_list(self, vc: dict) -> np.ndarray:
-        """Merge the outer and inner detuning ranges into one sorted unique array.
+        """Build the sorted array of thermal detunings.
+
+        With ``thermal_delta_spacing`` this is one uniform grid from
+        ``thermal_delta_min`` to ``thermal_delta_max`` (the step keys must be
+        unset). Otherwise the outer and inner ranges are merged, with
+        duplicates counted once.
 
         Args:
             vc: normalised velocity-class dict (from _normalise_velocity_classes).
@@ -232,6 +297,27 @@ class PropagationSolver(LindbladSolver):
         Returns:
             1-D array of thermal detuning values in angular-frequency units.
         """
+        spacing = vc.get("thermal_delta_spacing")
+        if spacing is not None:
+            if spacing == "auto":
+                spacing = self.thermal_delta_auto_spacing()
+            span = vc["thermal_delta_max"] - vc["thermal_delta_min"]
+            steps = int(np.ceil(span / spacing * (1.0 - 1e-12)))
+            if steps + 1 > THERMAL_CLASSES_WARN:
+                warnings.warn(
+                    f"thermal_delta_spacing={spacing:.3g} gives {steps + 1} "
+                    "velocity classes, each solved at every z-step. Check that "
+                    "it is a cyclic frequency, like thermal_width.",
+                    UserWarning,
+                    stacklevel=3,
+                )
+            return (
+                2
+                * np.pi
+                * np.linspace(
+                    vc["thermal_delta_min"], vc["thermal_delta_max"], steps + 1
+                )
+            )
         outer = np.linspace(
             2 * np.pi * vc["thermal_delta_min"],
             2 * np.pi * vc["thermal_delta_max"],
@@ -271,6 +357,8 @@ class PropagationSolver(LindbladSolver):
 
         The Maxwell-Boltzmann density ``thermal_weights`` times the detuning
         interval ``thermal_widths`` each class represents. Not normalised.
+
+        .. versionadded:: 0.15.0
         """
         return self.thermal_weights * self.thermal_widths
 
@@ -1359,10 +1447,10 @@ class PropagationSolver(LindbladSolver):
                 definition (hash mismatch), or was solved with the old
                 factor**2 source-term weights and a field has factors other
                 than 1, or was solved with velocity-class weights that ignored
-                the class spacing on a non-uniform grid, or was solved with the other drive convention (savefiles
-                without a drive marker used ``Re(Omega)``) for a problem where
-                the two differ (static detunings, level energies or an
-                asymmetric class grid).
+                the class spacing on a non-uniform grid, or was solved with
+                the other drive convention (savefiles without a drive marker
+                used ``Re(Omega)``) for a problem where the two differ (static
+                detunings, level energies or an asymmetric class grid).
 
         Notes:
             - The path from which the results will be loaded is taken from

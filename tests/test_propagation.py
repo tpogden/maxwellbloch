@@ -877,6 +877,163 @@ class TestThermalWeights(unittest.TestCase):
         self.assertLess(np.max(np.abs(absorption - voigt)), 0.1)
 
 
+class TestThermalDeltaSpacing(unittest.TestCase):
+    """thermal_delta_spacing builds a uniform grid free of Doppler echoes."""
+
+    def _solver(self, field_extra=(), doppler=None, rate=None, **vc):
+        """Two-level problem; ``doppler`` sets factor_doppler_shift of the
+        field, and each dict in ``field_extra`` adds another field."""
+        with open(os.path.join(JSON_DIR, "velocity-classes.json")) as fh:
+            problem = json.load(fh)
+        problem["z_steps"] = 4
+        fields = problem["system"]["fields"]
+        if rate is not None:
+            problem["system"]["decays"][0]["rate"] = rate
+        if doppler is not None:
+            fields[0]["factor_doppler_shift"] = doppler
+        for extra in field_extra:
+            fields.append({**fields[0], **extra})
+        problem["velocity_classes"] = {
+            "thermal_width": 0.3,
+            "thermal_delta_min": -1.5,
+            "thermal_delta_max": 1.5,
+            **vc,
+        }
+        return PropagationSolver().from_json_str(json.dumps(problem))
+
+    def test_float_spacing_gives_a_uniform_grid_no_wider_than_requested(self):
+        mbs = self._solver(thermal_delta_spacing=0.07)
+        cyclic = mbs.thermal_delta_list / (2 * np.pi)
+        self.assertAlmostEqual(cyclic[0], -1.5)
+        self.assertAlmostEqual(cyclic[-1], 1.5)
+        gaps = np.diff(cyclic)
+        np.testing.assert_allclose(gaps, gaps[0])
+        self.assertLessEqual(gaps[0], 0.07)
+        self.assertGreater(gaps[0], 0.07 * 0.97)
+
+    def test_exact_multiple_does_not_add_a_class(self):
+        mbs = self._solver(thermal_delta_spacing=0.25)
+        self.assertEqual(len(mbs.thermal_delta_list), 13)
+
+    def test_auto_spacing_is_set_by_the_time_window(self):
+        mbs = self._solver(thermal_delta_spacing="auto")
+        window = mbs.t_max - mbs.t_min
+        expected = 0.75 / window
+        self.assertAlmostEqual(mbs.thermal_delta_auto_spacing(), expected)
+        gaps = np.diff(mbs.thermal_delta_list) / (2 * np.pi)
+        self.assertLessEqual(gaps.max(), expected * (1 + 1e-9))
+        self.assertGreater(gaps.max(), expected * 0.97)
+
+    def test_auto_spacing_shrinks_with_the_doppler_factors(self):
+        """A coherence oscillating at s * Delta echoes at 1 / (s h), so the
+        spacing divides by the sum of abs(factor_doppler_shift)."""
+        base = self._solver(thermal_delta_spacing="auto")
+        window = base.t_max - base.t_min
+        cases = [
+            (dict(doppler=2.5), 2.5),
+            (dict(doppler=-1.0), 1.0),
+            (dict(field_extra=[{"factor_doppler_shift": -1.0}]), 2.0),
+            (dict(doppler=0.5, field_extra=[{"factor_doppler_shift": 2.0}]), 2.5),
+        ]
+        for kwargs, slope in cases:
+            with self.subTest(**{k: str(v) for k, v in kwargs.items()}):
+                mbs = self._solver(thermal_delta_spacing="auto", **kwargs)
+                self.assertAlmostEqual(
+                    mbs.thermal_delta_auto_spacing(), 0.75 / (window * slope)
+                )
+
+    def test_auto_grid_is_converged_with_a_doppler_factor(self):
+        """With factor 2 the echo is at 1 / (2 h); the bare 0.75 / window
+        spacing puts it inside the window and fails, 'auto' does not."""
+        # A slow decay, so that the echo is not damped away.
+        fine = self._solver(doppler=2.0, rate=0.05, thermal_delta_steps=400)
+        fine.solve()
+        ref = np.asarray(fine._Omegas_zt[-1])
+        scale = np.abs(ref).max()
+
+        auto = self._solver(doppler=2.0, rate=0.05, thermal_delta_spacing="auto")
+        auto.solve()
+        err_auto = np.abs(np.asarray(auto._Omegas_zt[-1]) - ref).max() / scale
+        self.assertLess(err_auto, 1e-5)
+
+        bare = self._solver(
+            doppler=2.0,
+            rate=0.05,
+            thermal_delta_spacing=0.75 / (auto.t_max - auto.t_min),
+        )
+        bare.solve()
+        err_bare = np.abs(np.asarray(bare._Omegas_zt[-1]) - ref).max() / scale
+        self.assertGreater(err_bare, 100 * err_auto)
+
+    def test_numpy_scalars_are_accepted_and_bool_is_not(self):
+        mbs = self._solver(thermal_delta_spacing=0.1)
+        for good in (np.float32(0.1), np.float64(0.1), np.int64(1)):
+            with self.subTest(good=repr(good)):
+                mbs.build_velocity_classes(
+                    {
+                        **mbs.velocity_classes,
+                        "thermal_delta_spacing": good,
+                    }
+                )
+                self.assertIsInstance(
+                    mbs.velocity_classes["thermal_delta_spacing"], float
+                )
+                mbs.to_json_str()  # still JSON-serialisable for the hash
+        with self.assertRaises(ValueError):
+            self._solver(thermal_delta_spacing=True)
+
+    def test_tiny_spacing_warns_about_the_class_count(self):
+        with self.assertWarnsRegex(UserWarning, "velocity classes"):
+            self._solver(thermal_delta_spacing=1e-3)
+
+    def test_auto_survives_a_json_round_trip(self):
+        mbs = self._solver(thermal_delta_spacing="auto")
+        again = PropagationSolver().from_json_str(mbs.to_json_str())
+        self.assertEqual(again.velocity_classes["thermal_delta_spacing"], "auto")
+        np.testing.assert_allclose(again.thermal_delta_list, mbs.thermal_delta_list)
+
+    def test_unused_key_leaves_the_problem_hash_unchanged(self):
+        mbs = self._solver(thermal_delta_steps=10)
+        self.assertNotIn("thermal_delta_spacing", mbs.velocity_classes)
+
+    def test_spacing_with_steps_raises(self):
+        for key in ("thermal_delta_steps", "thermal_delta_inner_steps"):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self._solver(thermal_delta_spacing=0.1, **{key: 4})
+
+    def test_bad_spacing_raises(self):
+        for bad in (0.0, -0.1, "fine"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                self._solver(thermal_delta_spacing=bad)
+
+    def test_empty_range_raises(self):
+        with self.assertRaises(ValueError):
+            self._solver(
+                thermal_delta_spacing="auto",
+                thermal_delta_min=0.0,
+                thermal_delta_max=0.0,
+            )
+
+    def test_auto_grid_is_converged_and_a_coarser_one_is_not(self):
+        """Echo-free grid matches a fine reference; a spacing of 2 / window
+        puts the echo inside the window and fails."""
+        fine = self._solver(thermal_delta_steps=240)
+        fine.solve()
+        ref = np.asarray(fine._Omegas_zt[-1])
+        scale = np.abs(ref).max()
+
+        auto = self._solver(thermal_delta_spacing="auto")
+        auto.solve()
+        err_auto = np.abs(np.asarray(auto._Omegas_zt[-1]) - ref).max() / scale
+        self.assertLess(err_auto, 1e-5)
+
+        window = auto.t_max - auto.t_min
+        coarse = self._solver(thermal_delta_spacing=2.0 / window)
+        coarse.solve()
+        err_coarse = np.abs(np.asarray(coarse._Omegas_zt[-1]) - ref).max() / scale
+        self.assertGreater(err_coarse, 100 * err_auto)
+
+
 class TestInnerSteps(unittest.TestCase):
     """z_steps_inner subdivides each recorded z step; it must not shift slices.
 

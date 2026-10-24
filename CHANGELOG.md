@@ -8,6 +8,14 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- `velocity_classes` accepts `thermal_delta_spacing`, a maximum cyclic spacing between the Doppler classes, in place of
+  `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo inside the time window
+  (`0.75 / ((t_max - t_min) * s)`, from `PropagationSolver.thermal_delta_auto_spacing()`, where `s` is the sum of
+  `abs(factor_doppler_shift)` over the fields, since a coherence between levels shifted by several fields echoes sooner). A grid of spacing `h` repeats the summed
+  response at `t = 1 / h`; on a two-level problem the result is converged to below 1e-7 once that echo is outside the window and
+  wrong (29%) when it is inside. It cannot be combined with `thermal_delta_steps` or `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
+
 ### Fixed
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
   density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
