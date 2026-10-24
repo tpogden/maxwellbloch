@@ -7,6 +7,8 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
+
 HERE = Path(__file__).parent
 RESULTS = HERE / "results"
 
@@ -162,6 +164,73 @@ def e5_text(recs):
     return "\n".join(lines)
 
 
+def e7_table(recs):
+    """Median over seeds of the best retrieved fraction at the full allotment, per optimiser."""
+    by = {}
+    for r in recs:
+        by.setdefault(r["optimiser"], []).append(r)
+    if not by:
+        return ""
+    first = next(iter(by.values()))[0]
+    out = [
+        f"{first['n_par']} parameters, budget {first['budget']:.0f} objective evaluations "
+        f"(a gradient call is charged {first['charge_per_gradient']:.1f}), optical depth {2 * first['g']:.0f}"
+        f"{', Doppler' if first['doppler'] else ', no Doppler'}.\n",
+        "| optimiser | per seed | median | cost used |",
+        "|-|-|-|-|",
+    ]
+    for name in ("adam", "lbfgsb", "de", "cmaes", "lhs"):
+        rs = sorted(by.get(name, []), key=lambda r: r["seed"])
+        if rs:
+            vals = [r["best_retrieved"] for r in rs]
+            out.append(
+                f"| {name} | {', '.join(f'{v:.3f}' for v in vals)} | {np.median(vals):.3f} | "
+                f"{np.median([r['cost_used'] for r in rs]):.0f} |"
+            )
+    return "\n".join(out)
+
+
+def e7_figure(recs, outdir: Path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    if not recs:
+        return
+    fig, ax = plt.subplots(figsize=(5.2, 3.6))
+    labels = {
+        "adam": "Adam (gradient)",
+        "lbfgsb": "L-BFGS-B (gradient)",
+        "de": "differential evolution",
+        "cmaes": "CMA-ES",
+        "lhs": "Latin hypercube",
+    }
+    for name, label in labels.items():
+        rs = [r for r in recs if r["optimiser"] == name]
+        if not rs:
+            continue
+        grid = np.linspace(0, rs[0]["budget"], 200)
+        curves = []
+        for r in rs:
+            c, v = np.array(r["trace"]).T
+            curves.append(np.interp(grid, c, v, left=0.0))
+        ax.plot(grid, np.median(curves, axis=0), label=label)
+        ax.fill_between(
+            grid, np.min(curves, axis=0), np.max(curves, axis=0), alpha=0.15
+        )
+    ax.set(
+        xlabel="cost (objective evaluations)",
+        ylabel="best retrieved fraction so far",
+        ylim=(0, None),
+    )
+    ax.legend(fontsize=7)
+    fig.tight_layout()
+    outdir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(outdir / "autodiff-bench-equal-cost.png", dpi=150)
+    plt.close(fig)
+
+
 def figures(e1, e2, outdir: Path):
     import matplotlib
 
@@ -268,11 +337,17 @@ def main():
         parts += ["## E4 compile time\n", e4_table(d["e4"])]
     if "e5" in d:
         parts += ["## E5 time to solution\n", e5_text(d["e5"])]
+    if "e7" in d:
+        parts += [
+            "## E7 equal-cost comparison with gradient-free search\n",
+            e7_table(d["e7"]),
+        ]
     text = "\n\n".join(parts) + "\n"
     (RESULTS / f"{a.prefix}tables.md").write_text(text)
     print(text)
     if not a.no_figures:
         figures(d.get("e1", []), d.get("e2", []), Path(a.figures_dir))
+        e7_figure(d.get("e7", []), Path(a.figures_dir))
 
 
 if __name__ == "__main__":

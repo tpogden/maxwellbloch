@@ -124,3 +124,16 @@
 - 44-parameter gradient: reverse AD 36.3 s, forward differences 279 s, one forward evaluation 6.23 s.
 - Baseline (5 parameters, Nelder-Mead): 0.0681 retrieved after 296 evaluations, 2261 s.
 - Free-form (44 parameters, Adam): 0.1057 after 40 steps, 1809 s. It passes the baseline value (0.0681) at step 23, after 1037 s; with finite-difference gradients the same steps would take about 6425 s (estimate from the measured gradient time).
+
+## E7 equal-cost comparison with gradient-free search
+
+
+44 parameters, budget 550 objective evaluations (a gradient call is charged 6.5), optical depth 25, no Doppler.
+
+| optimiser | per seed | median | cost used | wall time per run (s) |
+|-|-|-|-|-|
+| adam | 0.459, 0.439, 0.447 | 0.447 | 551 | 704 |
+| lbfgsb | 0.000, 0.462, 0.000 | 0.000 | 7 | 6 |
+| de | 0.315, 0.336, 0.299 | 0.315 | 528 | 868 |
+| cmaes | 0.399, 0.385, 0.404 | 0.399 | 555 | 804 |
+| lhs | 0.250, 0.259, 0.232 | 0.250 | 550 | 828 |
