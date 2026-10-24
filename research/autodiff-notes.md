@@ -257,7 +257,7 @@ The follow-up in section 14 is done: the complex-envelope drive is merged (PR #3
 
 ## 16. Reproducible benchmarks of the released code (2026-10-24)
 
-`benchmarks/autodiff/` and the page `docs/usage/autodiff-performance.qmd` now hold measurements of clerq 0.14.0 (M1 Max, CPU only, load average 2 to 8).
+`benchmarks/autodiff/` and the page `docs/benchmarks.qmd` now hold measurements of clerq 0.14.0 (M1 Max, CPU only, load average 2 to 8).
 Compared with the prototype numbers quoted earlier in these notes:
 - The prototype's "44-47x faster than finite differences at N = 100" was against central differences (2N evaluations). Against forward differences (N + 1 evaluations)
   the speed-up at N = 100 is 17.7x (two-level) and 17.6x (lambda); it is about 35x against central differences. Reverse mode matches finite differences at N of about 5.

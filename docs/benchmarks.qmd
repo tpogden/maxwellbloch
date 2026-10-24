@@ -3,7 +3,7 @@ title: "Autodiff performance and validation"
 ---
 
 Requires the `jax` extra: `pip install 'clerq[jax]'`. See
-[`AutodiffPropagation`](../api/autodiff.AutodiffPropagation.qmd) for the API.
+[`AutodiffPropagation`](api/autodiff.AutodiffPropagation.qmd) for the API.
 
 This page records measurements of the released `clerq.autodiff` (0.14.0): what a gradient costs, how much
 memory it needs, how accurate it is, and what it buys on a design problem. The harness that produced
@@ -25,9 +25,9 @@ cost over forward cost, autodiff over finite differences) are the portable part;
 
 A reverse-mode gradient costs about six forward propagations, whatever the number of parameters. The
 parameters here are the coefficients of a free-form probe control (a Gaussian basis, see
-[`clerq.autodiff.controls`](../api/autodiff.controls.gaussian_basis.qmd)), so `N` can be varied freely.
+[`clerq.autodiff.controls`](api/autodiff.controls.gaussian_basis.qmd)), so `N` can be varied freely.
 
-![Time of one gradient against the number of parameters](figures/autodiff-bench-cost.png)
+![Time of one gradient against the number of parameters](benchmarks-figures/autodiff-bench-cost.png)
 
 | system | forward (s) | reverse (s) | reverse / forward | at N = 50: forward-mode (s) | finite differences, JAX (s) | finite differences, clerq (s, estimated) | reverse speed-up over JAX / clerq |
 |-|-|-|-|-|-|-|-|
@@ -59,7 +59,7 @@ z steps and of velocity classes. The default (`s3`) recomputes a slice on the ba
 solver's inner checkpoints (here to 32). The figure shows the temporary memory XLA reports for one
 compiled gradient.
 
-![XLA temporary memory of one gradient against the number of z steps](figures/autodiff-bench-memory.png)
+![XLA temporary memory of one gradient against the number of z steps](benchmarks-figures/autodiff-bench-memory.png)
 
 For Rb87 with 11 classes and 400 z steps, `s2` needs 14.3 GiB, `s3` 105 MiB and `s4` 13 MiB; at 800 z steps
 `s3` needs 110 MiB and `s4` 18 MiB (`s2` was not run). For lambda at 800 steps it is 312 MiB, 21 MiB and 20 MiB.
@@ -159,7 +159,7 @@ charged at the measured 6.5 evaluations. Three random starts each; the retrieved
 | differential evolution | 0.315, 0.336, 0.299 | 0.315 |
 | Latin hypercube | 0.250, 0.259, 0.232 | 0.250 |
 
-![Best retrieved fraction against cost](figures/autodiff-bench-equal-cost.png)
+![Best retrieved fraction against cost](benchmarks-figures/autodiff-bench-equal-cost.png)
 
 - At equal cost the gradient search with Adam finished 12% above CMA-ES, the best gradient-free search, and 42% above differential evolution,
   on all three seeds. The margin over CMA-ES is modest. On the first seed Adam had reached 99.5% of its final value by half the budget, while CMA-ES and differential evolution had flattened by 80% of it.
