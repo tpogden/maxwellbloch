@@ -31,7 +31,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from clerq.autodiff._config import require_float64
+from clerq.autodiff._config import complex_dtype, default_tolerances
 from clerq.autodiff._drive import CubicDrive
 from clerq.autodiff._lindblad import solve_slice
 from clerq.autodiff._operators import SystemOperators, build_operators
@@ -175,8 +175,8 @@ def propagate_fields(
     step: str = "ab",
     strategy: str = "s3",
     checkpoints: int | None = None,
-    rtol: float = 1e-8,
-    atol: float = 1e-10,
+    rtol: float | None = None,
+    atol: float | None = None,
     n_steps: int | None = None,
     max_steps: int = 100_000,
     solver=None,
@@ -210,7 +210,8 @@ def propagate_fields(
             ``checkpoints``.
         checkpoints: inner checkpoint count, required (a positive integer) for
             ``strategy="s4"`` and not allowed with the other strategies.
-        rtol, atol: adaptive step-size tolerances.
+        rtol, atol: adaptive step-size tolerances; default 1e-8 and 1e-10 in float64,
+            1e-6 and 1e-9 in float32.
         max_steps: the most steps one slice solve may take; the solve errors if
             it needs more. Reverse mode also sizes its default checkpoint
             count from it (about its base-2 logarithm), so a smaller value
@@ -230,7 +231,7 @@ def propagate_fields(
         RuntimeError: if JAX is not in 64-bit mode.
         ValueError: for an unknown ``step`` or ``strategy``.
     """
-    require_float64()
+    rtol, atol = default_tolerances(rtol, atol)
     validate_options(step, strategy, checkpoints)
 
     ops = setup.ops
@@ -315,7 +316,7 @@ def propagate_fields(
         def rabi0(t):
             return jnp.stack([r0[k] * pulses[k](t) for k in range(n_f)])
 
-        omega_init = (TWO_PI * jax.vmap(rabi0)(ts).T).astype(jnp.complex128)
+        omega_init = (TWO_PI * jax.vmap(rabi0)(ts).T).astype(complex_dtype())
         jumps = [
             x
             for (name, _, _), a in zip(setup.pulses, args, strict=True)
@@ -323,7 +324,7 @@ def propagate_fields(
         ]
         jump_ts = jnp.sort(jnp.asarray(jumps, dtype=float)) if jumps else None
     else:
-        omega_init = jnp.asarray(omega0, dtype=jnp.complex128)
+        omega_init = jnp.asarray(omega0, dtype=complex_dtype())
         rabi0 = spline_rabi(omega_init)
         jump_ts = None
 

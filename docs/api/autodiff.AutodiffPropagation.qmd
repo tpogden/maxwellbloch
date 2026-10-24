@@ -7,8 +7,8 @@ autodiff.AutodiffPropagation(
     step='ab',
     strategy='s3',
     checkpoints=None,
-    rtol=1e-08,
-    atol=1e-10,
+    rtol=None,
+    atol=None,
     max_steps=100000,
     n_steps=None,
     solver=None,
@@ -89,6 +89,17 @@ Counter-propagating fields are not supported. The result matches
 #328 stored Adams-Bashforth slices one inner step early when
 ``z_steps_inner > 1`` and will not match there.
 
+## Precision {.doc-section .doc-section-precision}
+
+The backend computes in the precision JAX is configured for: float32 by
+default, float64 with ``jax.config.update("jax_enable_x64", True)``. Float64
+is the reference. Float32 agrees with it to 1e-6 to 2e-5 of the peak on the fields and
+6e-7 to 5e-5 on gradients on the benchmark problems, with the default
+tolerances (``rtol=1e-6``, ``atol=1e-9``, against ``1e-8`` and ``1e-10`` in
+float64). Use float64 for finite-difference checks, for tolerances tighter
+than about 1e-6, and when the loss is very close to zero, where float32
+gradients are noisier.
+
 ## Parameters {.doc-section .doc-section-parameters}
 
 | Name        | Type             | Description                                                                                                                                                                                    | Default    |
@@ -97,8 +108,8 @@ Counter-propagating fields are not supported. The result matches
 | step        | str              | ``"ab"`` (Adams-Bashforth, default) or ``"euler"``.                                                                                                                                            | `'ab'`     |
 | strategy    | str              | ``"s3"`` (default) recomputes a slice on the backward pass; ``"s2"`` stores every slice; ``"s4"`` additionally limits the solver's inner checkpoints to ``checkpoints``.                       | `'s3'`     |
 | checkpoints | int \| None      | inner checkpoint count, required (a positive integer) for ``strategy="s4"`` and not allowed with the other strategies.                                                                         | `None`     |
-| rtol        | float            | relative tolerance of the adaptive step-size control.                                                                                                                                          | `1e-08`    |
-| atol        | float            | absolute tolerance of the adaptive step-size control.                                                                                                                                          | `1e-10`    |
+| rtol        | float \| None    | relative tolerance of the adaptive step-size control; default 1e-8 in float64 and 1e-6 in float32.                                                                                             | `None`     |
+| atol        | float \| None    | absolute tolerance of the adaptive step-size control; default 1e-10 in float64 and 1e-9 in float32.                                                                                            | `None`     |
 | max_steps   | int              | the most steps one slice solve may take (the solve errors if it needs more); reverse mode sizes its default checkpoint count from it, so a smaller value lowers memory use for large problems. | `100000`   |
 | n_steps     | int \| None      | fixed-step solver with this many steps per slice (useful for finite-difference reference gradients); must not be commensurate with the time grid.                                              | `None`     |
 | solver      | Any              | a diffrax solver, default ``Tsit5``.                                                                                                                                                           | `None`     |

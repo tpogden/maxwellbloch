@@ -1,0 +1,5 @@
+two_level {'case': 'two_level', 'N': 10, 'field_error': 1.378e-05, 'value_error': 5e-08, 'gradient_error': 4.808e-05, 't_fwd_f64': 0.75664029, 't_fwd_f32': 0.3544555, 't_grad_f64': 4.35698462, 't_grad_f32': 2.34549904}
+lambda_eit {'case': 'lambda_eit', 'N': 10, 'field_error': 1.28e-06, 'value_error': 4e-07, 'gradient_error': 1.23e-06, 't_fwd_f64': 0.13846496, 't_fwd_f32': 0.0876365, 't_grad_f64': 0.81163962, 't_grad_f32': 0.49180842}
+rb87 {'case': 'rb87', 'N': 10, 'field_error': 2.089e-05, 'value_error': 6.7e-07, 'gradient_error': 6.4e-07, 't_fwd_f64': 1.27001037, 't_fwd_f32': 0.90714675, 't_grad_f64': 7.64236483, 't_grad_f32': 5.47786017}
+lambda_eit_long_z {'case': 'lambda_eit_long_z', 'N': 10, 'field_error': 8.42e-06, 'value_error': 1.58e-06, 'gradient_error': 3.24e-06, 't_fwd_f64': 1.21176667, 't_fwd_f32': 0.92022962, 't_grad_f64': 6.88103729, 't_grad_f32': 4.59931396}
+lambda_eit_fine_t {'case': 'lambda_eit_fine_t', 'N': 10, 'field_error': 2.66e-06, 'value_error': 9.5e-07, 'gradient_error': 2.89e-06, 't_fwd_f64': 0.54754813, 't_fwd_f32': 0.51663304, 't_grad_f64': 3.08361317, 't_grad_f32': 2.37922967}

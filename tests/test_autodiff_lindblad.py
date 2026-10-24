@@ -343,20 +343,6 @@ def test_commensurate_fixed_step_is_rejected():
         solve_slice(ops, rabi, ops.detunings, tlist, n_steps=2000)  # 50 per interval
 
 
-def test_requires_float64():
-    sd, grid = CUSTOM
-    ops = build_operators(System(**copy.deepcopy(sd)))
-    original = jax.config.jax_enable_x64
-    try:
-        jax.config.update("jax_enable_x64", False)
-        with pytest.raises(RuntimeError, match="JAX_ENABLE_X64"):
-            solve_slice(
-                ops, lambda t: jnp.zeros(2), ops.detunings, np.linspace(0, 1, 5)
-            )
-    finally:
-        jax.config.update("jax_enable_x64", original)
-
-
 # ---- gradients --------------------------------------------------------------------
 
 N_SAMPLES = 61
