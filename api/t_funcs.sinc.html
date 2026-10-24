@@ -599,6 +599,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.exp_decay.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.exp_decay</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.exp_rise.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.exp_rise</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.gaussian.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">t_funcs.gaussian</span></a>
   </div>
@@ -641,6 +653,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.sin2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.sin2</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.sinc.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">t_funcs.sinc</span></a>
   </div>
@@ -649,6 +667,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.square.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">t_funcs.square</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.super_gaussian.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.super_gaussian</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -729,9 +753,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 11%">
-<col style="width: 77%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 80%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -749,7 +773,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td></td>
 <td>TFunc</td>
-<td><code>width_{index}</code> from args.</td>
+<td><code>width_{index}</code> from args, and optionally <code>centre_{index}</code></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>TFunc</td>
+<td>(default 0), the time of the central peak.</td>
 </tr>
 </tbody>
 </table>

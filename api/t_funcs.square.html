@@ -599,6 +599,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.exp_decay.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.exp_decay</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.exp_rise.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.exp_rise</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.gaussian.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">t_funcs.gaussian</span></a>
   </div>
@@ -641,6 +653,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.sin2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.sin2</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.sinc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">t_funcs.sinc</span></a>
   </div>
@@ -649,6 +667,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/t_funcs.square.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">t_funcs.square</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/t_funcs.super_gaussian.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">t_funcs.super_gaussian</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -683,6 +707,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
   <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/tpogden/clerq/edit/main/api/t_funcs.square.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/tpogden/clerq/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -731,7 +756,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <colgroup>
 <col style="width: 9%">
 <col style="width: 9%">
-<col style="width: 80%">
+<col style="width: 81%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -744,20 +769,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td>TFunc</td>
-<td>Callable <code>f(t, args)</code> reading <code>ampl_{index}</code>, <code>on_{index}</code>,</td>
+<td>Callable <code>f(t, args)</code> reading <code>on_{index}</code>, <code>off_{index}</code> and</td>
 </tr>
 <tr class="even">
 <td></td>
 <td>TFunc</td>
-<td><code>off_{index}</code> from args. Returns <code>ampl</code> between <code>on</code> and</td>
+<td>either <code>ampl_{index}</code> or <code>n_pi_{index}</code> from args. Returns</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td>TFunc</td>
-<td><code>off</code>, zero outside.</td>
+<td><code>ampl</code> between <code>on</code> and <code>off</code>, zero outside. Raises <code>KeyError</code></td>
+</tr>
+<tr class="even">
+<td></td>
+<td>TFunc</td>
+<td>if both or neither amplitude parameters are present, and</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>TFunc</td>
+<td><code>ValueError</code> if <code>n_pi</code> is used with <code>off &lt;= on</code>.</td>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="notes" class="level2 doc-section doc-section-notes">
+<h2 class="doc-section doc-section-notes anchored" data-anchor-id="notes">Notes</h2>
+<p>The amplitude can be set directly via <code>ampl_{index}</code> or indirectly via <code>n_pi_{index}</code> (desired pulse area in multiples of π).</p>
 
 
 </section>

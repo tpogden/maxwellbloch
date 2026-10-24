@@ -399,7 +399,8 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#october-2026" id="toc-october-2026" class="nav-link active" data-scroll-target="#october-2026">0.15.0 — 24 October 2026</a></li>
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">Unreleased</a></li>
+  <li><a href="#october-2026" id="toc-october-2026" class="nav-link" data-scroll-target="#october-2026">0.15.0 — 24 October 2026</a></li>
   <li><a href="#october-2026-1" id="toc-october-2026-1" class="nav-link" data-scroll-target="#october-2026-1">0.14.0 — 23 October 2026</a></li>
   <li><a href="#october-2026-2" id="toc-october-2026-2" class="nav-link" data-scroll-target="#october-2026-2">0.13.1 — 9 October 2026</a></li>
   <li><a href="#october-2026-3" id="toc-october-2026-3" class="nav-link" data-scroll-target="#october-2026-3">0.13.0 — 9 October 2026</a></li>
@@ -443,6 +444,10 @@ window.Quarto = {
 
 <p>This page is the readable version of the <a href="https://github.com/tpogden/clerq/blob/master/CHANGELOG.md">CHANGELOG</a>, which has the full list of changes. Versions are newest first, and <a href="https://semver.org/">Semantic Versioning</a> applies: a minor version adds features, and anything marked <strong>breaking</strong> will need a change to your code or a recalculation of your results.</p>
 <p>Entries before 0.13.0 use the old package name, <code>maxwellbloch</code>, and its old class names, as they were at the time. See <a href="./news/rename.html">MaxwellBloch is now clerq</a> for the rename.</p>
+<section id="unreleased" class="level2">
+<h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
+<p><strong>New time functions.</strong> <code>clerq.t_funcs</code> has four new pulse shapes: <code>sin2</code> (a sin-squared pulse of finite duration between <code>on</code> and <code>off</code>), <code>super_gaussian</code> (a flat-top pulse with smooth edges; <code>order</code> 1 is a Gaussian and <code>fwhm</code> is the FWHM at every order), and <code>exp_decay</code> and <code>exp_rise</code> (single-sided exponentials, the envelopes of an emitted and an absorbed photon). <code>square</code> takes <code>n_pi</code>, the pulse area in multiples of <span class="math inline">\(\pi\)</span>, as an alternative to <code>ampl</code>, and <code>sinc</code> takes an optional <code>centre</code>. All work with <code>clerq.autodiff</code>; as with <code>square</code>, the edge time where <code>exp_decay</code> and <code>exp_rise</code> jump (<code>on</code>, <code>off</code>) cannot be differentiated. See <a href="./usage/built-in-time-functions.html">Built-in time functions</a>.</p>
+</section>
 <section id="october-2026" class="level2">
 <h2 class="anchored" data-anchor-id="october-2026">0.15.0 — 24 October 2026</h2>
 <p><strong>Float32 gradients.</strong> <code>clerq.autodiff</code> no longer insists on 64-bit precision. It computes in whatever precision JAX is set to, so it runs with JAX’s default (float32) as well as with <code>jax_enable_x64</code>, and the solver tolerances default to values each precision can meet. On the benchmark problems float32 agrees with float64 to <span class="math inline">\(10^{-6}\)</span> to <span class="math inline">\(2\times10^{-5}\)</span> in the field and <span class="math inline">\(6\times10^{-7}\)</span> to <span class="math inline">\(5\times10^{-5}\)</span> in gradients, and runs 1.1 to 2.1 times faster on the CPU. Keep float64 for finite-difference checks and when you need tight tolerances. See <a href="./usage/autodiff-performance.html">Autodiff performance and validation</a>.</p>

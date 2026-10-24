@@ -734,10 +734,10 @@ window.Quarto = {
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(value)</span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>grads</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>-0.002444787336139042</code></pre>
+<pre><code>-0.0024447873079130617</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>{'interaction_strengths': Array([4.52445699e-04, 4.38689488e-06], dtype=float64),
+<pre><code>{'interaction_strengths': Array([4.52445709e-04, 4.38689474e-06], dtype=float64),
  'rabi_freq': Array([-0.00932889, -0.00800311], dtype=float64)}</code></pre>
 </div>
 </div>
@@ -755,7 +755,7 @@ window.Quarto = {
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(value)</span>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>grads</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>-0.0010771536966387417</code></pre>
+<pre><code>-0.0010771536965100022</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>{'rabi_freq': Array([-0.00415884, -0.00493268], dtype=float64)}</code></pre>
@@ -774,11 +774,11 @@ window.Quarto = {
 <pre><code>0.8408450498108503</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:1: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 12.2% (tolerance 10.0%). Try z_steps_inner=4 (currently 2) or z_steps_inner='auto'.
+<pre><code>/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_39902/795264175.py:1: UserWarning: The z-step may be too coarse: estimated accumulated relative error is 12.2% (tolerance 10.0%). Try z_steps_inner=4 (currently 2) or z_steps_inner='auto'.
   solver.solve()
-/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:1: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 48.3% (tolerance 10.0%). Try t_steps=387 (currently 80), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_39902/795264175.py:1: UserWarning: The time grid may be too coarse: the fields or coherences are interpolated from every other time sample with a relative error of 48.3% (tolerance 10.0%). Try t_steps=387 (currently 80), and repeat if the warning remains; suggest_t_steps() gives an estimate from the problem's frequency scales.
   solver.solve()
-/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_89523/795264175.py:2: DeprecationWarning: PropagationSolver.Omegas_zt is deprecated and will be removed in a future release; use rabi_freqs_zt (cyclic) instead.
+/var/folders/41/hkxt57911pzcfzrv2p66w1z80000gn/T/ipykernel_39902/795264175.py:2: DeprecationWarning: PropagationSolver.Omegas_zt is deprecated and will be removed in a future release; use rabi_freqs_zt (cyclic) instead.
   print(np.abs(omega - solver.Omegas_zt).max() / np.abs(solver.Omegas_zt).max())  # agrees with solve() to solver tolerance</code></pre>
 </div>
 </div>
@@ -870,9 +870,9 @@ window.Quarto = {
 <span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>ad.clear_cache()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.8 3.0894311742236937e-07
-0.9 9.875236798680862e-08
-1.0 4.503052745705292e-22</code></pre>
+<pre><code>0.8 3.089429785615958e-07
+0.9 9.875228538778031e-08
+1.0 7.11648226219785e-22</code></pre>
 </div>
 </div>
 <p>A gradient step is then a short loop around <code>value_and_grad</code>.</p>
@@ -881,7 +881,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="limits">Limits</h2>
 <ul>
 <li><strong>Co-propagating fields only.</strong> <code>to_autodiff()</code> raises <code>NotImplementedError</code> for a problem with counter-propagating fields.</li>
-<li><strong><code>square</code> edge times are held fixed.</strong> The field is discontinuous at <code>on</code> and <code>off</code>, so its derivative with respect to them is a delta function that autodiff would silently return as 0. <code>value_and_grad</code> refuses to differentiate them: pass them in <code>fixed=</code>, or use a continuous pulse. The <code>ramp_on</code>, <code>ramp_off</code>, <code>ramp_onoff</code> and <code>ramp_offon</code> pulses are continuous, so their <code>on</code> and <code>off</code> can be differentiated.</li>
+<li><strong>Discontinuous edge times are held fixed.</strong> The field jumps at the <code>on</code> and <code>off</code> of <code>square</code>, the <code>on</code> of <code>exp_decay</code> and the <code>off</code> of <code>exp_rise</code>, so its derivative with respect to them is a delta function that autodiff would silently return as 0. <code>value_and_grad</code> refuses to differentiate them: pass them in <code>fixed=</code>, or use a continuous pulse. The <code>ramp_on</code>, <code>ramp_off</code>, <code>ramp_onoff</code>, <code>ramp_offon</code> and <code>sin2</code> pulses are continuous, so their <code>on</code> and <code>off</code> can be differentiated.</li>
 <li><strong>Supported pulses</strong> are those ported to JAX; others raise <code>NotImplementedError</code> from <code>to_autodiff()</code>.</li>
 <li><strong>Float64 is required</strong> (see <a href="#setup-64-bit-precision">above</a>).</li>
 </ul>
@@ -892,7 +892,7 @@ window.Quarto = {
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> e:</span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(e)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>pulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a ramp pulse ('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a square-like pulse with smooth edges whose on/off times are differentiable.</code></pre>
+<pre><code>pulse_args[1] contains ['on'], which place the edges of a 'square' pulse. The field is discontinuous there, so its derivative with respect to them is a delta function that autodiff cannot represent (it would return 0). Hold them fixed by passing them in fixed=..., or use a ramp pulse ('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon') or 'sin2', pulses with smooth edges whose on/off times are differentiable.</code></pre>
 </div>
 </div>
 
