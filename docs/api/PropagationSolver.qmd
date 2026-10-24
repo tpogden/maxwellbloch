@@ -428,8 +428,17 @@ Largest cyclic class spacing free of Doppler echoes in the time window.
 Sampling the detuning at spacing ``h`` makes the summed response repeat
 at ``t = 1 / h``. That echo is spurious, so it must fall outside the
 window of length ``t_max - t_min``; the spacing is
-``THERMAL_ECHO_MARGIN`` of the window's reciprocal. Decay damps the
-echo, but this ignores that, so it is safe for any system.
+``THERMAL_ECHO_MARGIN`` of the window's reciprocal.
+
+A coherence between two levels oscillates at ``s * Delta`` cyclic, where
+``s`` is the sum of the ``factor_doppler_shift`` of the fields that
+shift the two levels apart: 1 for a single co-propagating field, 2 for
+the two-photon coherence of a co-propagating ladder. Its echo is at
+``1 / (s h)``, so the spacing is divided by the largest possible ``s``,
+the sum of ``abs(factor_doppler_shift)`` over all the fields.
+
+Decay damps the echo, but this ignores that, so it is safe for any
+system.
 
 ### to_autodiff { #clerq.PropagationSolver.to_autodiff }
 

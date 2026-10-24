@@ -58,7 +58,8 @@ class PropagationSetup:
         N_z: number density at ``z_min + (i + 1) h``, shape ``(z_steps * inner,)``.
         g: angular interaction strength ``2 pi g`` of each field.
         shifts: cyclic Doppler detuning ``thermal_delta / (2 pi)`` of each class.
-        weights: normalised Maxwell-Boltzmann weight of each class, times the detuning interval it represents.
+        weights: normalised Maxwell-Boltzmann weight of each class, times the
+            detuning interval it represents.
         pulses: per field ``(name, args, rabi_freq)`` of the analytic input pulse.
         real_drive: drive the Hamiltonian with ``Re(Omega)`` only (the deprecated
             behaviour of ``PropagationSolver(real_drive=True)``).
