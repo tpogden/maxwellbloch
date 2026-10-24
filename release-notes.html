@@ -399,10 +399,10 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">Unreleased</a></li>
-  <li><a href="#october-2026" id="toc-october-2026" class="nav-link" data-scroll-target="#october-2026">0.14.0 — 23 October 2026</a></li>
-  <li><a href="#october-2026-1" id="toc-october-2026-1" class="nav-link" data-scroll-target="#october-2026-1">0.13.1 — 9 October 2026</a></li>
-  <li><a href="#october-2026-2" id="toc-october-2026-2" class="nav-link" data-scroll-target="#october-2026-2">0.13.0 — 9 October 2026</a></li>
+  <li><a href="#october-2026" id="toc-october-2026" class="nav-link active" data-scroll-target="#october-2026">0.15.0 — 24 October 2026</a></li>
+  <li><a href="#october-2026-1" id="toc-october-2026-1" class="nav-link" data-scroll-target="#october-2026-1">0.14.0 — 23 October 2026</a></li>
+  <li><a href="#october-2026-2" id="toc-october-2026-2" class="nav-link" data-scroll-target="#october-2026-2">0.13.1 — 9 October 2026</a></li>
+  <li><a href="#october-2026-3" id="toc-october-2026-3" class="nav-link" data-scroll-target="#october-2026-3">0.13.0 — 9 October 2026</a></li>
   <li><a href="#may-2026" id="toc-may-2026" class="nav-link" data-scroll-target="#may-2026">0.12.0 — 6 May 2026</a></li>
   <li><a href="#may-2026-1" id="toc-may-2026-1" class="nav-link" data-scroll-target="#may-2026-1">0.11.0 — 3 May 2026</a></li>
   <li><a href="#april-2026" id="toc-april-2026" class="nav-link" data-scroll-target="#april-2026">0.10.0 — 25 April 2026</a></li>
@@ -443,14 +443,14 @@ window.Quarto = {
 
 <p>This page is the readable version of the <a href="https://github.com/tpogden/clerq/blob/master/CHANGELOG.md">CHANGELOG</a>, which has the full list of changes. Versions are newest first, and <a href="https://semver.org/">Semantic Versioning</a> applies: a minor version adds features, and anything marked <strong>breaking</strong> will need a change to your code or a recalculation of your results.</p>
 <p>Entries before 0.13.0 use the old package name, <code>maxwellbloch</code>, and its old class names, as they were at the time. See <a href="./news/rename.html">MaxwellBloch is now clerq</a> for the rename.</p>
-<section id="unreleased" class="level2">
-<h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
+<section id="october-2026" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026">0.15.0 — 24 October 2026</h2>
 <p><strong>Float32 gradients.</strong> <code>clerq.autodiff</code> no longer insists on 64-bit precision. It computes in whatever precision JAX is set to, so it runs with JAX’s default (float32) as well as with <code>jax_enable_x64</code>, and the solver tolerances default to values each precision can meet. On the benchmark problems float32 agrees with float64 to <span class="math inline">\(10^{-6}\)</span> to <span class="math inline">\(2\times10^{-5}\)</span> in the field and <span class="math inline">\(6\times10^{-7}\)</span> to <span class="math inline">\(5\times10^{-5}\)</span> in gradients, and runs 1.1 to 2.1 times faster on the CPU. Keep float64 for finite-difference checks and when you need tight tolerances. See <a href="./usage/autodiff-performance.html">Autodiff performance and validation</a>.</p>
 <p><strong>Doppler class spacing.</strong> <code>velocity_classes</code> takes a new <code>thermal_delta_spacing</code>, a maximum spacing between the classes, in place of <code>thermal_delta_steps</code>. Pass <code>"auto"</code> for the largest spacing with no spurious Doppler echo: a grid of spacing <span class="math inline">\(h\)</span> repeats the response of a Doppler-dependent coherence at <span class="math inline">\(t = 1/(b h)\)</span>, and the result is wrong if that falls inside the time window and is not damped by the decay. <code>"auto"</code> uses each level’s Doppler shift and the decay rates, so it depends on the system as well as the window; <code>thermal_delta_echo_tolerance</code> sets how far the echo must be damped, and the spacing is also kept fine enough to resolve the thermal width. See <a href="./usage/velocity-classes.html">Velocity Classes</a>.</p>
 <p><strong>Velocity-class weights (changes results).</strong> Each class is now weighted by the detuning interval it represents as well as its Boltzmann density. Before, a non-uniform grid (an inner band from <code>thermal_delta_inner_*</code>) over-weighted the densely sampled region, so such results change. Uniform grids are unchanged. <code>thermal_weights</code> is still the density; the intervals are <code>thermal_widths</code> and the weights used are <code>thermal_quadrature_weights</code>. A savefile solved before this on a non-uniform grid is rejected on load: delete it or pass <code>recalc=True</code>.</p>
 </section>
-<section id="october-2026" class="level2">
-<h2 class="anchored" data-anchor-id="october-2026">0.14.0 — 23 October 2026</h2>
+<section id="october-2026-1" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026-1">0.14.0 — 23 October 2026</h2>
 <p><strong>Unit conversions.</strong> The new <code>clerq.macro</code> module converts laboratory quantities (intensity, beam power, temperature, density, linewidth) to clerq’s MHz, µs and cm units. See <a href="./usage/units.html">Converting from Experimental Units</a>.</p>
 <p><strong>DC magnetic field.</strong> A system can now sit in a static B-field along the quantisation axis: add a <code>b_field</code> block (magnitude, units, and the per-level <code>g_F</code> and <code>m_F</code>) and each sublevel shifts by <span class="math inline">\(g_F m_F \mu_B B\)</span>. For hyperfine atoms <code>Atom1e.get_zeeman_levels()</code> supplies <code>g_F</code> and <code>m_F</code>, and the field can be a differentiable parameter of <code>to_autodiff()</code>. See the <a href="./usage/b-field.html">B-field usage page</a>. Without a <code>b_field</code> nothing changes.</p>
 <p><strong>Stability checks.</strong> <code>solve()</code> now stops with <code>PropagationInstabilityError</code> when the field blows up, and warns when the z-step looks too coarse (estimated from the difference between the Euler and Adams-Bashforth predictions, available as <code>solver.step_error_estimate</code>). Pass <code>z_steps_inner="auto"</code> to refine the step automatically, or <code>check_stability=False</code> to switch the checks off. See <a href="./usage/numerical-stability.html">Numerical Stability and Step Sizes</a>.</p>
@@ -537,8 +537,8 @@ window.Quarto = {
 <li>The lockfile is updated to clear security alerts in documentation and development packages. The installed package is unaffected.</li>
 </ul>
 </section>
-<section id="october-2026-1" class="level2">
-<h2 class="anchored" data-anchor-id="october-2026-1">0.13.1 — 9 October 2026</h2>
+<section id="october-2026-2" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026-2">0.13.1 — 9 October 2026</h2>
 <p>A fix-up release after the rename.</p>
 <p><strong>Fixed</strong></p>
 <ul>
@@ -556,8 +556,8 @@ window.Quarto = {
 <li>The documentation outputs are regenerated cleanly, and there is a page explaining the new name.</li>
 </ul>
 </section>
-<section id="october-2026-2" class="level2">
-<h2 class="anchored" data-anchor-id="october-2026-2">0.13.0 — 9 October 2026</h2>
+<section id="october-2026-3" class="level2">
+<h2 class="anchored" data-anchor-id="october-2026-3">0.13.0 — 9 October 2026</h2>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
