@@ -254,3 +254,16 @@ Follow-up worth a PR: complex drive in clerq + autodiff, tested against `tests/r
 
 The follow-up in section 14 is done: the complex-envelope drive is merged (PR #359). Phase 1 features are merged too (PR #361): per-decay `decay_rates`,
 `clerq.autodiff.controls`, and Rb87 hyperfine smoke tests. The results above that used the Doppler memory fields remain valid under the symmetric-class condition.
+
+## 16. Reproducible benchmarks of the released code (2026-10-24)
+
+`benchmarks/autodiff/` and the page `docs/usage/autodiff-performance.qmd` now hold measurements of clerq 0.14.0 (M1 Max, CPU only, load average 2 to 8).
+Compared with the prototype numbers quoted earlier in these notes:
+- The prototype's "44-47x faster than finite differences at N = 100" was against central differences (2N evaluations). Against forward differences (N + 1 evaluations)
+  the speed-up at N = 100 is 17.7x (two-level) and 17.6x (lambda); it is about 35x against central differences. Reverse mode matches finite differences at N of about 5.
+- Reverse mode costs 5.6 to 6.1 forward propagations (the prototype had 4.3 to 5.8).
+- Forward-mode AD was never faster than reverse mode (the prototype found it competitive up to N of about 40 on the two-level problem).
+- Checkpointing memory: Rb87 with 11 classes and 400 z steps needs 14.3 GiB of XLA temporary memory with `s2`, 105 MiB with `s3` and 13 MiB with `s4`; the time cost is +20% (`s3`) and +26% to +39% (`s4`).
+- PR 361 (`decay_rates`) did not change the gradient cost beyond about 1% (reverse mode); forward mode up to 8% in two cells.
+- The Doppler memory design: the free-form design passed the 5-parameter baseline's best value (0.068, 296 Nelder-Mead evaluations, 2261 s) at Adam step 23 (1037 s); a 44-parameter gradient took 36 s (reverse) against 279 s (forward differences).
+Not measured: GPU, nine levels with 50 classes, `s2` at 800 z steps for Rb87, stiff regimes.

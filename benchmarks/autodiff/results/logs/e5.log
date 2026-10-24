@@ -1,0 +1,3 @@
+44-parameter gradient: AD 36.26 s, FD 279.36 s
+baseline: retrieved 0.0681 after 296 evals, 2261 s
+Adam: 40 steps 1809 s, final 0.1057 passes the baseline at step 22

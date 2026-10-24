@@ -1,0 +1,6 @@
+two_level 10 {'forward': 0.74, 'reverse': 4.256, 'fd_jax': 7.976, 'forward_ad': 5.92}
+two_level 50 {'forward': 0.684, 'reverse': 3.841, 'fd_jax': 34.375, 'forward_ad': 8.249}
+lambda_eit 10 {'forward': 0.131, 'reverse': 0.752, 'fd_jax': 1.459, 'forward_ad': 2.122}
+lambda_eit 50 {'forward': 0.132, 'reverse': 0.763, 'fd_jax': 6.68, 'forward_ad': 4.312}
+rb87 10 {'forward': 1.24, 'reverse': 7.441, 'fd_jax': 13.515, 'forward_ad': 34.298}
+rb87 50 {'forward': 1.176, 'reverse': 7.113, 'fd_jax': 60.082, 'forward_ad': 108.43}
