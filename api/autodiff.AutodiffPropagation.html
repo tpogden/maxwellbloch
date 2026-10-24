@@ -683,6 +683,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   <li><a href="#note" id="toc-note" class="nav-link" data-scroll-target="#note">Note</a></li>
+  <li><a href="#precision" id="toc-precision" class="nav-link" data-scroll-target="#precision">Precision</a></li>
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
@@ -712,8 +713,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    step<span class="op">=</span><span class="st">'ab'</span>,</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    strategy<span class="op">=</span><span class="st">'s3'</span>,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    checkpoints<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    rtol<span class="op">=</span><span class="fl">1e-08</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    atol<span class="op">=</span><span class="fl">1e-10</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    rtol<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    atol<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    max_steps<span class="op">=</span><span class="dv">100000</span>,</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    n_steps<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    solver<span class="op">=</span><span class="va">None</span>,</span>
@@ -751,6 +752,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="note" class="level2 doc-section doc-section-note">
 <h2 class="doc-section doc-section-note anchored" data-anchor-id="note">Note</h2>
 <p>Counter-propagating fields are not supported. The result matches <code>PropagationSolver</code> for every <code>z_steps_inner</code>; versions of clerq before #328 stored Adams-Bashforth slices one inner step early when <code>z_steps_inner &gt; 1</code> and will not match there.</p>
+</section>
+<section id="precision" class="level2 doc-section doc-section-precision">
+<h2 class="doc-section doc-section-precision anchored" data-anchor-id="precision">Precision</h2>
+<p>The backend computes in the precision JAX is configured for: float32 by default, float64 with <code>jax.config.update("jax_enable_x64", True)</code>. Float64 is the reference. Float32 agrees with it to 1e-6 to 2e-5 of the peak on the fields and 6e-7 to 5e-5 on gradients on the benchmark problems, with the default tolerances (<code>rtol=1e-6</code>, <code>atol=1e-9</code>, against <code>1e-8</code> and <code>1e-10</code> in float64). Use float64 for finite-difference checks, for tolerances tighter than about 1e-6, and when the loss is very close to zero, where float32 gradients are noisier.</p>
 </section>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
@@ -796,15 +801,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td>rtol</td>
-<td>float</td>
-<td>relative tolerance of the adaptive step-size control.</td>
-<td><code>1e-08</code></td>
+<td>float | None</td>
+<td>relative tolerance of the adaptive step-size control; default 1e-8 in float64 and 1e-6 in float32.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>atol</td>
-<td>float</td>
-<td>absolute tolerance of the adaptive step-size control.</td>
-<td><code>1e-10</code></td>
+<td>float | None</td>
+<td>absolute tolerance of the adaptive step-size control; default 1e-10 in float64 and 1e-9 in float32.</td>
+<td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>max_steps</td>
