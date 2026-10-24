@@ -473,7 +473,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#the-cost-of-a-gradient" id="toc-the-cost-of-a-gradient" class="nav-link active" data-scroll-target="#the-cost-of-a-gradient">The cost of a gradient</a></li>
   <li><a href="#memory" id="toc-memory" class="nav-link" data-scroll-target="#memory">Memory</a></li>
   <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
-  <li><a href="#a-design-problem" id="toc-a-design-problem" class="nav-link" data-scroll-target="#a-design-problem">A design problem</a></li>
+  <li><a href="#a-design-problem" id="toc-a-design-problem" class="nav-link" data-scroll-target="#a-design-problem">A design problem</a>
+  <ul class="collapse">
+  <li><a href="#against-gradient-free-search-at-equal-cost" id="toc-against-gradient-free-search-at-equal-cost" class="nav-link" data-scroll-target="#against-gradient-free-search-at-equal-cost">Against gradient-free search at equal cost</a></li>
+  </ul></li>
   <li><a href="#cost-of-the-decay-rate-parameters" id="toc-cost-of-the-decay-rate-parameters" class="nav-link" data-scroll-target="#cost-of-the-decay-rate-parameters">Cost of the decay-rate parameters</a></li>
   <li><a href="#practical-notes" id="toc-practical-notes" class="nav-link" data-scroll-target="#practical-notes">Practical notes</a></li>
   <li><a href="#not-yet-established" id="toc-not-yet-established" class="nav-link" data-scroll-target="#not-yet-established">Not yet established</a></li>
@@ -671,6 +674,58 @@ ul.task-list li input[type="checkbox"] {
 <li>The free-form design passed that value at step 23, after 1037 s, and reached 0.106 after 40 steps (1809 s). With finite-difference gradients the same 23 steps would take about 6400 s (an estimate from the measured gradient time).</li>
 </ul>
 <p>This run was slower than earlier runs of the same problem on the same machine (a forward evaluation took 3.2 s in earlier runs); we did not identify why. The ratios are within a run. It is one problem, one optical depth and one Doppler width. Without Doppler broadening a tuned three-parameter baseline matched the free-form result in the research notes (0.469 against 0.460), so this advantage should not be assumed for other problems.</p>
+<section id="against-gradient-free-search-at-equal-cost" class="level3">
+<h3 class="anchored" data-anchor-id="against-gradient-free-search-at-equal-cost">Against gradient-free search at equal cost</h3>
+<p>A gradient is expensive to compute (about six forward evaluations), so the fair question is whether a search that uses it beats a gradient-free one given the same total cost. The same design problem without Doppler classes (optical depth 25, 44 parameters, <code>benchmarks/autodiff/e7_equal_cost.py</code>) was given a budget of 550 objective evaluations, 12.5 per parameter, with a gradient call charged at the measured 6.5 evaluations. Three random starts each; the retrieved fraction at the end of the budget:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>optimiser</th>
+<th>per seed</th>
+<th>median</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Adam, exact gradients</td>
+<td>0.459, 0.439, 0.447</td>
+<td><strong>0.447</strong></td>
+</tr>
+<tr class="even">
+<td>L-BFGS-B, exact gradients</td>
+<td>0.000, 0.462, 0.000</td>
+<td>0.000</td>
+</tr>
+<tr class="odd">
+<td>CMA-ES</td>
+<td>0.399, 0.385, 0.404</td>
+<td>0.399</td>
+</tr>
+<tr class="even">
+<td>differential evolution</td>
+<td>0.315, 0.336, 0.299</td>
+<td>0.315</td>
+</tr>
+<tr class="odd">
+<td>Latin hypercube</td>
+<td>0.250, 0.259, 0.232</td>
+<td>0.250</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/autodiff-bench-equal-cost.png" class="img-fluid figure-img"></p>
+<figcaption>Best retrieved fraction against cost</figcaption>
+</figure>
+</div>
+<ul>
+<li>At equal cost the gradient search with Adam finished 12% above CMA-ES, the best gradient-free search, and 42% above differential evolution, on all three seeds. The margin over CMA-ES is modest. On the first seed Adam had reached 99.5% of its final value by half the budget, while CMA-ES and differential evolution had flattened by 80% of it.</li>
+<li>L-BFGS-B found the best single control (0.462), but stopped after the first gradient call on two of the three seeds: the random starts retrieve only 3e-9 to 4e-8, and on those two the largest gradient component (5e-6 and 4e-6) is below L-BFGS-B’s default stopping threshold of 1e-5. Gradient methods need a start that retrieves something, or a method that does not stop on a tiny gradient (Adam does not).</li>
+<li>This is one problem, 3 seeds and one budget (12.5 per parameter); neither CMA-ES nor differential evolution was tuned, so a tuned gradient-free search or a much larger budget might narrow the gap. A comparison by Lee (Zenodo 10.5281/zenodo.23407812, appendix) on a different memory problem found gradient search with L-BFGS-B below differential evolution at 16 and 32 control knots at a similar budget, with runs stopping at local optima, so the gradient’s advantage should not be assumed to carry over.</li>
+<li>Wall times of these runs are not reported: other jobs shared the machine.</li>
+</ul>
+</section>
 </section>
 <section id="cost-of-the-decay-rate-parameters" class="level2">
 <h2 class="anchored" data-anchor-id="cost-of-the-decay-rate-parameters">Cost of the decay-rate parameters</h2>
