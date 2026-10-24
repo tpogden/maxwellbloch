@@ -16,7 +16,7 @@ Entries before 0.13.0 use the old package name, `maxwellbloch`, and its old
 class names, as they were at the time. See
 [MaxwellBloch is now clerq](news/rename.qmd) for the rename.
 
-## Unreleased
+## 0.15.0 — 24 October 2026
 
 **Float32 gradients.** `clerq.autodiff` no longer insists on 64-bit precision. It computes in
 whatever precision JAX is set to, so it runs with JAX's default (float32) as well as with
