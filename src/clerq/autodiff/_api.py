@@ -12,7 +12,7 @@ import jax
 import numpy as np
 from jax.flatten_util import ravel_pytree
 
-from clerq.autodiff._config import require_float64
+from clerq.autodiff._config import float_dtype
 from clerq.autodiff._propagate import (
     TWO_PI,
     PropagationSetup,
@@ -52,7 +52,7 @@ def _merge_pulse_args(default: dict, user: dict, name: str | None = None) -> dic
 
 
 def _floatify(tree):
-    """Convert integer and boolean leaves to float64.
+    """Convert integer and boolean leaves to the floating dtype JAX computes in.
 
     Problem definitions often use integer literals (``"centre": 1``); ``jax.grad``
     rejects integer inputs, and the parameters are physical real quantities anyway.
@@ -63,7 +63,7 @@ def _floatify(tree):
         if dtype is None:
             dtype = np.asarray(x).dtype
         if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.bool_):
-            return jax.numpy.asarray(x, dtype=jax.numpy.float64)
+            return jax.numpy.asarray(x, dtype=float_dtype())
         return x
 
     return jax.tree_util.tree_map(convert, tree)
@@ -184,6 +184,16 @@ class AutodiffPropagation:
         #328 stored Adams-Bashforth slices one inner step early when
         ``z_steps_inner > 1`` and will not match there.
 
+    Precision:
+        The backend computes in the precision JAX is configured for: float32 by
+        default, float64 with ``jax.config.update("jax_enable_x64", True)``. Float64
+        is the reference. Float32 agrees with it to 1e-6 to 2e-5 of the peak on the fields and
+        6e-7 to 5e-5 on gradients on the benchmark problems, with the default
+        tolerances (``rtol=1e-6``, ``atol=1e-9``, against ``1e-8`` and ``1e-10`` in
+        float64). Use float64 for finite-difference checks, for tolerances tighter
+        than about 1e-6, and when the loss is very close to zero, where float32
+        gradients are noisier.
+
     Args:
         setup: the problem, from ``setup_from_solver``.
         step: ``"ab"`` (Adams-Bashforth, default) or ``"euler"``.
@@ -192,8 +202,10 @@ class AutodiffPropagation:
             solver's inner checkpoints to ``checkpoints``.
         checkpoints: inner checkpoint count, required (a positive integer) for
             ``strategy="s4"`` and not allowed with the other strategies.
-        rtol: relative tolerance of the adaptive step-size control.
-        atol: absolute tolerance of the adaptive step-size control.
+        rtol: relative tolerance of the adaptive step-size control; default 1e-8 in
+            float64 and 1e-6 in float32.
+        atol: absolute tolerance of the adaptive step-size control; default 1e-10 in
+            float64 and 1e-9 in float32.
         max_steps: the most steps one slice solve may take (the solve errors if
             it needs more); reverse mode sizes its default checkpoint count from
             it, so a smaller value lowers memory use for large problems.
@@ -212,8 +224,8 @@ class AutodiffPropagation:
         step: str = "ab",
         strategy: str = "s3",
         checkpoints: int | None = None,
-        rtol: float = 1e-8,
-        atol: float = 1e-10,
+        rtol: float | None = None,
+        atol: float | None = None,
         max_steps: int = 100_000,
         n_steps: int | None = None,
         solver: Any = None,
@@ -416,7 +428,6 @@ class AutodiffPropagation:
             RuntimeError: if JAX is not in 64-bit mode.
             ValueError: for unknown keys or wrong shapes.
         """
-        require_float64()
         params = {} if params is None else _floatify(params)
         self._validate(params)
         if "propagate" not in self._compiled:
@@ -462,7 +473,6 @@ class AutodiffPropagation:
             ValueError: for an unknown ``mode``, unknown keys, wrong shapes, or a
                 request for the gradient of a ``square`` pulse's edge times.
         """
-        require_float64()
         if mode not in ("reverse", "forward"):
             raise ValueError(f"Unknown mode {mode!r}; use 'reverse' or 'forward'.")
         params = (
@@ -599,7 +609,6 @@ class AutodiffPropagation:
                 "Give either optimizer or learning_rate, not both: learning_rate "
                 "only sets the step size of the default Adam optimiser."
             )
-        require_float64()
         if optimizer is None:
             lr = 0.05 if learning_rate is None else learning_rate
             opt = self._default_optimizers.setdefault(lr, optax.adam(lr))

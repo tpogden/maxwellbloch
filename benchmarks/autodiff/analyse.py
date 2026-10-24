@@ -164,6 +164,20 @@ def e5_text(recs):
     return "\n".join(lines)
 
 
+def e8_table(recs):
+    out = [
+        "| problem | field error | loss error | gradient error | forward: float64 / float32 (s) | gradient: float64 / float32 (s) |",
+        "|-|-|-|-|-|-|",
+    ]
+    for r in recs:
+        out.append(
+            f"| {r['case']} | {r['field_error']:.1e} | {r['value_error']:.1e} | {r['gradient_error']:.1e} | "
+            f"{r['t_fwd_f64']:.2f} / {r['t_fwd_f32']:.2f} ({r['t_fwd_f64'] / r['t_fwd_f32']:.1f}x) | "
+            f"{r['t_grad_f64']:.2f} / {r['t_grad_f32']:.2f} ({r['t_grad_f64'] / r['t_grad_f32']:.1f}x) |"
+        )
+    return "\n".join(out)
+
+
 def e7_table(recs):
     """Median over seeds of the best retrieved fraction at the full allotment, per optimiser."""
     by = {}
@@ -337,6 +351,8 @@ def main():
         parts += ["## E4 compile time\n", e4_table(d["e4"])]
     if "e5" in d:
         parts += ["## E5 time to solution\n", e5_text(d["e5"])]
+    if "e8" in d:
+        parts += ["## E8 float32 against float64\n", e8_table(d["e8"])]
     if "e7" in d:
         parts += [
             "## E7 equal-cost comparison with gradient-free search\n",

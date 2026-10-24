@@ -30,7 +30,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from clerq.autodiff._config import require_float64
+from clerq.autodiff._config import complex_dtype, default_tolerances, float_dtype
 from clerq.autodiff._operators import SystemOperators
 
 
@@ -71,8 +71,8 @@ def solve_slice(
     decay_rates=None,
     rho0=None,
     observe: Callable | None = None,
-    rtol: float = 1e-8,
-    atol: float = 1e-10,
+    rtol: float | None = None,
+    atol: float | None = None,
     n_steps: int | None = None,
     max_steps: int = 100_000,
     solver=None,
@@ -100,7 +100,8 @@ def solve_slice(
         observe: optional ``observe(re, im) -> real array`` applied at each output
             time to the real and imaginary parts of the batch ``(n_v, n, n)``, so
             only a reduction is stored.
-        rtol, atol: adaptive step-size tolerances (ignored with ``n_steps``).
+        rtol, atol: adaptive step-size tolerances (ignored with ``n_steps``); default 1e-8 and
+            1e-10 in float64, 1e-6 and 1e-9 in float32.
         n_steps: use a fixed-step solver with this many steps (for finite-difference
             reference gradients); must not be commensurate with ``ts``.
         max_steps: step budget of the adaptive solver.
@@ -120,11 +121,11 @@ def solve_slice(
         RuntimeError: if JAX is not in 64-bit mode.
         ValueError: if ``n_steps`` is commensurate with ``ts``.
     """
-    require_float64()
+    rtol, atol = default_tolerances(rtol, atol)
     check_fixed_step(ts, n_steps)
 
-    ts = jnp.asarray(ts, dtype=jnp.float64)
-    det = jnp.asarray(detunings, dtype=jnp.float64)
+    ts = jnp.asarray(ts, dtype=float_dtype())
+    det = jnp.asarray(detunings, dtype=float_dtype())
     single = det.ndim == 1
     if single:
         det = det[None, :]
@@ -151,7 +152,7 @@ def solve_slice(
     use_sparse = decay_rates is not None or sparse is not None
     if decay_rates is not None:
         ch = ops.decays
-        rates = jnp.asarray(decay_rates, dtype=jnp.float64)
+        rates = jnp.asarray(decay_rates, dtype=float_dtype())
         if rates.shape != ch.rates.shape:
             raise ValueError(
                 f"decay_rates must have shape {ch.rates.shape} (one per entry of "
@@ -206,7 +207,7 @@ def solve_slice(
 
     if rho0 is None:
         rho0 = ops.rho0
-    rho0 = jnp.broadcast_to(jnp.asarray(rho0, dtype=jnp.complex128), (n_v, n, n))
+    rho0 = jnp.broadcast_to(jnp.asarray(rho0, dtype=complex_dtype()), (n_v, n, n))
     y0 = jnp.stack([jnp.real(rho0), jnp.imag(rho0)])
 
     save = (
@@ -221,7 +222,7 @@ def solve_slice(
         ts[-1],
         (ts[-1] - ts[0]) / (n_steps or 1000),
         y0,
-        args=(rabi, jnp.asarray(decay_scale, dtype=jnp.float64), H_static),
+        args=(rabi, jnp.asarray(decay_scale, dtype=float_dtype()), H_static),
         saveat=save,
         stepsize_controller=(
             dfx.ConstantStepSize()

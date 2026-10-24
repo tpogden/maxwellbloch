@@ -217,17 +217,6 @@ def test_counter_propagating_problem_is_rejected():
         ps.to_autodiff()
 
 
-def test_requires_float64():
-    ad = _solver().to_autodiff()
-    original = jax.config.jax_enable_x64
-    try:
-        jax.config.update("jax_enable_x64", False)
-        with pytest.raises(RuntimeError, match="JAX_ENABLE_X64"):
-            ad.propagate()
-    finally:
-        jax.config.update("jax_enable_x64", original)
-
-
 def test_compiled_function_is_reused_for_the_same_loss():
     ad = _solver().to_autodiff(rtol=1e-8, atol=1e-10)
     ad.value_and_grad(loss)

@@ -7,7 +7,7 @@ touches JAX.
 Build the differentiable object from an ordinary solver and differentiate::
 
     import jax
-    jax.config.update("jax_enable_x64", True)  # required: clerq.autodiff is float64
+    jax.config.update("jax_enable_x64", True)  # optional: float64 is the reference precision
 
     ad = solver.to_autodiff()             # solver is a clerq.PropagationSolver
     params = ad.default_params()

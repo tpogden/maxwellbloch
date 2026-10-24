@@ -267,17 +267,6 @@ def test_unknown_step_and_strategy_are_rejected():
         propagate_fields(setup, strategy="s9")
 
 
-def test_requires_float64():
-    setup = setup_from_solver(_solver(CUSTOM))
-    original = jax.config.jax_enable_x64
-    try:
-        jax.config.update("jax_enable_x64", False)
-        with pytest.raises(RuntimeError, match="JAX_ENABLE_X64"):
-            propagate_fields(setup)
-    finally:
-        jax.config.update("jax_enable_x64", original)
-
-
 # ---- gradients --------------------------------------------------------------------
 
 SMALL = {**CUSTOM, "t_steps": 40, "z_steps": 4}

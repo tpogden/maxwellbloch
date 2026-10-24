@@ -18,6 +18,13 @@ class names, as they were at the time. See
 
 ## Unreleased
 
+**Float32 gradients.** `clerq.autodiff` no longer insists on 64-bit precision. It computes in
+whatever precision JAX is set to, so it runs with JAX's default (float32) as well as with
+`jax_enable_x64`, and the solver tolerances default to values each precision can meet. On the
+benchmark problems float32 agrees with float64 to $10^{-6}$ to $2\times10^{-5}$ in the field and $6\times10^{-7}$ to
+$5\times10^{-5}$ in gradients, and runs 1.1 to 2.1 times faster on the CPU. Keep float64 for finite-difference checks and when you need
+tight tolerances. See [Autodiff performance and validation](usage/autodiff-performance.qmd).
+
 **Doppler class spacing.** `velocity_classes` takes a new `thermal_delta_spacing`, a
 maximum spacing between the classes, in place of `thermal_delta_steps`. Pass `"auto"` for the
 largest spacing with no spurious Doppler echo inside the time window: a grid of spacing $h$
