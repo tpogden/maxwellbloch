@@ -27,14 +27,22 @@ SUPPORTED = (
     "ramp_off",
     "ramp_onoff",
     "ramp_offon",
+    "sin2",
+    "super_gaussian",
+    "exp_decay",
+    "exp_rise",
 )
 
 
 # Arguments whose gradient is not defined: they place a discontinuity, so the
 # derivative of the field with respect to them is a delta function that autodiff
 # cannot represent and would silently return as zero. (The ramp pulses are
-# continuous, so their ``on`` and ``off`` are fine.)
-NONDIFFERENTIABLE_ARGS = {"square": ("on", "off")}
+# continuous, and so is ``sin2``, so their ``on`` and ``off`` are fine.)
+NONDIFFERENTIABLE_ARGS = {
+    "square": ("on", "off"),
+    "exp_decay": ("on",),
+    "exp_rise": ("off",),
+}
 
 
 # Alternative ways of giving the same quantity: a pulse takes at most one argument of
@@ -42,6 +50,7 @@ NONDIFFERENTIABLE_ARGS = {"square": ("on", "off")}
 # ``fwhm``). The single source of these rules, used both when a pulse is built and
 # when user parameters are merged over the problem's defaults.
 EXCLUSIVE_ARGS = {
+    "square": (("ampl", "n_pi"),),
     "gaussian": (("ampl", "n_pi"),),
     "sech": (("ampl", "n_pi"), ("width", "fwhm")),
 }
@@ -133,9 +142,48 @@ def pulse_function(name: str, args: dict) -> Callable:
         return sech
 
     if name == "square":
-        _need(args, name, "ampl", "on", "off")
+        _need(args, name, "on", "off")
+        if "ampl" in args:
+            ampl = args["ampl"]
+        else:
+            _need(args, name, "n_pi")
+            ampl = args["n_pi"] / (2.0 * (args["off"] - args["on"]))
         return lambda t: (
-            args["ampl"] * jnp.where((t >= args["on"]) & (t <= args["off"]), 1.0, 0.0)
+            ampl * jnp.where((t >= args["on"]) & (t <= args["off"]), 1.0, 0.0)
+        )
+
+    if name == "sin2":
+        _need(args, name, "ampl", "on", "off")
+        on, off = args["on"], args["off"]
+        return lambda t: (
+            args["ampl"]
+            * jnp.sin(math.pi * (t - on) / (off - on)) ** 2
+            * ((t >= on) & (t <= off))
+        )
+
+    if name == "super_gaussian":
+        _need(args, name, "ampl", "fwhm", "centre", "order")
+        return lambda t: (
+            args["ampl"]
+            * jnp.exp(
+                -math.log(2.0)
+                * (2.0 * jnp.abs(t - args["centre"]) / args["fwhm"])
+                ** (2.0 * args["order"])
+            )
+        )
+
+    if name == "exp_decay":
+        _need(args, name, "ampl", "on", "tau")
+        on = args["on"]
+        return lambda t: (
+            args["ampl"] * jnp.exp(-jnp.maximum(t - on, 0.0) / args["tau"]) * (t >= on)
+        )
+
+    if name == "exp_rise":
+        _need(args, name, "ampl", "off", "tau")
+        off = args["off"]
+        return lambda t: (
+            args["ampl"] * jnp.exp(jnp.minimum(t - off, 0.0) / args["tau"]) * (t <= off)
         )
 
     if name in ("ramp_on", "ramp_off", "ramp_onoff", "ramp_offon"):
@@ -176,4 +224,8 @@ def jump_times(name: str, args: dict) -> tuple:
     """Times at which the pulse is discontinuous, for step-size control."""
     if name == "square":
         return (args["on"], args["off"])
+    if name == "exp_decay":
+        return (args["on"],)
+    if name == "exp_rise":
+        return (args["off"],)
     return ()

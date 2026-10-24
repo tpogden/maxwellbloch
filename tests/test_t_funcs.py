@@ -119,6 +119,26 @@ class TestSech(unittest.TestCase):
             t_func(tlist, t_args)
 
 
+class TestSquare(unittest.TestCase):
+    def test_n_pi(self):
+        """Test square areas as multiples of pi given an n_pi arg."""
+        tlist = np.linspace(0.0, 1.0, 100001)
+        t_func = t_funcs.square(1)
+        for n_pi in [0.5, 1.0, 3.0]:
+            t_args = {"n_pi_1": n_pi, "on_1": 0.2, "off_1": 0.7}
+            area = np.trapezoid(t_func(tlist, t_args), tlist) * 2 * np.pi
+            self.assertAlmostEqual(area, n_pi * np.pi, places=3)
+
+    def test_ampl_and_n_pi(self):
+        t_args = {"n_pi_1": 2.0, "ampl_1": 1.0, "on_1": 0.2, "off_1": 0.7}
+        with self.assertRaises(KeyError):
+            t_funcs.square(1)(0.5, t_args)
+
+    def test_no_ampl_nor_n_pi(self):
+        with self.assertRaises(KeyError):
+            t_funcs.square(1)(0.5, {"on_1": 0.2, "off_1": 0.7})
+
+
 class TestSin2(unittest.TestCase):
     def test_shape(self):
         """sin2 peaks at the midpoint, vanishes at and outside the edges."""

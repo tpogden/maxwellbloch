@@ -50,6 +50,10 @@ Raised by `PropagationSolver.solve()`.
 | [t_funcs.ramp_onoff](t_funcs.ramp_onoff.qmd#clerq.t_funcs.ramp_onoff) | Return a ramp-on / ramp-off time function. |
 | [t_funcs.ramp_offon](t_funcs.ramp_offon.qmd#clerq.t_funcs.ramp_offon) | Return a ramp-off / ramp-on time function. |
 | [t_funcs.sinc](t_funcs.sinc.qmd#clerq.t_funcs.sinc) | Return a sinc pulse time function. |
+| [t_funcs.sin2](t_funcs.sin2.qmd#clerq.t_funcs.sin2) | Return a sin-squared (Hann) pulse time function. |
+| [t_funcs.super_gaussian](t_funcs.super_gaussian.qmd#clerq.t_funcs.super_gaussian) | Return a super-Gaussian pulse time function. |
+| [t_funcs.exp_decay](t_funcs.exp_decay.qmd#clerq.t_funcs.exp_decay) | Return a decaying-exponential pulse time function. |
+| [t_funcs.exp_rise](t_funcs.exp_rise.qmd#clerq.t_funcs.exp_rise) | Return a rising-exponential pulse time function. |
 | [t_funcs.intp](t_funcs.intp.qmd#clerq.t_funcs.intp) | Return an interpolated time function. |
 
 ## Spectral analysis

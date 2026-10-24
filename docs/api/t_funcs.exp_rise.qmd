@@ -1,0 +1,24 @@
+# t_funcs.exp_rise { #clerq.t_funcs.exp_rise }
+
+```python
+t_funcs.exp_rise(index)
+```
+
+Return a rising-exponential pulse time function.
+
+``ampl * exp((t - off) / tau)`` up to ``off``, then zero: the time reverse
+of :func:`exp_decay`, the envelope of a photon that a sink absorbs
+perfectly.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                                        | Default    |
+|--------|--------|----------------------------------------------------|------------|
+| index  | int    | Integer suffix used to look up parameters in args. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                           |
+|--------|--------|-----------------------------------------------------------------------|
+|        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}``, ``off_{index}`` and |
+|        | TFunc  | ``tau_{index}`` (the 1/e time of the amplitude) from args.            |

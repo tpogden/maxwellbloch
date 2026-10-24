@@ -14,8 +14,14 @@ Return a square (top-hat) pulse time function.
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                                       |
-|--------|--------|-------------------------------------------------------------------|
-|        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}``, |
-|        | TFunc  | ``off_{index}`` from args. Returns ``ampl`` between ``on`` and    |
-|        | TFunc  | ``off``, zero outside.                                            |
+| Name   | Type   | Description                                                            |
+|--------|--------|------------------------------------------------------------------------|
+|        | TFunc  | Callable ``f(t, args)`` reading ``on_{index}``, ``off_{index}`` and    |
+|        | TFunc  | either ``ampl_{index}`` or ``n_pi_{index}`` from args. Returns         |
+|        | TFunc  | ``ampl`` between ``on`` and ``off``, zero outside. Raises ``KeyError`` |
+|        | TFunc  | if both or neither amplitude parameters are present.                   |
+
+## Notes {.doc-section .doc-section-notes}
+
+The amplitude can be set directly via ``ampl_{index}`` or indirectly
+via ``n_pi_{index}`` (desired pulse area in multiples of π).

@@ -14,7 +14,8 @@ Return a sinc pulse time function.
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                          |
-|--------|--------|------------------------------------------------------|
-|        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}`` and |
-|        | TFunc  | ``width_{index}`` from args.                         |
+| Name   | Type   | Description                                                    |
+|--------|--------|----------------------------------------------------------------|
+|        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}`` and           |
+|        | TFunc  | ``width_{index}`` from args, and optionally ``centre_{index}`` |
+|        | TFunc  | (default 0), the time of the central peak.                     |

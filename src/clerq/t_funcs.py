@@ -29,15 +29,29 @@ def square(index: int) -> TFunc:
         index: Integer suffix used to look up parameters in args.
 
     Returns:
-        Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}``,
-        ``off_{index}`` from args. Returns ``ampl`` between ``on`` and
-        ``off``, zero outside.
+        Callable ``f(t, args)`` reading ``on_{index}``, ``off_{index}`` and
+        either ``ampl_{index}`` or ``n_pi_{index}`` from args. Returns
+        ``ampl`` between ``on`` and ``off``, zero outside. Raises ``KeyError``
+        if both or neither amplitude parameters are present.
+
+    Notes:
+        The amplitude can be set directly via ``ampl_{index}`` or indirectly
+        via ``n_pi_{index}`` (desired pulse area in multiples of π).
     """
 
     def func(t, args):
         on = args["on_" + str(index)]
         off = args["off_" + str(index)]
-        ampl = args["ampl_" + str(index)]
+        ampl_idx = "ampl_" + str(index)
+        n_pi_idx = "n_pi_" + str(index)
+        if ampl_idx in args:
+            if n_pi_idx in args:
+                raise KeyError("t_args can contain ampl or n_pi, not both.")
+            ampl = args[ampl_idx]
+        elif n_pi_idx in args:
+            ampl = args[n_pi_idx] / (2 * (off - on))
+        else:
+            raise KeyError("t_args must contain ampl or n_pi.")
         return ampl * (t >= on) * (t <= off)
 
     func.__name__ = "square_" + str(index)

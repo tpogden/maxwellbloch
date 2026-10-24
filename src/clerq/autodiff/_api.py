@@ -331,8 +331,8 @@ class AutodiffPropagation:
                     "derivative with respect to them is a delta function that "
                     "autodiff cannot represent (it would return 0). Hold them fixed "
                     "by passing them in fixed=..., or use a ramp pulse "
-                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a "
-                    "square-like pulse with smooth edges whose on/off times are "
+                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon') or "
+                    "'sin2', pulses with smooth edges whose on/off times are "
                     "differentiable."
                 )
 
