@@ -76,9 +76,9 @@ class PropagationSolver(LindbladSolver):
             the ``thermal_delta_*`` values are cyclic frequencies, in the
             same units as ``decays`` rates and ``rabi_freq``. Instead of
             ``thermal_delta_steps`` the classes can be given a maximum
-            spacing ``thermal_delta_spacing``, or ``"auto"`` for the
-            largest spacing with no spurious Doppler echo inside the time
-            window (``thermal_delta_auto_spacing()``). The density
+            spacing ``thermal_delta_spacing`` (new in 0.15.0), or ``"auto"``
+            for the largest spacing with no spurious Doppler echo inside the
+            time window (``thermal_delta_auto_spacing()``). The density
             of the classes is Gaussian, ``exp(-(delta / thermal_width)**2)``
             (``thermal_weights``); each class is weighted by this times the
             detuning interval it represents (``thermal_widths``).
@@ -277,6 +277,8 @@ class PropagationSolver(LindbladSolver):
 
         Decay damps the echo, but this ignores that, so it is safe for any
         system.
+
+        .. versionadded:: 0.15.0
         """
         slope = sum(abs(f.factor_doppler_shift) for f in self.system.fields)
         return THERMAL_ECHO_MARGIN / ((self.t_max - self.t_min) * (slope or 1.0))
@@ -355,6 +357,8 @@ class PropagationSolver(LindbladSolver):
 
         The Maxwell-Boltzmann density ``thermal_weights`` times the detuning
         interval ``thermal_widths`` each class represents. Not normalised.
+
+        .. versionadded:: 0.15.0
         """
         return self.thermal_weights * self.thermal_widths
 

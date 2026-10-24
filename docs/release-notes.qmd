@@ -16,6 +16,21 @@ Entries before 0.13.0 use the old package name, `maxwellbloch`, and its old
 class names, as they were at the time. See
 [MaxwellBloch is now clerq](news/rename.qmd) for the rename.
 
+## Unreleased
+
+**Doppler class spacing.** `velocity_classes` takes a new `thermal_delta_spacing`, a
+maximum spacing between the classes, in place of `thermal_delta_steps`. Pass `"auto"` for the
+largest spacing with no spurious Doppler echo inside the time window: a grid of spacing $h$
+repeats the summed response at $t = 1/h$, and the result is wrong when that falls inside the
+window. See [Velocity Classes](usage/velocity-classes.ipynb).
+
+**Velocity-class weights (changes results).** Each class is now weighted by the detuning
+interval it represents as well as its Boltzmann density. Before, a non-uniform grid (an inner
+band from `thermal_delta_inner_*`) over-weighted the densely sampled region, so such results
+change. Uniform grids are unchanged. `thermal_weights` is still the density; the intervals are
+`thermal_widths` and the weights used are `thermal_quadrature_weights`. A savefile solved before
+this on a non-uniform grid is rejected on load: delete it or pass `recalc=True`.
+
 ## 0.14.0 — 23 October 2026
 
 **Unit conversions.** The new `clerq.macro` module converts laboratory quantities
