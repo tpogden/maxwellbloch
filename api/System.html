@@ -691,6 +691,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.System.build_operators" id="toc-clerq.System.build_operators" class="nav-link" data-scroll-target="#clerq.System.build_operators">build_operators</a></li>
   <li><a href="#clerq.System.get_detunings" id="toc-clerq.System.get_detunings" class="nav-link" data-scroll-target="#clerq.System.get_detunings">get_detunings</a></li>
   <li><a href="#clerq.System.get_fields_sum_coherence" id="toc-clerq.System.get_fields_sum_coherence" class="nav-link" data-scroll-target="#clerq.System.get_fields_sum_coherence">get_fields_sum_coherence</a></li>
+  <li><a href="#clerq.System.level_decay_rates" id="toc-clerq.System.level_decay_rates" class="nav-link" data-scroll-target="#clerq.System.level_decay_rates">level_decay_rates</a></li>
+  <li><a href="#clerq.System.level_doppler_slopes" id="toc-clerq.System.level_doppler_slopes" class="nav-link" data-scroll-target="#clerq.System.level_doppler_slopes">level_doppler_slopes</a></li>
   <li><a href="#clerq.System.set_H_Delta" id="toc-clerq.System.set_H_Delta" class="nav-link" data-scroll-target="#clerq.System.set_H_Delta">set_H_Delta</a></li>
   <li><a href="#clerq.System.set_H_Omega" id="toc-clerq.System.set_H_Omega" class="nav-link" data-scroll-target="#clerq.System.set_H_Omega">set_H_Omega</a></li>
   <li><a href="#clerq.System.to_json_str" id="toc-clerq.System.to_json_str" class="nav-link" data-scroll-target="#clerq.System.to_json_str">to_json_str</a></li>
@@ -840,6 +842,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td><a href="#clerq.System.get_fields_sum_coherence">get_fields_sum_coherence</a></td>
 <td>Returns the sum coherences of the system density matrix for each</td>
+</tr>
+<tr class="odd">
+<td><a href="#clerq.System.level_decay_rates">level_decay_rates</a></td>
+<td>Angular rate at which each level damps its coherences.</td>
+</tr>
+<tr class="even">
+<td><a href="#clerq.System.level_doppler_slopes">level_doppler_slopes</a></td>
+<td>Cyclic Doppler slope of each level’s energy in the rotating frame.</td>
 </tr>
 <tr class="odd">
 <td><a href="#clerq.System.set_H_Delta">set_H_Delta</a></td>
@@ -1022,9 +1032,71 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </section>
 </section>
+<section id="clerq.System.level_decay_rates" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.level_decay_rates">level_decay_rates</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>System.level_decay_rates()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Angular rate at which each level damps its coherences.</p>
+<p>Half the sum of <code>diag(c^dagger c)</code> over the collapse operators, so that the coherence between levels <code>i</code> and <code>j</code> decays at the sum of the two entries. Pure dephasing counts the same way.</p>
+<section id="returns-2" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray</td>
+<td>Array of length <code>num_states</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>.. versionadded:: 0.15.0</p>
+</section>
+</section>
+<section id="clerq.System.level_doppler_slopes" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.System.level_doppler_slopes">level_doppler_slopes</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>System.level_doppler_slopes()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Cyclic Doppler slope of each level’s energy in the rotating frame.</p>
+<p>Each field adds <code>sign * (detuning + factor_doppler_shift * Delta)</code> to the energy of its upper levels (see <code>_build_H_Delta</code>), where <code>Delta</code> is the thermal detuning, so level <code>i</code> moves with <code>Delta</code> at <code>-sum(sign * factor_doppler_shift)</code> over the fields that have <code>i</code> as an upper level. A coherence between levels <code>i</code> and <code>j</code> oscillates with <code>Delta</code> at the difference of their slopes.</p>
+<section id="returns-3" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 77%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray</td>
+<td>Array of length <code>num_states</code>, in units of cycles per unit of the</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>np.ndarray</td>
+<td>thermal detuning.</td>
+</tr>
+</tbody>
+</table>
+<p>.. versionadded:: 0.15.0</p>
+</section>
+</section>
 <section id="clerq.System.set_H_Delta" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.System.set_H_Delta">set_H_Delta</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Delta(detunings)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Delta(detunings)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Set the detuning part of the interaction Hamiltonian, H_Delta, given a list of detunings.</p>
 <section id="parameters-3" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
@@ -1056,7 +1128,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="clerq.System.set_H_Omega" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.System.set_H_Omega">set_H_Omega</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>System.set_H_Omega(rabi_freqs, rabi_freq_t_funcs, rabi_freq_t_args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Set the Rabi frequency part of the interaction Hamiltonian.</p>
 <p>Updates each field’s Rabi frequency and time function, then rebuilds the Hamiltonian.</p>
 <section id="parameters-4" class="level4 doc-section doc-section-parameters">
@@ -1098,8 +1170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-2" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
+<section id="returns-4" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-4">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 9%">
@@ -1125,10 +1197,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="clerq.System.to_json_str" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.System.to_json_str">to_json_str</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>System.to_json_str()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>System.to_json_str()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Return a JSON string representation of the System object.</p>
-<section id="returns-3" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<section id="returns-5" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-5">Returns</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">

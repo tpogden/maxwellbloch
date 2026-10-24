@@ -747,9 +747,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 3%">
-<col style="width: 3%">
-<col style="width: 91%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 92%">
 <col style="width: 1%">
 </colgroup>
 <thead>
@@ -848,7 +848,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>velocity_classes</td>
 <td>dict | None</td>
-<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening. <code>thermal_width</code> and the <code>thermal_delta_*</code> values are cyclic frequencies, in the same units as <code>decays</code> rates and <code>rabi_freq</code>. Instead of <code>thermal_delta_steps</code> the classes can be given a maximum spacing <code>thermal_delta_spacing</code> (new in 0.15.0), or <code>"auto"</code> for the largest spacing with no spurious Doppler echo inside the time window (<code>thermal_delta_auto_spacing()</code>). The density of the classes is Gaussian, <code>exp(-(delta / thermal_width)**2)</code> (<code>thermal_weights</code>); each class is weighted by this times the detuning interval it represents (<code>thermal_widths</code>).</td>
+<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening. <code>thermal_width</code> and the <code>thermal_delta_*</code> values are cyclic frequencies, in the same units as <code>decays</code> rates and <code>rabi_freq</code>. Instead of <code>thermal_delta_steps</code> the classes can be given a maximum spacing <code>thermal_delta_spacing</code> (new in 0.15.0), or <code>"auto"</code> for the largest spacing whose spurious Doppler echoes fall outside the time window or are damped by the decay below <code>thermal_delta_echo_tolerance</code> (see <code>thermal_delta_auto_spacing()</code>). The density of the classes is Gaussian, <code>exp(-(delta / thermal_width)**2)</code> (<code>thermal_weights</code>); each class is weighted by this times the detuning interval it represents (<code>thermal_widths</code>).</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
@@ -971,7 +971,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><a href="#clerq.PropagationSolver.thermal_delta_auto_spacing">thermal_delta_auto_spacing</a></td>
-<td>Largest cyclic class spacing free of Doppler echoes in the time window.</td>
+<td>Largest cyclic class spacing that is free of Doppler echoes and</td>
 </tr>
 <tr class="even">
 <td><a href="#clerq.PropagationSolver.to_autodiff">to_autodiff</a></td>
@@ -1640,12 +1640,61 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="clerq.PropagationSolver.thermal_delta_auto_spacing" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.thermal_delta_auto_spacing">thermal_delta_auto_spacing</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.thermal_delta_auto_spacing()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Largest cyclic class spacing free of Doppler echoes in the time window.</p>
-<p>Sampling the detuning at spacing <code>h</code> makes the summed response repeat at <code>t = 1 / h</code>. That echo is spurious, so it must fall outside the window of length <code>t_max - t_min</code>; the spacing is <code>THERMAL_ECHO_MARGIN</code> of the window’s reciprocal.</p>
-<p>A coherence between two levels oscillates at <code>s * Delta</code> cyclic, where <code>s</code> is the sum of the <code>factor_doppler_shift</code> of the fields that shift the two levels apart: 1 for a single co-propagating field, 2 for the two-photon coherence of a co-propagating ladder. Its echo is at <code>1 / (s h)</code>, so the spacing is divided by the largest possible <code>s</code>, the sum of <code>abs(factor_doppler_shift)</code> over all the fields.</p>
-<p>Decay damps the echo, but this ignores that, so it is safe for any system.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.thermal_delta_auto_spacing(tolerance<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Largest cyclic class spacing that is free of Doppler echoes and resolves the thermal distribution.</p>
+<p>Sampling the detuning at spacing <code>h</code> makes the summed response repeat at <code>t = 1 / h</code>. A coherence between levels <code>i</code> and <code>j</code> oscillates at <code>b * Delta</code>, where <code>b</code> is the difference of the two levels’ Doppler slopes (1 for a single co-propagating field; see <code>System.level_doppler_slopes</code>), so its echo is at <code>t = 1 / (b h)</code>. Per pair of levels, the spacing is the larger of:</p>
+<ul>
+<li>the one that puts the echo outside the time window: <code>THERMAL_ECHO_MARGIN / (T * b)</code>, with <code>T = t_max - t_min</code>;</li>
+<li>the one that damps the echo, at decay rate <code>g</code> of the coherence (<code>System.level_decay_rates</code>), below <code>tolerance</code>: <code>g / (b * ln(1 / tolerance))</code>.</li>
+</ul>
+<p>The echo spacing is the smallest over all pairs of levels whose slopes differ; if none do, the window rule is used with <code>b = 1</code>. The result is also capped at <code>pi * thermal_width / sqrt(ln(1 / tolerance))</code>, below which the sum of the Gaussian weights is correct to <code>tolerance</code>. Without that cap a fast decay and a narrow thermal width would give a grid coarser than the distribution itself.</p>
+<section id="parameters-9" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-9">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 9%">
+<col style="width: 76%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tolerance</td>
+<td>float | None</td>
+<td>largest echo amplitude allowed inside the window, as a fraction of the coherence. Default <code>THERMAL_ECHO_TOLERANCE</code>.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-7" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-7">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>float</td>
+<td>The spacing, a cyclic frequency.</td>
+</tr>
+</tbody>
+</table>
 <p>.. versionadded:: 0.15.0</p>
+</section>
 </section>
 <section id="clerq.PropagationSolver.to_autodiff" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.to_autodiff">to_autodiff</h3>
@@ -1653,8 +1702,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Return a differentiable version of this problem.</p>
 <p>.. versionadded:: 0.14.0</p>
 <p>The result reproduces :meth:<code>solve</code> as a pure function of a parameter pytree (pulse parameters, interaction strengths, detunings, decay scale, or sampled input fields), so the propagated field and any loss of it can be differentiated exactly with JAX autodiff. Requires the <code>jax</code> extra (<code>pip install 'clerq[jax]'</code>) and <code>jax_enable_x64</code>.</p>
-<section id="parameters-9" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-9">Parameters</h4>
+<section id="parameters-10" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-10">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 7%">
@@ -1680,8 +1729,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-7" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-7">Returns</h4>
+<section id="returns-8" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-8">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 10%">
