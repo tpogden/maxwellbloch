@@ -30,6 +30,12 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   wrong (29%) when the echo is inside the window and undamped. It cannot be combined with `thermal_delta_steps` or
   `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 
+### Changed
+- The docs usage page `counter-propagating`, and the Lambda CPT, two-photon echo and stimulated echo examples, use
+  `"thermal_delta_spacing": "auto"`. The echo examples' outputs change: on the old 41-class grid a spurious Doppler echo at
+  `t = 1 / h` fell inside the window, and the stimulated-echo `T_w` sweep was not monotonic (0.150, 0.194, 0.183 as `T_w` rose);
+  with `"auto"` it decays smoothly and the later intervals give `T_1` within about 5% of the analytic value.
+
 ### Fixed
 - `wigner_3j` no longer raises for NumPy integer arguments that give a negative phase exponent, and `wigner_6j` now returns
   0 when a triad sums to a non-integer (it previously returned `inf` or `nan`) and validates `j3` is an integer or
