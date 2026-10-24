@@ -40,6 +40,11 @@ def calc_clebsch_hf(J_a, I_a, F_a, mF_a, J_b, I_b, F_b, mF_b, q):
     return coeff_hf * coeff_F
 
 
+def _is_half_integer(x):
+    """Return True if x is an integer or half-integer."""
+    return 2 * x == round(2 * x)
+
+
 def wigner_3j(j1, j2, j3, m1, m2, m3):
     """Compute the Wigner 3j factor using the Racah formula.
 
@@ -51,14 +56,7 @@ def wigner_3j(j1, j2, j3, m1, m2, m3):
     """
 
     # Error checking
-    if (
-        (2 * j1 != floor(2 * j1))
-        | (2 * j2 != floor(2 * j2))
-        | (2 * j3 != floor(2 * j3))
-        | (2 * m1 != floor(2 * m1))
-        | (2 * m2 != floor(2 * m2))
-        | (2 * m3 != floor(2 * m3))
-    ):
+    if not all(_is_half_integer(x) for x in (j1, j2, j3, m1, m2, m3)):
         raise ValueError("All arguments must be integers or half-integers.")
 
     # Additional check if the sum of the second row equals zero
@@ -116,7 +114,7 @@ def wigner_3j(j1, j2, j3, m1, m2, m3):
             * factorial(t5 - t)
         )
 
-    wigner *= (-1) ** (j1 - j2 - m3) * sqrt(
+    wigner *= (-1) ** int(round(j1 - j2 - m3)) * sqrt(
         factorial(j1 + j2 - j3)
         * factorial(j1 - j2 + j3)
         * factorial(-j1 + j2 + j3)
@@ -146,14 +144,7 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
     """
 
     # Check that the js and Js are only integer or half integer
-    if (
-        (2 * j1 != round(2 * j1))
-        | (2 * j2 != round(2 * j2))
-        | (2 * j2 != round(2 * j2))
-        | (2 * J1 != round(2 * J1))
-        | (2 * J2 != round(2 * J2))
-        | (2 * J3 != round(2 * J3))
-    ):
+    if not all(_is_half_integer(x) for x in (j1, j2, j3, J1, J2, J3)):
         raise ValueError("All arguments must be integers or half-integers.")
 
     # Check if the 4 triads ( (j1 j2 j3), (j1 J2 J3), (J1 j2 J3), (J1 J2 j3) )
@@ -173,13 +164,13 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
 
     # Check if the sum of the elements of each traid is an integer
     if (
-        (2 * (j1 + j2 + j3) != round(2 * (j1 + j2 + j3)))
-        | (2 * (j1 + J2 + J3) != round(2 * (j1 + J2 + J3)))
-        | (2 * (J1 + j2 + J3) != round(2 * (J1 + j2 + J3)))
-        | (2 * (J1 + J2 + j3) != round(2 * (J1 + J2 + j3)))
+        ((j1 + j2 + j3) != round(j1 + j2 + j3))
+        | ((j1 + J2 + J3) != round(j1 + J2 + J3))
+        | ((J1 + j2 + J3) != round(J1 + j2 + J3))
+        | ((J1 + J2 + j3) != round(J1 + J2 + j3))
     ):
         # print '6j-Symbol is not triangular!'
-        return 0
+        return 0.0
 
     # Arguments for the factorials
     t1 = j1 + j2 + j3

@@ -9,6 +9,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Unit tests for `wigner_3j` and `wigner_6j` covering known values, known zeros and symmetries.
 - `clerq.autodiff` runs in float32, JAX's default precision, as well as float64: it computes in whatever `jax_enable_x64` selects
   and no longer raises when 64-bit precision is off. The `rtol` and `atol` of `to_autodiff()` (and of the lower-level
   `solve_slice` and `propagate_fields`) now default to `None`, meaning `1e-8` and `1e-10` in float64, as before, and `1e-6` and
@@ -30,6 +31,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 
 ### Fixed
+- `wigner_3j` no longer raises for NumPy integer arguments that give a negative phase exponent, and `wigner_6j` now returns
+  0 when a triad sums to a non-integer (it previously returned `inf` or `nan`) and validates `j3` is an integer or
+  half-integer.
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
   density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
   region. Uniform grids are unchanged. `thermal_weights` is still the Boltzmann density; the interval widths are the new
