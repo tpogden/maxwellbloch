@@ -470,10 +470,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#what-was-checked" id="toc-what-was-checked" class="nav-link active" data-scroll-target="#what-was-checked">What was checked</a></li>
-  <li><a href="#cost-of-a-gradient" id="toc-cost-of-a-gradient" class="nav-link" data-scroll-target="#cost-of-a-gradient">Cost of a gradient</a></li>
+  <li><a href="#the-cost-of-a-gradient" id="toc-the-cost-of-a-gradient" class="nav-link active" data-scroll-target="#the-cost-of-a-gradient">The cost of a gradient</a></li>
   <li><a href="#memory" id="toc-memory" class="nav-link" data-scroll-target="#memory">Memory</a></li>
-  <li><a href="#inverse-design" id="toc-inverse-design" class="nav-link" data-scroll-target="#inverse-design">Inverse design</a></li>
+  <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
+  <li><a href="#a-design-problem" id="toc-a-design-problem" class="nav-link" data-scroll-target="#a-design-problem">A design problem</a></li>
+  <li><a href="#cost-of-the-decay-rate-parameters" id="toc-cost-of-the-decay-rate-parameters" class="nav-link" data-scroll-target="#cost-of-the-decay-rate-parameters">Cost of the decay-rate parameters</a></li>
   <li><a href="#practical-notes" id="toc-practical-notes" class="nav-link" data-scroll-target="#practical-notes">Practical notes</a></li>
   <li><a href="#not-yet-established" id="toc-not-yet-established" class="nav-link" data-scroll-target="#not-yet-established">Not yet established</a></li>
   </ul>
@@ -503,131 +504,190 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>Requires the <code>jax</code> extra: <code>pip install 'clerq[jax]'</code>. See <a href="../api/autodiff.AutodiffPropagation.html"><code>AutodiffPropagation</code></a> for the API.</p>
-<p>This page records what was measured when the differentiable backend was prototyped, and the limits of those measurements. The numbers come from a prototype branch (<code>spike/differentiable-backend</code>), not from the released code, and the prototype and the released backend share the same design but not the same source.</p>
+<p>This page records measurements of the released <code>clerq.autodiff</code> (0.14.0): what a gradient costs, how much memory it needs, how accurate it is, and what it buys on a design problem. The harness that produced every number is in <code>benchmarks/autodiff/</code> (with the raw results in <code>benchmarks/autodiff/results/</code>), so they can be reproduced and rerun on other hardware.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Read these as order-of-magnitude evidence
+<span class="screen-reader-only">Warning</span>One machine, CPU only
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>All timings are CPU-only, float64, on one shared Apple M1 Max, mostly best-of-2 or best-of-3 with no confidence intervals. No GPU was available. The ratios (gradient cost over forward cost, autodiff over finite differences) are the portable part; absolute seconds are not.</p>
+<p>All timings are on one Apple M1 Max (10 cores, 64 GB, macOS 26.6.2) on AC power, CPU only, Python 3.14.4, JAX 0.11.2, diffrax 0.7.2. Other applications were running, so the one-minute load average was 2 to 8 (median 3 to 5) during the runs; the runs of different methods are interleaved so that drift affects them alike. The cost cells are the median of 7 repeats after warm-up (5 in the before-and-after comparison, 3 for the slowest), with a bootstrap 95% interval of the median in the harness output; the memory and compile-time cells are the best of two or three calls in a fresh process. No GPU was used, and the ratios (gradient cost over forward cost, autodiff over finite differences) are the portable part; absolute seconds are not.</p>
 </div>
 </div>
-<section id="what-was-checked" class="level2">
-<h2 class="anchored" data-anchor-id="what-was-checked">What was checked</h2>
-<ul>
-<li>The JAX propagator reproduces <code>PropagationSolver.solve()</code> to 1e-10 or better on five systems (2, 4, 9, 9 with linear polarisation, and 16 levels), including velocity classes.</li>
-<li>Reverse-mode gradients agree with fixed-step finite differences (1.7e-8) and with finite differences through clerq itself (1.3e-7 for a two-level medium, 1.1e-7 for 9 levels with 50 velocity classes).</li>
-<li>A gradient is the exact gradient of clerq’s <em>discretisation</em>, so it inherits clerq’s modelling and z-step error.</li>
-</ul>
-</section>
-<section id="cost-of-a-gradient" class="level2">
-<h2 class="anchored" data-anchor-id="cost-of-a-gradient">Cost of a gradient</h2>
-<p>One reverse-mode gradient costs about 4 to 6 forward solves, whatever the number of parameters.</p>
-<p>Two-level reference problem (200 z steps, 1000 time steps, one velocity class). One forward solve takes 0.21 s in JAX and 2.25 s in clerq. Seconds per gradient (best of 3):</p>
+<section id="the-cost-of-a-gradient" class="level2">
+<h2 class="anchored" data-anchor-id="the-cost-of-a-gradient">The cost of a gradient</h2>
+<p>A reverse-mode gradient costs about six forward propagations, whatever the number of parameters. The parameters here are the coefficients of a free-form probe control (a Gaussian basis, see <a href="../api/autodiff.controls.gaussian_basis.html"><code>clerq.autodiff.controls</code></a>), so <code>N</code> can be varied freely.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/autodiff-bench-cost.png" class="img-fluid figure-img"></p>
+<figcaption>Time of one gradient against the number of parameters</figcaption>
+</figure>
+</div>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Parameters</th>
-<th>Reverse AD</th>
-<th>Forward AD</th>
-<th>Finite differences (JAX)</th>
-<th>Finite differences (clerq)</th>
+<th>system</th>
+<th>forward (s)</th>
+<th>reverse (s)</th>
+<th>reverse / forward</th>
+<th>at N = 50: forward-mode (s)</th>
+<th>finite differences, JAX (s)</th>
+<th>finite differences, clerq (s, estimated)</th>
+<th>reverse speed-up over JAX / clerq</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>1</td>
-<td>1.0</td>
-<td>0.5</td>
-<td>0.5</td>
-<td>4.5</td>
+<td>two-level, 1001 × 200</td>
+<td>0.68</td>
+<td>3.9</td>
+<td>5.7</td>
+<td>8.4</td>
+<td>34.6</td>
+<td>205</td>
+<td>8.9x / 53x</td>
 </tr>
 <tr class="even">
-<td>10</td>
-<td>0.9</td>
-<td>0.6</td>
+<td>lambda, 3 levels, 201 × 60</td>
+<td>0.13</td>
+<td>0.76</td>
+<td>5.8</td>
 <td>4.3</td>
-<td>46</td>
+<td>6.8</td>
+<td>20.4</td>
+<td>8.9x / 27x</td>
 </tr>
 <tr class="odd">
-<td>50</td>
-<td>1.0</td>
-<td>1.3</td>
-<td>23</td>
-<td>230</td>
-</tr>
-<tr class="even">
-<td>100</td>
-<td>1.0</td>
-<td>2.0</td>
-<td>44</td>
-<td>455</td>
-</tr>
-<tr class="odd">
-<td>500</td>
-<td>1.0</td>
-<td>7.8</td>
-<td>223</td>
-<td>2443 (extrapolated)</td>
+<td>Rb87, 11 levels, 11 classes, 201 × 50</td>
+<td>1.18</td>
+<td>7.1</td>
+<td>6.0</td>
+<td>108</td>
+<td>60</td>
+<td>1130</td>
+<td>8.4x / 158x</td>
 </tr>
 </tbody>
 </table>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="figures/autodiff-scaling-inverse.png" class="img-fluid figure-img"></p>
-<figcaption>Two-level scaling and a 20-parameter inverse design</figcaption>
-</figure>
-</div>
+<p>At N = 100 (two-level and lambda) the speed-up over finite differences through JAX is 17.7x and 17.6x, and over clerq 116x and 48x.</p>
 <ul>
-<li>Reverse mode beats finite differences from about 3 parameters, and forward mode from about 40 on this small problem. Forward mode is strongly size dependent: on the 9-level, 50-class problem it was much slower than reverse mode already at 10 parameters.</li>
-<li>Most of the speed-up over clerq comes from the compiled forward pass (10x for the two-level problem, about 165x for 9 levels and 50 classes), not from autodiff. The like-for-like comparison is against finite differences through the same JAX code: 44x to 47x at 100 parameters.</li>
+<li><strong>What the finite differences are.</strong> Forward differences, <code>N + 1</code> evaluations, through the compiled propagation. Central differences cost twice as much, which doubles every speed-up here. The finite differences through clerq are an <em>estimate</em>: <code>N + 1</code> times the measured time of one <code>PropagationSolver.solve()</code> (4.0 s, 0.40 s and 22 s for the three systems), not a measurement of that many solves.</li>
+<li><strong>When reverse mode wins.</strong> It costs the same as finite differences through JAX at about <code>N = 5</code>, and is faster from <code>N = 10</code> (1.8x to 1.9x on all three systems).</li>
+<li><strong>Forward mode</strong> (<code>mode="forward"</code>) was never faster than reverse mode: equal at <code>N = 2</code> on the lambda system and slower elsewhere (for example 13 s against 7 s for Rb87 at <code>N = 2</code>), and its cost grows with <code>N</code>. It was skipped for the two-level system at <code>N = 100</code>, where it would have taken over two minutes.</li>
+<li><strong>First call.</strong> The first call includes compilation: a forward propagation takes 1.4 to 2.4 s the first time and the reverse-mode gradient 5.5 to 12 s, against steady-state times of 0.13 to 1.2 s and 0.74 to 7.5 s. A new array shape or loss function recompiles, so pass the same loss object between calls.</li>
 </ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="figures/autodiff-scaling-dim9.png" class="img-fluid figure-img"></p>
-<figcaption>Nine levels, 50 velocity classes</figcaption>
-</figure>
-</div>
 </section>
 <section id="memory" class="level2">
 <h2 class="anchored" data-anchor-id="memory">Memory</h2>
-<p>Plain reverse-mode through the z scan stores every step, so its memory is set by the solver’s <code>max_steps</code> and not by the problem. Checkpointing removes that dependence.</p>
+<p>Plain reverse mode through the z scan (strategy <code>s2</code>) stores every slice, so its memory grows with the number of z steps and of velocity classes. The default (<code>s3</code>) recomputes a slice on the backward pass and <code>s4</code> also limits the solver’s inner checkpoints (here to 32). The figure shows the temporary memory XLA reports for one compiled gradient.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/autodiff-memory.png" class="img-fluid figure-img"></p>
-<figcaption>Memory by strategy</figcaption>
+<p><img src="figures/autodiff-bench-memory.png" class="img-fluid figure-img"></p>
+<figcaption>XLA temporary memory of one gradient against the number of z steps</figcaption>
 </figure>
 </div>
-<p>At the largest configuration tried (500 z steps, 2000 time steps, 9 levels, 50 velocity classes) the working memory was 5.6 GiB without checkpointing and 75 MiB with it. Checkpointing costs roughly 20% more time.</p>
+<p>For Rb87 with 11 classes and 400 z steps, <code>s2</code> needs 14.3 GiB, <code>s3</code> 105 MiB and <code>s4</code> 13 MiB; at 800 z steps <code>s3</code> needs 110 MiB and <code>s4</code> 18 MiB (<code>s2</code> was not run). For lambda at 800 steps it is 312 MiB, 21 MiB and 20 MiB. Against the number of classes (Rb87, 100 z steps, 1, 11 and 25 classes): <code>s2</code> 347, 3698 and 8391 MiB; <code>s3</code> 11, 102 and 229 MiB; <code>s4</code> 2, 9 and 19 MiB. Checkpointing costs time: the steady-state gradient is about 20% slower with <code>s3</code> than with <code>s2</code> and 26% to 39% slower with <code>s4</code> (Rb87, 100 z steps, 11 classes: 15.0 and 15.8 s against 12.5 s; lambda at 100 z steps: 1.28 and 1.46 s against 1.05 s).</p>
+<p>The peak resident set of the process also includes JAX and compilation, about 380 to 600 MiB above the baseline for <code>s3</code> and <code>s4</code> whatever the problem, so the XLA figures are the ones that separate the strategies.</p>
 </section>
-<section id="inverse-design" class="level2">
-<h2 class="anchored" data-anchor-id="inverse-design">Inverse design</h2>
-<p>Recovering 20 pulse-basis coefficients with L-BFGS-B took 49 s using autodiff gradients, against 339 s using finite differences through JAX and about 65 minutes projected through clerq. The target was planted, so it is reachable by construction and the landscape is benign: this shows gradient quality and cost, not a hard design problem.</p>
+<section id="accuracy" class="level2">
+<h2 class="anchored" data-anchor-id="accuracy">Accuracy</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>system</th>
+<th>N</th>
+<th>fixed steps</th>
+<th>field error against <code>solve()</code></th>
+<th>AD against finite differences</th>
+<th>forward against reverse</th>
+<th>adaptive against fixed-step AD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>two-level</td>
+<td>10</td>
+<td>2003</td>
+<td>2.5e-4</td>
+<td>8.0e-9</td>
+<td>8.5e-14</td>
+<td>2.5e-5</td>
+</tr>
+<tr class="even">
+<td>lambda</td>
+<td>10</td>
+<td>2003</td>
+<td>8.9e-8</td>
+<td>2.3e-12</td>
+<td>1.1e-16</td>
+<td>1.9e-7</td>
+</tr>
+<tr class="odd">
+<td>Rb87, 11 classes</td>
+<td>6</td>
+<td>1009</td>
+<td>3.6e-4</td>
+<td>5.4e-13</td>
+<td>6.5e-16</td>
+<td>4.8e-8</td>
+</tr>
+</tbody>
+</table>
+<p>(The Rb87 case is smaller than the others because a fixed-step reference with 11 classes is slow.)</p>
+<ul>
+<li>The gradient is the exact gradient of the discretised problem: it agrees with central finite differences on a fixed-step solve to 8e-9 or better (best of four step sizes: the two-level problem needs steps of 1e-7 or smaller because its loss is very nonlinear), and forward and reverse mode agree to 1e-13 or better.</li>
+<li>The propagated field agrees with <code>solve()</code> to 2.5e-4 of the peak for the two-level problem and 3.6e-4 for Rb87 at the grids used here, and to 9e-8 for the lambda problem. We did not isolate the cause of the two larger differences, and the error did not fall steadily when the time grid was refined for the two-level problem.</li>
+</ul>
+</section>
+<section id="a-design-problem" class="level2">
+<h2 class="anchored" data-anchor-id="a-design-problem">A design problem</h2>
+<p>The memory problem in <a href="https://github.com/tpogden/clerq/blob/master/research/autodiff-notes.md">the research notes</a>: store a probe pulse in a Doppler-broadened lambda medium (11 classes, effective optical depth about 25) with the coupling field off, and maximise the energy retrieved afterwards. A 5-parameter baseline (a super-Gaussian probe and two coupling amplitudes) searched with Nelder-Mead is compared with a free-form design of 44 coefficients by gradient descent (Adam).</p>
+<ul>
+<li>A 44-parameter gradient took 36 s with reverse mode against 279 s with forward differences (one forward evaluation takes 6.2 s).</li>
+<li>The baseline reached 0.068 retrieved after 296 evaluations and 2261 s.</li>
+<li>The free-form design passed that value at step 23, after 1037 s, and reached 0.106 after 40 steps (1809 s). With finite-difference gradients the same 23 steps would take about 6400 s (an estimate from the measured gradient time).</li>
+</ul>
+<p>This run was slower than earlier runs of the same problem on the same machine (a forward evaluation took 3.2 s in earlier runs); we did not identify why. The ratios are within a run. It is one problem, one optical depth and one Doppler width. Without Doppler broadening a tuned three-parameter baseline matched the free-form result in the research notes (0.469 against 0.460), so this advantage should not be assumed for other problems.</p>
+</section>
+<section id="cost-of-the-decay-rate-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="cost-of-the-decay-rate-parameters">Cost of the decay-rate parameters</h2>
+<p>Adding <code>decay_rates</code> (pull request 361) changed how the decays enter the solver. Running the same cost tests on the commit before it and the commit after it, back to back: reverse mode took 1.00 to 1.01 times as long, a forward propagation 1.00 to 1.02 times, and forward mode 1.00 to 1.08 times (the largest at the two-level and lambda systems with <code>N = 10</code>). The two runs were sequential, so slow drift cannot be excluded.</p>
 </section>
 <section id="practical-notes" class="level2">
 <h2 class="anchored" data-anchor-id="practical-notes">Practical notes</h2>
 <ul>
-<li><strong>Validate against fixed-step finite differences.</strong> Finite differences through an adaptive solver are noise-limited (error floors near <code>rtol / h</code>), so a gradient check against them can disagree by orders of magnitude when the gradient is right. Use <code>n_steps=</code> with a step count that does not divide the output grid.</li>
+<li><strong>Validate against fixed-step finite differences.</strong> Finite differences through an adaptive solver are noise-limited (error floors near <code>rtol / h</code>), so a gradient check against them can disagree by orders of magnitude when the gradient is right. Use <code>n_steps=</code> with a step count that does not divide the output grid, and compare at several step sizes.</li>
 <li><strong>Avoid commensurate fixed steps.</strong> With diffrax 0.7, fixed steps that land exactly on output times can give wrong reverse-mode gradients. clerq raises an error for this case.</li>
 <li><strong>Resolve the z march.</strong> An insufficiently fine <code>z_steps_inner</code> at high optical depth makes the march unstable and the energies meaningless; this is a property of the propagation scheme, not of autodiff.</li>
-<li>Recompilation costs 1 to 5 s per new array shape or loss function. Pass the same loss object between calls.</li>
+<li><strong>Free-form controls need a smooth parametrisation.</strong> One free value per time sample lets an optimiser exploit the time grid (see <code>clerq.autodiff.controls</code>).</li>
 </ul>
 </section>
 <section id="not-yet-established" class="level2">
 <h2 class="anchored" data-anchor-id="not-yet-established">Not yet established</h2>
-<p>GPU performance; counter-propagating fields; dense (non-single-element) dissipators at scale; stiff regimes; systems above 16 levels; and any physically motivated design problem with a non-planted target.</p>
+<p>GPU performance; counter-propagating fields; dense (non-single-element) dissipators at scale; stiff regimes; systems of more than 11 levels; the largest cells (nine levels with 50 velocity classes, and <code>s2</code> at 800 z steps for Rb87), which were not run; and any finite-difference timing through clerq beyond the one-solve estimate.</p>
 
 
 </section>
