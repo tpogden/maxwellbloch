@@ -399,7 +399,8 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#october-2026" id="toc-october-2026" class="nav-link active" data-scroll-target="#october-2026">0.14.0 — 23 October 2026</a></li>
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">Unreleased</a></li>
+  <li><a href="#october-2026" id="toc-october-2026" class="nav-link" data-scroll-target="#october-2026">0.14.0 — 23 October 2026</a></li>
   <li><a href="#october-2026-1" id="toc-october-2026-1" class="nav-link" data-scroll-target="#october-2026-1">0.13.1 — 9 October 2026</a></li>
   <li><a href="#october-2026-2" id="toc-october-2026-2" class="nav-link" data-scroll-target="#october-2026-2">0.13.0 — 9 October 2026</a></li>
   <li><a href="#may-2026" id="toc-may-2026" class="nav-link" data-scroll-target="#may-2026">0.12.0 — 6 May 2026</a></li>
@@ -442,6 +443,11 @@ window.Quarto = {
 
 <p>This page is the readable version of the <a href="https://github.com/tpogden/clerq/blob/master/CHANGELOG.md">CHANGELOG</a>, which has the full list of changes. Versions are newest first, and <a href="https://semver.org/">Semantic Versioning</a> applies: a minor version adds features, and anything marked <strong>breaking</strong> will need a change to your code or a recalculation of your results.</p>
 <p>Entries before 0.13.0 use the old package name, <code>maxwellbloch</code>, and its old class names, as they were at the time. See <a href="./news/rename.html">MaxwellBloch is now clerq</a> for the rename.</p>
+<section id="unreleased" class="level2">
+<h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
+<p><strong>Doppler class spacing.</strong> <code>velocity_classes</code> takes a new <code>thermal_delta_spacing</code>, a maximum spacing between the classes, in place of <code>thermal_delta_steps</code>. Pass <code>"auto"</code> for the largest spacing with no spurious Doppler echo inside the time window: a grid of spacing <span class="math inline">\(h\)</span> repeats the summed response at <span class="math inline">\(t = 1/h\)</span>, and the result is wrong when that falls inside the window. See <a href="./usage/velocity-classes.html">Velocity Classes</a>.</p>
+<p><strong>Velocity-class weights (changes results).</strong> Each class is now weighted by the detuning interval it represents as well as its Boltzmann density. Before, a non-uniform grid (an inner band from <code>thermal_delta_inner_*</code>) over-weighted the densely sampled region, so such results change. Uniform grids are unchanged. <code>thermal_weights</code> is still the density; the intervals are <code>thermal_widths</code> and the weights used are <code>thermal_quadrature_weights</code>. A savefile solved before this on a non-uniform grid is rejected on load: delete it or pass <code>recalc=True</code>.</p>
+</section>
 <section id="october-2026" class="level2">
 <h2 class="anchored" data-anchor-id="october-2026">0.14.0 — 23 October 2026</h2>
 <p><strong>Unit conversions.</strong> The new <code>clerq.macro</code> module converts laboratory quantities (intensity, beam power, temperature, density, linewidth) to clerq’s MHz, µs and cm units. See <a href="./usage/units.html">Converting from Experimental Units</a>.</p>

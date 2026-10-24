@@ -703,6 +703,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#clerq.PropagationSolver.save_results" id="toc-clerq.PropagationSolver.save_results" class="nav-link" data-scroll-target="#clerq.PropagationSolver.save_results">save_results</a></li>
   <li><a href="#clerq.PropagationSolver.solve" id="toc-clerq.PropagationSolver.solve" class="nav-link" data-scroll-target="#clerq.PropagationSolver.solve">solve</a></li>
   <li><a href="#clerq.PropagationSolver.suggest_t_steps" id="toc-clerq.PropagationSolver.suggest_t_steps" class="nav-link" data-scroll-target="#clerq.PropagationSolver.suggest_t_steps">suggest_t_steps</a></li>
+  <li><a href="#clerq.PropagationSolver.thermal_delta_auto_spacing" id="toc-clerq.PropagationSolver.thermal_delta_auto_spacing" class="nav-link" data-scroll-target="#clerq.PropagationSolver.thermal_delta_auto_spacing">thermal_delta_auto_spacing</a></li>
   <li><a href="#clerq.PropagationSolver.to_autodiff" id="toc-clerq.PropagationSolver.to_autodiff" class="nav-link" data-scroll-target="#clerq.PropagationSolver.to_autodiff">to_autodiff</a></li>
   <li><a href="#clerq.PropagationSolver.z_step" id="toc-clerq.PropagationSolver.z_step" class="nav-link" data-scroll-target="#clerq.PropagationSolver.z_step">z_step</a></li>
   <li><a href="#clerq.PropagationSolver.z_step_inner" id="toc-clerq.PropagationSolver.z_step_inner" class="nav-link" data-scroll-target="#clerq.PropagationSolver.z_step_inner">z_step_inner</a></li>
@@ -746,10 +747,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 88%">
-<col style="width: 2%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 91%">
+<col style="width: 1%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -847,7 +848,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>velocity_classes</td>
 <td>dict | None</td>
-<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening. <code>thermal_width</code> and the <code>thermal_delta_*</code> values are cyclic frequencies, in the same units as <code>decays</code> rates and <code>rabi_freq</code>. The density of the classes is Gaussian, <code>exp(-(delta / thermal_width)**2)</code> (<code>thermal_weights</code>); each class is weighted by this times the detuning interval it represents (<code>thermal_widths</code>).</td>
+<td>Dict defining the velocity classes for Doppler broadening, or <code>None</code> for no broadening. <code>thermal_width</code> and the <code>thermal_delta_*</code> values are cyclic frequencies, in the same units as <code>decays</code> rates and <code>rabi_freq</code>. Instead of <code>thermal_delta_steps</code> the classes can be given a maximum spacing <code>thermal_delta_spacing</code> (new in 0.15.0), or <code>"auto"</code> for the largest spacing with no spurious Doppler echo inside the time window (<code>thermal_delta_auto_spacing()</code>). The density of the classes is Gaussian, <code>exp(-(delta / thermal_width)**2)</code> (<code>thermal_weights</code>); each class is weighted by this times the detuning interval it represents (<code>thermal_widths</code>).</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
@@ -969,14 +970,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>Estimate the <code>t_steps</code> needed to resolve the problem’s frequencies.</td>
 </tr>
 <tr class="odd">
+<td><a href="#clerq.PropagationSolver.thermal_delta_auto_spacing">thermal_delta_auto_spacing</a></td>
+<td>Largest cyclic class spacing free of Doppler echoes in the time window.</td>
+</tr>
+<tr class="even">
 <td><a href="#clerq.PropagationSolver.to_autodiff">to_autodiff</a></td>
 <td>Return a differentiable version of this problem.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#clerq.PropagationSolver.z_step">z_step</a></td>
 <td>Returns the distance from one space point to the next.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#clerq.PropagationSolver.z_step_inner">z_step_inner</a></td>
 <td>Returns the distance from one inner space point to the next.</td>
 </tr>
@@ -1633,9 +1638,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </section>
 </section>
+<section id="clerq.PropagationSolver.thermal_delta_auto_spacing" class="level3">
+<h3 class="anchored" data-anchor-id="clerq.PropagationSolver.thermal_delta_auto_spacing">thermal_delta_auto_spacing</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.thermal_delta_auto_spacing()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Largest cyclic class spacing free of Doppler echoes in the time window.</p>
+<p>Sampling the detuning at spacing <code>h</code> makes the summed response repeat at <code>t = 1 / h</code>. That echo is spurious, so it must fall outside the window of length <code>t_max - t_min</code>; the spacing is <code>THERMAL_ECHO_MARGIN</code> of the window’s reciprocal.</p>
+<p>A coherence between two levels oscillates at <code>s * Delta</code> cyclic, where <code>s</code> is the sum of the <code>factor_doppler_shift</code> of the fields that shift the two levels apart: 1 for a single co-propagating field, 2 for the two-photon coherence of a co-propagating ladder. Its echo is at <code>1 / (s h)</code>, so the spacing is divided by the largest possible <code>s</code>, the sum of <code>abs(factor_doppler_shift)</code> over all the fields.</p>
+<p>Decay damps the echo, but this ignores that, so it is safe for any system.</p>
+<p>.. versionadded:: 0.15.0</p>
+</section>
 <section id="clerq.PropagationSolver.to_autodiff" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.to_autodiff">to_autodiff</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.to_autodiff(<span class="op">**</span>options)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.to_autodiff(<span class="op">**</span>options)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Return a differentiable version of this problem.</p>
 <p>.. versionadded:: 0.14.0</p>
 <p>The result reproduces :meth:<code>solve</code> as a pure function of a parameter pytree (pulse parameters, interaction strengths, detunings, decay scale, or sampled input fields), so the propagated field and any loss of it can be differentiated exactly with JAX autodiff. Requires the <code>jax</code> extra (<code>pip install 'clerq[jax]'</code>) and <code>jax_enable_x64</code>.</p>
@@ -1721,18 +1735,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="examples" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h4>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> ad <span class="op">=</span> solver.to_autodiff()</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> value, grads <span class="op">=</span> ad.value_and_grad(loss)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> ad <span class="op">=</span> solver.to_autodiff()</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> value, grads <span class="op">=</span> ad.value_and_grad(loss)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="clerq.PropagationSolver.z_step" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.z_step">z_step</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.z_step()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.z_step()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Returns the distance from one space point to the next.</p>
 </section>
 <section id="clerq.PropagationSolver.z_step_inner" class="level3">
 <h3 class="anchored" data-anchor-id="clerq.PropagationSolver.z_step_inner">z_step_inner</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.z_step_inner()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>PropagationSolver.z_step_inner()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Returns the distance from one inner space point to the next.</p>
 
 
