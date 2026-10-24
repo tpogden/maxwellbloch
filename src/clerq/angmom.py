@@ -116,7 +116,7 @@ def wigner_3j(j1, j2, j3, m1, m2, m3):
             * factorial(t5 - t)
         )
 
-    wigner *= (-1) ** (j1 - j2 - m3) * sqrt(
+    wigner *= (-1.0) ** (j1 - j2 - m3) * sqrt(
         factorial(j1 + j2 - j3)
         * factorial(j1 - j2 + j3)
         * factorial(-j1 + j2 + j3)
@@ -149,7 +149,7 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
     if (
         (2 * j1 != round(2 * j1))
         | (2 * j2 != round(2 * j2))
-        | (2 * j2 != round(2 * j2))
+        | (2 * j3 != round(2 * j3))
         | (2 * J1 != round(2 * J1))
         | (2 * J2 != round(2 * J2))
         | (2 * J3 != round(2 * J3))
@@ -173,10 +173,10 @@ def wigner_6j(j1, j2, j3, J1, J2, J3):
 
     # Check if the sum of the elements of each traid is an integer
     if (
-        (2 * (j1 + j2 + j3) != round(2 * (j1 + j2 + j3)))
-        | (2 * (j1 + J2 + J3) != round(2 * (j1 + J2 + J3)))
-        | (2 * (J1 + j2 + J3) != round(2 * (J1 + j2 + J3)))
-        | (2 * (J1 + J2 + j3) != round(2 * (J1 + J2 + j3)))
+        ((j1 + j2 + j3) != round(j1 + j2 + j3))
+        | ((j1 + J2 + J3) != round(j1 + J2 + J3))
+        | ((J1 + j2 + J3) != round(J1 + j2 + J3))
+        | ((J1 + J2 + j3) != round(J1 + J2 + j3))
     ):
         # print '6j-Symbol is not triangular!'
         return 0

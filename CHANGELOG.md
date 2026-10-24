@@ -9,6 +9,7 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Unit tests for `wigner_3j` and `wigner_6j` covering known values, known zeros and symmetries.
 - `velocity_classes` accepts `thermal_delta_spacing`, a maximum cyclic spacing between the Doppler classes, in place of
   `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo inside the time window
   (`0.75 / ((t_max - t_min) * s)`, from `PropagationSolver.thermal_delta_auto_spacing()`, where `s` is the sum of
@@ -17,6 +18,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   wrong (29%) when it is inside. It cannot be combined with `thermal_delta_steps` or `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 
 ### Fixed
+- `wigner_3j` no longer raises for NumPy integer arguments that give a negative phase exponent, and `wigner_6j` now returns
+  0 when a triad sums to a non-integer (it previously returned `inf` or `nan`) and validates `j3` is an integer or
+  half-integer.
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
   density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
   region. Uniform grids are unchanged. `thermal_weights` is still the Boltzmann density; the interval widths are the new
