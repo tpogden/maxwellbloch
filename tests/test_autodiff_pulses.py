@@ -38,6 +38,15 @@ CASES = {
     "sech-width-n_pi": ("sech", {**SECH, "width": 0.3, "n_pi": 1.5}, []),
     "sech-fwhm-n_pi": ("sech", {**SECH, "fwhm": 0.5, "n_pi": 1.5}, []),
     "square": ("square", {"ampl": 2.1, "on": -0.5, "off": 1.6}, [-0.5, 1.6]),
+    "square-n_pi": ("square", {"n_pi": 1.5, "on": -0.5, "off": 1.6}, [-0.5, 1.6]),
+    "sin2": ("sin2", {"ampl": 1.4, "on": -0.5, "off": 1.6}, [-0.5, 1.6]),
+    "super_gaussian": (
+        "super_gaussian",
+        {"ampl": 1.4, "fwhm": 1.2, "centre": 0.4, "order": 3},
+        [0.4],
+    ),
+    "exp_decay": ("exp_decay", {"ampl": 1.4, "on": -0.5, "tau": 0.6}, [-0.5]),
+    "exp_rise": ("exp_rise", {"ampl": 1.4, "off": 1.6, "tau": 0.6}, [1.6]),
     "ramp_on": ("ramp_on", {k: RAMP[k] for k in ("ampl", "fwhm", "on")}, [-0.5]),
     "ramp_off": ("ramp_off", {k: RAMP[k] for k in ("ampl", "fwhm", "off")}, [1.6]),
     "ramp_onoff": ("ramp_onoff", dict(RAMP), [-0.5, 1.6]),
@@ -88,6 +97,7 @@ def test_strip_index_and_pulse_name_round_trip():
         ("gaussian", {**GAUSSIAN, "ampl": 1.0, "n_pi": 1.0}),
         ("sech", {**SECH, "width": 0.3, "fwhm": 0.5, "ampl": 1.0}),
         ("sech", {**SECH, "width": 0.3, "ampl": 1.0, "n_pi": 1.0}),
+        ("square", {"on": 0.0, "off": 1.0, "ampl": 1.0, "n_pi": 1.0}),
     ],
 )
 def test_conflicting_alternatives_are_rejected_like_t_func(name, args):
@@ -116,9 +126,9 @@ def test_merge_is_per_pulse_type():
     # a sech swaps fwhm for width
     assert "fwhm" not in _merge_pulse_args(default, {"width": 0.3}, "sech")
     # pulses without alternatives merge plainly
-    assert _merge_pulse_args(default, {"n_pi": 1.0}, "square") == {
+    assert _merge_pulse_args(default, {"tau": 1.0}, "exp_decay") == {
         **default,
-        "n_pi": 1.0,
+        "tau": 1.0,
     }
 
 
@@ -139,8 +149,25 @@ def test_merge_keeps_one_of_each_alternative():
     assert _merge_pulse_args(default, {"ampl": 3.0}) == {**default, "ampl": 3.0}
 
 
-def test_nondifferentiable_arguments_are_exactly_the_square_edges():
+def test_nondifferentiable_arguments_are_exactly_the_discontinuities():
     """Only a discontinuous pulse's edge times are excluded; ramps stay differentiable."""
-    assert NONDIFFERENTIABLE_ARGS == {"square": ("on", "off")}
+    assert NONDIFFERENTIABLE_ARGS == {
+        "square": ("on", "off"),
+        "exp_decay": ("on",),
+        "exp_rise": ("off",),
+    }
     assert jump_times("square", {"ampl": 1.0, "on": 0.2, "off": 0.9}) == (0.2, 0.9)
+    assert jump_times("exp_decay", {"on": 0.2}) == (0.2,)
+    assert jump_times("exp_rise", {"off": 0.9}) == (0.9,)
     assert jump_times("ramp_onoff", RAMP) == ()
+    assert jump_times("sin2", {"on": 0.2, "off": 0.9}) == ()
+
+
+def test_super_gaussian_gradient_is_finite_at_the_centre():
+    """|t - centre| ** (2 order) at t == centre must not give a nan gradient."""
+
+    def f(order):
+        args = {"ampl": 1.0, "fwhm": 1.0, "centre": 0.4, "order": order}
+        return pulse_function("super_gaussian", args)(0.4)
+
+    assert np.isfinite(float(jax.grad(f)(2.0)))

@@ -122,6 +122,10 @@ quartodoc:
         - t_funcs.ramp_onoff
         - t_funcs.ramp_offon
         - t_funcs.sinc
+        - t_funcs.sin2
+        - t_funcs.super_gaussian
+        - t_funcs.exp_decay
+        - t_funcs.exp_rise
         - t_funcs.intp
     - title: Spectral analysis
       contents:

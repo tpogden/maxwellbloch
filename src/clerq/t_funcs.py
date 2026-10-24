@@ -29,15 +29,32 @@ def square(index: int) -> TFunc:
         index: Integer suffix used to look up parameters in args.
 
     Returns:
-        Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}``,
-        ``off_{index}`` from args. Returns ``ampl`` between ``on`` and
-        ``off``, zero outside.
+        Callable ``f(t, args)`` reading ``on_{index}``, ``off_{index}`` and
+        either ``ampl_{index}`` or ``n_pi_{index}`` from args. Returns
+        ``ampl`` between ``on`` and ``off``, zero outside. Raises ``KeyError``
+        if both or neither amplitude parameters are present, and
+        ``ValueError`` if ``n_pi`` is used with ``off <= on``.
+
+    Notes:
+        The amplitude can be set directly via ``ampl_{index}`` or indirectly
+        via ``n_pi_{index}`` (desired pulse area in multiples of π).
     """
 
     def func(t, args):
         on = args["on_" + str(index)]
         off = args["off_" + str(index)]
-        ampl = args["ampl_" + str(index)]
+        ampl_idx = "ampl_" + str(index)
+        n_pi_idx = "n_pi_" + str(index)
+        if ampl_idx in args:
+            if n_pi_idx in args:
+                raise KeyError("t_args can contain ampl or n_pi, not both.")
+            ampl = args[ampl_idx]
+        elif n_pi_idx in args:
+            if off <= on:
+                raise ValueError("n_pi needs off > on to define the pulse area.")
+            ampl = args[n_pi_idx] / (2 * (off - on))
+        else:
+            raise KeyError("t_args must contain ampl or n_pi.")
         return ampl * (t >= on) * (t <= off)
 
     func.__name__ = "square_" + str(index)
@@ -237,6 +254,115 @@ def ramp_offon(index: int) -> TFunc:
     return func
 
 
+def sin2(index: int) -> TFunc:
+    """Return a sin-squared (Hann) pulse time function.
+
+    A smooth pulse of finite duration: ``ampl * sin^2(pi (t - on) / (off - on))``
+    between ``on`` and ``off``, zero outside.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}`` and
+        ``off_{index}`` from args. Raises ``ValueError`` if ``off <= on``.
+
+    Notes:
+        The peak, ``ampl``, is at the midpoint of ``on`` and ``off``. The FWHM
+        is ``(off - on) / 2`` and the area is ``ampl * (off - on) / 2``.
+    """
+
+    def func(t, args):
+        on = args["on_" + str(index)]
+        off = args["off_" + str(index)]
+        ampl = args["ampl_" + str(index)]
+        if off <= on:
+            raise ValueError("sin2 needs off > on.")
+        inside = (t >= on) * (t <= off)
+        return ampl * np.sin(pi * (t - on) / (off - on)) ** 2 * inside
+
+    func.__name__ = "sin2_" + str(index)
+    return func
+
+
+def super_gaussian(index: int) -> TFunc:
+    """Return a super-Gaussian pulse time function.
+
+    A flat-topped pulse with smooth edges, ``ampl * exp(-log(2) *
+    (2 |t - centre| / fwhm)^(2 order))``. ``order = 1`` is a Gaussian and
+    large ``order`` approaches a square pulse of width ``fwhm``.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``fwhm_{index}``,
+        ``centre_{index}`` and ``order_{index}`` from args.
+
+    Notes:
+        ``fwhm`` is the full width at half maximum for every ``order``.
+    """
+
+    def func(t, args):
+        ampl = args["ampl_" + str(index)]
+        fwhm = args["fwhm_" + str(index)]
+        centre = args["centre_" + str(index)]
+        order = args["order_" + str(index)]
+        return ampl * exp(-log(2) * (2 * np.abs(t - centre) / fwhm) ** (2 * order))
+
+    func.__name__ = "super_gaussian_" + str(index)
+    return func
+
+
+def exp_decay(index: int) -> TFunc:
+    """Return a decaying-exponential pulse time function.
+
+    Zero before ``on``, then ``ampl * exp(-(t - on) / tau)``, the envelope of
+    a photon emitted by a decaying source.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}`` and
+        ``tau_{index}`` (the 1/e time of the amplitude) from args.
+    """
+
+    def func(t, args):
+        on = args["on_" + str(index)]
+        tau = args["tau_" + str(index)]
+        ampl = args["ampl_" + str(index)]
+        return ampl * exp(-np.maximum(t - on, 0.0) / tau) * (t >= on)
+
+    func.__name__ = "exp_decay_" + str(index)
+    return func
+
+
+def exp_rise(index: int) -> TFunc:
+    """Return a rising-exponential pulse time function.
+
+    ``ampl * exp((t - off) / tau)`` up to ``off``, then zero: the time reverse
+    of :func:`exp_decay`, the envelope of a photon that a sink absorbs
+    perfectly.
+
+    Args:
+        index: Integer suffix used to look up parameters in args.
+
+    Returns:
+        Callable ``f(t, args)`` reading ``ampl_{index}``, ``off_{index}`` and
+        ``tau_{index}`` (the 1/e time of the amplitude) from args.
+    """
+
+    def func(t, args):
+        off = args["off_" + str(index)]
+        tau = args["tau_" + str(index)]
+        ampl = args["ampl_" + str(index)]
+        return ampl * exp(np.minimum(t - off, 0.0) / tau) * (t <= off)
+
+    func.__name__ = "exp_rise_" + str(index)
+    return func
+
+
 def sinc(index: int) -> TFunc:
     """Return a sinc pulse time function.
 
@@ -245,13 +371,15 @@ def sinc(index: int) -> TFunc:
 
     Returns:
         Callable ``f(t, args)`` reading ``ampl_{index}`` and
-        ``width_{index}`` from args.
+        ``width_{index}`` from args, and optionally ``centre_{index}``
+        (default 0), the time of the central peak.
     """
 
     def func(t, args):
         ampl = args["ampl_" + str(index)]
         width = args["width_" + str(index)]
-        return ampl * npsinc(width * t) / sqrt(pi / 2.0)
+        centre = args.get("centre_" + str(index), 0.0)
+        return ampl * npsinc(width * (t - centre)) / sqrt(pi / 2.0)
 
     func.__name__ = "sinc_" + str(index)
     return func

@@ -1,0 +1,23 @@
+# t_funcs.exp_decay { #clerq.t_funcs.exp_decay }
+
+```python
+t_funcs.exp_decay(index)
+```
+
+Return a decaying-exponential pulse time function.
+
+Zero before ``on``, then ``ampl * exp(-(t - on) / tau)``, the envelope of
+a photon emitted by a decaying source.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                                        | Default    |
+|--------|--------|----------------------------------------------------|------------|
+| index  | int    | Integer suffix used to look up parameters in args. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                                                          |
+|--------|--------|----------------------------------------------------------------------|
+|        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}`` and |
+|        | TFunc  | ``tau_{index}`` (the 1/e time of the amplitude) from args.           |

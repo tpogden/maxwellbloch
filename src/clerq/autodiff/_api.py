@@ -128,14 +128,15 @@ class AutodiffPropagation:
 
     ``pulse_args``
         list, one dict per field, of the arguments of its analytic input pulse
-        (``ampl``, ``centre``, ``fwhm``/``width``, ``n_pi``, ``on``, ``off``).
-        The ``on``/``off`` edge times of a ``square`` pulse can be set but not
-        differentiated (the field is discontinuous there, so its derivative is a
-        delta function that autodiff would return as 0); ``value_and_grad``
-        raises if asked, and holds them fixed by default. To differentiate
-        the edge times use a ramp pulse (``ramp_on``, ``ramp_off``,
-        ``ramp_onoff``, ``ramp_offon``), whose edges are smooth. Calling
-        ``jax.grad`` yourself through :meth:`propagate` with those traced
+        (``ampl``, ``centre``, ``fwhm``/``width``, ``n_pi``, ``on``, ``off``,
+        ``order``, ``tau``). The edge time at which a pulse is discontinuous (the
+        ``on``/``off`` of ``square``, the ``on`` of ``exp_decay``, the ``off`` of
+        ``exp_rise``) can be set but not differentiated (the field jumps there,
+        so its derivative is a delta function that autodiff would return as 0);
+        ``value_and_grad`` raises if asked, and holds them fixed by default. To
+        differentiate the edge times use a pulse that is continuous there
+        (``ramp_on``, ``ramp_off``, ``ramp_onoff``, ``ramp_offon`` or ``sin2``).
+        Calling ``jax.grad`` yourself through :meth:`propagate` with those traced
         gives exactly that silent 0, so keep them out of the differentiated
         parameters.
     ``rabi_freq``
@@ -331,8 +332,8 @@ class AutodiffPropagation:
                     "derivative with respect to them is a delta function that "
                     "autodiff cannot represent (it would return 0). Hold them fixed "
                     "by passing them in fixed=..., or use a ramp pulse "
-                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon'), a "
-                    "square-like pulse with smooth edges whose on/off times are "
+                    "('ramp_on', 'ramp_off', 'ramp_onoff' or 'ramp_offon') or "
+                    "'sin2', pulses with smooth edges whose on/off times are "
                     "differentiable."
                 )
 

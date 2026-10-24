@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New time functions in `clerq.t_funcs`: `sin2` (sin-squared pulse of finite duration between `on` and `off`), `super_gaussian`
+  (flat-top pulse with smooth edges, `order` 1 being a Gaussian, with `fwhm` the FWHM at any order), and `exp_decay` and
+  `exp_rise` (single-sided exponentials, the envelopes of an emitted and an absorbed photon). `sinc` takes an optional
+  `centre` (default 0, as before). `square` takes `n_pi` (pulse area in multiples of π) as an alternative to `ampl`, as `gaussian`
+  and `sech` do. All are supported by `clerq.autodiff`; `exp_decay` and `exp_rise` are discontinuous, so, like `square`, their
+  edge time (`on`, `off` respectively) cannot be differentiated.
+
 ## [0.15.0] 2026-10-24
 
 ### Added
