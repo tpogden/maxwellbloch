@@ -1,0 +1,16 @@
+forward 1.353 s, value+grad 8.855 s, charged 6.55 evaluations per gradient call
+seed 0 adam    best 0.4593 cost 551 wall 774 s
+seed 0 lbfgsb  best 0.0000 cost 7 wall 6 s
+seed 0 de      best 0.3150 cost 528 wall 868 s
+seed 0 cmaes   best 0.3991 cost 555 wall 785 s
+seed 0 lhs     best 0.2499 cost 550 wall 828 s
+seed 1 adam    best 0.4392 cost 551 wall 652 s
+seed 1 lbfgsb  best 0.4615 cost 556 wall 633 s
+seed 1 de      best 0.3361 cost 528 wall 826 s
+seed 1 cmaes   best 0.3855 cost 555 wall 804 s
+seed 1 lhs     best 0.2592 cost 550 wall 844 s
+seed 2 adam    best 0.4468 cost 551 wall 704 s
+seed 2 lbfgsb  best 0.0000 cost 7 wall 6 s
+seed 2 de      best 0.2985 cost 528 wall 877 s
+seed 2 cmaes   best 0.4038 cost 555 wall 876 s
+seed 2 lhs     best 0.2322 cost 550 wall 827 s
