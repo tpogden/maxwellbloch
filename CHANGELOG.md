@@ -9,6 +9,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- New time functions in `clerq.t_funcs`: `sin2` (sin-squared pulse of finite duration between `on` and `off`), `super_gaussian`
+  (flat-top pulse with smooth edges, `order` 1 being a Gaussian, with `fwhm` the FWHM at any order), and `exp_decay` and
+  `exp_rise` (single-sided exponentials, the envelopes of an emitted and an absorbed photon). `sinc` takes an optional
+  `centre` (default 0, as before). Not yet supported by `clerq.autodiff`, which raises `NotImplementedError` for them.
 - `clerq.autodiff` runs in float32, JAX's default precision, as well as float64: it computes in whatever `jax_enable_x64` selects
   and no longer raises when 64-bit precision is off. The `rtol` and `atol` of `to_autodiff()` (and of the lower-level
   `solve_slice` and `propagate_fields`) now default to `None`, meaning `1e-8` and `1e-10` in float64, as before, and `1e-6` and
