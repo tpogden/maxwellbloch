@@ -9,6 +9,14 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `clerq.autodiff` runs in float32, JAX's default precision, as well as float64: it computes in whatever `jax_enable_x64` selects
+  and no longer raises when 64-bit precision is off. The `rtol` and `atol` of `to_autodiff()` (and of the lower-level
+  `solve_slice` and `propagate_fields`) now default to `None`, meaning `1e-8` and `1e-10` in float64, as before, and `1e-6` and
+  `1e-9` in float32, whose machine epsilon cannot resolve the float64 values. In float32 the benchmark problems (two-level, lambda,
+  Rb87 with 11 Doppler classes, 400 z steps, 4000 time points) agree with float64 to 1e-6 to 2e-5 of the peak on the field and
+  6e-7 to 5e-5 on gradients at the default tolerances, and run 1.1 to 2.1 times faster (forward) and 1.3 to 1.9 times faster (gradient) on the CPU. Float64 remains the reference precision and is needed for
+  finite-difference checks; `require_float64()` is still available but the backend no longer calls it. Gradients are less accurate
+  where the objective is near zero (about 1e-8). Not tested: much deeper absorption, stiff systems, a CUDA GPU.
 - `velocity_classes` accepts `thermal_delta_spacing`, a maximum cyclic spacing between the Doppler classes, in place of
   `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo inside the time window
   (`0.75 / ((t_max - t_min) * s)`, from `PropagationSolver.thermal_delta_auto_spacing()`, where `s` is the sum of

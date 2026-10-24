@@ -124,3 +124,14 @@
 - 44-parameter gradient: reverse AD 36.3 s, forward differences 279 s, one forward evaluation 6.23 s.
 - Baseline (5 parameters, Nelder-Mead): 0.0681 retrieved after 296 evaluations, 2261 s.
 - Free-form (44 parameters, Adam): 0.1057 after 40 steps, 1809 s. It passes the baseline value (0.0681) at step 23, after 1037 s; with finite-difference gradients the same steps would take about 6425 s (estimate from the measured gradient time).
+
+## E8 float32 against float64
+
+
+| problem | field error | loss error | gradient error | forward: float64 / float32 (s) | gradient: float64 / float32 (s) |
+|-|-|-|-|-|-|
+| two_level | 1.4e-05 | 5.4e-08 | 4.8e-05 | 0.76 / 0.35 (2.1x) | 4.36 / 2.35 (1.9x) |
+| lambda_eit | 1.3e-06 | 4.0e-07 | 1.2e-06 | 0.14 / 0.09 (1.6x) | 0.81 / 0.49 (1.7x) |
+| rb87 | 2.1e-05 | 6.7e-07 | 6.4e-07 | 1.27 / 0.91 (1.4x) | 7.64 / 5.48 (1.4x) |
+| lambda_eit_long_z | 8.4e-06 | 1.6e-06 | 3.2e-06 | 1.21 / 0.92 (1.3x) | 6.88 / 4.60 (1.5x) |
+| lambda_eit_fine_t | 2.7e-06 | 9.5e-07 | 2.9e-06 | 0.55 / 0.52 (1.1x) | 3.08 / 2.38 (1.3x) |

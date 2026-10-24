@@ -88,6 +88,43 @@ baseline for `s3` and `s4` whatever the problem, so the XLA figures are the ones
   grids used here, and to 9e-8 for the lambda problem. We did not isolate the cause of the two larger differences, and the
   error did not fall steadily when the time grid was refined for the two-level problem.
 
+## Precision
+
+`clerq.autodiff` computes in whatever precision JAX is set to: float32 by default, float64 with `jax.config.update("jax_enable_x64", True)`.
+Float64 is the reference. The default solver tolerances follow the precision (`rtol`, `atol` of 1e-8 and 1e-10 in float64, 1e-6 and 1e-9 in
+float32, whose machine epsilon is 1.2e-7). Each problem was run in a fresh process in each precision at its default tolerances
+(`benchmarks/autodiff/e8_precision.py`, 10 control coefficients); the errors are of the float32 result against the float64 one.
+
+| problem | field error | loss error | gradient error | forward: float64 / float32 (s) | gradient: float64 / float32 (s) |
+|-|-|-|-|-|-|
+| two-level | 1.4e-5 | 5.4e-8 | 4.8e-5 | 0.76 / 0.35 (2.1x) | 4.36 / 2.35 (1.9x) |
+| lambda | 1.3e-6 | 4.0e-7 | 1.2e-6 | 0.14 / 0.09 (1.6x) | 0.81 / 0.49 (1.7x) |
+| Rb87, 11 levels, 11 classes | 2.1e-5 | 6.7e-7 | 6.4e-7 | 1.27 / 0.91 (1.4x) | 7.64 / 5.48 (1.4x) |
+| lambda, 400 z steps | 8.4e-6 | 1.6e-6 | 3.2e-6 | 1.21 / 0.92 (1.3x) | 6.88 / 4.60 (1.5x) |
+| lambda, 4000 time points | 2.7e-6 | 9.5e-7 | 2.9e-6 | 0.55 / 0.52 (1.1x) | 3.08 / 2.38 (1.3x) |
+
+- The field error is the largest difference over all fields, z slices and times, relative to the peak. The errors do not grow along a long
+  z march or a fine time grid.
+- Most of the difference is the solver tolerance, not the precision: in float64 with the float32 tolerances (1e-5, 1e-7) Rb87 shows the same
+  2.1e-3 field error. Float32 with the float64 tolerances (1e-8, 1e-10) still agrees to about 1e-6, but gains little or no speed, and the two-level pulse
+  took twice as long because the step controller cannot meet a tolerance below the precision.
+- Where the loss is close to zero float32 gradients are noisier: at a random start of the memory design problem, where only 4e-8 of the pulse is
+  retrieved, the 44-parameter gradient differed by 6e-3. Thirty Adam steps from there followed the float64 trajectory to 1e-3 (final 0.4296 against
+  0.4298).
+- Use float64 for finite-difference checks (which need it), for tolerances tighter than about 1e-6, and for results quoted as reference values.
+- Not tested: optical depths well above 25, stiff systems, and a CUDA GPU. On a consumer GPU float32 is the precision that runs at full speed.
+
+### The Apple GPU
+
+With float32 the Apple GPU can run the backend, with a plugin that tracks JAX 0.11 (`jax-mps`, on MLX; one run on an M1 Max with
+jax-mps 0.11.1 and diffrax 0.7.2, not part of the harness). Complex64, scans, gradients through a checkpointed scan and diffrax solves, including
+their reverse and forward-mode gradients, all worked once `EQX_ON_ERROR=nan` was set (without it diffrax's error check needs a host callback
+that the plugin does not provide). Fields agreed with the CPU in float32 to 1e-6 and gradients to 6e-5. It was far slower, though: a
+40-point, 4-slice lambda forward took 10 to 12 s against under 5 ms on the CPU, and the first gradient of a 60 by 6 problem 140 s against 5 s.
+Each operation inside a loop costs 4 to 9 microseconds there against 0.02 on the CPU (no fusion), so the time scales with the number of operations
+the solver executes. It stayed nearly flat as the number of velocity classes grew (9.6 s at 11 classes, 11.3 s at 401), so by extrapolating the CPU's linear growth it would overtake the CPU only
+at a few thousand classes. It is useful as a correctness check on a second backend, not as a speed-up.
+
 ## A design problem
 
 The memory problem in [the research notes](https://github.com/tpogden/clerq/blob/master/research/autodiff-notes.md):
