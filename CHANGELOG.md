@@ -10,11 +10,14 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ### Added
 - `velocity_classes` accepts `thermal_delta_spacing`, a maximum cyclic spacing between the Doppler classes, in place of
-  `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo inside the time window
-  (`0.75 / ((t_max - t_min) * s)`, from `PropagationSolver.thermal_delta_auto_spacing()`, where `s` is the sum of
-  `abs(factor_doppler_shift)` over the fields, since a coherence between levels shifted by several fields echoes sooner). A grid of spacing `h` repeats the summed
-  response at `t = 1 / h`; on a two-level problem the result is converged to below 1e-7 once that echo is outside the window and
-  wrong (29%) when it is inside. It cannot be combined with `thermal_delta_steps` or `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
+  `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo. A grid of spacing `h` repeats the
+  response of a coherence whose frequency depends on the Doppler detuning at `t = 1 / (b h)`, where `b` is the difference of the two
+  levels' Doppler slopes (from each field's `factor_doppler_shift`). `"auto"` takes, for every such pair of levels, the larger of
+  the spacing that puts the echo outside the time window and the one that damps it below `thermal_delta_echo_tolerance`
+  (default 1e-6, a new optional key) at the coherence's decay rate, and the smallest over the pairs
+  (`PropagationSolver.thermal_delta_auto_spacing()`). On a two-level problem the result is converged to below 1e-4 with it and
+  wrong (29%) when the echo is inside the window and undamped. It cannot be combined with `thermal_delta_steps` or
+  `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 
 ### Fixed
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
