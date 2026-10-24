@@ -47,6 +47,8 @@ a quantum dot or a colour centre.
 | [build_operators](#clerq.System.build_operators) | Build the quantum operators representing the bare Hamiltonian, |
 | [get_detunings](#clerq.System.get_detunings) | Returns a list of detunings, one for each field in fields. |
 | [get_fields_sum_coherence](#clerq.System.get_fields_sum_coherence) | Returns the sum coherences of the system density matrix for each |
+| [level_decay_rates](#clerq.System.level_decay_rates) | Angular rate at which each level damps its coherences. |
+| [level_doppler_slopes](#clerq.System.level_doppler_slopes) | Cyclic Doppler slope of each level's energy in the rotating frame. |
 | [set_H_Delta](#clerq.System.set_H_Delta) | Set the detuning part of the interaction Hamiltonian, H_Delta, |
 | [set_H_Omega](#clerq.System.set_H_Omega) | Set the Rabi frequency part of the interaction Hamiltonian. |
 | [to_json_str](#clerq.System.to_json_str) | Return a JSON string representation of the System object. |
@@ -147,6 +149,50 @@ the response goes as the line strength ``sum_k factor_k**2``.
 | Name   | Type       | Description                                 |
 |--------|------------|---------------------------------------------|
 |        | np.ndarray | np.ndarray of shape (num_fields, t_steps+1) |
+
+### level_decay_rates { #clerq.System.level_decay_rates }
+
+```python
+System.level_decay_rates()
+```
+
+Angular rate at which each level damps its coherences.
+
+Half the sum of ``diag(c^dagger c)`` over the collapse operators, so
+that the coherence between levels ``i`` and ``j`` decays at the sum of
+the two entries. Pure dephasing counts the same way.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                     |
+|--------|------------|---------------------------------|
+|        | np.ndarray | Array of length ``num_states``. |
+
+.. versionadded:: 0.15.0
+
+### level_doppler_slopes { #clerq.System.level_doppler_slopes }
+
+```python
+System.level_doppler_slopes()
+```
+
+Cyclic Doppler slope of each level's energy in the rotating frame.
+
+Each field adds ``sign * (detuning + factor_doppler_shift * Delta)`` to
+the energy of its upper levels (see ``_build_H_Delta``), where ``Delta``
+is the thermal detuning, so level ``i`` moves with ``Delta`` at
+``-sum(sign * factor_doppler_shift)`` over the fields that have ``i``
+as an upper level. A coherence between levels ``i`` and ``j``
+oscillates with ``Delta`` at the difference of their slopes.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                        |
+|--------|------------|--------------------------------------------------------------------|
+|        | np.ndarray | Array of length ``num_states``, in units of cycles per unit of the |
+|        | np.ndarray | thermal detuning.                                                  |
+
+.. versionadded:: 0.15.0
 
 ### set_H_Delta { #clerq.System.set_H_Delta }
 

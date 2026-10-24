@@ -26,6 +26,8 @@ in multiples of $\pi$, as an alternative to `ampl`, and `sinc` takes an optional
 `clerq.autodiff`; as with `square`, the edge time where `exp_decay` and `exp_rise` jump (`on`, `off`)
 cannot be differentiated. See [Built-in time functions](usage/built-in-time-functions.ipynb).
 
+## 0.15.0 — 24 October 2026
+
 **Float32 gradients.** `clerq.autodiff` no longer insists on 64-bit precision. It computes in
 whatever precision JAX is set to, so it runs with JAX's default (float32) as well as with
 `jax_enable_x64`, and the solver tolerances default to values each precision can meet. On the
@@ -35,9 +37,11 @@ tight tolerances. See [Autodiff performance and validation](usage/autodiff-perfo
 
 **Doppler class spacing.** `velocity_classes` takes a new `thermal_delta_spacing`, a
 maximum spacing between the classes, in place of `thermal_delta_steps`. Pass `"auto"` for the
-largest spacing with no spurious Doppler echo inside the time window: a grid of spacing $h$
-repeats the summed response at $t = 1/h$, and the result is wrong when that falls inside the
-window. See [Velocity Classes](usage/velocity-classes.ipynb).
+largest spacing with no spurious Doppler echo: a grid of spacing $h$ repeats the response of a
+Doppler-dependent coherence at $t = 1/(b h)$, and the result is wrong if that falls inside the
+time window and is not damped by the decay. `"auto"` uses each level's Doppler shift and the
+decay rates, so it depends on the system as well as the window; `thermal_delta_echo_tolerance`
+sets how far the echo must be damped, and the spacing is also kept fine enough to resolve the thermal width. See [Velocity Classes](usage/velocity-classes.ipynb).
 
 **Velocity-class weights (changes results).** Each class is now weighted by the detuning
 interval it represents as well as its Boltzmann density. Before, a non-uniform grid (an inner

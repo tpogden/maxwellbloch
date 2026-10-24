@@ -15,6 +15,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   `centre` (default 0, as before). `square` takes `n_pi` (pulse area in multiples of π) as an alternative to `ampl`, as `gaussian`
   and `sech` do. All are supported by `clerq.autodiff`; `exp_decay` and `exp_rise` are discontinuous, so, like `square`, their
   edge time (`on`, `off` respectively) cannot be differentiated.
+
+## [0.15.0] 2026-10-24
+
+### Added
+- Unit tests for `wigner_3j` and `wigner_6j` covering known values, known zeros and symmetries.
 - `clerq.autodiff` runs in float32, JAX's default precision, as well as float64: it computes in whatever `jax_enable_x64` selects
   and no longer raises when 64-bit precision is off. The `rtol` and `atol` of `to_autodiff()` (and of the lower-level
   `solve_slice` and `propagate_fields`) now default to `None`, meaning `1e-8` and `1e-10` in float64, as before, and `1e-6` and
@@ -24,13 +29,21 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   finite-difference checks; `require_float64()` is still available but the backend no longer calls it. Gradients are less accurate
   where the objective is near zero (about 1e-8). Not tested: much deeper absorption, stiff systems, a CUDA GPU.
 - `velocity_classes` accepts `thermal_delta_spacing`, a maximum cyclic spacing between the Doppler classes, in place of
-  `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo inside the time window
-  (`0.75 / ((t_max - t_min) * s)`, from `PropagationSolver.thermal_delta_auto_spacing()`, where `s` is the sum of
-  `abs(factor_doppler_shift)` over the fields, since a coherence between levels shifted by several fields echoes sooner). A grid of spacing `h` repeats the summed
-  response at `t = 1 / h`; on a two-level problem the result is converged to below 1e-7 once that echo is outside the window and
-  wrong (29%) when it is inside. It cannot be combined with `thermal_delta_steps` or `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
+  `thermal_delta_steps`, or `"auto"` for the largest spacing with no spurious Doppler echo. A grid of spacing `h` repeats the
+  response of a coherence whose frequency depends on the Doppler detuning at `t = 1 / (b h)`, where `b` is the difference of the two
+  levels' Doppler slopes (from each field's `factor_doppler_shift`). `"auto"` takes, for every such pair of levels, the larger of
+  the spacing that puts the echo outside the time window and the one that damps it below `thermal_delta_echo_tolerance`
+  (default 1e-6, a new optional key) at the coherence's decay rate, and the smallest over the pairs
+  (`PropagationSolver.thermal_delta_auto_spacing()`), and never coarser than `pi * thermal_width / sqrt(ln(1 / tolerance))`, so that a fast
+  decay with a narrow thermal width cannot give a grid that misses the line. The level Doppler slopes and decay rates come from the new
+  `System.level_doppler_slopes()` and `System.level_decay_rates()`. On a two-level problem the result is converged to below 1e-4 with it and
+  wrong (29%) when the echo is inside the window and undamped. It cannot be combined with `thermal_delta_steps` or
+  `thermal_delta_inner_steps`. A spacing giving over 1000 classes warns.
 
 ### Fixed
+- `wigner_3j` no longer raises for NumPy integer arguments that give a negative phase exponent, and `wigner_6j` now returns
+  0 when a triad sums to a non-integer (it previously returned `inf` or `nan`) and validates `j3` is an integer or
+  half-integer.
 - Velocity-class weights now include the detuning interval each class represents (trapezoid rule). Previously the Boltzmann
   density alone was used, so a non-uniform grid (an inner band via `thermal_delta_inner_*`) over-weighted the densely sampled
   region. Uniform grids are unchanged. `thermal_weights` is still the Boltzmann density; the interval widths are the new
