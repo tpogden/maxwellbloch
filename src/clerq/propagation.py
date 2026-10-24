@@ -28,6 +28,12 @@ from clerq.utility import maxwell_boltzmann
 # solved before it was introduced used factor**2.
 _SOURCE_WEIGHTS = "factor"
 
+# thermal_delta_spacing="auto" is this fraction of 1 / (t_max - t_min). A grid
+# of spacing h echoes at t = 1 / h, so this puts the echo at 1 / 0.75 times the
+# window length. Measured on a two-level problem, the error is at its floor
+# (below 1e-7) by 0.75 / T and 29% at 1.5 / T.
+THERMAL_ECHO_MARGIN = 0.75
+
 
 class PropagationSolver(LindbladSolver):
     """Solver for the propagation of fields through a medium of systems.
@@ -62,7 +68,11 @@ class PropagationSolver(LindbladSolver):
         velocity_classes: Dict defining the velocity classes for Doppler
             broadening, or ``None`` for no broadening. ``thermal_width`` and
             the ``thermal_delta_*`` values are cyclic frequencies, in the
-            same units as ``decays`` rates and ``rabi_freq``. The density
+            same units as ``decays`` rates and ``rabi_freq``. Instead of
+            ``thermal_delta_steps`` the classes can be given a maximum
+            spacing ``thermal_delta_spacing``, or ``"auto"`` for the
+            largest spacing with no spurious Doppler echo inside the time
+            window (``thermal_delta_auto_spacing()``). The density
             of the classes is Gaussian, ``exp(-(delta / thermal_width)**2)``
             (``thermal_weights``); each class is weighted by this times the
             detuning interval it represents (``thermal_widths``).
@@ -221,7 +231,35 @@ class PropagationSolver(LindbladSolver):
         vc = {**defaults, **(velocity_classes or {})}
         if vc["thermal_width"] <= 0.0:
             raise ValueError("Thermal width must be > 0.0.")
+        # Not in the defaults, so that the problem hash (and so existing
+        # savefiles) is unchanged when it is not used.
+        spacing = vc.get("thermal_delta_spacing")
+        if spacing is not None:
+            if vc["thermal_delta_steps"] or vc["thermal_delta_inner_steps"]:
+                raise ValueError(
+                    "thermal_delta_spacing replaces thermal_delta_steps and "
+                    "thermal_delta_inner_steps; set only one of them."
+                )
+            if vc["thermal_delta_max"] <= vc["thermal_delta_min"]:
+                raise ValueError(
+                    "thermal_delta_spacing needs thermal_delta_max > thermal_delta_min."
+                )
+            if spacing != "auto" and not (
+                isinstance(spacing, (int, float)) and spacing > 0.0
+            ):
+                raise ValueError("thermal_delta_spacing must be > 0.0 or 'auto'.")
         return vc
+
+    def thermal_delta_auto_spacing(self) -> float:
+        """Largest cyclic class spacing free of Doppler echoes in the time window.
+
+        Sampling the detuning at spacing ``h`` makes the summed response repeat
+        at ``t = 1 / h``. That echo is spurious, so it must fall outside the
+        window of length ``t_max - t_min``; the spacing is
+        ``THERMAL_ECHO_MARGIN`` of the window's reciprocal. Decay damps the
+        echo, but this ignores that, so it is safe for any system.
+        """
+        return THERMAL_ECHO_MARGIN / (self.t_max - self.t_min)
 
     def _build_thermal_delta_list(self, vc: dict) -> np.ndarray:
         """Merge the outer and inner detuning ranges into one sorted unique array.
@@ -232,6 +270,19 @@ class PropagationSolver(LindbladSolver):
         Returns:
             1-D array of thermal detuning values in angular-frequency units.
         """
+        spacing = vc.get("thermal_delta_spacing")
+        if spacing is not None:
+            if spacing == "auto":
+                spacing = self.thermal_delta_auto_spacing()
+            span = vc["thermal_delta_max"] - vc["thermal_delta_min"]
+            steps = int(np.ceil(span / spacing * (1.0 - 1e-12)))
+            return (
+                2
+                * np.pi
+                * np.linspace(
+                    vc["thermal_delta_min"], vc["thermal_delta_max"], steps + 1
+                )
+            )
         outer = np.linspace(
             2 * np.pi * vc["thermal_delta_min"],
             2 * np.pi * vc["thermal_delta_max"],
