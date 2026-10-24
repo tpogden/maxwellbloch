@@ -726,6 +726,157 @@ class TestBuildThermalDeltaList(unittest.TestCase):
         self.assertTrue(np.all(np.diff(deltas) > 0))
 
 
+class TestThermalWeights(unittest.TestCase):
+    """thermal_weights is the Boltzmann density; the Doppler average uses it
+    times the detuning interval each class represents (thermal_widths)."""
+
+    BANDED = {
+        "thermal_width": 1.0,
+        "thermal_delta_min": -4.0,
+        "thermal_delta_max": 4.0,
+        "thermal_delta_steps": 8,
+        "thermal_delta_inner_min": -1.0,
+        "thermal_delta_inner_max": 1.0,
+        "thermal_delta_inner_steps": 6,
+    }
+
+    def setUp(self):
+        self.mbs = PropagationSolver()
+
+    def _quadrature(self, **vc):
+        self.mbs.build_velocity_classes({"thermal_width": 1.0, **vc})
+        q = self.mbs.thermal_quadrature_weights
+        return self.mbs.thermal_delta_list, q / q.sum()
+
+    def test_thermal_weights_stay_the_boltzmann_density(self):
+        deltas, w = self.mbs.build_velocity_classes(self.BANDED)
+        np.testing.assert_allclose(
+            w, utility.maxwell_boltzmann(deltas, 2 * np.pi), rtol=1e-12
+        )
+
+    def test_uniform_grid_quadrature_is_proportional_to_density(self):
+        _, w = self.mbs.build_velocity_classes(
+            {
+                "thermal_width": 1.0,
+                "thermal_delta_min": -3.0,
+                "thermal_delta_max": 3.0,
+                "thermal_delta_steps": 12,
+            }
+        )
+        q = self.mbs.thermal_quadrature_weights
+        np.testing.assert_allclose(q / q.sum(), w / w.sum(), rtol=1e-12)
+
+    def test_widths(self):
+        """Interior widths are half the distance between neighbours; the end
+        classes take their whole adjacent gap."""
+        np.testing.assert_allclose(
+            PropagationSolver._thermal_spacings(np.array([0.0, 1.0, 3.0, 4.0])),
+            [1.0, 1.5, 1.5, 1.0],
+        )
+
+    def test_single_class_quadrature_weight_is_the_density(self):
+        deltas, w = self.mbs.build_velocity_classes(None)
+        self.assertEqual(len(w), 1)
+        np.testing.assert_allclose(self.mbs.thermal_widths, [1.0])
+        np.testing.assert_allclose(
+            self.mbs.thermal_quadrature_weights,
+            utility.maxwell_boltzmann(deltas, 2 * np.pi),
+        )
+
+    def test_nonuniform_grid_matches_fine_uniform_grid(self):
+        """An inner band must not over-weight the dense region."""
+        fine = {
+            "thermal_delta_min": -6.0,
+            "thermal_delta_max": 6.0,
+            "thermal_delta_steps": 2400,
+        }
+        banded = {
+            "thermal_delta_min": -6.0,
+            "thermal_delta_max": 6.0,
+            "thermal_delta_steps": 120,
+            "thermal_delta_inner_min": -1.0,
+            "thermal_delta_inner_max": 1.0,
+            "thermal_delta_inner_steps": 40,
+        }
+        d_f, w_f = self._quadrature(**fine)
+        d_b, w_b = self._quadrature(**banded)
+        # Compare a smooth observable: the weighted second moment of Delta.
+        m2_f = np.sum(w_f * d_f**2)
+        m2_b = np.sum(w_b * d_b**2)
+        self.assertLess(abs(m2_b / m2_f - 1.0), 2e-3)
+        # The unweighted Boltzmann density over-weights the dense inner band.
+        raw = utility.maxwell_boltzmann(d_b, 2 * np.pi)
+        m2_raw = np.sum(raw / raw.sum() * d_b**2)
+        self.assertGreater(abs(m2_raw / m2_f - 1.0), 10 * abs(m2_b / m2_f - 1.0))
+
+    def test_symmetric_grid_gives_symmetric_weights(self):
+        _, w = self._quadrature(**self.BANDED)
+        np.testing.assert_allclose(w, w[::-1], rtol=1e-9)
+
+    def test_symmetric_banded_grid_keeps_drives_equivalent(self):
+        """A mirror-symmetric banded grid has mirrored quadrature weights, so
+        _drive_can_differ must not flip because of them."""
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.build_velocity_classes(self.BANDED)
+        self.assertFalse(mbs._drive_can_differ())
+        mbs.build_velocity_classes({**self.BANDED, "thermal_delta_max": 4.5})
+        self.assertTrue(mbs._drive_can_differ())
+
+    def _banded_savefile(self, tmpdir, banded, marker):
+        import qutip as qu
+
+        mbs = PropagationSolver().from_json(os.path.join(JSON_DIR, "mb_solve_01.json"))
+        mbs.build_velocity_classes(self.BANDED if banded else None)
+        mbs.solve()
+        meta = mbs._savefile_metadata()
+        if not marker:
+            del meta["thermal_quadrature"]
+        mbs.savefile = os.path.join(tmpdir, "result")
+        qu.qsave((mbs._Omegas_zt, mbs.states_zt, meta), mbs.savefile)
+        return mbs
+
+    def test_savefile_without_marker_rejected_on_nonuniform_grid(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mbs = self._banded_savefile(tmpdir, banded=True, marker=False)
+            with self.assertRaisesRegex(ValueError, "ignored the class spacing"):
+                mbs.load_results()
+
+    def test_savefile_with_marker_loads_on_nonuniform_grid(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mbs = self._banded_savefile(tmpdir, banded=True, marker=True)
+            mbs.load_results()
+
+    def test_savefile_without_marker_loads_on_uniform_grid(self):
+        """Weights are unchanged on a uniform grid, so old results stand."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mbs = self._banded_savefile(tmpdir, banded=False, marker=False)
+            mbs.load_results()
+
+    def test_banded_absorption_matches_doppler_broadened_lorentzian(self):
+        """Solve-level check: a coarse outer grid plus a fine inner band
+        reproduces the Voigt absorption of a two-level system."""
+        with open(os.path.join(JSON_DIR, "velocity-classes.json")) as fh:
+            problem = json.load(fh)
+        rate, width, g = 1.0, 0.3, 1.0
+        problem["z_steps"] = 10
+        problem["interaction_strengths"] = [g]
+        problem["velocity_classes"] = {
+            "thermal_delta_min": -1.5,
+            "thermal_delta_max": 1.5,
+            "thermal_delta_steps": 15,
+            "thermal_delta_inner_min": -0.5,
+            "thermal_delta_inner_max": 0.5,
+            "thermal_delta_inner_steps": 40,
+            "thermal_width": width,
+        }
+        mbs = PropagationSolver().from_json_str(json.dumps(problem))
+        mbs.solve()
+        freq_list = spectral.freq_list(mbs)
+        absorption = spectral.absorption(mbs, 0, -1)
+        voigt = spectral.voigt_two_linear_known(freq_list, rate, width).imag * g
+        self.assertLess(np.max(np.abs(absorption - voigt)), 0.1)
+
+
 class TestInnerSteps(unittest.TestCase):
     """z_steps_inner subdivides each recorded z step; it must not shift slices.
 

@@ -37,7 +37,7 @@ def reference(
         2 * np.pi * np.asarray(s.interaction_strengths, float)
     )  # clerq: g = 2 pi * interaction_strength
     thermal = np.asarray(s.thermal_delta_list, float) / (2 * np.pi)
-    wts = np.asarray(s.thermal_weights, float)
+    wts = np.asarray(s.thermal_quadrature_weights, float)
     wts = wts / wts.sum()
     V = len(thermal)
     det = np.asarray(ops.detunings if detunings is None else detunings, float)
