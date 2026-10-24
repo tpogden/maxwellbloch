@@ -135,3 +135,16 @@
 | rb87 | 2.1e-05 | 6.7e-07 | 6.4e-07 | 1.27 / 0.91 (1.4x) | 7.64 / 5.48 (1.4x) |
 | lambda_eit_long_z | 8.4e-06 | 1.6e-06 | 3.2e-06 | 1.21 / 0.92 (1.3x) | 6.88 / 4.60 (1.5x) |
 | lambda_eit_fine_t | 2.7e-06 | 9.5e-07 | 2.9e-06 | 0.55 / 0.52 (1.1x) | 3.08 / 2.38 (1.3x) |
+
+## E7 equal-cost comparison with gradient-free search
+
+
+44 parameters, budget 550 objective evaluations (a gradient call is charged 6.5), optical depth 25, no Doppler.
+
+| optimiser | per seed | median | cost used |
+|-|-|-|-|
+| adam | 0.459, 0.439, 0.447 | 0.447 | 551 |
+| lbfgsb | 0.000, 0.462, 0.000 | 0.000 | 7 |
+| de | 0.315, 0.336, 0.299 | 0.315 | 528 |
+| cmaes | 0.399, 0.385, 0.404 | 0.399 | 555 |
+| lhs | 0.250, 0.259, 0.232 | 0.250 | 550 |
