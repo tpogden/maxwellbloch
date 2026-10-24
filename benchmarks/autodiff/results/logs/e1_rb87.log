@@ -1,0 +1,4 @@
+rb87 2 {'forward': 1.163, 'reverse': 7.071, 'fd_jax': 3.494, 'forward_ad': 13.172}
+rb87 5 {'forward': 1.29, 'reverse': 7.829, 'fd_jax': 7.78, 'forward_ad': 20.945}
+rb87 10 {'forward': 1.237, 'reverse': 7.454, 'fd_jax': 13.446, 'forward_ad': 34.347}
+rb87 50 {'forward': 1.176, 'reverse': 7.107, 'fd_jax': 60.033, 'forward_ad': 108.287}

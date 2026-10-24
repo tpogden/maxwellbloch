@@ -11,7 +11,7 @@ Per system (moderate grids, so fixed-step references are affordable), with N coe
 import argparse
 
 import numpy as np
-from common import RESULTS, Problem, emit, two_level, lambda_eit, rb87
+from common import RESULTS, Problem, emit, lambda_eit, rb87, two_level
 
 # system: (builder, (n_t, n_z), N coefficients, fixed steps per slice); the step counts are not multiples of
 # the output intervals, and the Rb87 case is smaller because 11 classes on a fixed grid are slow
@@ -23,7 +23,10 @@ GRIDS = {
 
 
 def rel(a, b):
-    return float(np.linalg.norm(np.asarray(a) - np.asarray(b)) / max(np.linalg.norm(np.asarray(b)), 1e-300))
+    return float(
+        np.linalg.norm(np.asarray(a) - np.asarray(b))
+        / max(np.linalg.norm(np.asarray(b)), 1e-300)
+    )
 
 
 def main():
@@ -53,16 +56,38 @@ def main():
         # as h shrinks, so report the whole sequence and its best value
         by_h = {}
         for h in (1e-5, 1e-6, 1e-7, 1e-8):
-            fd = np.array([(float(fixed.value(c0 + h * np.eye(n_coef)[i])) - float(fixed.value(c0 - h * np.eye(n_coef)[i]))) / (2 * h)
-                           for i in range(n_coef)])
+            fd = np.array(
+                [
+                    (
+                        float(fixed.value(c0 + h * np.eye(n_coef)[i]))
+                        - float(fixed.value(c0 - h * np.eye(n_coef)[i]))
+                    )
+                    / (2 * h)
+                    for i in range(n_coef)
+                ]
+            )
             by_h[f"{h:g}"] = rel(g_fixed, fd)
         fd_norm = float(np.linalg.norm(np.asarray(g_fixed)))
         _, g_adapt = adaptive.value_and_grad(c0)
         _, g_fwd = fixed.forward_mode_grad()(c0)
-        emit({"exp": a.tag, "system": name, "N": n_coef, "n_steps_fixed": n_fixed, "n_t": n_t, "n_z": n_z, "n_classes": len(solver.thermal_delta_list),
-              "field_error_vs_solve": field_error, "ad_vs_fd_fixed": min(by_h.values()), "ad_vs_fd_by_step": by_h,
-              "fwd_vs_rev": rel(g_fwd, g_fixed), "adaptive_vs_fixed": rel(g_adapt, g_fixed),
-              "grad_norm": fd_norm}, out)
+        emit(
+            {
+                "exp": a.tag,
+                "system": name,
+                "N": n_coef,
+                "n_steps_fixed": n_fixed,
+                "n_t": n_t,
+                "n_z": n_z,
+                "n_classes": len(solver.thermal_delta_list),
+                "field_error_vs_solve": field_error,
+                "ad_vs_fd_fixed": min(by_h.values()),
+                "ad_vs_fd_by_step": by_h,
+                "fwd_vs_rev": rel(g_fwd, g_fixed),
+                "adaptive_vs_fixed": rel(g_adapt, g_fixed),
+                "grad_norm": fd_norm,
+            },
+            out,
+        )
         print(name, "done", flush=True)
 
 

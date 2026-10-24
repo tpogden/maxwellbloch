@@ -20,13 +20,35 @@ import numpy as np
 from common import RESULTS, Problem, emit, make_solver, summarise, time_once
 
 
+def make_methods(prob, coef):
+    """The callables to time for one problem: the forward pass and the gradient methods."""
+
+    def fwd():
+        return prob.ad.propagate({"omega0": prob._field(coef)})
+
+    fd = prob.fd_jax()
+    methods = {
+        "forward": fwd,
+        "reverse": lambda: prob.value_and_grad(coef),
+        "fd_jax": lambda: fd(coef),
+    }
+    return fwd, methods
+
+
+def forward_mode_method(prob, coef):
+    grad = prob.forward_mode_grad()
+    return lambda: grad(coef)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--systems", nargs="+", default=["two_level", "lambda_eit", "rb87"])
     p.add_argument("--ns", nargs="+", type=int, default=[2, 5, 10, 50, 100])
     p.add_argument("--repeats", type=int, default=7)
     p.add_argument("--tag", default="e1")
-    p.add_argument("--quick", action="store_true", help="tiny grids, 2 repeats (smoke test)")
+    p.add_argument(
+        "--quick", action="store_true", help="tiny grids, 2 repeats (smoke test)"
+    )
     p.add_argument("--out", default=None)
     a = p.parse_args()
 
@@ -44,28 +66,37 @@ def main():
             t = time.perf_counter()
             solver.solve(recalc=True, progress=False, check_stability=False)
             solves.append(time.perf_counter() - t)
-        emit({"exp": a.tag, "system": name, "method": "clerq_solve", "N": 0, **summarise(solves)}, out)
+        emit(
+            {
+                "exp": a.tag,
+                "system": name,
+                "method": "clerq_solve",
+                "N": 0,
+                **summarise(solves),
+            },
+            out,
+        )
 
         for n in a.ns:
             prob = Problem(solver, n)
             coef = prob.coef0
-            fwd = lambda: prob.ad.propagate({"omega0": prob._field(coef)})  # noqa: E731
-            methods = {
-                "forward": fwd,
-                "reverse": lambda: prob.value_and_grad(coef),
-                "fd_jax": lambda: prob.fd_jax()(coef),
-            }
+            fwd, methods = make_methods(prob, coef)
             skipped = {}
             # time one warm forward pass to size the slow methods
             for _ in range(2):
                 time_once(fwd)
             t_fwd = min(time_once(fwd) for _ in range(2))
             if 2.0 * n * t_fwd < 120.0:
-                methods["forward_ad"] = (lambda g: (lambda: g(coef)))(prob.forward_mode_grad())
+                methods["forward_ad"] = forward_mode_method(prob, coef)
             else:
-                skipped["forward_ad"] = f"estimated {2.0 * n * t_fwd:.0f} s per gradient"
+                skipped["forward_ad"] = (
+                    f"estimated {2.0 * n * t_fwd:.0f} s per gradient"
+                )
             for k, why in skipped.items():
-                emit({"exp": a.tag, "system": name, "method": k, "N": n, "skipped": why}, out)
+                emit(
+                    {"exp": a.tag, "system": name, "method": k, "N": n, "skipped": why},
+                    out,
+                )
             # warm every method once (compilation), then interleave the repeats
             t_compile = {}
             for k, f in methods.items():
@@ -79,9 +110,18 @@ def main():
                 for k, f in methods.items():
                     times[k].append(time_once(f))
             for k, ts in times.items():
-                rec = {"exp": a.tag, "system": name, "method": k, "N": n, "dim": solver.system.num_states,
-                       "n_t": len(solver.tlist), "n_z": solver.z_steps, "n_classes": len(solver.thermal_delta_list),
-                       "first_call_s": t_compile[k], **summarise(ts)}
+                rec = {
+                    "exp": a.tag,
+                    "system": name,
+                    "method": k,
+                    "N": n,
+                    "dim": solver.system.num_states,
+                    "n_t": len(solver.tlist),
+                    "n_z": solver.z_steps,
+                    "n_classes": len(solver.thermal_delta_list),
+                    "first_call_s": t_compile[k],
+                    **summarise(ts),
+                }
                 emit(rec, out)
             med = {k: float(np.median(v)) for k, v in times.items()}
             print(name, n, {k: round(v, 3) for k, v in med.items()}, flush=True)

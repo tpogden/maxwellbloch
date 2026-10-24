@@ -18,8 +18,10 @@ def child(name: str, n: int, quick: bool, tag: str):
     prob = Problem(make_solver(name, quick), n)
     c = prob.coef0
     rec = {"exp": tag, "system": name, "N": n}
-    for label, f in (("forward", lambda: prob.ad.propagate({"omega0": prob._field(c)})),
-                     ("reverse", lambda: prob.value_and_grad(c))):
+    for label, f in (
+        ("forward", lambda: prob.ad.propagate({"omega0": prob._field(c)})),
+        ("reverse", lambda: prob.value_and_grad(c)),
+    ):
         first = time_once(f)
         steady = min(time_once(f) for _ in range(3))
         rec[f"{label}_first_s"], rec[f"{label}_steady_s"] = first, steady
@@ -37,10 +39,25 @@ def main():
     if a.child:
         return child(a.child, a.n, a.quick, a.tag)
     for name in a.systems:
-        cmd = [sys.executable, __file__, "--child", name, "--n", str(a.n), "--tag", a.tag] + (["--quick"] if a.quick else [])
+        cmd = [
+            sys.executable,
+            __file__,
+            "--child",
+            name,
+            "--n",
+            str(a.n),
+            "--tag",
+            a.tag,
+        ] + (["--quick"] if a.quick else [])
         t = time.perf_counter()
         subprocess.run(cmd, check=True)
-        print(name, "compile benchmark done in", round(time.perf_counter() - t, 1), "s", flush=True)
+        print(
+            name,
+            "compile benchmark done in",
+            round(time.perf_counter() - t, 1),
+            "s",
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

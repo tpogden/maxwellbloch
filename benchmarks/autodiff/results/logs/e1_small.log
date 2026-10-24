@@ -1,0 +1,10 @@
+two_level 2 {'forward': 0.592, 'reverse': 3.323, 'fd_jax': 1.789, 'forward_ad': 3.683}
+two_level 5 {'forward': 0.574, 'reverse': 3.22, 'fd_jax': 3.44, 'forward_ad': 3.998}
+two_level 10 {'forward': 0.728, 'reverse': 4.272, 'fd_jax': 8.108, 'forward_ad': 5.823}
+two_level 50 {'forward': 0.676, 'reverse': 3.87, 'fd_jax': 34.57, 'forward_ad': 8.353}
+two_level 100 {'forward': 0.618, 'reverse': 3.492, 'fd_jax': 61.676}
+lambda_eit 2 {'forward': 0.12, 'reverse': 0.697, 'fd_jax': 0.361, 'forward_ad': 0.679}
+lambda_eit 5 {'forward': 0.125, 'reverse': 0.728, 'fd_jax': 0.75, 'forward_ad': 1.209}
+lambda_eit 10 {'forward': 0.133, 'reverse': 0.753, 'fd_jax': 1.452, 'forward_ad': 2.1}
+lambda_eit 50 {'forward': 0.132, 'reverse': 0.762, 'fd_jax': 6.77, 'forward_ad': 4.312}
+lambda_eit 100 {'forward': 0.145, 'reverse': 0.832, 'fd_jax': 14.655, 'forward_ad': 9.051}
