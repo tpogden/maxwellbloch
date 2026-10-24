@@ -1,7 +1,7 @@
 # clerq.autodiff benchmarks
 
 A reproducible harness for the measurements on the docs page
-[Autodiff performance and validation](../../docs/usage/autodiff-performance.qmd). It is not run by CI.
+[Autodiff performance and validation](../../docs/benchmarks.qmd). It is not run by CI.
 
 | file | experiment |
 |-|-|
@@ -11,7 +11,7 @@ A reproducible harness for the measurements on the docs page
 | `e4_compile.py` | E4: compile time and first-call against steady-state time (fresh process per system) |
 | `e5_time_to_solution.py` | E5: a Doppler-broadened memory design problem, free-form autodiff design against a 5-parameter baseline |
 | `run_tier2.sh` | everything above, one after another (about 5 hours), plus E6: E1 on the commit before PR 361 and after it |
-| `analyse.py` | tables (`results/tables.md`) and the figures in `docs/usage/figures` |
+| `analyse.py` | tables (`results/tables.md`) and the figures in `docs/benchmarks-figures` |
 | `results/` | the raw JSONL records (one per cell, with machine and version metadata) and the logs |
 
 Run one experiment, for example:

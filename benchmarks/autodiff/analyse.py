@@ -1,6 +1,6 @@
 """Turn the JSONL results into markdown tables (results/tables.md) and figures.
 
-uv run python benchmarks/autodiff/analyse.py [--figures-dir docs/usage/figures] [--prefix smoke_]
+uv run python benchmarks/autodiff/analyse.py [--figures-dir docs/benchmarks-figures] [--prefix smoke_]
 """
 
 import argparse
@@ -329,7 +329,7 @@ def figures(e1, e2, outdir: Path):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument(
-        "--figures-dir", default=str(HERE.parent.parent / "docs" / "usage" / "figures")
+        "--figures-dir", default=str(HERE.parent.parent / "docs" / "benchmarks-figures")
     )
     p.add_argument("--no-figures", action="store_true")
     p.add_argument("--prefix", default="")

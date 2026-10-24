@@ -17,6 +17,12 @@ master equation. It is used for near-resonant light in thermal atomic vapours,
 with two-, three- and many-level atoms, spontaneous decay, dephasing and
 Doppler broadening.
 
+clerq is also differentiable. With the optional `jax` extra,
+[`clerq.autodiff`](api/autodiff.AutodiffPropagation.qmd) computes exact
+gradients of the propagated field, and any loss built from it, with respect to
+pulse parameters and other inputs, so you can design pulses by gradient descent. See [Pulse design with autodiff](examples/autodiff-pulse-design.ipynb),
+the [recipes](usage/autodiff-recipes.ipynb) and the [benchmarks](benchmarks.qmd).
+
 ```{python}
 #| echo: false
 #| code-fold: true
@@ -117,7 +123,8 @@ Modules are also available for:
 * Generating hyperfine structure for alkali atoms with the correct channels and
   angular momentum factors for coupling and decay,
 * Spectral analysis,
-* Plotting and animating solutions.
+* Plotting and animating solutions,
+* Automatic differentiation for pulse design and parameter fitting.
 
 Some phenomena that can be demonstrated:
 
