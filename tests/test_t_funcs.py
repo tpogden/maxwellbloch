@@ -138,8 +138,17 @@ class TestSquare(unittest.TestCase):
         with self.assertRaises(KeyError):
             t_funcs.square(1)(0.5, {"on_1": 0.2, "off_1": 0.7})
 
+    def test_n_pi_empty_window(self):
+        t_args = {"n_pi_1": 1.0, "on_1": 0.7, "off_1": 0.7}
+        with self.assertRaises(ValueError):
+            t_funcs.square(1)(0.5, t_args)
+
 
 class TestSin2(unittest.TestCase):
+    def test_empty_window(self):
+        with self.assertRaises(ValueError):
+            t_funcs.sin2(1)(0.5, {"ampl_1": 1.0, "on_1": 0.7, "off_1": 0.7})
+
     def test_shape(self):
         """sin2 peaks at the midpoint, vanishes at and outside the edges."""
         tlist = np.linspace(0.0, 1.0, 1001)

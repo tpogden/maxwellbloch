@@ -32,7 +32,8 @@ def square(index: int) -> TFunc:
         Callable ``f(t, args)`` reading ``on_{index}``, ``off_{index}`` and
         either ``ampl_{index}`` or ``n_pi_{index}`` from args. Returns
         ``ampl`` between ``on`` and ``off``, zero outside. Raises ``KeyError``
-        if both or neither amplitude parameters are present.
+        if both or neither amplitude parameters are present, and
+        ``ValueError`` if ``n_pi`` is used with ``off <= on``.
 
     Notes:
         The amplitude can be set directly via ``ampl_{index}`` or indirectly
@@ -49,6 +50,8 @@ def square(index: int) -> TFunc:
                 raise KeyError("t_args can contain ampl or n_pi, not both.")
             ampl = args[ampl_idx]
         elif n_pi_idx in args:
+            if off <= on:
+                raise ValueError("n_pi needs off > on to define the pulse area.")
             ampl = args[n_pi_idx] / (2 * (off - on))
         else:
             raise KeyError("t_args must contain ampl or n_pi.")
@@ -262,7 +265,7 @@ def sin2(index: int) -> TFunc:
 
     Returns:
         Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}`` and
-        ``off_{index}`` from args.
+        ``off_{index}`` from args. Raises ``ValueError`` if ``off <= on``.
 
     Notes:
         The peak, ``ampl``, is at the midpoint of ``on`` and ``off``. The FWHM
@@ -273,6 +276,8 @@ def sin2(index: int) -> TFunc:
         on = args["on_" + str(index)]
         off = args["off_" + str(index)]
         ampl = args["ampl_" + str(index)]
+        if off <= on:
+            raise ValueError("sin2 needs off > on.")
         inside = (t >= on) * (t <= off)
         return ampl * np.sin(pi * (t - on) / (off - on)) ** 2 * inside
 

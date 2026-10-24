@@ -168,3 +168,42 @@ def test_continuous_ramp_edges_are_differentiable():
     assert _rel(got, fd) < 1e-5, (got, fd)
     assert abs(float(g["pulse_args"][0]["on"])) > 1e-6
     assert abs(float(g["pulse_args"][0]["off"])) > 1e-6
+
+
+# ---- 3. the pulses added after square: end to end through to_autodiff -------------
+
+NEW_PULSES = {
+    "sin2": {"ampl": 1.5, "on": 0.4, "off": 2.4},
+    "super_gaussian": {"ampl": 1.5, "centre": 1.5, "fwhm": 1.2, "order": 2.0},
+    "exp_decay": {"ampl": 1.5, "on": 0.5, "tau": 0.8},
+    "exp_rise": {"ampl": 1.5, "off": 2.5, "tau": 0.8},
+    "square": {"n_pi": 1.5, "on": 0.6, "off": 2.1},
+}
+# the edge times at which each pulse is discontinuous
+HELD_FIXED = {"exp_decay": ("on",), "exp_rise": ("off",), "square": ("on", "off")}
+
+
+@pytest.mark.parametrize("name", list(NEW_PULSES))
+def test_new_pulse_gradient_matches_finite_differences(name):
+    ad = _ad(_problem(name, NEW_PULSES[name], literal=float), n_steps=N_FIXED)
+    _, g = ad.value_and_grad(loss)
+    held = set(HELD_FIXED.get(name, ()))
+    assert set(g["pulse_args"][0]) == set(NEW_PULSES[name]) - held
+    fd = _fd_gradient(ad, ad._differentiable_default_params())
+    got = np.asarray(ravel_pytree(g)[0])
+    assert _rel(got, fd) < 1e-5, (got, fd)
+    assert np.abs(got).max() > 1e-3  # non-vacuous
+
+
+@pytest.mark.parametrize("name", list(HELD_FIXED))
+def test_new_discontinuous_pulse_edges_are_rejected(name):
+    ad = _ad(_problem(name, NEW_PULSES[name], literal=float), n_steps=N_FIXED)
+    for edge in HELD_FIXED[name]:
+        with pytest.raises(ValueError, match=name):
+            ad.value_and_grad(loss, {"pulse_args": [{edge: NEW_PULSES[name][edge]}]})
+
+
+def test_sin2_edges_are_differentiable():
+    ad = _ad(_problem("sin2", NEW_PULSES["sin2"], literal=float), n_steps=N_FIXED)
+    _, g = ad.value_and_grad(loss, {"pulse_args": [{"on": 0.4, "off": 2.4}]})
+    assert set(g["pulse_args"][0]) == {"on", "off"}

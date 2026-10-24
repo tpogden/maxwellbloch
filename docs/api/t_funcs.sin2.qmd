@@ -20,7 +20,7 @@ between ``on`` and ``off``, zero outside.
 | Name   | Type   | Description                                                          |
 |--------|--------|----------------------------------------------------------------------|
 |        | TFunc  | Callable ``f(t, args)`` reading ``ampl_{index}``, ``on_{index}`` and |
-|        | TFunc  | ``off_{index}`` from args.                                           |
+|        | TFunc  | ``off_{index}`` from args. Raises ``ValueError`` if ``off <= on``.   |
 
 ## Notes {.doc-section .doc-section-notes}
 

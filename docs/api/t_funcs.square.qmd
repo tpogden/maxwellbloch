@@ -19,7 +19,8 @@ Return a square (top-hat) pulse time function.
 |        | TFunc  | Callable ``f(t, args)`` reading ``on_{index}``, ``off_{index}`` and    |
 |        | TFunc  | either ``ampl_{index}`` or ``n_pi_{index}`` from args. Returns         |
 |        | TFunc  | ``ampl`` between ``on`` and ``off``, zero outside. Raises ``KeyError`` |
-|        | TFunc  | if both or neither amplitude parameters are present.                   |
+|        | TFunc  | if both or neither amplitude parameters are present, and               |
+|        | TFunc  | ``ValueError`` if ``n_pi`` is used with ``off <= on``.                 |
 
 ## Notes {.doc-section .doc-section-notes}
 

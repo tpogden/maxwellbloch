@@ -18,6 +18,14 @@ class names, as they were at the time. See
 
 ## Unreleased
 
+**New time functions.** `clerq.t_funcs` has four new pulse shapes: `sin2` (a sin-squared pulse of
+finite duration between `on` and `off`), `super_gaussian` (a flat-top pulse with smooth edges; `order`
+1 is a Gaussian and `fwhm` is the FWHM at every order), and `exp_decay` and `exp_rise` (single-sided
+exponentials, the envelopes of an emitted and an absorbed photon). `square` takes `n_pi`, the pulse area
+in multiples of $\pi$, as an alternative to `ampl`, and `sinc` takes an optional `centre`. All work with
+`clerq.autodiff`; as with `square`, the edge time where `exp_decay` and `exp_rise` jump (`on`, `off`)
+cannot be differentiated. See [Built-in time functions](usage/built-in-time-functions.ipynb).
+
 **Float32 gradients.** `clerq.autodiff` no longer insists on 64-bit precision. It computes in
 whatever precision JAX is set to, so it runs with JAX's default (float32) as well as with
 `jax_enable_x64`, and the solver tolerances default to values each precision can meet. On the
